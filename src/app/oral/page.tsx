@@ -23,7 +23,15 @@ export default function OralCoach() {
       // 1. Get ephemeral token from our API
       const tokenResponse = await fetch("/api/oral/session");
       const data = await tokenResponse.json();
-      const EPHEMERAL_KEY = data.client_secret.value;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const EPHEMERAL_KEY = data.client_secret?.value;
+      if (!EPHEMERAL_KEY) {
+        throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
+      }
 
       // 2. Create Peer Connection
       const pc = new RTCPeerConnection();

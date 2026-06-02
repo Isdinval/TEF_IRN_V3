@@ -16,5 +16,11 @@ export async function GET() {
   });
 
   const data = await response.json();
+
+  if (!response.ok) {
+    console.error("OpenAI Realtime Session Error:", data);
+    return NextResponse.json({ error: data.error?.message || "Erreur OpenAI" }, { status: response.status });
+  }
+
   return NextResponse.json(data);
 }
