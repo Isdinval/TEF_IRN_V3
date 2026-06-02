@@ -1,28 +1,113 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Volume2, MessageSquare, Target, Sparkles } from "lucide-react";
+import { Mic, MicOff, Loader2, Volume2, MessageSquare, Sparkles } from "lucide-react";
 
 export default function OralCoach() {
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [status, setStatus] = useState<"idle" | "connecting" | "active">("idle");
+  const [isListening, setIsListening] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [aiResponse, setAiResponse] = useState("");
 
-  const handleToggleMic = () => {
-    if (status === "idle") {
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const dataChannel = useRef<RTCDataChannel | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const startSession = async () => {
+    try {
       setStatus("connecting");
-      // Simulation de connexion Realtime API
-      setTimeout(() => {
-        setStatus("active");
-        setIsListening(true);
-      }, 1500);
-    } else {
-      setIsListening(!isListening);
+
+      // 1. Get ephemeral token from our API
+      const tokenResponse = await fetch("/api/oral/session");
+      const data = await tokenResponse.json();
+      const EPHEMERAL_KEY = data.client_secret.value;
+
+      // 2. Create Peer Connection
+      const pc = new RTCPeerConnection();
+      peerConnection.current = pc;
+
+      // 3. Set up audio playback
+      const audioEl = document.createElement("audio");
+      audioEl.autoplay = true;
+      audioRef.current = audioEl;
+      pc.ontrack = (e) => {
+        audioEl.srcObject = e.streams[0];
+      };
+
+      // 4. Add local microphone track
+      const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+      pc.addTrack(ms.getTracks()[0]);
+
+      // 5. Set up data channel for events (transcription, etc)
+      const dc = pc.createDataChannel("oai-events");
+      dataChannel.current = dc;
+      dc.onmessage = (e) => {
+        const event = JSON.parse(e.data);
+        // Handle transcription events
+        if (event.type === "conversation.item.input_audio_transcription.completed") {
+          setTranscription(prev => prev + " " + event.transcript);
+        }
+        if (event.type === "response.audio_transcript.delta") {
+          setAiResponse(prev => prev + event.delta);
+        }
+        if (event.type === "response.audio_transcript.done") {
+           // Response finished
+        }
+      };
+
+      // 6. Create and set local description (offer)
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      // 7. Connect to OpenAI Realtime WebRTC
+      const baseUrl = "https://api.openai.com/v1/realtime";
+      const model = "gpt-4o-realtime-preview-2024-10-01";
+      const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
+        method: "POST",
+        body: offer.sdp,
+        headers: {
+          Authorization: `Bearer ${EPHEMERAL_KEY}`,
+          "Content-Type": "application/sdp",
+        },
+      });
+
+      const answer: RTCSessionDescriptionInit = {
+        type: "answer",
+        sdp: await sdpResponse.text(),
+      };
+      await pc.setRemoteDescription(answer);
+
+      setStatus("active");
+      setIsListening(true);
+    } catch (err) {
+      console.error("Session start error:", err);
+      setStatus("idle");
+      alert("Erreur lors de la connexion au micro. Vérifiez les autorisations.");
+    }
+  };
+
+  const stopSession = () => {
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    setStatus("idle");
+    setIsListening(false);
+    setTranscription("");
+    setAiResponse("");
+  };
+
+  const toggleMic = () => {
+    if (peerConnection.current) {
+      const senders = peerConnection.current.getSenders();
+      const audioTrack = senders.find(s => s.track?.kind === 'audio')?.track;
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsListening(audioTrack.enabled);
+      }
     }
   };
 
@@ -40,13 +125,12 @@ export default function OralCoach() {
 
       <div className="flex-1 flex flex-col gap-6 min-h-0">
         <Card className="flex-1 flex flex-col items-center justify-center relative overflow-hidden bg-slate-950 border-slate-800">
-          {/* Animation d'onde sonore */}
-          {status === "active" && (
+          {status === "active" && isListening && (
             <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
               {[...Array(12)].map((_, i) => (
                 <div
                   key={i}
-                  className={`w-2 bg-indigo-500 rounded-full animate-bounce`}
+                  className="w-2 bg-indigo-500 rounded-full animate-bounce"
                   style={{
                     height: `${Math.random() * 60 + 20}%`,
                     animationDelay: `${i * 0.1}s`,
@@ -73,7 +157,7 @@ export default function OralCoach() {
               <h3 className="text-xl font-semibold text-white">
                 {status === "idle" && "Prêt à parler ?"}
                 {status === "connecting" && "Connexion au Coach..."}
-                {status === "active" && (isListening ? "Le Coach vous écoute..." : "Appuyez pour parler")}
+                {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
               </h3>
               <p className="text-slate-400 text-sm mt-2">
                 {status === "active" ? "Parlez naturellement, comme lors de l'examen." : "Cliquez sur le bouton ci-dessous pour démarrer la session."}
@@ -89,8 +173,8 @@ export default function OralCoach() {
                 <MessageSquare size={14} className="text-indigo-500" /> Transcription
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 text-sm text-muted-foreground min-h-[100px]">
-              {transcription || "Votre voix apparaîtra ici..."}
+            <CardContent className="p-4 text-sm text-muted-foreground min-h-[100px] max-h-[150px] overflow-auto">
+              {transcription || "Votre voix apparaîtra ici après chaque phrase..."}
             </CardContent>
           </Card>
 
@@ -100,8 +184,8 @@ export default function OralCoach() {
                 <Volume2 size={14} className="text-green-500" /> Réponse du Coach
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 text-sm font-medium min-h-[100px]">
-              {aiResponse || "Le coach répondra à vos questions."}
+            <CardContent className="p-4 text-sm font-medium min-h-[100px] max-h-[150px] overflow-auto text-indigo-900">
+              {aiResponse || "Le coach répondra vocalement."}
             </CardContent>
           </Card>
         </div>
@@ -109,18 +193,18 @@ export default function OralCoach() {
 
       <footer className="flex justify-center gap-4">
         {status === "idle" ? (
-          <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 px-8 py-6 rounded-full text-lg font-bold" onClick={handleToggleMic}>
+          <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 px-8 py-6 rounded-full text-lg font-bold" onClick={startSession}>
             Démarrer la session
           </Button>
         ) : (
           <>
-            <Button size="lg" variant="outline" className="rounded-full px-8" onClick={() => setStatus("idle")}>
+            <Button size="lg" variant="outline" className="rounded-full px-8" onClick={stopSession}>
               Quitter
             </Button>
             <Button
               size="lg"
               className={`${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-full px-8 transition-colors`}
-              onClick={() => setIsListening(!isListening)}
+              onClick={toggleMic}
             >
               {isListening ? <><MicOff className="mr-2" /> Couper le micro</> : <><Mic className="mr-2" /> Activer le micro</>}
             </Button>
