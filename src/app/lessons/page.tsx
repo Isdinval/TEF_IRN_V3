@@ -58,26 +58,28 @@ export default function LessonsPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {levelLessons.map((lesson) => (
-                <Card key={lesson.id} className="hover:border-indigo-300 transition-all group cursor-pointer">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg group-hover:text-indigo-600 transition-colors">
-                        {lesson.title}
-                      </CardTitle>
-                      <CardDescription className="capitalize">
-                        {lesson.category}
-                      </CardDescription>
-                    </div>
-                    <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors">
-                      <BookOpen size={18} className="text-slate-400 group-hover:text-indigo-600" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="ghost" className="w-full justify-between p-0 hover:bg-transparent group-hover:translate-x-1 transition-transform">
-                      Commencer la leçon <ChevronRight size={16} />
-                    </Button>
-                  </CardContent>
-                </Card>
+                <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
+                  <Card className="hover:border-indigo-300 transition-all group cursor-pointer h-full">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg group-hover:text-indigo-600 transition-colors">
+                          {lesson.title}
+                        </CardTitle>
+                        <CardDescription className="capitalize">
+                          {lesson.category}
+                        </CardDescription>
+                      </div>
+                      <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors">
+                        <BookOpen size={18} className="text-slate-400 group-hover:text-indigo-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between text-sm font-medium text-indigo-600 group-hover:translate-x-1 transition-transform">
+                        Commencer la leçon <ChevronRight size={16} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </section>

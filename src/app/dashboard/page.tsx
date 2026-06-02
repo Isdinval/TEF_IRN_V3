@@ -10,6 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Flame, Target, BookOpen, PenTool, CheckCircle2, Loader2 } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
 import { Profile, Recommendation } from "@/types/database";
+import { PageTransition, FadeIn } from "@/components/shared/Animations";
+import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -71,9 +73,16 @@ export default function Dashboard() {
   const streak = profile?.streak_count || 0;
   const xp = profile?.total_xp || 0;
   const level = profile?.current_level || "A1";
-  const nextLevelXp = 2000; // À dynamiser plus tard selon le niveau
+  const xpConfig = {
+    A1: { next: 1000, color: "bg-emerald-500" },
+    A2: { next: 2500, color: "bg-blue-500" },
+    B1: { next: 5000, color: "bg-indigo-500" },
+    B2: { next: 10000, color: "bg-purple-500" },
+  };
+  const currentXpLimit = xpConfig[level as keyof typeof xpConfig]?.next || 2000;
 
   return (
+    <PageTransition>
     <div className="flex flex-col gap-8 p-8 max-w-6xl mx-auto">
       <header className="flex justify-between items-end">
         <div>
@@ -149,10 +158,20 @@ export default function Dashboard() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Niveau {level}</span>
-                  <span>{xp} / {nextLevelXp} XP</span>
+                  <span className="font-bold text-indigo-600">Palier {level}</span>
+                  <span className="text-slate-400">{xp} / {currentXpLimit} XP</span>
                 </div>
-                <Progress value={(xp / nextLevelXp) * 100} className="h-2" />
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((xp / currentXpLimit) * 100, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className={`h-full ${xpConfig[level as keyof typeof xpConfig]?.color || 'bg-indigo-600'}`}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2 italic text-center">
+                  Plus que {Math.max(currentXpLimit - xp, 0)} XP avant le niveau suivant
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -181,5 +200,6 @@ export default function Dashboard() {
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }
