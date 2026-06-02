@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Volume2, ArrowRight, RotateCcw, CheckCircle2, XCircle, LayoutGrid, GraduationCap, Loader2 } from "lucide-react";
-import { updateSRS } from "@/lib/srs-engine";
+import { Volume2, ArrowRight, RotateCcw, CheckCircle2, XCircle, LayoutGrid, GraduationCap, Loader2, Calendar } from "lucide-react";
+import { updateVocabularySRS } from "@/lib/srs-engine";
 
 interface Flashcard {
   id: string;
@@ -25,20 +25,41 @@ export default function VocabCoach() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [filters, setFilters] = useState({ level: "A2", category: "Administration" });
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
   const supabase = createClient();
 
   const categories = ["Administration", "Santé", "Travail", "Logement"];
   const levels = ["A1", "A2", "B1", "B2"];
 
-  const startTraining = async () => {
+  const startTraining = async (review: boolean = false) => {
     setLoading(true);
-    const { data } = await supabase
-      .from('vocabulary')
-      .select('*')
-      .eq('level', filters.level)
-      .eq('category', filters.category)
-      .limit(10);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let query = supabase.from('vocabulary').select('*');
+
+    if (review && user) {
+      // Mode Révision SRS
+      const { data: reviews } = await supabase
+        .from('user_vocabulary_reviews')
+        .select('vocab_id')
+        .eq('user_id', user.id)
+        .lte('next_review_at', new Date().toISOString());
+
+      const ids = reviews?.map((r: any) => r.vocab_id) || [];
+      if (ids.length === 0) {
+        alert("Bravo ! Vous n'avez aucune révision urgente pour le moment.");
+        setLoading(false);
+        return;
+      }
+      query = query.in('id', ids);
+      setIsReviewMode(true);
+    } else {
+      query = query.eq('level', filters.level).eq('category', filters.category);
+      setIsReviewMode(false);
+    }
+
+    const { data } = await query.limit(10);
 
     if (data && data.length > 0) {
       setCards(data);
@@ -53,11 +74,9 @@ export default function VocabCoach() {
   };
 
   const handleNext = async (mastered: boolean) => {
-    // SRS Update logic
     const { data: { user } } = await supabase.auth.getUser();
     if (user && cards[index]) {
-      // Simulation d'un score SRS : 100 si maîtrisé, 0 si pas encore
-      // Idéalement, on utiliserait une table dédiée user_vocabulary_reviews
+      await updateVocabularySRS(user.id, cards[index].id, mastered);
     }
 
     if (index < cards.length - 1) {
@@ -110,13 +129,24 @@ export default function VocabCoach() {
           </section>
         </div>
 
-        <Button
-          className="w-full mt-12 h-16 text-xl font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100"
-          onClick={startTraining}
-          disabled={loading}
-        >
-          {loading ? <Loader2 className="animate-spin" /> : "Commencer l'apprentissage"}
-        </Button>
+        <div className="mt-12 space-y-4">
+          <Button
+            className="w-full h-16 text-xl font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100"
+            onClick={() => startTraining(false)}
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="animate-spin" /> : "Découvrir de nouveaux mots"}
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full h-16 text-xl font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-2xl"
+            onClick={() => startTraining(true)}
+            disabled={loading}
+          >
+            <Calendar className="mr-2" /> Réviser mon SRS
+          </Button>
+        </div>
       </div>
     );
   }

@@ -40,6 +40,9 @@ export async function POST(req: Request) {
 
     // 3. Déclencher le moteur de recommandation
     await generateRecommendation(user.id);
+    // Analyse approfondie des erreurs
+    const { analyzeUserErrorsAndRecommend } = await import('@/lib/recommendation-engine');
+    await analyzeUserErrorsAndRecommend(user.id);
 
     // 4. Mettre à jour l'algorithme de répétition espacée (SRS)
     if (exerciseId) {
