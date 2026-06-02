@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,41 +14,32 @@ interface Question {
 }
 
 export default function Practice() {
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [exerciseId, setExerciseId] = useState<string | null>(null);
 
-  const supabase = createClient();
-
-  useEffect(() => {
-    async function loadExercise() {
-      const { data } = await supabase
-        .from('exercises')
-        .select('*')
-        .eq('type', 'qcm')
-        .limit(1)
-        .single();
-
-      if (data) {
-        setExerciseId(data.id);
-        const content = data.content as any;
-        const formattedQuestions = content.questions.map((q: string, i: number) => ({
-          id: `${data.id}-${i}`,
-          text: q,
-          options: content.options[i],
-          correct: content.correct_answers[i]
-        }));
-        setQuestions(formattedQuestions);
-      }
-      setLoading(false);
+  const questions: Question[] = [
+    {
+      id: "1",
+      text: "___ chat dort sur le tapis.",
+      options: ["Le", "Un", "La", "Les"],
+      correct: 0
+    },
+    {
+      id: "2",
+      text: "Nous ___ (parler) français ensemble.",
+      options: ["parle", "parles", "parlons", "parlent"],
+      correct: 2
+    },
+    {
+      id: "3",
+      text: "Elle va ___ boulangerie.",
+      options: ["à", "au", "à la", "aux"],
+      correct: 2
     }
-    loadExercise();
-  }, [supabase]);
+  ];
 
   const currentQuestion = questions[currentStep];
 
@@ -60,35 +50,17 @@ export default function Practice() {
     setIsChecked(true);
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
-      const finalScore = (score / questions.length) * 100;
       setIsFinished(true);
-
-      // Enregistrer le score en base
-      try {
-        await fetch("/api/exercise-complete", {
-          method: "POST",
-          body: JSON.stringify({
-            exerciseId: exerciseId,
-            score: finalScore,
-            answers: []
-          }),
-          headers: { "Content-Type": "application/json" }
-        });
-      } catch (err) {
-        console.error("Failed to save progress", err);
-      }
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-indigo-600" /></div>;
-
-  if (isFinished || questions.length === 0) {
+  if (isFinished) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] p-8">
         <Card className="w-full max-w-md text-center p-8">

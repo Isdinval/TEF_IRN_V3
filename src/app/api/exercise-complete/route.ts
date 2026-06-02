@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { generateRecommendation } from '@/lib/recommendation-engine';
+import { updateSRS } from '@/lib/srs-engine';
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
     const { exerciseId, score, answers } = await req.json();
 
     // 1. Enregistrer la tentative
-    const { data: attempt, error: attemptError } = await supabase
+    const { error: attemptError } = await supabase
       .from('exercise_attempts')
       .insert({
         user_id: user.id,
@@ -20,9 +21,7 @@ export async function POST(req: Request) {
         score,
         answers,
         is_completed: true
-      })
-      .select()
-      .single();
+      });
 
     if (attemptError) throw attemptError;
 
@@ -41,6 +40,11 @@ export async function POST(req: Request) {
 
     // 3. Déclencher le moteur de recommandation
     await generateRecommendation(user.id);
+
+    // 4. Mettre à jour l'algorithme de répétition espacée (SRS)
+    if (exerciseId) {
+      await updateSRS(user.id, exerciseId, score);
+    }
 
     return NextResponse.json({ success: true, xpGained: xpGain });
   } catch (error: any) {

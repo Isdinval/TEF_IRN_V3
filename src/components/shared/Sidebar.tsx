@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame } from "lucide-react";
+import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame, Mic } from "lucide-react";
 
 export function Sidebar() {
   const router = useRouter();
@@ -13,10 +13,12 @@ export function Sidebar() {
     await supabase.auth.signOut();
     router.push("/login");
   };
+
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Compréhension", icon: BookOpen, href: "/practice" },
     { label: "Expression Écrite", icon: PenTool, href: "/writing" },
+    { label: "Expression Orale", icon: Mic, href: "/oral" },
     { label: "Mon Profil", icon: Settings, href: "/profile" },
   ];
 
@@ -46,7 +48,10 @@ export function Sidebar() {
         <div className="px-3 py-2 flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 rounded-md">
           <Flame size={14} fill="currentColor" /> 5 jours de streak
         </div>
-        <button className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-muted text-muted-foreground">
+        <button
+          onClick={() => router.push("/profile")}
+          className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-muted text-muted-foreground"
+        >
           <Settings size={18} /> Paramètres
         </button>
         <button

@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai';
-import { createClient } from '@/lib/supabase-server';
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
     const { text, subject, targetLevel } = await req.json();
     const openai = getOpenAIClient();
 
@@ -23,14 +15,10 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-      Tu es un examinateur expert du TEF IRN. Analyse la production écrite suivante en te basant sur les critères officiels de la CCI Paris (Cohérence, Lexique, Morphosyntaxe, Capacité à convaincre).
+      Tu es un examinateur expert du TEF IRN. Analyse la production écrite suivante.
       Sujet : ${subject}
       Niveau visé : ${targetLevel}
       Texte de l'élève : "${text}"
-
-      Critères RAG (contextuels) :
-      - Pour B2 : Utilisation de connecteurs logiques et nuances d'opinion.
-      - Pour A2/B1 : Précision des temps verbaux simples et clarté de l'invitation/nouvelles.
 
       Réponds uniquement en JSON avec la structure suivante :
       {

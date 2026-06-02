@@ -1,0 +1,13 @@
+
+> maitris-tef-irn@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 531ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+○ Compiling /oral ...
+ GET /oral 200 in 6.3s (next.js: 5.4s, proxy.ts: 161ms, application-code: 712ms)
+ GET /exam 200 in 923ms (next.js: 817ms, proxy.ts: 10ms, application-code: 96ms)

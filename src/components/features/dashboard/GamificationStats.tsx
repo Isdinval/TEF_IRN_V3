@@ -1,8 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Award, Star, Zap } from "lucide-react";
-import { Profile } from "@/types/database";
 
 interface Achievement {
   id: string;
@@ -12,21 +12,9 @@ interface Achievement {
   unlocked: boolean;
 }
 
-interface GamificationStatsProps {
-  profile: Profile | null;
-}
-
-export function GamificationStats({ profile }: GamificationStatsProps) {
-  const xp = profile?.total_xp || 0;
-
-  const getRank = (xp: number) => {
-    if (xp < 500) return "Débutant";
-    if (xp < 2000) return "Apprenti";
-    if (xp < 5000) return "Initié";
-    return "Expert";
-  };
-
-  const rank = getRank(xp);
+export function GamificationStats() {
+  const [xp, setXp] = useState(1250);
+  const [rank, setRank] = useState("Apprenti");
 
   const achievements: Achievement[] = [
     { id: "1", title: "Lève-tôt", description: "Faire un exercice avant 8h", icon: Zap, unlocked: true },

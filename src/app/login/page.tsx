@@ -33,14 +33,9 @@ export default function AuthPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
-    else {
-      // Vérifier si le profil est déjà configuré
-      const { data: profile } = await supabase.from('profiles').select('goal_level').eq('id', data.user.id).single();
-      if (profile?.goal_level) router.push("/dashboard");
-      else router.push("/onboarding");
-    }
+    else router.push("/dashboard");
     setLoading(false);
   };
 

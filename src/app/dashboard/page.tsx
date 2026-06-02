@@ -1,74 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Flame, Target, BookOpen, PenTool, CheckCircle2, Loader2 } from "lucide-react";
+import { Flame, Target, BookOpen, PenTool, CheckCircle2 } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
-import { Profile, Recommendation } from "@/types/database";
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const supabase = createClient();
-
-  useEffect(() => {
-    async function loadData() {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (!user || userError) {
-        setLoading(false);
-        return;
-      }
-      if (user) {
-        // Charger le profil
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profileData) setProfile(profileData);
-
-        // Charger les recommandations
-        const { data: recoData } = await supabase
-          .from('recommendations')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('status', 'pending')
-          .limit(1);
-
-        if (recoData) setRecommendations(recoData);
-      }
-      setLoading(false);
-    }
-    loadData();
-  }, [supabase]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
-      </div>
-    );
-  }
-
-  const streak = profile?.streak_count || 0;
-  const xp = profile?.total_xp || 0;
-  const level = profile?.current_level || "A1";
-  const nextLevelXp = 2000; // À dynamiser plus tard selon le niveau
+  const [streak] = useState(5);
+  const [xp] = useState(1250);
+  const [level] = useState("B1");
 
   return (
     <div className="flex flex-col gap-8 p-8 max-w-6xl mx-auto">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bonjour{profile?.full_name ? `, ${profile.full_name}` : ''} !</h1>
-          <p className="text-muted-foreground">Prêt pour tes exercices du jour ?</p>
+          <h1 className="text-3xl font-bold tracking-tight">Bonjour, Prêt pour le TEF ?</h1>
+          <p className="text-muted-foreground">Voici ton état d'avancement pour aujourd'hui.</p>
         </div>
         <div className="flex gap-4">
           <Badge variant="outline" className="px-3 py-1 flex gap-2 items-center text-orange-600 border-orange-200 bg-orange-50">
@@ -89,17 +39,13 @@ export default function Dashboard() {
             <CardDescription>Basé sur tes dernières performances</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recommendations.length > 0 ? (
-              <div className="p-4 border rounded-lg bg-indigo-50/50 border-indigo-100">
-                <h3 className="font-semibold text-indigo-900">{recommendations[0].type === 'lesson' ? 'Leçon suggérée' : 'Exercice suggéré'}</h3>
-                <p className="text-sm text-indigo-700 mt-1">{recommendations[0].reason}</p>
-                <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">Continuer</Button>
-              </div>
-            ) : (
-              <div className="p-4 border rounded-lg bg-slate-50 border-slate-100 italic text-muted-foreground text-sm">
-                Réalise un premier exercice pour recevoir des conseils personnalisés.
-              </div>
-            )}
+            <div className="p-4 border rounded-lg bg-indigo-50/50 border-indigo-100">
+              <h3 className="font-semibold text-indigo-900">Le subjonctif présent</h3>
+              <p className="text-sm text-indigo-700 mt-1">
+                Tu as fait quelques erreurs sur l'expression du souhait. Révise cette leçon pour solidifier ton niveau B2.
+              </p>
+              <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">Commencer la leçon</Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -112,14 +58,28 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Niveau {level}</span>
-                  <span>{xp} / {nextLevelXp} XP</span>
+                  <span>{xp} / 2000 XP</span>
                 </div>
-                <Progress value={(xp / nextLevelXp) * 100} className="h-2" />
+                <Progress value={(xp / 2000) * 100} className="h-2" />
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <span>Compréhension Écrite : 85%</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <span>Grammaire : 72%</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-4 h-4 rounded-full border-2 border-indigo-200" />
+                  <span>Expression Écrite : 40%</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <GamificationStats profile={profile} />
+          <GamificationStats />
         </div>
       </div>
 
@@ -127,12 +87,12 @@ export default function Dashboard() {
         <h2 className="text-xl font-bold mb-4">Activités Rapides</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { title: "QCM Express", icon: Target, desc: "5 min - Grammaire", href: "/practice" },
-            { title: "Entraînement Écrit", icon: PenTool, desc: "20 min - Section B", href: "/writing" },
-            { title: "Vocabulaire", icon: BookOpen, desc: "10 min - Administration", href: "/practice" },
-            { title: "Examen Blanc", icon: CheckCircle2, desc: "1h30 - Complet", href: "#" },
+            { title: "QCM Express", icon: Target, desc: "5 min - Grammaire" },
+            { title: "Entraînement Écrit", icon: PenTool, desc: "20 min - Section B" },
+            { title: "Vocabulaire", icon: BookOpen, desc: "10 min - Administration" },
+            { title: "Examen Blanc", icon: CheckCircle2, desc: "1h30 - Complet" },
           ].map((item, i) => (
-            <Card key={i} className="hover:border-indigo-300 transition-colors cursor-pointer group" onClick={() => item.href !== "#" && router.push(item.href)}>
+            <Card key={i} className="hover:border-indigo-300 transition-colors cursor-pointer group">
               <CardContent className="pt-6">
                 <item.icon className="mb-2 text-muted-foreground group-hover:text-indigo-600 transition-colors" size={24} />
                 <h3 className="font-semibold">{item.title}</h3>
