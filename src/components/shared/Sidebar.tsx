@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame, Mic } from "lucide-react";
+import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame, Mic, Target, RotateCcw } from "lucide-react";
 
 export function Sidebar() {
   const router = useRouter();
@@ -16,7 +16,9 @@ export function Sidebar() {
 
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Compréhension", icon: BookOpen, href: "/practice" },
+    { label: "Leçons", icon: BookOpen, href: "/lessons" },
+    { label: "Vocabulaire", icon: RotateCcw, href: "/vocab" },
+    { label: "Compréhension", icon: Target, href: "/practice" },
     { label: "Expression Écrite", icon: PenTool, href: "/writing" },
     { label: "Expression Orale", icon: Mic, href: "/oral" },
     { label: "Mon Profil", icon: Settings, href: "/profile" },

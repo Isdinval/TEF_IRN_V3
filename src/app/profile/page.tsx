@@ -40,6 +40,12 @@ export default function ProfilePage() {
       goal_level: profile.goal_level,
     }).eq('id', profile.id);
 
+    if (error) {
+      alert(error.message);
+      setSaving(false);
+      return;
+    }
+
     if (error) alert(error.message);
     else setMessage("Profil mis à jour !");
 
@@ -75,10 +81,10 @@ export default function ProfilePage() {
                 value={profile?.goal_level || ""}
                 onValueChange={(val) => setProfile(p => p ? {...p, goal_level: val as any} : null)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full h-10">
                   <SelectValue placeholder="Sélectionnez votre objectif" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border shadow-lg z-50">
                   <SelectItem value="A2">Carte de séjour (A2)</SelectItem>
                   <SelectItem value="B1">Carte de résident (B1)</SelectItem>
                   <SelectItem value="B2">Nationalité française (B2)</SelectItem>
