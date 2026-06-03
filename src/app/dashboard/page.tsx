@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Flame, Target, BookOpen, PenTool, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
+import { CompetencyRadar } from "@/components/features/dashboard/CompetencyRadar";
+import { LeagueStats } from "@/components/features/dashboard/LeagueStats";
 import { Profile, Recommendation } from "@/types/database";
 import { PageTransition, FadeIn } from "@/components/shared/Animations";
 import { motion } from "framer-motion";
@@ -187,6 +189,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardContent className="pt-6">
+              <CompetencyRadar />
+            </CardContent>
+          </Card>
+
+          <LeagueStats xp={xp} />
           <GamificationStats profile={profile} />
         </div>
       </div>

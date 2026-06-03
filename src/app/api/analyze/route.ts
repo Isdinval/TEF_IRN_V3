@@ -14,6 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Texte ou sujet manquant" }, { status: 400 });
     }
 
+    // --- Optionnel : Intégration RAG ici si des embeddings étaient présents ---
+    // const { data: context } = await supabase.rpc('match_tef_knowledge', { ... });
+
     const prompt = `
       Tu es un examinateur expert du TEF IRN (format 2025). Analyse la production écrite suivante.
       Sujet : ${subject}

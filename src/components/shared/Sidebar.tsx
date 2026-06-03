@@ -71,7 +71,10 @@ export function Sidebar() {
               <span className="text-xl font-black text-indigo-900">{profile.ai_credits}</span>
               <span className="text-[10px] text-indigo-400 mb-1">restants</span>
             </div>
-            <button className="w-full mt-2 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-700 transition-colors">
+            <button
+              onClick={() => router.push('/pricing')}
+              className="w-full mt-2 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-700 transition-colors"
+            >
               RECHARGER
             </button>
           </div>
