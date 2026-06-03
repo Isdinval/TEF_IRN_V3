@@ -14,10 +14,12 @@ const data = [
 export function CompetencyRadar() {
   return (
     <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
-        <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-400">Radar de Compétences</CardTitle>
+      <CardHeader className="px-0 text-center">
+        <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-indigo-400">Analyse de Performance</CardTitle>
+        <CardDescription className="text-2xl font-black text-slate-900 mt-2">Votre Radar de Compétences</CardDescription>
       </CardHeader>
-      <CardContent className="h-[300px] p-0">
+      <CardContent className="h-[350px] p-0 relative">
+        <div className="absolute inset-0 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
             <PolarGrid stroke="#e2e8f0" />

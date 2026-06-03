@@ -16,7 +16,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="bg-white text-slate-900 font-sans">
+    <div className="bg-background text-foreground font-sans">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
@@ -44,8 +44,8 @@ export default function LandingPage() {
             <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 mb-6 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
               L'alternative intelligente à PrepMyFuture
             </Badge>
-            <h1 className="text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-8">
-              Décrochez votre <span className="text-indigo-600">TEF IRN</span> avec l'IA.
+            <h1 className="text-6xl lg:text-7xl font-black font-heading tracking-tight leading-[1.1] mb-8">
+              Décrochez votre <span className="text-primary">TEF IRN</span> avec l'IA.
             </h1>
             <p className="text-xl text-slate-500 mb-10 leading-relaxed max-w-lg">
               Le seul coach IA personnel qui vous accompagne du niveau A1 au B2. Plus intelligent, plus abordable, et disponible 24/7.
