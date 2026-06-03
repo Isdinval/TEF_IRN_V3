@@ -13,6 +13,10 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleCheckout = async (priceId: string) => {
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      alert("Le système de paiement est en cours de configuration. Contactez le support.");
+      return;
+    }
     setLoading(priceId);
     try {
       const response = await fetch("/api/checkout", {
