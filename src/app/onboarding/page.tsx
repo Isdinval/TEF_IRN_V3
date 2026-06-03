@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, ArrowRight, GraduationCap, FileText, Landmark, Target } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Target, Star, ChevronRight, Loader2, Rocket } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
-  const [goal, setGoal] = useState("");
   const [level, setLevel] = useState("");
+  const [goal, setGoal] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -22,96 +22,88 @@ export default function Onboarding() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from('profiles').update({
+        current_level: level,
         goal_level: goal,
-        current_level: level as any,
       }).eq('id', user.id);
-      router.push("/dashboard");
+      router.push('/dashboard');
     }
     setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
-      <Card className="w-full max-w-lg">
-        {step === 1 && (
-          <>
-            <CardHeader>
-              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
-                <Target size={24} />
-              </div>
-              <CardTitle className="text-2xl">Quel est votre objectif ?</CardTitle>
-              <CardDescription>Maitris adaptera votre parcours en fonction de vos besoins.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={goal} onValueChange={setGoal} className="grid grid-cols-1 gap-4">
-                {[
-                  { id: "A2", label: "Carte de séjour", icon: FileText, desc: "Niveau A2 requis" },
-                  { id: "B1", label: "Carte de résident", icon: Landmark, desc: "Niveau B1 requis" },
-                  { id: "B2", label: "Nationalité française", icon: GraduationCap, desc: "Niveau B2 requis" },
-                ].map((item) => (
-                  <Label
-                    key={item.id}
-                    htmlFor={item.id}
-                    className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-slate-50 ${goal === item.id ? 'border-indigo-600 bg-indigo-50/50' : ''}`}
-                  >
-                    <RadioGroupItem value={item.id} id={item.id} className="sr-only" />
-                    <div className="p-2 bg-white rounded-lg border shadow-sm text-indigo-600">
-                      <item.icon size={20} />
-                    </div>
-                    <div>
-                      <div className="font-semibold">{item.label}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
-                    </div>
-                  </Label>
-                ))}
-              </RadioGroup>
-            </CardContent>
-            <CardFooter>
-              <Button disabled={!goal} onClick={() => setStep(2)} className="w-full bg-indigo-600">
-                Continuer <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </>
-        )}
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
+      <div className="max-w-xl w-full">
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center gap-2 font-black text-3xl text-indigo-600">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">M</div>
+            Maitris
+          </div>
+        </div>
 
-        {step === 2 && (
-          <>
-            <CardHeader>
-              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
-                <GraduationCap size={24} />
-              </div>
-              <CardTitle className="text-2xl">Quel est votre niveau actuel ?</CardTitle>
-              <CardDescription>Estimation rapide pour débuter votre préparation.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={level} onValueChange={setLevel} className="grid grid-cols-1 gap-4">
-                {[
-                  { id: "A1", label: "Débutant (A1)", desc: "Je connais quelques mots et phrases simples." },
-                  { id: "A2", label: "Élémentaire (A2)", desc: "Je peux échanger sur des sujets familiers." },
-                  { id: "B1", label: "Intermédiaire (B1)", desc: "Je me débrouille dans la plupart des situations." },
-                ].map((item) => (
-                  <Label
-                    key={item.id}
-                    htmlFor={item.id}
-                    className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-slate-50 ${level === item.id ? 'border-indigo-600 bg-indigo-50/50' : ''}`}
-                  >
-                    <RadioGroupItem value={item.id} id={item.id} className="sr-only" />
-                    <div>
-                      <div className="font-semibold">{item.label}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
-                    </div>
-                  </Label>
-                ))}
-              </RadioGroup>
-            </CardContent>
-            <CardFooter>
-              <Button disabled={!level || loading} onClick={handleFinish} className="w-full bg-indigo-600">
-                {loading ? <Loader2 className="animate-spin mr-2" /> : "Commencer l'aventure"}
-              </Button>
-            </CardFooter>
-          </>
-        )}
-      </Card>
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
+                <CardHeader className="p-0 mb-8">
+                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 1/2</Badge>
+                  <CardTitle className="text-3xl font-black">Quel est votre niveau actuel ?</CardTitle>
+                </CardHeader>
+                <div className="grid grid-cols-1 gap-4">
+                  {['A1', 'A2', 'B1', 'B2'].map(l => (
+                    <button
+                      key={l}
+                      onClick={() => setLevel(l)}
+                      className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all ${level === l ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
+                    >
+                      Niveau {l}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  disabled={!level}
+                  onClick={() => setStep(2)}
+                  className="w-full mt-8 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                >
+                  Continuer <ChevronRight className="ml-2" />
+                </Button>
+              </Card>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
+                <CardHeader className="p-0 mb-8">
+                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 2/2</Badge>
+                  <CardTitle className="text-3xl font-black">Quel objectif visez-vous ?</CardTitle>
+                </CardHeader>
+                <div className="grid grid-cols-1 gap-4">
+                  {[
+                    { id: 'A2', label: 'Titre de séjour (A2)' },
+                    { id: 'B1', label: 'Nationalité (B1)' },
+                    { id: 'B2', label: 'Excellence (B2)' }
+                  ].map(g => (
+                    <button
+                      key={g.id}
+                      onClick={() => setGoal(g.id)}
+                      className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all ${goal === g.id ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  disabled={!goal || loading}
+                  onClick={handleFinish}
+                  className="w-full mt-8 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : <><Rocket className="mr-2" /> C'est parti !</>}
+                </Button>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

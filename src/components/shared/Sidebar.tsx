@@ -3,11 +3,24 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame, Mic, Target, RotateCcw } from "lucide-react";
+import { BookOpen, PenTool, LayoutDashboard, Settings, LogOut, Flame, Mic, Target, RotateCcw, Zap, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function Sidebar() {
+  const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('profiles').select('ai_credits, subscription_tier').eq('id', user.id).single();
+        setProfile(data);
+      }
+    }
+    fetchProfile();
+  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -17,6 +30,7 @@ export function Sidebar() {
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Leçons", icon: BookOpen, href: "/lessons" },
+    { label: "Orthographe & Syntaxe", icon: Zap, href: "/grammar-check" },
     { label: "Vocabulaire", icon: RotateCcw, href: "/vocab" },
     { label: "Compréhension", icon: Target, href: "/practice" },
     { label: "Expression Écrite", icon: PenTool, href: "/writing" },
@@ -46,7 +60,26 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t space-y-1">
+      <div className="p-4 border-t space-y-3">
+        {profile && (
+          <div className="px-3 py-3 bg-indigo-50 rounded-xl border border-indigo-100">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Crédits IA</span>
+              <Sparkles size={12} className="text-indigo-500" />
+            </div>
+            <div className="flex items-end gap-1">
+              <span className="text-xl font-black text-indigo-900">{profile.ai_credits}</span>
+              <span className="text-[10px] text-indigo-400 mb-1">restants</span>
+            </div>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="w-full mt-2 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              RECHARGER
+            </button>
+          </div>
+        )}
+
         <div className="px-3 py-2 flex items-center gap-2 text-xs font-semibold text-orange-600 bg-orange-50 rounded-md">
           <Flame size={14} fill="currentColor" /> 5 jours de streak
         </div>

@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Flame, Target, BookOpen, PenTool, CheckCircle2, Loader2 } from "lucide-react";
+import { Flame, Target, BookOpen, PenTool, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
+import { CompetencyRadar } from "@/components/features/dashboard/CompetencyRadar";
+import { LeagueStats } from "@/components/features/dashboard/LeagueStats";
 import { Profile, Recommendation } from "@/types/database";
 import { PageTransition, FadeIn } from "@/components/shared/Animations";
 import { motion } from "framer-motion";
@@ -48,14 +50,20 @@ export default function Dashboard() {
 
         if (recoData) setRecommendations(recoData);
 
-        // Charger le nombre de révisions dues
-        const { count } = await supabase
+        // Charger le nombre de révisions dues (Exercices + Vocabulaire)
+        const { count: reviewsCountExo } = await supabase
           .from('user_reviews')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .lte('next_review_at', new Date().toISOString());
 
-        setReviewsCount(count || 0);
+        const { count: reviewsCountVocab } = await supabase
+          .from('user_vocabulary_reviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .lte('next_review_at', new Date().toISOString());
+
+        setReviewsCount((reviewsCountExo || 0) + (reviewsCountVocab || 0));
       }
       setLoading(false);
     }
@@ -131,15 +139,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {recommendations.length > 0 ? (
-              <div className="p-4 border rounded-lg bg-indigo-50/50 border-indigo-100">
-                <h3 className="font-semibold text-indigo-900">{recommendations[0].type === 'lesson' ? 'Leçon suggérée' : 'Exercice suggéré'}</h3>
-                <p className="text-sm text-indigo-700 mt-1">{recommendations[0].reason}</p>
-                <Button
-                  className="mt-4 bg-indigo-600 hover:bg-indigo-700"
-                  onClick={() => router.push('/practice')}
-                >
-                  Continuer
-                </Button>
+              <div className="p-4 border rounded-lg bg-indigo-50/50 border-indigo-100 flex gap-4 items-start">
+                <div className="p-2 bg-indigo-600 rounded-lg text-white">
+                  <Sparkles size={20} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-indigo-900">{recommendations[0].type === 'lesson' ? 'Leçon suggérée' : 'Exercice suggéré'}</h3>
+                  <p className="text-sm text-indigo-700 mt-1">{recommendations[0].reason}</p>
+                  <Button
+                    className="mt-4 bg-indigo-600 hover:bg-indigo-700 h-9 px-4 rounded-lg text-xs font-bold"
+                    onClick={() => router.push(recommendations[0].type === 'lesson' ? `/lessons/${recommendations[0].reference_id}` : '/practice')}
+                  >
+                    Suivre le conseil
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="p-4 border rounded-lg bg-slate-50 border-slate-100 italic text-muted-foreground text-sm">
@@ -176,6 +189,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardContent className="pt-6">
+              <CompetencyRadar />
+            </CardContent>
+          </Card>
+
+          <LeagueStats xp={xp} />
           <GamificationStats profile={profile} />
         </div>
       </div>

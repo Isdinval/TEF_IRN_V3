@@ -1,0 +1,16 @@
+{
+  "name": "Maitris - TEF IRN AI Coach",
+  "short_name": "Maitris",
+  "description": "Préparez votre TEF IRN avec l'IA.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

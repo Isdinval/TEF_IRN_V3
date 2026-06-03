@@ -14,11 +14,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Texte ou sujet manquant" }, { status: 400 });
     }
 
+    // --- Optionnel : Intégration RAG ici si des embeddings étaient présents ---
+    // const { data: context } = await supabase.rpc('match_tef_knowledge', { ... });
+
     const prompt = `
-      Tu es un examinateur expert du TEF IRN. Analyse la production écrite suivante.
+      Tu es un examinateur expert du TEF IRN (format 2025). Analyse la production écrite suivante.
       Sujet : ${subject}
       Niveau visé : ${targetLevel}
       Texte de l'élève : "${text}"
+
+      Consignes strictes :
+      1. Sois encourageant mais rigoureux sur les critères du TEF IRN (pertinence, cohérence, lexique, syntaxe).
+      2. Pour chaque erreur, donne une explication pédagogique claire (la règle de grammaire ou de syntaxe).
+      3. Propose une version améliorée qui respecte les codes du niveau B2.
 
       Réponds uniquement en JSON avec la structure suivante :
       {
