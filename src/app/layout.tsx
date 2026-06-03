@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/shared/Sidebar";
+import { AppLayout } from "@/components/shared/AppLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,12 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className="h-full">
       <body className={`${inter.variable} ${montserrat.variable} font-sans h-full bg-slate-50/30`}>
-        <div className="flex h-full">
-          <Sidebar />
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </div>
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );

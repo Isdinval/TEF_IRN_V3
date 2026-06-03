@@ -73,7 +73,25 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="relative">
              <div className="absolute inset-0 bg-indigo-600/5 blur-3xl rounded-full" />
              <Card className="border-none shadow-2xl shadow-slate-200 rounded-[3rem] overflow-hidden bg-white/50 backdrop-blur-xl relative z-10 p-2">
-                <img src="/dashboard-preview.png" alt="Maitris Dashboard" className="rounded-[2.5rem] w-full" />
+                <div className="rounded-[2.5rem] w-full aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white overflow-hidden">
+                   <Target size={80} className="opacity-20 animate-pulse" />
+                   <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl" />
+                   <div className="relative z-20 p-12 w-full h-full flex flex-col justify-between">
+                      <div className="flex justify-between items-start">
+                         <div className="w-12 h-3 bg-white/20 rounded-full" />
+                         <div className="w-8 h-8 bg-white/20 rounded-lg" />
+                      </div>
+                      <div className="space-y-4">
+                         <div className="h-6 w-2/3 bg-white/40 rounded-lg" />
+                         <div className="h-4 w-full bg-white/20 rounded-md" />
+                         <div className="h-4 w-1/2 bg-white/20 rounded-md" />
+                      </div>
+                      <div className="flex gap-2">
+                         <div className="h-8 w-24 bg-white/30 rounded-xl" />
+                         <div className="h-8 w-24 bg-white/10 rounded-xl" />
+                      </div>
+                   </div>
+                </div>
                 <div className="absolute top-1/2 -right-12 p-6 bg-white rounded-3xl shadow-2xl shadow-indigo-100 border border-indigo-50 hidden lg:block">
                    <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
@@ -138,7 +156,9 @@ export default function LandingPage() {
                          <span className="font-bold">Accès à vie vs Abonnements limités</span>
                       </div>
                    </div>
-                   <Button className="mt-12 h-14 px-8 bg-indigo-600 rounded-xl font-bold text-lg">Découvrir les tarifs</Button>
+                   <Link href="/pricing">
+                      <Button className="mt-12 h-14 px-8 bg-indigo-600 rounded-xl font-bold text-lg">Découvrir les tarifs</Button>
+                   </Link>
                 </div>
                 <div className="p-12 lg:p-16 flex flex-col justify-center gap-8 bg-indigo-50/30">
                    <div className="flex items-center gap-4">
