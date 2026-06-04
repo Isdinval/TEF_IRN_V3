@@ -3,21 +3,25 @@ import { getOpenAIClient } from '@/lib/openai';
 
 export async function POST(req: Request) {
   try {
-    const { text, subject, targetLevel } = await req.json();
+    const body = await req.json();
+    const { text, subject, targetLevel } = body;
     const openai = getOpenAIClient();
 
     if (!openai) {
       return NextResponse.json({ error: "OpenAI API Key non configurée" }, { status: 500 });
     }
 
-    if (!text || !subject) {
-      return NextResponse.json({ error: "Texte ou sujet manquant" }, { status: 400 });
+    if (!text) {
+      return NextResponse.json({ error: "Texte manquant" }, { status: 400 });
     }
+
+    const effectiveSubject = subject || "Sujet libre";
+    const effectiveLevel = targetLevel || "B1";
 
     const prompt = `
       Tu es un examinateur expert du TEF IRN (format 2025). Analyse la production écrite suivante.
-      Sujet : ${subject}
-      Niveau visé : ${targetLevel}
+      Sujet : ${effectiveSubject}
+      Niveau visé : ${effectiveLevel}
       Texte de l'élève : "${text}"
 
       Consignes strictes :
@@ -52,9 +56,21 @@ export async function POST(req: Request) {
     });
 
     const data = JSON.parse(response.choices[0].message.content || '{}');
+
+    // Ensure data has expected fields to prevent frontend crash
+    if (!data.score) data.score = 0;
+    if (!data.level) data.level = effectiveLevel;
+    if (!data.annotations) data.annotations = [];
+
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("OpenAI API Error:", error);
-    return NextResponse.json({ error: "Erreur lors de l'analyse IA" }, { status: 500 });
+    return NextResponse.json({
+      error: "Erreur lors de l'analyse IA",
+      score: 0,
+      level: "A1",
+      comment: "L'analyse a échoué temporairement. Réessayez plus tard.",
+      annotations: []
+    }, { status: 500 });
   }
 }
