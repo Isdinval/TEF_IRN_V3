@@ -12,6 +12,7 @@ import { CompetencyRadar } from "@/components/features/dashboard/CompetencyRadar
 import { LeagueStats } from "@/components/features/dashboard/LeagueStats";
 import { RecentCorrections } from "@/components/features/dashboard/RecentCorrections";
 import { DailyObjective } from "@/components/features/dashboard/DailyObjective";
+import { VocabProgress } from "@/components/features/dashboard/VocabProgress";
 import { Profile, Recommendation } from "@/types/database";
 import { PageTransition, FadeIn } from "@/components/shared/Animations";
 import { motion } from "framer-motion";
@@ -23,7 +24,9 @@ export default function Dashboard() {
   const [reviewsCount, setReviewsCount] = useState(0);
   const [xpToday, setXpToday] = useState(0);
   const [competencyData, setCompetencyData] = useState<any[]>([]);
+  const [vocabStats, setVocabStats] = useState<any>({ total: 0, topLevel: 'A1', levels: {} });
   const [loading, setLoading] = useState(true);
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -131,6 +134,35 @@ export default function Dashboard() {
           }));
           setCompetencyData(radarData);
         }
+
+        // 7. Charger les stats de vocabulaire
+        const { data: vocabReviews } = await supabase
+          .from('user_vocabulary_reviews')
+          .select(`
+            id,
+            vocabulary (level)
+          `)
+          .eq('user_id', user.id)
+          .gt('consecutive_correct', 0);
+
+        if (vocabReviews) {
+          const stats = {
+            total: vocabReviews.length,
+            levels: { 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0 },
+            topLevel: 'A1'
+          };
+          vocabReviews.forEach((r: any) => {
+             const lvl = r.vocabulary?.level;
+             if (lvl && stats.levels[lvl as keyof typeof stats.levels] !== undefined) {
+               stats.levels[lvl as keyof typeof stats.levels]++;
+             }
+          });
+          if (stats.levels['B2'] > 0) stats.topLevel = 'B2';
+          else if (stats.levels['B1'] > 0) stats.topLevel = 'B1';
+          else if (stats.levels['A2'] > 0) stats.topLevel = 'A2';
+
+          setVocabStats(stats);
+        }
       }
       setLoading(false);
     }
@@ -147,7 +179,7 @@ export default function Dashboard() {
 
   const xp = profile?.total_xp || 0;
   const level = profile?.current_level || "A1";
-  const dailyGoal = 100; // Objectif par défaut
+  const dailyGoal = 100;
 
   return (
     <PageTransition>
@@ -165,7 +197,7 @@ export default function Dashboard() {
                   <h1 className="text-4xl font-black text-zinc-900 tracking-tight">
                     Bonjour, {profile?.full_name?.split(' ')[0] || 'Apprenti'} !
                   </h1>
-                  <p className="text-zinc-500 font-medium">Votre préparation au TEF IRN progresse chaque jour.</p>
+                  <p className="text-zinc-500 font-medium italic">Visez l'excellence, un mot après l'autre.</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -248,6 +280,10 @@ export default function Dashboard() {
               <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[2.5rem] overflow-hidden">
                 <CardContent className="p-8 space-y-8">
                   <CompetencyRadar data={competencyData} />
+
+                  <div className="h-px bg-zinc-100 w-full" />
+
+                  <VocabProgress stats={vocabStats} />
 
                   <div className="h-px bg-zinc-100 w-full" />
 
