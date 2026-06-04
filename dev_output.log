@@ -2,29 +2,18 @@
 > maitris-tef-irn@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use, trying 3001 instead.
    ▲ Next.js 15.1.11
-   - Local:        http://localhost:3001
-   - Network:      http://192.168.0.2:3001
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 2.2s
+ ✓ Ready in 4.1s
  ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 739ms (194 modules)
- ○ Compiling /login ...
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled /login in 13s (1871 modules)
- GET /login 200 in 15869ms
- ○ Compiling /dashboard ...
- ✓ Compiled /dashboard in 5.3s (2832 modules)
- GET /dashboard 200 in 6345ms
- ○ Compiling /writing ...
- ✓ Compiled /writing in 1545ms (2883 modules)
- GET /writing 200 in 1919ms
+ ✓ Compiled /src/middleware in 966ms (194 modules)
  ○ Compiling /vocab ...
- ✓ Compiled /vocab in 1504ms (2900 modules)
- GET /vocab 200 in 1774ms
- GET /dashboard 200 in 263ms
- GET /writing 200 in 109ms
+ ✓ Compiled /vocab in 8.2s (1807 modules)
+ GET /vocab 200 in 9636ms
+ ○ Compiling /practice ...
+ ✓ Compiled /practice in 2.5s (1822 modules)
+ GET /practice 200 in 2906ms
 [?25h
