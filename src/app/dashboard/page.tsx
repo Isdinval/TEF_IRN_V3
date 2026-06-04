@@ -21,6 +21,8 @@ export default function Dashboard() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [recentCorrections, setRecentCorrections] = useState<any[]>([]);
   const [reviewsCount, setReviewsCount] = useState(0);
+  const [xpToday, setXpToday] = useState(0);
+  const [competencyData, setCompetencyData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
@@ -33,7 +35,7 @@ export default function Dashboard() {
         return;
       }
       if (user) {
-        // Charger le profil
+        // 1. Charger le profil
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
@@ -42,7 +44,7 @@ export default function Dashboard() {
 
         if (profileData) setProfile(profileData);
 
-        // Charger les recommandations
+        // 2. Charger les recommandations
         const { data: recoData } = await supabase
           .from('recommendations')
           .select('*')
@@ -52,7 +54,7 @@ export default function Dashboard() {
 
         if (recoData) setRecommendations(recoData);
 
-        // Charger les corrections récentes
+        // 3. Charger les corrections récentes
         const { data: correctionsData } = await supabase
           .from('exercise_attempts')
           .select(`
@@ -68,7 +70,7 @@ export default function Dashboard() {
 
         if (correctionsData) setRecentCorrections(correctionsData);
 
-        // Charger le nombre de révisions dues
+        // 4. Charger le nombre de révisions dues
         const { count: reviewsCountExo } = await supabase
           .from('user_reviews')
           .select('*', { count: 'exact', head: true })
@@ -82,6 +84,53 @@ export default function Dashboard() {
           .lte('next_review_at', new Date().toISOString());
 
         setReviewsCount((reviewsCountExo || 0) + (reviewsCountVocab || 0));
+
+        // 5. Calculer l'XP du jour
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const { data: todayAttempts } = await supabase
+          .from('exercise_attempts')
+          .select('score')
+          .eq('user_id', user.id)
+          .gte('created_at', today.toISOString());
+
+        const totalXpToday = todayAttempts?.reduce(((sum: number, attempt: any) => sum + (attempt.score || 0)), 0) || 0;
+        setXpToday(Math.round(totalXpToday));
+
+        // 6. Agréger les données de compétence pour le Radar
+        const { data: allAttempts } = await supabase
+          .from('exercise_attempts')
+          .select(`
+            score,
+            exercises (type)
+          `)
+          .eq('user_id', user.id)
+          .not('score', 'is', null);
+
+        if (allAttempts && allAttempts.length > 0) {
+          const categoriesMap: Record<string, { sum: number, count: number, label: string }> = {
+            'qcm': { sum: 0, count: 0, label: 'GRAMMAIRE' },
+            'ecrit': { sum: 0, count: 0, label: 'RÉDACTION' },
+            'trous': { sum: 0, count: 0, label: 'ÉCRIT' },
+            'oral': { sum: 0, count: 0, label: 'ORAL' },
+            'reformulage': { sum: 0, count: 0, label: 'PARLER' }
+          };
+
+          allAttempts.forEach((attempt: any) => {
+            const type = attempt.exercises?.type;
+            if (type && categoriesMap[type]) {
+              categoriesMap[type].sum += attempt.score || 0;
+              categoriesMap[type].count += 1;
+            }
+          });
+
+          const radarData = Object.values(categoriesMap).map(cat => ({
+            subject: cat.label,
+            A: cat.count > 0 ? Math.round(cat.sum / cat.count) : 0,
+            fullMark: 100
+          }));
+          setCompetencyData(radarData);
+        }
       }
       setLoading(false);
     }
@@ -98,6 +147,7 @@ export default function Dashboard() {
 
   const xp = profile?.total_xp || 0;
   const level = profile?.current_level || "A1";
+  const dailyGoal = 100; // Objectif par défaut
 
   return (
     <PageTransition>
@@ -121,7 +171,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2">
                     {[1,2,3].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-zinc-200" />
+                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-zinc-200 shadow-sm" />
                     ))}
                   </div>
                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">
@@ -131,7 +181,7 @@ export default function Dashboard() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <DailyObjective xpToday={15} goal={50} />
+                <DailyObjective xpToday={xpToday} goal={dailyGoal} />
 
                 <Card className="border-none shadow-xl shadow-zinc-100 bg-white overflow-hidden group cursor-pointer" onClick={() => router.push('/practice')}>
                   <CardHeader className="pb-2">
@@ -160,7 +210,7 @@ export default function Dashboard() {
                 <h2 className="text-sm font-black uppercase tracking-widest text-zinc-400 px-1">Conseils de l'IA Coach</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendations.length > 0 ? recommendations.map((reco, i) => (
-                    <Card key={reco.id} className="border-zinc-100 hover:border-indigo-200 hover:shadow-lg transition-all group">
+                    <Card key={reco.id} className="border-zinc-100 hover:border-indigo-200 hover:shadow-lg transition-all group shadow-sm bg-white">
                       <CardContent className="p-5 flex gap-4">
                         <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                           <Sparkles size={18} />
@@ -169,7 +219,7 @@ export default function Dashboard() {
                           <h3 className="font-bold text-zinc-900 leading-tight">
                             {reco.type === 'lesson' ? 'Maîtriser une nouvelle leçon' : 'Renforcer vos acquis'}
                           </h3>
-                          <p className="text-xs text-zinc-500 leading-relaxed font-medium">
+                          <p className="text-xs text-zinc-500 leading-relaxed font-medium italic">
                             {reco.reason}
                           </p>
                           <button
@@ -182,7 +232,7 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card className="border-zinc-100 bg-zinc-50/50 col-span-2">
+                    <Card className="border-zinc-100 bg-zinc-50/50 col-span-2 border-dashed">
                       <CardContent className="p-8 text-center space-y-2">
                         <Calendar className="mx-auto text-zinc-300" size={32} />
                         <p className="text-sm font-bold text-zinc-400">Réalisez un exercice pour débloquer vos conseils personnalisés.</p>
@@ -197,7 +247,7 @@ export default function Dashboard() {
             <div className="lg:col-span-4 space-y-8">
               <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[2.5rem] overflow-hidden">
                 <CardContent className="p-8 space-y-8">
-                  <CompetencyRadar />
+                  <CompetencyRadar data={competencyData} />
 
                   <div className="h-px bg-zinc-100 w-full" />
 
