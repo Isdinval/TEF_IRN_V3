@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, ArrowRight, Loader2, Target } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, AlertCircle } from "lucide-react";
 
 interface Question {
   id: string;
@@ -23,6 +23,7 @@ export default function Practice() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [exerciseId, setExerciseId] = useState<string | null>(null);
 
   const router = useRouter();
@@ -30,28 +31,38 @@ export default function Practice() {
 
   useEffect(() => {
     async function fetchQuestions() {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('*')
-        .eq('type', 'qcm')
-        .limit(1)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('exercises')
+          .select('*')
+          .eq('type', 'qcm')
+          .limit(1);
 
-      if (data) {
-        setExerciseId(data.id);
-        const content = data.content as any;
-        if (content && content.questions) {
-          setQuestions(content.questions);
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const exercise = data[0];
+          setExerciseId(exercise.id);
+          const content = exercise.content as any;
+          if (content && content.questions && content.questions.length > 0) {
+            setQuestions(content.questions);
+          } else {
+             throw new Error("Contenu de l'exercice invalide.");
+          }
         } else {
-          // Fallback questions if JSON is empty or different format
+          // Fallback static questions for demo/empty state
           setQuestions([
             { id: "1", text: "___ chat dort sur le tapis.", options: ["Le", "Un", "La", "Les"], correct: 0 },
             { id: "2", text: "Nous ___ (parler) français ensemble.", options: ["parle", "parles", "parlons", "parlent"], correct: 2 },
             { id: "3", text: "Elle va ___ boulangerie.", options: ["à", "au", "à la", "aux"], correct: 2 }
           ]);
         }
+      } catch (err: any) {
+        console.error("Fetch error:", err);
+        setError("Impossible de charger les exercices.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchQuestions();
   }, [supabase]);
@@ -70,8 +81,6 @@ export default function Practice() {
       setIsChecked(false);
     } else {
       const finalScore = Math.round((score / questions.length) * 100);
-
-      // Enregistrer le score final via l'API
       try {
         await fetch('/api/exercise-complete', {
           method: 'POST',
@@ -85,7 +94,6 @@ export default function Practice() {
       } catch (err) {
         console.error("Error saving score:", err);
       }
-
       setIsFinished(true);
     }
   };
@@ -94,6 +102,17 @@ export default function Practice() {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="animate-spin text-indigo-600" size={32} />
+      </div>
+    );
+  }
+
+  if (error || questions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+        <AlertCircle className="text-red-500" size={48} />
+        <h2 className="text-xl font-bold">Oups ! Une erreur est survenue</h2>
+        <p className="text-zinc-500 max-w-sm">{error || "Aucun exercice disponible pour le moment."}</p>
+        <Button onClick={() => router.push('/dashboard')} variant="outline">Retour au Dashboard</Button>
       </div>
     );
   }
@@ -139,12 +158,12 @@ export default function Practice() {
 
       <div className="mb-12">
         <div className="p-10 bg-white border border-zinc-100 shadow-xl shadow-zinc-100/50 rounded-[2.5rem] text-3xl text-center font-bold text-zinc-900 leading-tight">
-          {currentQuestion.text}
+          {currentQuestion?.text || "Chargement..."}
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 mb-12">
-        {currentQuestion.options.map((option, i) => (
+        {currentQuestion?.options?.map((option, i) => (
           <button
             key={i}
             disabled={isChecked}

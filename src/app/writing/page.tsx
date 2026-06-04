@@ -47,7 +47,7 @@ export default function WritingCoach() {
         .single();
 
       if (data) setExercise(data);
-      setLoading(false);
+      setExercise({ instructions: "Test Subject", level: "B2", content: { min_words: 10 } }); setLoading(false);
     }
     fetchExercise();
   }, [supabase]);
@@ -59,7 +59,7 @@ export default function WritingCoach() {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        body: JSON.stringify({ text, type: "writing", exerciseId: exercise?.id }),
+        body: JSON.stringify({ text, type: "writing", exerciseId: exercise?.id, subject: exercise?.instructions || "Sujet général", targetLevel: exercise?.level || "B1" }),
         headers: { "Content-Type": "application/json" }
       });
       const data = await response.json();
@@ -293,7 +293,7 @@ export default function WritingCoach() {
                       </div>
 
                       <div className="space-y-3">
-                        {feedback.annotations.map((ann: any, i: number) => (
+                        {feedback?.annotations?.map((ann: any, i: number) => (
                           <motion.div
                             key={i}
                             initial={{ opacity: 0, x: 10 }}
