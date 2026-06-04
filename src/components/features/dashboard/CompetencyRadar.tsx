@@ -4,15 +4,23 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Pola
 import { Radar as RadarIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
-const data = [
-  { subject: 'ÉCRIT', A: 80, fullMark: 100 },
-  { subject: 'ORAL', A: 65, fullMark: 100 },
-  { subject: 'RÉDACTION', A: 45, fullMark: 100 },
-  { subject: 'PARLER', A: 30, fullMark: 100 },
-  { subject: 'GRAMMAIRE', A: 90, fullMark: 100 },
-];
+interface CompetencyData {
+  subject: string;
+  A: number;
+  fullMark: number;
+}
 
-export function CompetencyRadar() {
+export function CompetencyRadar({ data }: { data?: CompetencyData[] }) {
+  const defaultData = [
+    { subject: 'ÉCRIT', A: 0, fullMark: 100 },
+    { subject: 'ORAL', A: 0, fullMark: 100 },
+    { subject: 'RÉDACTION', A: 0, fullMark: 100 },
+    { subject: 'PARLER', A: 0, fullMark: 100 },
+    { subject: 'GRAMMAIRE', A: 0, fullMark: 100 },
+  ];
+
+  const chartData = data && data.length > 0 ? data : defaultData;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -29,7 +37,7 @@ export function CompetencyRadar() {
       <div className="h-[280px] w-full relative">
         <div className="absolute inset-0 bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none" />
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
             <PolarGrid stroke="#f1f1f1" />
             <PolarAngleAxis
               dataKey="subject"
