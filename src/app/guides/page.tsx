@@ -4,77 +4,121 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Clock, ChevronRight, GraduationCap, MapPin, Scale } from "lucide-react";
+import { Clock, ChevronRight, GraduationCap, BookOpen, Scale, Sparkles, Zap, Target } from "lucide-react";
+import { motion } from "framer-motion";
+import { guides } from "@/data/guides";
+
+const iconMap: Record<string, any> = {
+  "tout-comprendre-tef-irn-2025": GraduationCap,
+  "reussir-expression-orale-section-a": BookOpen,
+  "preparer-naturalisation-francaise": Scale,
+  "pourquoi-utiliser-ia-pour-tef": Zap,
+  "eviter-echec-tef-irn": Target,
+};
 
 export default function GuidesPage() {
-  const guides = [
-    {
-      title: "Tout comprendre au TEF IRN 2025",
-      desc: "Niveaux, épreuves et critères de notation pour la nationalité et le séjour.",
-      icon: GraduationCap,
-      tag: "Officiel",
-      read: "5 min"
-    },
-    {
-      title: "Réussir l'Expression Orale Section A",
-      desc: "Comment poser des questions pertinentes et garder son calme face à l'examinateur.",
-      icon: BookOpen,
-      tag: "Pédagogie",
-      read: "8 min"
-    },
-    {
-      title: "Préparer sa naturalisation française",
-      desc: "Le guide complet des démarches administratives et du niveau de langue requis.",
-      icon: Scale,
-      tag: "Démarches",
-      read: "12 min"
-    }
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto p-8 pt-20">
-      <header className="mb-16 text-center">
-        <h1 className="text-5xl font-black tracking-tight mb-4">Guides & Ressources TEF IRN</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Tout ce dont vous avez besoin pour comprendre l'examen et réussir vos démarches administratives en France.
-        </p>
-      </header>
+    <div className="min-h-screen bg-white selection:bg-indigo-100 pb-24">
+      {/* Hero Section */}
+      <section className="bg-slate-50 border-b border-slate-100 py-24 px-6">
+        <div className="max-w-5xl mx-auto text-center space-y-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Badge className="bg-indigo-600 text-white hover:bg-indigo-600 mb-4 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+              Centre de Ressources
+            </Badge>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl lg:text-6xl font-black tracking-tight text-zinc-900"
+          >
+            Réussir le <span className="text-indigo-600">TEF IRN</span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl text-slate-500 max-w-2xl mx-auto font-medium"
+          >
+            Découvrez nos guides experts pour comprendre l'examen, maîtriser les épreuves et accélérer vos démarches administratives.
+          </motion.p>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {guides.map((guide, i) => (
-          <Card key={i} className="group hover:border-indigo-600 transition-all cursor-pointer overflow-hidden border-2 border-slate-100 shadow-none rounded-3xl">
-            <CardHeader className="p-8 pb-4">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                  <guide.icon size={28} />
-                </div>
-                <Badge variant="secondary" className="bg-slate-100 text-slate-500">{guide.tag}</Badge>
-              </div>
-              <CardTitle className="text-2xl font-black group-hover:text-indigo-600 transition-colors">{guide.title}</CardTitle>
-              <CardDescription className="text-lg leading-relaxed mt-2">{guide.desc}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 pt-0 flex justify-between items-center text-sm font-bold text-slate-400">
-               <div className="flex items-center gap-2">
-                 <Clock size={16} /> {guide.read} de lecture
-               </div>
-               <div className="flex items-center gap-1 text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                 Lire le guide <ChevronRight size={16} />
-               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Guides Grid */}
+      <main className="max-w-6xl mx-auto px-6 -mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {guides.map((guide, i) => {
+            const Icon = iconMap[guide.slug] || BookOpen;
+            return (
+              <motion.div
+                key={guide.slug}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Link href={`/guides/${guide.slug}`}>
+                  <Card className="h-full group hover:border-indigo-600 transition-all duration-300 cursor-pointer overflow-hidden border-2 border-slate-100 shadow-xl shadow-slate-100/50 rounded-[2.5rem] flex flex-col bg-white">
+                    <CardHeader className="p-8 pb-4">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all group-hover:scale-110 shadow-sm">
+                          <Icon size={24} />
+                        </div>
+                        <Badge variant="secondary" className="bg-slate-50 text-slate-400 font-black text-[9px] uppercase tracking-widest border-none">
+                          {guide.tag}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-xl font-bold group-hover:text-indigo-600 transition-colors leading-tight">
+                        {guide.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm font-medium leading-relaxed mt-3 line-clamp-2">
+                        {guide.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-0 mt-auto flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                       <div className="flex items-center gap-1.5">
+                         <Clock size={14} /> {guide.readTime}
+                       </div>
+                       <div className="flex items-center gap-1 text-indigo-600 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                         Lire <ChevronRight size={14} />
+                       </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </main>
 
-      <section className="mt-24 p-12 bg-indigo-600 rounded-[3rem] text-white text-center">
-        <h2 className="text-3xl font-black mb-4">Prêt à passer à l'action ?</h2>
-        <p className="text-indigo-100 text-lg mb-8 max-w-xl mx-auto">
-          Ne vous contentez pas de lire. Entraînez-vous avec notre Coach IA et obtenez votre certificat TEF IRN du premier coup.
-        </p>
-        <Link href="/login">
-          <Button size="lg" variant="secondary" className="h-16 px-12 text-xl font-black rounded-2xl">
-            Commencer l'entraînement gratuit
-          </Button>
-        </Link>
+      {/* CTA Bottom */}
+      <section className="mt-32 max-w-5xl mx-auto px-6">
+        <div className="bg-zinc-900 rounded-[3rem] p-12 lg:p-16 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-100">
+           <div className="absolute top-0 left-0 p-12 opacity-10">
+              <Sparkles size={100} className="text-indigo-400" />
+           </div>
+
+           <h2 className="text-3xl lg:text-4xl font-black mb-6 relative z-10">Prêt à obtenir votre certificat ?</h2>
+           <p className="text-zinc-400 text-lg mb-12 max-w-xl mx-auto font-medium relative z-10">
+             Ne vous contentez pas de lire des guides. Rejoignez Maitris et pratiquez avec le meilleur coach IA du marché.
+           </p>
+
+           <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+             <Link href="/login">
+               <Button size="lg" className="h-16 px-10 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-indigo-600/20 active:scale-95 transition-all">
+                 S'entraîner Gratuitement
+               </Button>
+             </Link>
+             <Link href="/pricing">
+               <Button size="lg" variant="outline" className="h-16 px-10 border-white/20 hover:bg-white/5 text-white font-bold text-lg rounded-2xl">
+                 Nos offres Premium
+               </Button>
+             </Link>
+           </div>
+        </div>
       </section>
     </div>
   );
