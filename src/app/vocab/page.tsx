@@ -26,6 +26,7 @@ export default function VocabCoach() {
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [filters, setFilters] = useState({ level: "A2", category: "Administration" });
   const [isReviewMode, setIsReviewMode] = useState(false);
+  const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
 
   const supabase = createClient();
 
@@ -39,7 +40,6 @@ export default function VocabCoach() {
     let query = supabase.from('vocabulary').select('*');
 
     if (review && user) {
-      // Mode Révision SRS
       const { data: reviews } = await supabase
         .from('user_vocabulary_reviews')
         .select('vocab_id')
@@ -67,6 +67,7 @@ export default function VocabCoach() {
       setIndex(0);
       setFlipped(false);
       setFinished(false);
+      setSessionMasteredCount(0);
     } else {
       alert("Aucun mot trouvé pour cette sélection.");
     }
@@ -77,12 +78,24 @@ export default function VocabCoach() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user && cards[index]) {
       await updateVocabularySRS(user.id, cards[index].id, mastered);
+      if (mastered) setSessionMasteredCount(prev => prev + 1);
     }
 
     if (index < cards.length - 1) {
       setIndex(index + 1);
       setFlipped(false);
     } else {
+      // Fin de session : Créditer l'XP global (ex: 5 XP par mot maîtrisé)
+      const totalXp = (sessionMasteredCount + (mastered ? 1 : 0)) * 5;
+      await fetch('/api/exercise-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId: cards[index].id, // On utilise l'ID du dernier mot comme réf
+          score: totalXp,
+          answers: { type: 'vocab', mastered: sessionMasteredCount + (mastered ? 1 : 0) }
+        })
+      });
       setFinished(true);
     }
   };
@@ -92,18 +105,20 @@ export default function VocabCoach() {
       <div className="max-w-4xl mx-auto p-8 pt-20">
         <header className="mb-12">
           <h1 className="text-4xl font-black tracking-tight mb-2">Maîtrise du Vocabulaire</h1>
-          <p className="text-muted-foreground text-lg">Choisissez un thème et un niveau pour commencer votre session.</p>
+          <p className="text-muted-foreground text-lg italic">Progressez mot après mot vers la fluidité.</p>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <section className="space-y-4">
-            <h3 className="font-bold flex items-center gap-2"><GraduationCap className="text-indigo-600" /> Niveau CECRL</h3>
+            <h3 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+               <GraduationCap size={16} className="text-indigo-600" /> Niveau CECRL
+            </h3>
             <div className="grid grid-cols-2 gap-2">
               {levels.map(l => (
                 <Button
                   key={l}
                   variant={filters.level === l ? "default" : "outline"}
-                  className={filters.level === l ? "bg-indigo-600" : ""}
+                  className={filters.level === l ? "bg-zinc-900 text-white" : "border-zinc-200"}
                   onClick={() => setFilters({...filters, level: l})}
                 >
                   Niveau {l}
@@ -113,13 +128,15 @@ export default function VocabCoach() {
           </section>
 
           <section className="space-y-4">
-            <h3 className="font-bold flex items-center gap-2"><LayoutGrid className="text-indigo-600" /> Thématique</h3>
+            <h3 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+              <LayoutGrid size={16} className="text-indigo-600" /> Thématique
+            </h3>
             <div className="grid grid-cols-2 gap-2">
               {categories.map(c => (
                 <Button
                   key={c}
                   variant={filters.category === c ? "default" : "outline"}
-                  className={filters.category === c ? "bg-indigo-600" : ""}
+                  className={filters.category === c ? "bg-zinc-900 text-white" : "border-zinc-200"}
                   onClick={() => setFilters({...filters, category: c})}
                 >
                   {c}
@@ -131,7 +148,7 @@ export default function VocabCoach() {
 
         <div className="mt-12 space-y-4">
           <Button
-            className="w-full h-16 text-xl font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100"
+            className="w-full h-16 text-xl font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
             onClick={() => startTraining(false)}
             disabled={loading}
           >
@@ -140,7 +157,7 @@ export default function VocabCoach() {
 
           <Button
             variant="outline"
-            className="w-full h-16 text-xl font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-2xl"
+            className="w-full h-16 text-xl font-black border-zinc-200 text-zinc-900 hover:bg-zinc-50 rounded-2xl transition-all"
             onClick={() => startTraining(true)}
             disabled={loading}
           >
@@ -154,15 +171,21 @@ export default function VocabCoach() {
   if (finished) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] p-8">
-        <Card className="max-w-md text-center p-12 rounded-3xl border-2 border-indigo-50 shadow-none">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+        <Card className="max-w-md w-full text-center p-12 rounded-[2.5rem] border-none shadow-2xl shadow-indigo-100">
+          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
             <CheckCircle2 size={40} />
           </div>
-          <h2 className="text-3xl font-black mb-2 text-slate-900">Session terminée !</h2>
-          <p className="text-muted-foreground mb-8">Tu as travaillé {cards.length} mots de la catégorie {filters.category}.</p>
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setMode("selection")}>Changer de thème</Button>
-            <Button className="flex-1 bg-indigo-600 rounded-xl" onClick={() => window.location.href='/dashboard'}>Dashboard</Button>
+          <h2 className="text-3xl font-black mb-2 text-zinc-900">Session terminée !</h2>
+          <p className="text-muted-foreground mb-8 font-medium italic">
+            Vous avez maîtrisé {sessionMasteredCount} nouveaux mots aujourd'hui.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button className="w-full h-14 bg-zinc-900 text-white font-bold rounded-2xl" onClick={() => window.location.href='/dashboard'}>
+              Retour au Dashboard
+            </Button>
+            <Button variant="ghost" className="text-zinc-500 font-bold" onClick={() => setMode("selection")}>
+              Changer de thème
+            </Button>
           </div>
         </Card>
       </div>
@@ -175,10 +198,10 @@ export default function VocabCoach() {
     <div className="max-w-3xl mx-auto p-8 pt-16 h-screen flex flex-col">
       <header className="mb-12 flex justify-between items-center">
         <div>
-          <Badge className="bg-indigo-600 mb-2">{current.category} • {current.level}</Badge>
-          <h1 className="text-2xl font-bold">Apprentissage Mémoriel</h1>
+          <Badge className="bg-indigo-600 text-[10px] font-black uppercase tracking-widest mb-2 px-3 py-1">{current.category} • {current.level}</Badge>
+          <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Apprentissage Mémoriel</h1>
         </div>
-        <div className="text-sm font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+        <div className="text-xs font-black text-zinc-400 bg-zinc-100 px-4 py-2 rounded-full uppercase tracking-widest">
           {index + 1} / {cards.length}
         </div>
       </header>
@@ -193,28 +216,30 @@ export default function VocabCoach() {
             ${flipped ? 'rotate-y-180' : ''}
           `}>
             {/* Recto */}
-            <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-2 border-slate-100 shadow-2xl shadow-slate-200/50 rounded-3xl group-hover:border-indigo-200 transition-colors">
-              <h2 className="text-5xl font-black text-indigo-950 mb-6 text-center">{current.word}</h2>
-              <Button size="icon" variant="secondary" className="rounded-full h-12 w-12 bg-indigo-50 text-indigo-600 hover:bg-indigo-100">
-                <Volume2 size={24} />
+            <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-12 border-none shadow-2xl shadow-zinc-200 rounded-[3rem] group-hover:shadow-indigo-100 transition-all duration-500">
+              <h2 className="text-6xl font-black text-zinc-900 mb-8 text-center tracking-tighter">{current.word}</h2>
+              <Button size="icon" variant="secondary" className="rounded-full h-14 w-14 bg-zinc-100 text-zinc-900 hover:bg-indigo-600 hover:text-white transition-colors">
+                <Volume2 size={28} />
               </Button>
-              <p className="absolute bottom-8 text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] italic">Cliquer pour révéler</p>
+              <p className="absolute bottom-10 text-[10px] text-zinc-300 uppercase font-black tracking-[0.3em] italic">Cliquer pour révéler</p>
             </Card>
 
             {/* Verso */}
-            <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border-none bg-indigo-600 text-white shadow-2xl rounded-3xl overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full" />
-                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white rounded-full" />
+            <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-12 border-none bg-zinc-900 text-white shadow-2xl rounded-[3rem] overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full blur-3xl" />
+                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500 rounded-full blur-3xl" />
               </div>
-              <div className="text-center space-y-8 z-10">
-                <div className="space-y-2">
-                  <div className="text-[10px] text-indigo-200 font-black uppercase tracking-[0.2em]">Définition</div>
-                  <p className="text-2xl font-bold leading-tight">{current.definition}</p>
+              <div className="text-center space-y-10 z-10">
+                <div className="space-y-3">
+                  <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Définition</div>
+                  <p className="text-3xl font-bold leading-tight tracking-tight">{current.definition}</p>
                 </div>
-                <div className="space-y-2">
-                  <div className="text-[10px] text-indigo-200 font-black uppercase tracking-[0.2em]">Exemple</div>
-                  <p className="text-sm italic text-indigo-50 bg-white/10 p-4 rounded-2xl border border-white/10">"{current.example}"</p>
+                <div className="space-y-3">
+                  <div className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em]">Exemple d'usage</div>
+                  <p className="text-lg italic text-zinc-300 bg-white/5 p-6 rounded-[2rem] border border-white/10 leading-relaxed font-medium">
+                    "{current.example}"
+                  </p>
                 </div>
               </div>
             </Card>
@@ -222,10 +247,10 @@ export default function VocabCoach() {
         </div>
 
         <div className={`flex gap-4 w-full max-w-lg transition-all duration-500 ${flipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-          <Button variant="outline" size="lg" className="flex-1 h-16 rounded-2xl border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all" onClick={() => handleNext(false)}>
+          <Button variant="outline" size="lg" className="flex-1 h-16 rounded-2xl border-zinc-200 text-zinc-400 font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all" onClick={() => handleNext(false)}>
             <XCircle className="mr-2" /> Pas encore
           </Button>
-          <Button size="lg" className="flex-1 h-16 rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-100 transition-all" onClick={() => handleNext(true)}>
+          <Button size="lg" className="flex-1 h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xl shadow-emerald-100 transition-all" onClick={() => handleNext(true)}>
             <CheckCircle2 className="mr-2" /> Je maîtrise
           </Button>
         </div>
