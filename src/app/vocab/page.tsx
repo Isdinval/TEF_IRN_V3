@@ -198,7 +198,7 @@ export default function VocabCoach() {
 
               <section>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
                     <LayoutGrid size={24} />
                   </div>
                   <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Thématique</h2>
@@ -275,7 +275,7 @@ export default function VocabCoach() {
   if (finished) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] p-8">
-        <Card className="max-w-md w-full text-center p-12 rounded-[3rem] border-none shadow-2xl shadow-indigo-100 bg-white">
+        <Card className="max-w-md w-full text-center p-12 rounded-[3rem] border-none shadow-2xl shadow-emerald-100 bg-white">
           <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 text-emerald-600">
             <Trophy size={48} />
           </div>
@@ -302,7 +302,7 @@ export default function VocabCoach() {
     <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
       <header className="mb-12 flex justify-between items-center">
         <div className="space-y-1">
-          <Badge className="bg-indigo-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none shadow-lg shadow-indigo-100">
+          <Badge className="bg-emerald-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none shadow-lg shadow-emerald-100">
             {current.category} • {current.level}
           </Badge>
           <h1 className="text-2xl font-black text-zinc-900 uppercase">
@@ -317,7 +317,7 @@ export default function VocabCoach() {
             </div>
             <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-indigo-600"
+                  className="h-full bg-emerald-600"
                   initial={{ width: 0 }}
                   animate={{ width: `${((index) / cards.length) * 100}%` }}
                 />
@@ -344,9 +344,9 @@ export default function VocabCoach() {
                   ${flipped ? 'rotate-y-180' : ''}
                 `}>
                   {/* Recto */}
-                  <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-12 border-none shadow-2xl shadow-zinc-200 rounded-[3.5rem] group-hover:shadow-indigo-100 transition-all duration-500 bg-white">
+                  <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-12 border-none shadow-2xl shadow-zinc-200 rounded-[3.5rem] group-hover:shadow-emerald-100 transition-all duration-500 bg-white">
                     <h2 className="text-6xl font-black text-zinc-900 mb-8 text-center tracking-tighter">{current.word}</h2>
-                    <Button size="icon" variant="secondary" className="rounded-full h-16 w-16 bg-zinc-50 text-zinc-900 hover:bg-indigo-600 hover:text-white transition-colors">
+                    <Button size="icon" variant="secondary" className="rounded-full h-16 w-16 bg-zinc-50 text-zinc-900 hover:bg-emerald-600 hover:text-white transition-colors">
                       <Volume2 size={32} />
                     </Button>
                     <p className="absolute bottom-12 text-[10px] text-zinc-300 uppercase font-black tracking-[0.4em] italic">Cliquer pour révéler</p>
@@ -356,7 +356,7 @@ export default function VocabCoach() {
                   <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-12 border-none bg-zinc-900 text-white shadow-2xl rounded-[3.5rem] overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full blur-3xl" />
-                       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500 rounded-full blur-3xl" />
+                       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500 rounded-full blur-3xl" />
                     </div>
                     <div className="text-center space-y-10 z-10">
                       <div className="space-y-4">
@@ -364,7 +364,7 @@ export default function VocabCoach() {
                         <p className="text-3xl font-bold leading-tight tracking-tight text-white">{current.definition}</p>
                       </div>
                       <div className="space-y-4">
-                        <div className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em]">Exemple</div>
+                        <div className="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em]">Exemple</div>
                         <p className="text-lg italic text-zinc-300 bg-white/5 p-6 rounded-[2rem] border border-white/10 leading-relaxed font-medium">
                           "{current.example}"
                         </p>
@@ -375,7 +375,7 @@ export default function VocabCoach() {
               </div>
               <Button
                 onClick={() => handleStepComplete(true)}
-                className="h-16 px-12 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-200 text-xl"
+                className="h-16 px-12 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 text-xl"
               >
                 C'est compris <ArrowRight className="ml-2" />
               </Button>
@@ -403,7 +403,7 @@ export default function VocabCoach() {
                     onClick={() => setSelectedOption(opt)}
                     className={`
                       w-full p-6 rounded-2xl border-2 text-left transition-all font-bold text-base leading-snug
-                      ${selectedOption === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300'}
+                      ${selectedOption === opt ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300'}
                       ${quizChecked && opt === current.definition ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : ''}
                       ${quizChecked && selectedOption === opt && opt !== current.definition ? 'border-rose-500 bg-rose-50 text-rose-900' : ''}
                     `}
@@ -424,7 +424,7 @@ export default function VocabCoach() {
               ) : (
                 <Button
                   onClick={() => handleStepComplete(selectedOption === current.definition)}
-                  className={`w-full h-16 text-white font-black rounded-2xl ${selectedOption === current.definition ? 'bg-indigo-600' : 'bg-rose-500'}`}
+                  className={`w-full h-16 text-white font-black rounded-2xl ${selectedOption === current.definition ? 'bg-emerald-600' : 'bg-rose-500'}`}
                 >
                   {selectedOption === current.definition ? "Continuer" : "Réessayer le mot"} <ArrowRight className="ml-2" />
                 </Button>
@@ -455,7 +455,7 @@ export default function VocabCoach() {
                   className={`h-20 text-center text-3xl font-black rounded-2xl border-2 transition-all ${
                     typeChecked
                     ? (userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-rose-500 bg-rose-50 text-rose-900')
-                    : 'border-zinc-200 focus:border-indigo-600'
+                    : 'border-zinc-200 focus:border-emerald-600'
                   }`}
                 />
 
@@ -476,7 +476,7 @@ export default function VocabCoach() {
                     )}
                     <Button
                       onClick={() => handleStepComplete(userInput.toLowerCase().trim() === current.word.toLowerCase().trim())}
-                      className={`w-full h-16 text-white font-black rounded-2xl ${userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? 'bg-indigo-600' : 'bg-rose-500'}`}
+                      className={`w-full h-16 text-white font-black rounded-2xl ${userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? 'bg-emerald-600' : 'bg-rose-500'}`}
                     >
                       {userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" />
                     </Button>
