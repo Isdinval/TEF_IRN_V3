@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Calendar, Flame, Loader2, Sparkles, Target, TrendingUp, Zap } from "lucide-react";
+import { ArrowRight, Calendar, Loader2, Sparkles, Target, TrendingUp, Zap } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
 import { CompetencyRadar } from "@/components/features/dashboard/CompetencyRadar";
 import { LeagueStats } from "@/components/features/dashboard/LeagueStats";
@@ -184,38 +183,17 @@ export default function Dashboard() {
     <PageTransition>
       <div className="min-h-full bg-zinc-50/50 selection:bg-indigo-100">
         <div className="mx-auto max-w-[1400px] p-6 pt-10 lg:p-10">
-          <div className="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <header className="lg:col-span-2">
-              <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-                Tableau de bord
-              </Badge>
-              <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-                BONJOUR, <span className="text-indigo-600">{profile?.full_name?.split(' ')[0] || 'APPRENTI'}</span>
-              </h1>
-              <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-                Votre cockpit TEF IRN : objectifs du jour, corrections récentes, vocabulaire et recommandations IA au même endroit.
-              </p>
-            </header>
-
-            <Card className="relative overflow-hidden rounded-[2.5rem] border-none bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white shadow-2xl shadow-indigo-100">
-              <div className="relative z-10">
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-                  <Flame size={28} />
-                </div>
-                <h2 className="mb-2 text-2xl font-black tracking-tight">Plan du jour</h2>
-                <p className="mb-8 text-sm font-medium leading-relaxed text-indigo-100">
-                  Gardez le rythme avec une session courte, ciblée et directement reliée à vos points faibles.
-                </p>
-                <Button
-                  onClick={() => router.push('/practice')}
-                  className="h-14 w-full rounded-xl border-none bg-white font-black text-indigo-600 shadow-xl hover:bg-indigo-50"
-                >
-                  Lancer une session <ArrowRight size={18} className="ml-2" />
-                </Button>
-              </div>
-              <Sparkles className="absolute -bottom-5 -right-5 h-32 w-32 rotate-12 text-white/10" />
-            </Card>
-          </div>
+          <header className="mb-12">
+            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+              Tableau de bord
+            </Badge>
+            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+              BONJOUR, <span className="text-indigo-600">{profile?.full_name?.split(' ')[0] || 'APPRENTI'}</span>
+            </h1>
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+              Votre cockpit TEF IRN : objectifs du jour, corrections récentes, vocabulaire et recommandations IA au même endroit.
+            </p>
+          </header>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             <div className="space-y-8 lg:col-span-8">

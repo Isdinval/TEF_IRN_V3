@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -120,105 +120,129 @@ export default function OralCoach() {
   };
 
   return (
-    <div className="flex flex-col gap-8 p-8 max-w-4xl mx-auto h-[calc(100vh-2rem)]">
-      <header className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Coach d'Expression Orale</h1>
-          <p className="text-muted-foreground italic">Simulation Section A : Téléphoner pour poser des questions sur un service.</p>
-        </div>
-        <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-200">
-          <Sparkles size={14} className="mr-1" /> IA Realtime
-        </Badge>
-      </header>
-
-      <div className="flex-1 flex flex-col gap-6 min-h-0">
-        <Card className="flex-1 flex flex-col items-center justify-center relative overflow-hidden bg-slate-950 border-slate-800">
-          {status === "active" && isListening && (
-            <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-2 bg-indigo-500 rounded-full animate-bounce"
-                  style={{
-                    height: `${Math.random() * 60 + 20}%`,
-                    animationDelay: `${i * 0.1}s`,
-                    animationDuration: `${0.5 + Math.random()}s`
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="z-10 flex flex-col items-center gap-6">
-            <div className={`
-              w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500
-              ${status === "active" ? (isListening ? 'bg-indigo-600 shadow-[0_0_40px_rgba(79,70,229,0.5)]' : 'bg-indigo-900') : 'bg-slate-800'}
-            `}>
-              {status === "connecting" ? (
-                <Loader2 className="text-white animate-spin" size={48} />
-              ) : (
-                <Mic className="text-white" size={48} />
-              )}
-            </div>
-
-            <div className="text-center">
-              <h3 className="text-xl font-semibold text-white">
-                {status === "idle" && "Prêt à parler ?"}
-                {status === "connecting" && "Connexion au Coach..."}
-                {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
-              </h3>
-              <p className="text-slate-400 text-sm mt-2">
-                {status === "active" ? "Parlez naturellement, comme lors de l'examen." : "Cliquez sur le bouton ci-dessous pour démarrer la session."}
-              </p>
-            </div>
+    <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
+      <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 p-6 pt-10 lg:p-10">
+        <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+              IA Realtime
+            </Badge>
+            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+              COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span>
+            </h1>
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+              Simulation Section A : téléphonez pour poser des questions sur un service, comme le jour du TEF IRN.
+            </p>
           </div>
-        </Card>
+          <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+            <Sparkles size={14} className="mr-1" /> Session vocale
+          </Badge>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-white/50">
-            <CardHeader className="py-3 px-4 border-b">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare size={14} className="text-indigo-500" /> Transcription
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 text-sm text-muted-foreground min-h-[100px] max-h-[150px] overflow-auto">
-              {transcription || "Votre voix apparaîtra ici après chaque phrase..."}
-            </CardContent>
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
+          <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+            {status === "active" && isListening && (
+              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
+                {[...Array(12)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-2 animate-bounce rounded-full bg-indigo-500"
+                    style={{
+                      height: `${Math.random() * 60 + 20}%`,
+                      animationDelay: `${index * 0.1}s`,
+                      animationDuration: `${0.5 + Math.random()}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="z-10 flex flex-col items-center gap-6 p-10">
+              <div
+                className={`flex h-36 w-36 items-center justify-center rounded-full transition-all duration-500 ${
+                  status === "active"
+                    ? isListening
+                      ? "bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.6)]"
+                      : "bg-indigo-900"
+                    : "bg-slate-800"
+                }`}
+              >
+                {status === "connecting" ? (
+                  <Loader2 className="animate-spin text-white" size={54} />
+                ) : (
+                  <Mic className="text-white" size={54} />
+                )}
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-2xl font-black tracking-tight text-white">
+                  {status === "idle" && "Prêt à parler ?"}
+                  {status === "connecting" && "Connexion au Coach..."}
+                  {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
+                </h3>
+                <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
+                  {status === "active"
+                    ? "Parlez naturellement, comme lors de l'examen."
+                    : "Cliquez sur le bouton ci-dessous pour démarrer la session."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-4 pt-2">
+                {status === "idle" ? (
+                  <Button size="lg" className="h-14 rounded-2xl bg-indigo-600 px-8 text-base font-black shadow-xl shadow-indigo-900/30 hover:bg-indigo-700" onClick={startSession}>
+                    Démarrer la session
+                  </Button>
+                ) : (
+                  <>
+                    <Button size="lg" variant="outline" className="h-14 rounded-2xl border-white/20 bg-white/10 px-8 font-black text-white hover:bg-white/20" onClick={stopSession}>
+                      Quitter
+                    </Button>
+                    <Button
+                      size="lg"
+                      className={`${isListening ? "bg-rose-500 hover:bg-rose-600" : "bg-indigo-600 hover:bg-indigo-700"} h-14 rounded-2xl px-8 font-black transition-colors`}
+                      onClick={toggleMic}
+                    >
+                      {isListening ? (
+                        <>
+                          <MicOff className="mr-2" /> Couper le micro
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="mr-2" /> Activer le micro
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </Card>
 
-          <Card className="bg-white/50">
-            <CardHeader className="py-3 px-4 border-b">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                <Volume2 size={14} className="text-green-500" /> Réponse du Coach
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 text-sm font-medium min-h-[100px] max-h-[150px] overflow-auto text-indigo-900">
-              {aiResponse || "Le coach répondra vocalement."}
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+              <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
+                <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  <MessageSquare size={14} className="text-indigo-500" /> Transcription
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-[160px] min-h-[120px] overflow-auto p-6 text-sm font-medium leading-relaxed text-zinc-500">
+                {transcription || "Votre voix apparaîtra ici après chaque phrase..."}
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+              <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
+                <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  <Volume2 size={14} className="text-emerald-500" /> Réponse du Coach
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-[160px] min-h-[120px] overflow-auto p-6 text-sm font-bold leading-relaxed text-indigo-900">
+                {aiResponse || "Le coach répondra vocalement."}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-
-      <footer className="flex justify-center gap-4">
-        {status === "idle" ? (
-          <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 px-8 py-6 rounded-full text-lg font-bold" onClick={startSession}>
-            Démarrer la session
-          </Button>
-        ) : (
-          <>
-            <Button size="lg" variant="outline" className="rounded-full px-8" onClick={stopSession}>
-              Quitter
-            </Button>
-            <Button
-              size="lg"
-              className={`${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-700'} rounded-full px-8 transition-colors`}
-              onClick={toggleMic}
-            >
-              {isListening ? <><MicOff className="mr-2" /> Couper le micro</> : <><Mic className="mr-2" /> Activer le micro</>}
-            </Button>
-          </>
-        )}
-      </footer>
     </div>
   );
 }

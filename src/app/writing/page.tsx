@@ -22,7 +22,6 @@ import {
   RotateCcw,
   Sparkles,
   Target,
-  Wand2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -200,37 +199,16 @@ export default function WritingCoach() {
   return (
     <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-8 p-6 pt-10 lg:p-10">
-        <header className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              Atelier rédaction TEF IRN
-            </Badge>
-            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-              COACH D'EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
-            </h1>
-            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-              Rédigez votre réponse, lancez l'analyse IA et corrigez vos formulations comme dans les ateliers premium de Maitris.
-            </p>
-          </div>
-
-          <Card className="rounded-[2.5rem] border-none bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white shadow-2xl shadow-indigo-100">
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-              <Wand2 size={28} />
-            </div>
-            <h2 className="mb-2 text-2xl font-black tracking-tight">Analyse guidée</h2>
-            <p className="mb-8 text-sm font-medium leading-relaxed text-indigo-100">
-              Objectif : respecter le sujet, enrichir les phrases et viser le niveau {exercise.level}.
-            </p>
-            <div className="rounded-2xl bg-white/15 p-4 backdrop-blur-md">
-              <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-indigo-100">
-                <span>Progression</span>
-                <span>{wordCount}/{minWords} mots</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/20">
-                <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${completion}%` }} />
-              </div>
-            </div>
-          </Card>
+        <header>
+          <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+            Atelier rédaction TEF IRN
+          </Badge>
+          <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+            COACH D'EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
+          </h1>
+          <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+            Rédigez votre réponse, lancez l'analyse IA et corrigez vos formulations comme dans les ateliers premium de Maitris.
+          </p>
         </header>
 
         <Card className="rounded-[2rem] border-none bg-white p-6 shadow-xl shadow-zinc-200/50">
@@ -244,13 +222,18 @@ export default function WritingCoach() {
                 <p className="text-sm font-bold leading-relaxed text-zinc-700">{exercise.instructions}</p>
               </div>
             </div>
-            <div className="flex gap-3">
-              <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                Niveau {exercise.level}
-              </Badge>
-              <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                {minWords} mots min.
-              </Badge>
+            <div className="min-w-48 space-y-2">
+              <div className="flex gap-3">
+                <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  Niveau {exercise.level}
+                </Badge>
+                <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  {wordCount}/{minWords} mots
+                </Badge>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
+                <div className="h-full rounded-full bg-indigo-600 transition-all duration-500" style={{ width: `${completion}%` }} />
+              </div>
             </div>
           </div>
         </Card>
