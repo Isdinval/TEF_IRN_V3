@@ -1,24 +1,22 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Volume2,
   ArrowRight,
-  RotateCcw,
-  CheckCircle2,
-  XCircle,
   LayoutGrid,
   GraduationCap,
   Loader2,
   Calendar,
   Sparkles,
   Trophy,
-  Brain
+  Brain,
+  Target
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -159,70 +157,116 @@ export default function VocabCoach() {
 
   if (mode === "selection") {
     return (
-      <div className="max-w-4xl mx-auto p-8 pt-20">
+      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
         <header className="mb-12">
-          <div className="flex items-center gap-3 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-             <Brain size={16} /> Entraînement Cognitif
-          </div>
-          <h1 className="text-4xl font-black tracking-tight mb-2 text-zinc-900">Maîtrise du Vocabulaire</h1>
-          <p className="text-zinc-500 text-lg font-medium italic">Apprenez par la répétition espacée, style Memrise.</p>
+          <Badge className="bg-emerald-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-emerald-100">
+            Entraînement Cognitif
+          </Badge>
+          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
+            MAÎTRISE DU <span className="text-emerald-600">VOCABULAIRE</span>
+          </h1>
+          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+            Apprenez les mots utiles au TEF IRN par la répétition espacée, avec reconnaissance puis production active.
+          </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="space-y-4">
-            <h3 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-               <GraduationCap size={16} className="text-indigo-600" /> Niveau CECRL
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {levels.map(l => (
-                <Button
-                  key={l}
-                  variant={filters.level === l ? "default" : "outline"}
-                  className={filters.level === l ? "bg-zinc-900 text-white border-none shadow-lg" : "border-zinc-200 text-zinc-600"}
-                  onClick={() => setFilters({...filters, level: l})}
-                >
-                  Niveau {l}
-                </Button>
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
+            <div className="space-y-10">
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <GraduationCap size={24} />
+                  </div>
+                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {levels.map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setFilters({ ...filters, level: l })}
+                      className={`
+                        h-20 rounded-2xl border-2 font-black text-xl transition-all
+                        ${filters.level === l ? "border-emerald-600 bg-emerald-50 text-emerald-600 shadow-inner" : "border-zinc-100 hover:border-zinc-300 text-zinc-400"}
+                      `}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <LayoutGrid size={24} />
+                  </div>
+                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Thématique</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {categories.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setFilters({ ...filters, category: c })}
+                      className={`
+                        p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between
+                        ${filters.category === c ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-zinc-100 hover:border-zinc-300 text-zinc-500"}
+                      `}
+                    >
+                      {c}
+                      {filters.category === c && <div className="w-2 h-2 bg-emerald-600 rounded-full" />}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <Button
+                className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
+                onClick={() => startTraining(false)}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "DÉCOUVRIR DE NOUVEAUX MOTS"}
+              </Button>
             </div>
-          </section>
+          </Card>
 
-          <section className="space-y-4">
-            <h3 className="font-black text-xs uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-              <LayoutGrid size={16} className="text-indigo-600" /> Thématique
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map(c => (
+          <div className="space-y-6">
+            <Card className="border-none shadow-2xl shadow-emerald-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-emerald-600 to-teal-700 text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
+                  <Brain size={28} />
+                </div>
+                <h3 className="text-2xl font-black mb-2 tracking-tight">Révision urgente</h3>
+                <p className="text-emerald-50 text-sm font-medium mb-8 leading-relaxed">
+                  Votre mémoire vous signale les mots à revoir maintenant. Réactivez-les avant qu'ils ne s'effacent.
+                </p>
                 <Button
-                  key={c}
-                  variant={filters.category === c ? "default" : "outline"}
-                  className={filters.category === c ? "bg-zinc-900 text-white border-none shadow-lg" : "border-zinc-200 text-zinc-600"}
-                  onClick={() => setFilters({...filters, category: c})}
+                  onClick={() => startTraining(true)}
+                  disabled={loading}
+                  className="w-full h-14 bg-white text-emerald-600 hover:bg-emerald-50 font-black rounded-xl shadow-xl border-none"
                 >
-                  {c}
+                  Réviser mon SRS
                 </Button>
-              ))}
-            </div>
-          </section>
-        </div>
+              </div>
+              <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
+            </Card>
 
-        <div className="mt-12 space-y-4">
-          <Button
-            className="w-full h-16 text-xl font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-2xl shadow-indigo-100 transition-all active:scale-[0.98]"
-            onClick={() => startTraining(false)}
-            disabled={loading}
-          >
-            {loading ? <Loader2 className="animate-spin" /> : "Découvrir de nouveaux mots"}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-full h-16 text-xl font-black border-zinc-200 text-zinc-900 hover:bg-zinc-50 rounded-2xl transition-all"
-            onClick={() => startTraining(true)}
-            disabled={loading}
-          >
-            <Calendar className="mr-2" /> Réviser mon SRS
-          </Button>
+            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50">
+              <div className="flex items-center gap-3 mb-4">
+                <Calendar className="text-zinc-400" size={20} />
+                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide rapide</h4>
+              </div>
+              <div className="space-y-4">
+                <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
+                  Chaque mot passe par une découverte, un QCM de reconnaissance puis une saisie active pour renforcer la mémorisation.
+                </p>
+                <div className="h-px bg-zinc-200 w-full" />
+                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
+                  <Target size={14} className="text-emerald-600" /> Objectif : 10 mots ancrés
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     );
