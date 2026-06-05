@@ -106,11 +106,11 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       const isTheorie = titleText.includes("Théorie");
       const isExemple = titleText.includes("Exemple");
       return (
-        <div className="flex items-center gap-3 mt-12 mb-6">
-          <div className={`p-2 rounded-lg ${isTheorie ? 'bg-indigo-100 text-indigo-600' : isExemple ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-            {isTheorie ? <BookOpen size={20} /> : isExemple ? <GraduationCap size={20} /> : <Sparkles size={20} />}
+        <div className="flex items-center gap-3 mt-8 mb-5 first:mt-0">
+          <div className={`w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ${isTheorie ? 'bg-indigo-100 text-indigo-600' : isExemple ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+            {isTheorie ? <BookOpen size={18} /> : isExemple ? <GraduationCap size={18} /> : <Sparkles size={18} />}
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">{children}</h2>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none">{children}</h2>
         </div>
       );
     },
@@ -182,8 +182,8 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                   )}
                 </header>
 
-                <div className="bg-white p-10 md:p-12 rounded-[2.5rem] shadow-xl shadow-zinc-200/50 border border-white">
-                  <div className="prose prose-slate max-w-none">
+                <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-zinc-200/50 border border-white">
+                  <div className="prose-none max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                       {cleanContent}
                     </ReactMarkdown>
