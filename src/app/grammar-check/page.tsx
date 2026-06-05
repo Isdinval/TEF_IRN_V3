@@ -243,7 +243,7 @@ export default function GrammarCheckPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
+        <Loader2 className="animate-spin text-rose-600" size={48} />
       </div>
     );
   }
@@ -253,13 +253,13 @@ export default function GrammarCheckPage() {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
         <Card className="w-full max-w-md text-center p-10 rounded-3xl shadow-2xl">
-          <CheckCircle2 className="w-20 h-20 text-green-600 mx-auto mb-6" />
+          <CheckCircle2 className="w-20 h-20 text-emerald-600 mx-auto mb-6" />
           <h2 className="text-3xl font-black mb-2">Session terminée !</h2>
           <p className="text-zinc-600 mb-8">Score final</p>
-          <div className="text-7xl font-black text-indigo-600 mb-8">
+          <div className="text-7xl font-black text-rose-600 mb-8">
             {Math.round((score / questions.length) * 100)}%
           </div>
-          <Button onClick={() => router.push('/dashboard')} className="w-full h-14 rounded-2xl text-lg">
+          <Button onClick={() => router.push('/dashboard')} className="w-full h-14 rounded-2xl text-lg bg-zinc-900 hover:bg-zinc-800 text-white font-black">
             Retour au Dashboard
           </Button>
         </Card>
@@ -273,7 +273,7 @@ export default function GrammarCheckPage() {
     <div className="max-w-2xl mx-auto p-8 pt-16">
       <div className="mb-8 flex justify-between items-center px-2">
         <div className="space-y-1">
-          <Badge variant="outline" className="text-indigo-600 border-indigo-100 bg-indigo-50 font-black text-[10px] uppercase tracking-widest">
+          <Badge variant="outline" className="text-rose-600 border-rose-100 bg-rose-50 font-black text-[10px] uppercase tracking-widest">
             Orthographe • Projet Voltaire
           </Badge>
           <h2 className="text-2xl font-black text-zinc-900">{current.category}</h2>
@@ -291,7 +291,7 @@ export default function GrammarCheckPage() {
                const [fragment, rest] = part.split(']');
                return (
                  <span key={i}>
-                   <span className={`px-3 py-1 rounded-xl border-2 transition-all ${status === 'correct' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : status === 'wrong' ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-indigo-50 border-indigo-200 text-indigo-600'}`}>
+                   <span className={`px-3 py-1 rounded-xl border-2 transition-all ${status === 'correct' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : status === 'wrong' ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-50 border-rose-200 text-rose-600'}`}>
                      {status === 'typing' ? fragment : current.correction}
                    </span>
                    {rest}
@@ -313,7 +313,7 @@ export default function GrammarCheckPage() {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && inputValue.trim() && handleVerify()}
               placeholder="Saisissez la correction..."
-              className="w-full h-20 text-3xl font-black text-center border-b-4 border-indigo-600 focus:outline-none bg-transparent placeholder:text-zinc-100 text-zinc-900"
+              className="w-full h-20 text-3xl font-black text-center border-b-4 border-rose-600 focus:outline-none bg-transparent placeholder:text-zinc-100 text-zinc-900"
             />
             <Button
               className="w-full h-16 text-xl font-black bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
@@ -349,7 +349,7 @@ export default function GrammarCheckPage() {
 
                 <div className="p-6 bg-white/60 rounded-3xl border border-white/80 backdrop-blur-sm shadow-sm">
                   <div className="flex items-center gap-2 mb-3 font-black text-[10px] uppercase tracking-widest text-zinc-400">
-                    <Target size={14} className="text-indigo-500" /> La règle pédagogique
+                    <Target size={14} className="text-rose-500" /> La règle pédagogique
                   </div>
                   <p className="text-zinc-700 leading-relaxed font-bold text-sm italic">
                     {current.explanation}
