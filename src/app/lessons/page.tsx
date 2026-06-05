@@ -18,23 +18,43 @@ interface Lesson {
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
   const supabase = createClient();
 
   useEffect(() => {
-    async function fetchLessons() {
+    async function fetchData() {
+      // 1. Fetch user to get progress
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let completedIds = new Set<string>();
+      if (user) {
+        const { data: progress } = await supabase
+          .from('lesson_progress')
+          .select('lesson_id')
+          .eq('user_id', user.id);
+
+        if (progress) {
+          completedIds = new Set(progress.map((p: any) => p.lesson_id));
+        }
+      }
+
+      // 2. Fetch all lessons
       const { data } = await supabase
         .from('lessons')
         .select('id, title, level, category, order_index')
         .order('level', { ascending: true })
         .order('order_index', { ascending: true });
 
-      if (data) setLessons(data);
+      if (data) {
+          setLessons(data);
+      }
+      setCompletedLessonIds(completedIds);
       setLoading(false);
     }
-    fetchLessons();
+    fetchData();
   }, [supabase]);
 
   const levels = useMemo(() => {
@@ -47,7 +67,7 @@ export default function LessonsPage() {
     return ["Toutes", ...uniqueCategories];
   }, [lessons]);
 
-  if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-violet-600" /></div>;
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesLevel = lesson.level === selectedLevel;
@@ -55,12 +75,12 @@ export default function LessonsPage() {
     return matchesLevel && matchesCategory;
   });
 
-  const nextLesson = filteredLessons[0];
+  const nextLesson = filteredLessons.find(lesson => !completedLessonIds.has(lesson.id)) || filteredLessons[0];
 
   return (
     <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
       <header className="mb-12">
-        <Badge className="bg-violet-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-violet-100">
+        <Badge className="bg-violet-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-violet-100 text-white">
           Parcours guidé
         </Badge>
         <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
@@ -169,7 +189,7 @@ export default function LessonsPage() {
       <section>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-            <Badge className="bg-violet-600 rounded-full px-3 py-1">Niveau {selectedLevel}</Badge>
+            <Badge className="bg-violet-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevel}</Badge>
             <span className="text-zinc-400">•</span>
             <span className="capitalize">{selectedCategory}</span>
           </h2>
@@ -180,30 +200,40 @@ export default function LessonsPage() {
 
         {filteredLessons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredLessons.map((lesson) => (
-              <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
-                <Card className="border-none shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-[2rem] bg-white overflow-hidden">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 p-7">
-                    <div className="space-y-2">
-                      <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
-                        {lesson.title}
-                      </CardTitle>
-                      <CardDescription className="capitalize font-bold text-zinc-400">
-                        {lesson.category}
-                      </CardDescription>
-                    </div>
-                    <div className="p-3 bg-violet-50 rounded-2xl group-hover:bg-violet-600 transition-colors">
-                      <BookOpen size={18} className="text-violet-600 group-hover:text-white" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="px-7 pb-7">
-                    <div className="flex items-center justify-between text-sm font-black text-violet-600 group-hover:translate-x-1 transition-transform">
-                      Commencer la leçon <ChevronRight size={16} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {filteredLessons.map((lesson) => {
+              const isCompleted = completedLessonIds.has(lesson.id);
+              return (
+                <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
+                  <Card className={`border-none shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden ${isCompleted ? "bg-gradient-to-br from-violet-50 to-white" : "bg-white"}`}>
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 p-7">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
+                            {lesson.title}
+                          </CardTitle>
+                          {isCompleted && (
+                            <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] h-5 px-2 rounded-full border-none font-bold uppercase tracking-wider">
+                              Terminé
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="capitalize font-bold text-zinc-400">
+                          {lesson.category}
+                        </CardDescription>
+                      </div>
+                      <div className={`p-3 rounded-2xl transition-colors ${isCompleted ? "bg-emerald-50" : "bg-violet-50"} group-hover:bg-violet-600`}>
+                        <BookOpen size={18} className={`transition-colors group-hover:text-white ${isCompleted ? "text-emerald-600" : "text-violet-600"}`} />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-7 pb-7">
+                      <div className="flex items-center justify-between text-sm font-black text-violet-600 group-hover:translate-x-1 transition-transform">
+                        {isCompleted ? "Revoir la leçon" : "Commencer la leçon"} <ChevronRight size={16} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-10 text-center bg-zinc-50">
