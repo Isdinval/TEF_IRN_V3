@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, ChevronRight, Loader2, GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookOpen, Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Loader2, Sparkles, Target } from "lucide-react";
 import Link from "next/link";
 
 interface Lesson {
@@ -14,16 +16,11 @@ interface Lesson {
   order_index: number;
 }
 
-const LEVEL_COLORS: Record<string, { bg: string; text: string; border: string; accent: string }> = {
-  A1: { bg: "bg-indigo-600", text: "text-white", border: "border-indigo-200", accent: "text-indigo-600" },
-  A2: { bg: "bg-violet-600", text: "text-white", border: "border-violet-200", accent: "text-violet-600" },
-  B1: { bg: "bg-emerald-600", text: "text-white", border: "border-emerald-200", accent: "text-emerald-600" },
-  B2: { bg: "bg-amber-500", text: "text-white", border: "border-amber-200", accent: "text-amber-600" },
-};
-
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState("A2");
+  const [selectedCategory, setSelectedCategory] = useState("Toutes");
   const supabase = createClient();
 
   useEffect(() => {
@@ -40,91 +37,181 @@ export default function LessonsPage() {
     fetchLessons();
   }, [supabase]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <Loader2 className="animate-spin text-indigo-600" size={36} />
-    </div>
-  );
+  const levels = useMemo(() => {
+    const uniqueLevels = Array.from(new Set(lessons.map((lesson) => lesson.level))).filter(Boolean);
+    return uniqueLevels.length > 0 ? uniqueLevels : ["A1", "A2", "B1", "B2"];
+  }, [lessons]);
 
-  const groupedLessons = lessons.reduce((acc, lesson) => {
-    if (!acc[lesson.level]) acc[lesson.level] = [];
-    acc[lesson.level].push(lesson);
-    return acc;
-  }, {} as Record<string, Lesson[]>);
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(new Set(lessons.map((lesson) => lesson.category))).filter(Boolean);
+    return ["Toutes", ...uniqueCategories];
+  }, [lessons]);
+
+  if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin" /></div>;
+
+  const filteredLessons = lessons.filter((lesson) => {
+    const matchesLevel = lesson.level === selectedLevel;
+    const matchesCategory = selectedCategory === "Toutes" || lesson.category === selectedCategory;
+    return matchesLevel && matchesCategory;
+  });
+
+  const nextLesson = filteredLessons[0];
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 pb-20">
-      <div className="max-w-5xl mx-auto px-6 pt-10">
+    <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
+      <header className="mb-12">
+        <Badge className="bg-violet-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-violet-100">
+          Parcours guidé
+        </Badge>
+        <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
+          CATALOGUE DES <span className="text-violet-600">LEÇONS</span>
+        </h1>
+        <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+          Sélectionnez un niveau et une famille de compétences pour avancer pas à pas vers votre objectif TEF IRN.
+        </p>
+      </header>
 
-        {/* Header */}
-        <header className="mb-14">
-          <div className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-5">
-            <GraduationCap size={13} />
-            Catalogue des leçons
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
+          <div className="space-y-10">
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-violet-600">
+                  <GraduationCap size={24} />
+                </div>
+                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {levels.map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setSelectedLevel(level)}
+                    className={`
+                      h-20 rounded-2xl border-2 font-black text-xl transition-all
+                      ${selectedLevel === level ? "border-violet-600 bg-violet-50 text-violet-600 shadow-inner" : "border-zinc-100 hover:border-zinc-300 text-zinc-400"}
+                    `}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600">
+                  <LayoutGrid size={24} />
+                </div>
+                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`
+                      p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between capitalize
+                      ${selectedCategory === category ? "border-violet-600 bg-violet-50 text-violet-900" : "border-zinc-100 hover:border-zinc-300 text-zinc-500"}
+                    `}
+                  >
+                    {category}
+                    {selectedCategory === category && <div className="w-2 h-2 bg-violet-600 rounded-full" />}
+                  </button>
+                ))}
+              </div>
+            </section>
           </div>
-          <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
-            Maîtrisez le<br />
-            <span className="text-indigo-600">français</span> pas à pas.
-          </h1>
-          <p className="text-slate-400 font-medium mt-4 text-lg">Du niveau A1 au niveau B2 — progressez à votre rythme.</p>
-        </header>
+        </Card>
 
-        {/* Levels */}
-        <div className="space-y-14">
-          {Object.entries(groupedLessons).map(([level, levelLessons]) => {
-            const colors = LEVEL_COLORS[level] || LEVEL_COLORS["A1"];
-            return (
-              <section key={level}>
-                {/* Level header */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`${colors.bg} ${colors.text} px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest`}>
-                    Niveau {level}
-                  </div>
-                  <div className={`flex-1 h-px ${colors.border} border-t-2 border-dashed`} />
-                  <span className="text-[11px] font-black uppercase tracking-widest text-zinc-400">
-                    {levelLessons.length} leçon{levelLessons.length > 1 ? "s" : ""}
-                  </span>
-                </div>
+        <div className="space-y-6">
+          <Card className="border-none shadow-2xl shadow-violet-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-violet-600 to-indigo-700 text-white relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
+                <Brain size={28} />
+              </div>
+              <h3 className="text-2xl font-black mb-2 tracking-tight">Parcours recommandé</h3>
+              <p className="text-violet-100 text-sm font-medium mb-8 leading-relaxed">
+                Commencez par la première leçon disponible pour ce filtre, puis enchaînez progressivement.
+              </p>
+              {nextLesson ? (
+                <Link href={`/lessons/${nextLesson.id}`} className="block">
+                  <Button className="w-full h-14 bg-white text-violet-600 hover:bg-violet-50 font-black rounded-xl shadow-xl border-none">
+                    Continuer
+                  </Button>
+                </Link>
+              ) : (
+                <Button disabled className="w-full h-14 bg-white/20 text-white font-black rounded-xl border-none">
+                  Aucune leçon
+                </Button>
+              )}
+            </div>
+            <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
+          </Card>
 
-                {/* Lessons grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {levelLessons.map((lesson, index) => (
-                    <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
-                      <div className="group relative bg-white border border-zinc-100 rounded-[1.5rem] p-6 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-200 cursor-pointer overflow-hidden h-full">
-
-                        {/* Index number — decorative */}
-                        <span className="absolute top-4 right-5 text-[11px] font-black text-zinc-200 group-hover:text-indigo-100 transition-colors tabular-nums">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-
-                        {/* Category badge */}
-                        <div className="mb-4">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 capitalize">
-                            {lesson.category}
-                          </span>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-lg font-black text-slate-800 leading-snug group-hover:text-indigo-700 transition-colors pr-6">
-                          {lesson.title}
-                        </h3>
-
-                        {/* CTA */}
-                        <div className={`flex items-center gap-1.5 mt-5 text-[11px] font-black uppercase tracking-widest ${colors.accent} group-hover:translate-x-1 transition-transform`}>
-                          Commencer <ChevronRight size={13} />
-                        </div>
-
-                        {/* Hover accent bar */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-[1.5rem] ${colors.bg} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50">
+            <div className="flex items-center gap-3 mb-4">
+              <Calendar className="text-zinc-400" size={20} />
+              <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide rapide</h4>
+            </div>
+            <div className="space-y-4">
+              <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
+                Les leçons sont classées par niveau CECRL et catégorie. Choisissez un filtre, puis ouvrez la carte qui correspond à votre objectif du jour.
+              </p>
+              <div className="h-px bg-zinc-200 w-full" />
+              <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
+                <Target size={14} className="text-violet-600" /> {filteredLessons.length} leçon{filteredLessons.length > 1 ? "s" : ""} disponible{filteredLessons.length > 1 ? "s" : ""}
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
+
+      <section>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+            <Badge className="bg-violet-600 rounded-full px-3 py-1">Niveau {selectedLevel}</Badge>
+            <span className="text-zinc-400">•</span>
+            <span className="capitalize">{selectedCategory}</span>
+          </h2>
+          <div className="text-xs font-black text-zinc-400 uppercase tracking-widest">
+            {filteredLessons.length} résultat{filteredLessons.length > 1 ? "s" : ""}
+          </div>
+        </div>
+
+        {filteredLessons.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredLessons.map((lesson) => (
+              <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
+                <Card className="border-none shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-[2rem] bg-white overflow-hidden">
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 p-7">
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
+                        {lesson.title}
+                      </CardTitle>
+                      <CardDescription className="capitalize font-bold text-zinc-400">
+                        {lesson.category}
+                      </CardDescription>
+                    </div>
+                    <div className="p-3 bg-violet-50 rounded-2xl group-hover:bg-violet-600 transition-colors">
+                      <BookOpen size={18} className="text-violet-600 group-hover:text-white" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-7 pb-7">
+                    <div className="flex items-center justify-between text-sm font-black text-violet-600 group-hover:translate-x-1 transition-transform">
+                      Commencer la leçon <ChevronRight size={16} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-10 text-center bg-zinc-50">
+            <CheckCircle2 className="mx-auto mb-4 text-zinc-300" size={40} />
+            <p className="font-bold text-zinc-500">Aucune leçon ne correspond encore à cette sélection.</p>
+          </Card>
+        )}
+      </section>
     </div>
   );
 }
