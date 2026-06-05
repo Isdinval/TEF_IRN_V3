@@ -33,7 +33,8 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       const { data: lessonData } = await supabase.from('lessons').select('*').eq('id', id).single();
       if (lessonData) setLesson(lessonData);
 
-      const { data: exoData } = await supabase.from('exercises').select('*').eq('lesson_id', id).limit(1).single();
+      // Try to get a QCM exercise for this lesson
+      const { data: exoData } = await supabase.from('exercises').select('*').eq('lesson_id', id).eq('type', 'qcm').limit(1).maybeSingle();
       if (exoData) setExercise(exoData);
 
       setLoading(false);
@@ -42,7 +43,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
   }, [id, supabase]);
 
   const handleNextQuestion = async () => {
-    if (currentQ < exercise.content.questions.length - 1) {
+    if (currentQ < (exercise?.content?.questions?.length || 0) - 1) {
       setCurrentQ(currentQ + 1);
       setSelected(null);
       setIsChecked(false);
@@ -54,10 +55,30 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     }
   };
 
-  const saveResults = async () => {
+  const handleFinishLesson = async () => {
+    if (exercise) {
+      setStep("quiz");
+    } else {
+      setLoading(true);
+      await awardXpOnly();
+      setStep("result");
+      setLoading(false);
+    }
+  };
+
+  const awardXpOnly = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const finalScore = (score / exercise.content.questions.length) * 100;
+      await supabase.from('lesson_progress').upsert({ user_id: user.id, lesson_id: id });
+      await supabase.rpc('increment_xp', { amount: 100 });
+    }
+  };
+
+  const saveResults = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && exercise) {
+      const totalQuestions = exercise.content.questions.length;
+      const finalScore = (score / totalQuestions) * 100;
 
       // 1. Enregistrer la tentative
       await supabase.from('exercise_attempts').insert({
@@ -67,18 +88,10 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         is_completed: true
       });
 
-      // 2. Enregistrer la progression leçon & XP
+      // 2. Enregistrer la progression leçon & XP (si > 50% de réussite)
       if (finalScore >= 50) {
         await supabase.from('lesson_progress').upsert({ user_id: user.id, lesson_id: id });
-
-        // Update XP using RPC function created previously
-        const { error: rpcError } = await supabase.rpc('increment_xp', { amount: 100 });
-
-        if (rpcError) {
-          console.error("RPC Error, falling back to profile update:", rpcError);
-          const { data: profile } = await supabase.from('profiles').select('total_xp').eq('id', user.id).single();
-          await supabase.from('profiles').update({ total_xp: (profile?.total_xp || 0) + 100 }).eq('id', user.id);
-        }
+        await supabase.rpc('increment_xp', { amount: 100 });
       }
     }
   };
@@ -89,9 +102,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
   const markdownComponents = {
     h1: ({ children }: any) => <h1 className="hidden">{children}</h1>,
     h2: ({ children }: any) => {
-      const title = children?.toString() || "";
-      const isTheorie = title.includes("Théorie");
-      const isExemple = title.includes("Exemple");
+      const titleText = children?.toString() || "";
+      const isTheorie = titleText.includes("Théorie");
+      const isExemple = titleText.includes("Exemple");
       return (
         <div className="flex items-center gap-3 mt-12 mb-6">
           <div className={`p-2 rounded-lg ${isTheorie ? 'bg-indigo-100 text-indigo-600' : isExemple ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
@@ -125,6 +138,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     ),
     strong: ({ children }: any) => <strong className="font-black text-indigo-900">{children}</strong>,
   };
+
+  // Clean the content to replace escaped newlines
+  const cleanContent = lesson.content ? lesson.content.replace(/\\n/g, '\n') : "";
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-20">
@@ -169,7 +185,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                 <div className="bg-white p-10 md:p-12 rounded-[2.5rem] shadow-xl shadow-zinc-200/50 border border-white">
                   <div className="prose prose-slate max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                      {lesson.content}
+                      {cleanContent}
                     </ReactMarkdown>
                   </div>
                 </div>
@@ -178,7 +194,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                   <Button
                     size="lg"
                     className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    onClick={() => exercise ? setStep("quiz") : router.push('/lessons')}
+                    onClick={handleFinishLesson}
                   >
                     {exercise ? (
                       <span className="flex items-center gap-3">Valider & Passer au Quiz <ArrowRight /></span>
@@ -257,7 +273,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
           {step === "result" && (
             <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-12 py-12">
               <div className="relative inline-block">
-                <div className={`w-48 h-48 rounded-[3rem] flex items-center justify-center mx-auto relative z-10 ${score === exercise.content.questions.length ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'} rotate-12`}>
+                <div className={`w-48 h-48 rounded-[3rem] flex items-center justify-center mx-auto relative z-10 ${(!exercise || score >= (exercise?.content?.questions?.length || 0) / 2) ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'} rotate-12`}>
                    <Sparkles size={80} />
                 </div>
                 <div className="absolute inset-0 bg-indigo-200 blur-3xl opacity-20 -z-10" />
@@ -271,7 +287,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
               <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
                   <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Score</p>
-                  <p className="text-4xl font-black text-indigo-600">{exercise.content.questions.length > 0 ? Math.round((score / exercise.content.questions.length) * 100) : 100}%</p>
+                  <p className="text-4xl font-black text-indigo-600">{(exercise && exercise.content.questions.length > 0) ? Math.round((score / exercise.content.questions.length) * 100) : 100}%</p>
                 </div>
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
                   <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Récompense</p>
