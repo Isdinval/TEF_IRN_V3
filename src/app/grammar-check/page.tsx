@@ -35,7 +35,7 @@ export default function GrammarCheckPage() {
         .from('exercises')
         .select('*')
         .eq('type', 'trous')
-        .limit(10);
+        .order('created_at', { ascending: false }).limit(5);
 
       if (data) {
         // Transformation des données mockées/DB pour le format Voltaire
@@ -122,7 +122,7 @@ export default function GrammarCheckPage() {
           <h1 className="text-4xl font-black tracking-tight">{current.category}</h1>
         </div>
         <div className="text-sm font-black text-slate-400">
-          QUESTION {currentIdx + 1} / {questions.length}
+          QUESTION {currentIdx + 1} / {questions.length} <br/> <span className="font-medium normal-case italic text-[11px]">Identifiez l'erreur entre crochets et tapez la forme correcte.</span>
         </div>
       </header>
 

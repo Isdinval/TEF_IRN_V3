@@ -7,13 +7,10 @@
    - Network:      http://192.168.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 4.1s
+ ✓ Ready in 4.7s
  ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 966ms (194 modules)
- ○ Compiling /vocab ...
- ✓ Compiled /vocab in 8.2s (1807 modules)
- GET /vocab 200 in 9636ms
- ○ Compiling /practice ...
- ✓ Compiled /practice in 2.5s (1822 modules)
- GET /practice 200 in 2906ms
+ ✓ Compiled /src/middleware in 842ms (194 modules)
+ ○ Compiling /grammar-check ...
+ ✓ Compiled /grammar-check in 8.6s (1701 modules)
+ GET /grammar-check 200 in 10010ms
 [?25h
