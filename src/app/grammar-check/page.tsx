@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, AlertCircle, Sparkles, BookOpen, Zap, Info } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, LayoutGrid, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GrammarQuestion {
@@ -125,121 +125,113 @@ export default function GrammarCheckPage() {
 
   if (!isStarted && !finished) {
     return (
-      <div className="container mx-auto py-10 px-4 max-w-6xl">
-        <div className="mb-10 text-center">
-          <Badge variant="outline" className="mb-3 text-indigo-600 border-indigo-200">
-            ORTHOGRAPHE & GRAMMAIRE
+      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
+        <header className="mb-12">
+          <Badge className="bg-rose-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-rose-100">
+            Atelier Orthographe
           </Badge>
-          <h1 className="text-5xl font-black tracking-tighter text-zinc-900 mb-4">
-            Entraînement Voltaire
+          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
+            ORTHOGRAPHE <span className="text-rose-600">&</span> GRAMMAIRE
           </h1>
-          <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
-            Améliorez votre orthographe, conjugaison et syntaxe avec des exercices interactifs de haut niveau.
+          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+            Corrigez des phrases ciblées, révisez les règles essentielles et consolidez vos automatismes pour le TEF IRN.
           </p>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Filtres + Carte principale */}
-          <div className="lg:col-span-8 space-y-8">
-            <Card className="rounded-3xl border shadow-xl shadow-zinc-100/80 p-10 bg-white">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-2xl font-bold tracking-tight">Choisissez votre entraînement</CardTitle>
-              </CardHeader>
-              <CardContent className="px-0 space-y-10">
-                {/* Niveaux */}
-                <div>
-                  <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-4">Niveau</h3>
-                  <div className="grid grid-cols-4 gap-3">
-                    {["A1", "A2", "B1", "B2"].map((lvl) => (
-                      <button
-                        key={lvl}
-                        onClick={() => setSelectedLevel(lvl)}
-                        className={`h-16 rounded-2xl border-2 font-bold text-lg transition-all ${
-                          selectedLevel === lvl
-                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                            : "border-zinc-200 hover:border-zinc-300 bg-zinc-50"
-                        }`}
-                      >
-                        {lvl}
-                      </button>
-                    ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
+            <div className="space-y-10">
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+                    <GraduationCap size={24} />
                   </div>
+                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
                 </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {["A1", "A2", "B1", "B2"].map((lvl) => (
+                    <button
+                      key={lvl}
+                      onClick={() => setSelectedLevel(lvl)}
+                      className={`
+                        h-20 rounded-2xl border-2 font-black text-xl transition-all
+                        ${selectedLevel === lvl ? "border-rose-600 bg-rose-50 text-rose-600 shadow-inner" : "border-zinc-100 hover:border-zinc-300 text-zinc-400"}
+                      `}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-                {/* Catégories */}
-                <div>
-                  <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-4">Catégorie</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`h-14 rounded-2xl border-2 text-sm font-semibold transition-all ${
-                          selectedCategory === cat
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : "border-zinc-200 hover:border-zinc-300 bg-zinc-50 text-zinc-600"
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                    <LayoutGrid size={24} />
                   </div>
+                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
                 </div>
-              </CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`
+                        p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between
+                        ${selectedCategory === cat ? "border-rose-600 bg-rose-50 text-rose-900" : "border-zinc-100 hover:border-zinc-300 text-zinc-500"}
+                      `}
+                    >
+                      {cat}
+                      {selectedCategory === cat && <div className="w-2 h-2 bg-rose-600 rounded-full" />}
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-              <div className="pt-6">
+              <Button
+                onClick={startExercise}
+                disabled={loading}
+                className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : "COMMENCER L'ENTRAÎNEMENT"}
+              </Button>
+            </div>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="border-none shadow-2xl shadow-rose-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-rose-600 to-orange-600 text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
+                  <Zap size={28} />
+                </div>
+                <h3 className="text-2xl font-black mb-2 tracking-tight">Erreurs fréquentes</h3>
+                <p className="text-rose-50 text-sm font-medium mb-8 leading-relaxed">
+                  Travaillez les accords, la conjugaison et la syntaxe avec un feedback immédiat à chaque phrase.
+                </p>
                 <Button
                   onClick={startExercise}
                   disabled={loading}
-                  className="w-full h-16 text-xl font-bold rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-lg"
+                  className="w-full h-14 bg-white text-rose-600 hover:bg-rose-50 font-black rounded-xl shadow-xl border-none"
                 >
-                  {loading ? (
-                    <Loader2 className="animate-spin mr-2" />
-                  ) : (
-                    "COMMENCER L'ENTRAÎNEMENT"
-                  )}
+                  Lancer une correction
                 </Button>
               </div>
+              <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
             </Card>
 
-            {/* Carte Révision urgente */}
-            <Card className="rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100 p-8 flex gap-6">
-              <div className="w-12 h-12 bg-orange-500 text-white rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Zap size={28} />
+            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50">
+              <div className="flex items-center gap-3 mb-4">
+                <Calendar className="text-zinc-400" size={20} />
+                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide rapide</h4>
               </div>
-              <div>
-                <h4 className="font-bold text-orange-900">Révision urgente détectée</h4>
-                <p className="text-sm text-orange-700 mt-1">
-                  Notre système a identifié des points faibles. Commencez par cette session pour progresser rapidement.
+              <div className="space-y-4">
+                <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
+                  Une session contient 5 phrases. Repérez l'erreur, tapez la forme correcte puis lisez la règle associée.
                 </p>
-              </div>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-4">
-            <Card className="rounded-3xl p-8 h-fit sticky top-8">
-              <div className="flex items-center gap-2 mb-6">
-                <Info className="text-indigo-600" size={18} />
-                <span className="font-bold uppercase text-xs tracking-widest text-zinc-500">Comment ça marche ?</span>
-              </div>
-              <ul className="space-y-4 text-sm text-zinc-600">
-                <li className="flex gap-3">
-                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
-                  5 phrases avec erreurs à corriger
-                </li>
-                <li className="flex gap-3">
-                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
-                  Feedback pédagogique immédiat
-                </li>
-                <li className="flex gap-3">
-                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
-                  Enregistrement des erreurs pour révision espacée
-                </li>
-              </ul>
-              <div className="mt-8 pt-6 border-t text-center">
-                <p className="text-xs text-zinc-500">Objectif recommandé</p>
-                <p className="text-3xl font-bold text-emerald-600">≥ 80%</p>
+                <div className="h-px bg-zinc-200 w-full" />
+                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
+                  <Target size={14} className="text-rose-600" /> Objectif : 80% de réussite
+                </div>
               </div>
             </Card>
           </div>
