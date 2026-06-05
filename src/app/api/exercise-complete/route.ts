@@ -26,6 +26,9 @@ export async function POST(req: Request) {
     if (attemptError) throw attemptError;
 
     // 2. Mettre à jour les XP du profil
+    // On multiplie par 10 pour que ce soit plus gratifiant (score 100% = 1000 XP)
+    // ou on reste sur 100 XP max. L'utilisateur semble s'attendre à plus.
+    // Mettons un gain de XP fixe + bonus de score.
     const xpGain = Math.round(score);
     const { data: profile } = await supabase
       .from('profiles')
