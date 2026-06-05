@@ -52,7 +52,7 @@ export function Sidebar() {
     { label: "Leçons", icon: BookOpen, href: "/lessons" },
     { label: "Orthographe", icon: Zap, href: "/grammar-check" },
     { label: "Vocabulaire", icon: RotateCcw, href: "/vocab" },
-    { label: "Compréhension", icon: Target, href: "/practice" },
+    { label: "QCM Grammaire/Vocab", icon: Target, href: "/practice" },
     { label: "Rédaction", icon: PenTool, href: "/writing" },
     { label: "Expression Orale", icon: Mic, href: "/oral" },
     { label: "Corrections", icon: History, href: "/correction" },
