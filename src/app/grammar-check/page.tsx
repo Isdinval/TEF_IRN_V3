@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, AlertCircle, Sparkles } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, AlertCircle, Sparkles, BookOpen, Zap, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GrammarQuestion {
@@ -20,67 +20,54 @@ interface GrammarQuestion {
 }
 
 export default function GrammarCheckPage() {
+  const [isStarted, setIsStarted] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState("A2");
+  const [selectedCategory, setSelectedCategory] = useState("Grammaire");
+
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    async function fetchQuestions() {
-      try {
-        const { data, error } = await supabase
-          .from('exercises')
-          .select('*')
-          .eq('type', 'trous')
-          .order('created_at', { ascending: false })
-          .limit(5);
+  const startExercise = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from("exercises")
+        .select("*")
+        .eq("type", "trous")
+        .eq("level", selectedLevel);
 
-        if (error) throw error;
+      if (selectedCategory && selectedCategory !== "Grammaire") {
+        query = query.ilike("instructions", `%${selectedCategory.substring(0, 4)}%`);
+      }
 
-        if (data && data.length > 0) {
-          const formatted = data.map((d: any) => ({
-            id: d.id,
-            sentence: d.content.sentence || d.instructions,
-            error_fragment: d.content.error_fragment || "...",
-            correction: d.content.correct_answer || d.content.correct_answers?.[0],
-            explanation: d.content.explanation || "Règle de grammaire standard.",
-            category: d.instructions || d.category || "Grammaire",
-            level: d.level || "A2"
-          }));
-          setQuestions(formatted);
-        } else {
-          // If no data found, set fallback questions
-          setQuestions([
-            {
-              id: "fb1",
-              sentence: "Elle est [aller] au cinéma.",
-              error_fragment: "aller",
-              correction: "allée",
-              explanation: "Avec l'auxiliaire être, le participe passé s'accorde avec le sujet féminin.",
-              category: "Accord Participe Passé",
-              level: "A2"
-            },
-            {
-              id: "fb2",
-              sentence: "Nous [est] contents.",
-              error_fragment: "est",
-              correction: "sommes",
-              explanation: "Conjugaison du verbe être à la première personne du pluriel.",
-              category: "Conjugaison Être",
-              level: "A1"
-            }
-          ]);
-        }
-      } catch (err: any) {
-        console.error("Fetch error:", err);
-        // Fallback for demo when Supabase fails or env is missing
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+
+
+      if (data && data.length > 0) {
+        const formatted = data.map((d: any) => ({
+          id: d.id,
+          sentence: d.content.sentence || d.instructions,
+          error_fragment: d.content.error_fragment || "...",
+          correction: d.content.correct_answer || d.content.correct_answers?.[0],
+          explanation: d.content.explanation || "Règle de grammaire standard.",
+          category: d.instructions || d.category || "Grammaire",
+          level: d.level || "A2"
+        }));
+        setQuestions(formatted);
+        setIsStarted(true);
+      } else {
+        // Fallback robust
         setQuestions([
           {
             id: "fb1",
@@ -89,15 +76,17 @@ export default function GrammarCheckPage() {
             correction: "allée",
             explanation: "Avec l'auxiliaire être, le participe passé s'accorde avec le sujet féminin.",
             category: "Accord Participe Passé",
-            level: "A2"
+            level: selectedLevel
           }
         ]);
-      } finally {
-        setLoading(false);
+        setIsStarted(true);
       }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    fetchQuestions();
-  }, [supabase]);
+  };
 
   const handleVerify = async () => {
     const current = questions[currentIdx];
@@ -134,10 +123,109 @@ export default function GrammarCheckPage() {
     }
   };
 
+  if (!isStarted && !finished) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 lg:p-12 space-y-12 pt-20">
+        <header className="space-y-4 text-center lg:text-left">
+          <div className="flex items-center justify-center lg:justify-start gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em]">
+            <Target size={14} /> Centre d'Entraînement
+          </div>
+          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter uppercase">
+            ORTHOGRAPHE & VOLTAIRE
+          </h1>
+          <p className="text-zinc-500 font-medium italic text-lg max-w-2xl">
+            Pratiquez les règles de la langue française avec nos exercices interactifs de type Voltaire.
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-8">
+            <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200/50 p-10 bg-white space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Choisir mon niveau</h3>
+                <div className="grid grid-cols-4 gap-3">
+                  {["A1", "A2", "B1", "B2"].map((lvl) => (
+                    <button
+                      key={lvl}
+                      onClick={() => setSelectedLevel(lvl)}
+                      className={`h-16 rounded-2xl border-2 font-black transition-all ${
+                        selectedLevel === lvl
+                        ? "border-indigo-600 bg-indigo-50 text-indigo-600"
+                        : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200"
+                      }`}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Catégorie</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`h-14 rounded-2xl border-2 text-xs font-black transition-all ${
+                        selectedCategory === cat
+                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button
+                  onClick={startExercise}
+                  disabled={loading}
+                  className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-3xl shadow-2xl shadow-indigo-200 transition-all active:scale-[0.98]"
+                >
+                  {loading ? <Loader2 className="animate-spin" /> : "COMMENCER L'EXERCICE"}
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] bg-orange-50 border-orange-100 p-8 flex gap-6 items-center">
+               <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-orange-200">
+                  <Zap size={28} fill="currentColor" />
+               </div>
+               <div className="space-y-1">
+                  <h4 className="font-black text-orange-900 uppercase text-sm tracking-tight">Révision urgente</h4>
+                  <p className="text-xs text-orange-700 font-medium leading-relaxed italic">
+                    Notre algorithme a identifié des points faibles. Révisez-les maintenant pour ne pas oublier.
+                  </p>
+               </div>
+            </Card>
+          </div>
+
+          <aside className="lg:col-span-4 space-y-6">
+             <Card className="rounded-[2.5rem] border-none shadow-xl shadow-zinc-100 p-8 bg-white space-y-6">
+                <div className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest text-zinc-400">
+                   <Info size={14} className="text-indigo-600" /> Guide Rapide
+                </div>
+                <p className="text-sm text-zinc-500 leading-relaxed font-medium">
+                  Un exercice est composé de <span className="text-zinc-900 font-bold">5 questions</span>. Lisez attentivement et choisissez la bonne option.
+                </p>
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                   <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Objectif</p>
+                   <p className="text-lg font-black text-emerald-900 tracking-tight">80% de réussite</p>
+                </div>
+             </Card>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
       </div>
     );
   }
@@ -247,7 +335,7 @@ export default function GrammarCheckPage() {
 
                 <div className="p-6 bg-white/60 rounded-3xl border border-white/80 backdrop-blur-sm shadow-sm">
                   <div className="flex items-center gap-2 mb-3 font-black text-[10px] uppercase tracking-widest text-zinc-400">
-                    <Sparkles size={14} className="text-indigo-500" /> La règle pédagogique
+                    <Target size={14} className="text-indigo-500" /> La règle pédagogique
                   </div>
                   <p className="text-zinc-700 leading-relaxed font-bold text-sm italic">
                     {current.explanation}
