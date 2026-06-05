@@ -13,7 +13,7 @@ export async function updateSRS(userId: string, exerciseId: string, score: numbe
     .select('*')
     .eq('user_id', userId)
     .eq('exercise_id', exerciseId)
-    .single();
+    .maybeSingle();
 
   let interval = 1;
   let ease = existing?.ease_factor || 2.5;
@@ -59,7 +59,7 @@ export async function updateVocabularySRS(userId: string, vocabId: string, isCor
     .select('*')
     .eq('user_id', userId)
     .eq('vocab_id', vocabId)
-    .single();
+    .maybeSingle();
 
   let interval = 1;
   let ease = existing?.ease_factor || 2.5;

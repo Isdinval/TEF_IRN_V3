@@ -33,24 +33,34 @@ export async function POST(req: Request) {
       .eq('id', user.id)
       .single();
 
-    await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ total_xp: (profile?.total_xp || 0) + xpGain })
       .eq('id', user.id);
 
+    if (profileError) console.error("Profile update error:", profileError);
+
     // 3. Déclencher le moteur de recommandation
-    await generateRecommendation(user.id);
-    // Analyse approfondie des erreurs
-    const { analyzeUserErrorsAndRecommend } = await import('@/lib/recommendation-engine');
-    await analyzeUserErrorsAndRecommend(user.id);
+    try {
+      await generateRecommendation(user.id);
+      const { analyzeUserErrorsAndRecommend } = await import('@/lib/recommendation-engine');
+      await analyzeUserErrorsAndRecommend(user.id);
+    } catch (recoError) {
+      console.error("Recommendation engine error:", recoError);
+    }
 
     // 4. Mettre à jour l'algorithme de répétition espacée (SRS)
     if (exerciseId) {
-      await updateSRS(user.id, exerciseId, score);
+      try {
+        await updateSRS(user.id, exerciseId, score);
+      } catch (srsError) {
+        console.error("SRS update error:", srsError);
+      }
     }
 
     return NextResponse.json({ success: true, xpGained: xpGain });
   } catch (error: any) {
+    console.error("Exercise complete API error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
