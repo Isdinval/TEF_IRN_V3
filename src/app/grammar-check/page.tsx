@@ -125,98 +125,124 @@ export default function GrammarCheckPage() {
 
   if (!isStarted && !finished) {
     return (
-      <div className="max-w-4xl mx-auto p-6 lg:p-12 space-y-12 pt-20">
-        <header className="space-y-4 text-center lg:text-left">
-          <div className="flex items-center justify-center lg:justify-start gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em]">
-            <Target size={14} /> Centre d'Entraînement
-          </div>
-          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter uppercase">
-            ORTHOGRAPHE & VOLTAIRE
+      <div className="container mx-auto py-10 px-4 max-w-6xl">
+        <div className="mb-10 text-center">
+          <Badge variant="outline" className="mb-3 text-indigo-600 border-indigo-200">
+            ORTHOGRAPHE & GRAMMAIRE
+          </Badge>
+          <h1 className="text-5xl font-black tracking-tighter text-zinc-900 mb-4">
+            Entraînement Voltaire
           </h1>
-          <p className="text-zinc-500 font-medium italic text-lg max-w-2xl">
-            Pratiquez les règles de la langue française avec nos exercices interactifs de type Voltaire.
+          <p className="text-xl text-zinc-600 max-w-2xl mx-auto">
+            Améliorez votre orthographe, conjugaison et syntaxe avec des exercices interactifs de haut niveau.
           </p>
-        </header>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Filtres + Carte principale */}
           <div className="lg:col-span-8 space-y-8">
-            <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200/50 p-10 bg-white space-y-8">
-              <div className="space-y-4">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Choisir mon niveau</h3>
-                <div className="grid grid-cols-4 gap-3">
-                  {["A1", "A2", "B1", "B2"].map((lvl) => (
-                    <button
-                      key={lvl}
-                      onClick={() => setSelectedLevel(lvl)}
-                      className={`h-16 rounded-2xl border-2 font-black transition-all ${
-                        selectedLevel === lvl
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-600"
-                        : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200"
-                      }`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
+            <Card className="rounded-3xl border shadow-xl shadow-zinc-100/80 p-10 bg-white">
+              <CardHeader className="px-0 pt-0">
+                <CardTitle className="text-2xl font-bold tracking-tight">Choisissez votre entraînement</CardTitle>
+              </CardHeader>
+              <CardContent className="px-0 space-y-10">
+                {/* Niveaux */}
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-4">Niveau</h3>
+                  <div className="grid grid-cols-4 gap-3">
+                    {["A1", "A2", "B1", "B2"].map((lvl) => (
+                      <button
+                        key={lvl}
+                        onClick={() => setSelectedLevel(lvl)}
+                        className={`h-16 rounded-2xl border-2 font-bold text-lg transition-all ${
+                          selectedLevel === lvl
+                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                            : "border-zinc-200 hover:border-zinc-300 bg-zinc-50"
+                        }`}
+                      >
+                        {lvl}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-4">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Catégorie</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`h-14 rounded-2xl border-2 text-xs font-black transition-all ${
-                        selectedCategory === cat
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                {/* Catégories */}
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-4">Catégorie</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`h-14 rounded-2xl border-2 text-sm font-semibold transition-all ${
+                          selectedCategory === cat
+                            ? "border-zinc-900 bg-zinc-900 text-white"
+                            : "border-zinc-200 hover:border-zinc-300 bg-zinc-50 text-zinc-600"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </CardContent>
 
-              <div className="pt-4">
+              <div className="pt-6">
                 <Button
                   onClick={startExercise}
                   disabled={loading}
-                  className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-3xl shadow-2xl shadow-indigo-200 transition-all active:scale-[0.98]"
+                  className="w-full h-16 text-xl font-bold rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-lg"
                 >
-                  {loading ? <Loader2 className="animate-spin" /> : "COMMENCER L'EXERCICE"}
+                  {loading ? (
+                    <Loader2 className="animate-spin mr-2" />
+                  ) : (
+                    "COMMENCER L'ENTRAÎNEMENT"
+                  )}
                 </Button>
               </div>
             </Card>
 
-            <Card className="rounded-[2rem] bg-orange-50 border-orange-100 p-8 flex gap-6 items-center">
-               <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-orange-200">
-                  <Zap size={28} fill="currentColor" />
-               </div>
-               <div className="space-y-1">
-                  <h4 className="font-black text-orange-900 uppercase text-sm tracking-tight">Révision urgente</h4>
-                  <p className="text-xs text-orange-700 font-medium leading-relaxed italic">
-                    Notre algorithme a identifié des points faibles. Révisez-les maintenant pour ne pas oublier.
-                  </p>
-               </div>
+            {/* Carte Révision urgente */}
+            <Card className="rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100 p-8 flex gap-6">
+              <div className="w-12 h-12 bg-orange-500 text-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Zap size={28} />
+              </div>
+              <div>
+                <h4 className="font-bold text-orange-900">Révision urgente détectée</h4>
+                <p className="text-sm text-orange-700 mt-1">
+                  Notre système a identifié des points faibles. Commencez par cette session pour progresser rapidement.
+                </p>
+              </div>
             </Card>
           </div>
 
-          <aside className="lg:col-span-4 space-y-6">
-             <Card className="rounded-[2.5rem] border-none shadow-xl shadow-zinc-100 p-8 bg-white space-y-6">
-                <div className="flex items-center gap-2 font-black text-[10px] uppercase tracking-widest text-zinc-400">
-                   <Info size={14} className="text-indigo-600" /> Guide Rapide
-                </div>
-                <p className="text-sm text-zinc-500 leading-relaxed font-medium">
-                  Un exercice est composé de <span className="text-zinc-900 font-bold">5 questions</span>. Lisez attentivement et choisissez la bonne option.
-                </p>
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                   <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Objectif</p>
-                   <p className="text-lg font-black text-emerald-900 tracking-tight">80% de réussite</p>
-                </div>
-             </Card>
-          </aside>
+          {/* Sidebar */}
+          <div className="lg:col-span-4">
+            <Card className="rounded-3xl p-8 h-fit sticky top-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Info className="text-indigo-600" size={18} />
+                <span className="font-bold uppercase text-xs tracking-widest text-zinc-500">Comment ça marche ?</span>
+              </div>
+              <ul className="space-y-4 text-sm text-zinc-600">
+                <li className="flex gap-3">
+                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
+                  5 phrases avec erreurs à corriger
+                </li>
+                <li className="flex gap-3">
+                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
+                  Feedback pédagogique immédiat
+                </li>
+                <li className="flex gap-3">
+                  <CheckCircle2 className="text-emerald-500 mt-0.5" size={18} />
+                  Enregistrement des erreurs pour révision espacée
+                </li>
+              </ul>
+              <div className="mt-8 pt-6 border-t text-center">
+                <p className="text-xs text-zinc-500">Objectif recommandé</p>
+                <p className="text-3xl font-bold text-emerald-600">≥ 80%</p>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     );
@@ -230,22 +256,18 @@ export default function GrammarCheckPage() {
     );
   }
 
+  // ====================== EXERCICE + FIN ======================
   if (finished) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh] p-8">
-        <Card className="w-full max-w-md text-center p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border-none">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="text-green-600" size={40} />
-          </div>
-          <h1 className="text-2xl font-black mb-2">Entraînement terminé !</h1>
-          <p className="text-muted-foreground mb-6 font-medium italic">Tu as obtenu un score de {score} sur {questions.length}.</p>
-          <div className="text-6xl font-black text-indigo-600 mb-8 tracking-tighter">
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Card className="w-full max-w-md text-center p-10 rounded-3xl shadow-2xl">
+          <CheckCircle2 className="w-20 h-20 text-green-600 mx-auto mb-6" />
+          <h2 className="text-3xl font-black mb-2">Session terminée !</h2>
+          <p className="text-zinc-600 mb-8">Score final</p>
+          <div className="text-7xl font-black text-indigo-600 mb-8">
             {Math.round((score / questions.length) * 100)}%
           </div>
-          <Button
-            className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-2xl shadow-xl shadow-zinc-200 transition-all"
-            onClick={() => router.push('/dashboard')}
-          >
+          <Button onClick={() => router.push('/dashboard')} className="w-full h-14 rounded-2xl text-lg">
             Retour au Dashboard
           </Button>
         </Card>
