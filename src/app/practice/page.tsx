@@ -25,6 +25,7 @@ interface Exercise {
   id: string;
   level: string;
   instructions: string;
+  category: string;
   content: {
     questions: string[];
     options: string[][];
@@ -36,13 +37,11 @@ type Mode = "selection" | "training";
 
 export default function Practice() {
   const [mode, setMode] = useState<Mode>("selection");
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [exercise, setExercise] = useState<Exercise | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
-  const [sessionTotalScore, setSessionTotalScore] = useState(0);
-  const [currentExerciseScore, setCurrentExerciseScore] = useState(0);
+  const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ level: "A2", category: "Grammaire" });
@@ -76,78 +75,68 @@ export default function Practice() {
       query = query.in('id', ids);
       setIsReviewMode(true);
     } else {
-      query = query.eq('level', filters.level);
+      query = query.eq('level', filters.level).eq('category', filters.category);
       setIsReviewMode(false);
     }
 
-    const { data, error } = await query.limit(5);
+    const { data, error } = await query.limit(1);
 
     if (error) {
       console.error(error);
       alert("Erreur lors du chargement.");
     } else if (data && data.length > 0) {
-      setExercises(data);
+      const ex = data[0] as Exercise;
+      setExercise(ex);
       setMode("training");
-      setCurrentExerciseIndex(0);
       setCurrentQuestionIndex(0);
-      setSessionTotalScore(0);
-      setCurrentExerciseScore(0);
+      setScore(0);
       setIsFinished(false);
       setSelected(null);
       setIsChecked(false);
     } else {
-      alert("Aucun exercice trouvé pour ce niveau.");
+      alert("Aucun exercice trouvé pour ce niveau et cette catégorie.");
     }
     setLoading(false);
   };
 
   const handleCheck = () => {
-    const currentExercise = exercises[currentExerciseIndex];
-    const correctAnswer = currentExercise.content.correct_answers[currentQuestionIndex];
+    if (!exercise) return;
+    const correctAnswer = exercise.content.correct_answers[currentQuestionIndex];
 
     if (selected === correctAnswer) {
-      setSessionTotalScore(prev => prev + 1);
-      setCurrentExerciseScore(prev => prev + 1);
+      setScore(prev => prev + 1);
     }
     setIsChecked(true);
   };
 
   const handleNext = async () => {
-    const currentExercise = exercises[currentExerciseIndex];
-    const totalQuestionsInExercise = currentExercise.content.questions.length;
+    if (!exercise) return;
+    const totalQuestions = exercise.content.questions.length;
 
-    if (currentQuestionIndex < totalQuestionsInExercise - 1) {
+    if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
-      // End of this specific exercise
-      await saveExerciseProgress(currentExercise.id, currentExerciseScore, totalQuestionsInExercise);
-
-      if (currentExerciseIndex < exercises.length - 1) {
-        setCurrentExerciseIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0);
-        setCurrentExerciseScore(0);
-        setSelected(null);
-        setIsChecked(false);
-      } else {
-        // Finished all exercises in the session
-        setIsFinished(true);
-      }
+      // Finished exercise
+      await saveExerciseProgress();
+      setIsFinished(true);
     }
   };
 
-  const saveExerciseProgress = async (id: string, exerciseScore: number, total: number) => {
-    const percentage = Math.round((exerciseScore / total) * 100);
+  const saveExerciseProgress = async () => {
+    if (!exercise) return;
+    const total = exercise.content.questions.length;
+    const percentage = Math.round((score / total) * 100);
 
     try {
       await fetch('/api/exercise-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          exerciseId: id,
+          exerciseId: exercise.id,
           score: percentage,
-          answers: { correct: exerciseScore, total: total }
+          answers: { correct: score, total: total }
         })
       });
     } catch (err) {
@@ -159,7 +148,7 @@ export default function Practice() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50">
         <Loader2 className="animate-spin text-indigo-600 mb-4" size={48} />
-        <p className="text-zinc-500 font-bold animate-pulse">Préparation de vos exercices...</p>
+        <p className="text-zinc-500 font-bold animate-pulse">Préparation de votre exercice...</p>
       </div>
     );
   }
@@ -233,7 +222,7 @@ export default function Practice() {
                 onClick={() => startTraining(false)}
                 className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
               >
-                COMMENCER L'ENTRAÎNEMENT
+                COMMENCER L'EXERCICE
               </Button>
             </div>
           </Card>
@@ -265,7 +254,7 @@ export default function Practice() {
               </div>
               <div className="space-y-4">
                  <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                   Lisez attentivement la phrase et choisissez l'option qui complète correctement la règle grammaticale ou d'orthographe.
+                   Un exercice est composé de 5 questions. Lisez attentivement et choisissez la bonne option.
                  </p>
                  <div className="h-px bg-zinc-200 w-full" />
                  <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
@@ -279,9 +268,9 @@ export default function Practice() {
     );
   }
 
-  if (isFinished) {
-    const totalQuestions = exercises.length * 5;
-    const percentage = Math.round((sessionTotalScore / totalQuestions) * 100);
+  if (isFinished && exercise) {
+    const totalQuestions = exercise.content.questions.length;
+    const percentage = Math.round((score / totalQuestions) * 100);
 
     return (
       <div className="flex items-center justify-center min-h-screen p-8 bg-zinc-50">
@@ -294,9 +283,9 @@ export default function Practice() {
             <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
               <CheckCircle2 className="text-green-600" size={48} />
             </div>
-            <h1 className="text-4xl font-black mb-4 tracking-tighter">Session Terminée !</h1>
+            <h1 className="text-4xl font-black mb-4 tracking-tighter">Exercice Terminé !</h1>
             <p className="text-zinc-400 mb-10 font-bold text-lg">
-              Tu as répondu correctement à <span className="text-zinc-900">{sessionTotalScore}</span> questions sur <span className="text-zinc-900">{totalQuestions}</span>.
+              Tu as répondu correctement à <span className="text-zinc-900">{score}</span> questions sur <span className="text-zinc-900">{totalQuestions}</span>.
             </p>
 
             <div className="relative mb-12">
@@ -308,8 +297,8 @@ export default function Practice() {
 
             <div className="grid grid-cols-2 gap-4 mb-10">
                <div className="bg-zinc-50 p-6 rounded-3xl">
-                  <div className="text-zinc-400 text-[10px] font-black uppercase mb-1">XP GAGNES</div>
-                  <div className="text-2xl font-black text-zinc-900">+{sessionTotalScore * 10}</div>
+                  <div className="text-zinc-400 text-[10px] font-black uppercase mb-1">XP GAGNÉS</div>
+                  <div className="text-2xl font-black text-zinc-900">+{percentage}</div>
                </div>
                <div className="bg-zinc-50 p-6 rounded-3xl">
                   <div className="text-zinc-400 text-[10px] font-black uppercase mb-1">DASHBOARD</div>
@@ -329,11 +318,9 @@ export default function Practice() {
     );
   }
 
-  const currentExercise = exercises[currentExerciseIndex];
-  const currentQuestionText = currentExercise?.content?.questions[currentQuestionIndex];
-  const currentOptions = currentExercise?.content?.options[currentQuestionIndex];
-  const totalSteps = exercises.length * 5;
-  const currentGlobalStep = (currentExerciseIndex * 5) + currentQuestionIndex + 1;
+  const currentQuestionText = exercise?.content?.questions[currentQuestionIndex];
+  const currentOptions = exercise?.content?.options[currentQuestionIndex];
+  const totalQuestions = exercise?.content?.questions.length || 5;
 
   return (
     <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
@@ -343,27 +330,27 @@ export default function Practice() {
             onClick={() => setMode("selection")}
             className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors font-bold text-sm mb-4"
           >
-            <ChevronLeft size={16} /> Quitter la session
+            <ChevronLeft size={16} /> Quitter
           </button>
           <div className="flex items-center gap-3">
             <Badge className="bg-indigo-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none">
-              {currentExercise.level} • {isReviewMode ? "Révision" : filters.category}
+              {exercise?.level} • {isReviewMode ? "Révision" : exercise?.category}
             </Badge>
             <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">QCM Voltaire</span>
           </div>
           <h2 className="text-3xl font-black text-zinc-900 tracking-tighter uppercase leading-none">
-            {currentExercise.instructions.replace('.', '')}
+            {exercise?.instructions.replace('.', '')}
           </h2>
         </div>
         <div className="flex flex-col items-end gap-3">
             <div className="text-xs font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200">
-              Question {currentGlobalStep} / {totalSteps}
+              Question {currentQuestionIndex + 1} / {totalQuestions}
             </div>
             <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-indigo-600"
                   initial={{ width: 0 }}
-                  animate={{ width: `${(currentGlobalStep / totalSteps) * 100}%` }}
+                  animate={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
                 />
             </div>
         </div>
@@ -372,7 +359,7 @@ export default function Practice() {
       <div className="flex-1 flex flex-col justify-center mb-12">
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${currentExerciseIndex}-${currentQuestionIndex}`}
+            key={currentQuestionIndex}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -393,13 +380,13 @@ export default function Practice() {
                   className={`
                     w-full p-8 rounded-3xl border-2 text-left transition-all flex justify-between items-center font-black text-xl
                     ${selected === i ? 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-lg' : 'border-zinc-50 bg-white text-zinc-500 hover:border-zinc-200 shadow-sm'}
-                    ${isChecked && i === currentExercise.content.correct_answers[currentQuestionIndex] ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-none' : ''}
-                    ${isChecked && selected === i && i !== currentExercise.content.correct_answers[currentQuestionIndex] ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-none' : ''}
+                    ${isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-none' : ''}
+                    ${isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-none' : ''}
                   `}
                 >
                   <span>{option}</span>
-                  {isChecked && i === currentExercise.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" size={28} />}
-                  {isChecked && selected === i && i !== currentExercise.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" size={28} />}
+                  {isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" size={28} />}
+                  {isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" size={28} />}
                 </button>
               ))}
             </div>
@@ -411,7 +398,7 @@ export default function Practice() {
         <div className="flex gap-4">
            <div className="flex flex-col">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</span>
-              <span className="text-xl font-black text-zinc-900">{sessionTotalScore} pts</span>
+              <span className="text-xl font-black text-zinc-900">{score} / {totalQuestions}</span>
            </div>
         </div>
 
@@ -428,7 +415,7 @@ export default function Practice() {
             onClick={handleNext}
             className="h-16 px-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 flex gap-2 text-lg transition-all active:scale-95"
           >
-            {currentGlobalStep < totalSteps ? "Question suivante" : "Terminer la session"} <ArrowRight size={24} />
+            {currentQuestionIndex < totalQuestions - 1 ? "Question suivante" : "Terminer l'exercice"} <ArrowRight size={24} />
           </Button>
         )}
       </footer>
