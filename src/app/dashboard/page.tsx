@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, TrendingUp, Zap, Calendar, ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar, Loader2, Sparkles, Target, TrendingUp, Zap } from "lucide-react";
 import { GamificationStats } from "@/components/features/dashboard/GamificationStats";
 import { CompetencyRadar } from "@/components/features/dashboard/CompetencyRadar";
 import { LeagueStats } from "@/components/features/dashboard/LeagueStats";
@@ -14,8 +13,7 @@ import { RecentCorrections } from "@/components/features/dashboard/RecentCorrect
 import { DailyObjective } from "@/components/features/dashboard/DailyObjective";
 import { VocabProgress } from "@/components/features/dashboard/VocabProgress";
 import { Profile, Recommendation } from "@/types/database";
-import { PageTransition, FadeIn } from "@/components/shared/Animations";
-import { motion } from "framer-motion";
+import { PageTransition } from "@/components/shared/Animations";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -183,54 +181,46 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      <div className="bg-zinc-50/50 min-h-full">
-        <div className="max-w-[1400px] mx-auto p-6 lg:p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="min-h-full bg-zinc-50/50 selection:bg-indigo-100">
+        <div className="mx-auto max-w-[1400px] p-6 pt-10 lg:p-10">
+          <header className="mb-12">
+            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+              Tableau de bord
+            </Badge>
+            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+              BONJOUR, <span className="text-indigo-600">{profile?.full_name?.split(' ')[0] || 'APPRENTI'}</span>
+            </h1>
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+              Votre cockpit TEF IRN : objectifs du jour, corrections récentes, vocabulaire et recommandations IA au même endroit.
+            </p>
+          </header>
 
-            {/* Main Content (Left & Center) */}
-            <div className="lg:col-span-8 space-y-10">
-              <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em]">
-                    <TrendingUp size={14} /> Tableau de Bord
-                  </div>
-                  <h1 className="text-4xl font-black text-zinc-900 tracking-tight">
-                    Bonjour, {profile?.full_name?.split(' ')[0] || 'Apprenti'} !
-                  </h1>
-                  <p className="text-zinc-500 font-medium italic">Visez l'excellence, un mot après l'autre.</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-2">
-                    {[1,2,3].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-zinc-200 shadow-sm" />
-                    ))}
-                  </div>
-                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">
-                    +1,2k élèves <br />en ligne
-                  </p>
-                </div>
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="space-y-8 lg:col-span-8">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <DailyObjective xpToday={xpToday} goal={dailyGoal} />
 
-                <Card className="border-none shadow-xl shadow-zinc-100 bg-white overflow-hidden group cursor-pointer" onClick={() => router.push('/practice')}>
+                <Card
+                  className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-100"
+                  onClick={() => router.push('/practice')}
+                >
                   <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2 text-orange-500 font-black text-[10px] uppercase tracking-widest mb-1">
-                      <Zap size={12} fill="currentColor" /> Session de Révision
+                    <div className="mb-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500">
+                      <Zap size={12} fill="currentColor" /> Session de révision
                     </div>
                     <CardTitle className="text-xl font-black text-zinc-900">À ne pas oublier</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-zinc-500 mb-4 font-medium italic">
-                      Vous avez {reviewsCount} notions prêtes pour un rafraîchissement.
+                    <p className="mb-6 text-sm font-medium italic leading-relaxed text-zinc-500">
+                      Vous avez {reviewsCount} notion{reviewsCount > 1 ? 's' : ''} prête{reviewsCount > 1 ? 's' : ''} pour un rafraîchissement.
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="flex gap-1">
-                        {[1,2,3,4].map(i => <div key={i} className="w-2 h-2 rounded-full bg-orange-100" />)}
+                        {[1, 2, 3, 4].map((dot) => (
+                          <div key={dot} className="h-2 w-2 rounded-full bg-orange-100" />
+                        ))}
                       </div>
-                      <ArrowRight size={20} className="text-zinc-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+                      <ArrowRight size={20} className="text-zinc-300 transition-all group-hover:translate-x-1 group-hover:text-orange-500" />
                     </div>
                   </CardContent>
                 </Card>
@@ -238,25 +228,35 @@ export default function Dashboard() {
 
               <RecentCorrections corrections={recentCorrections} />
 
-              <div className="space-y-4">
-                <h2 className="text-sm font-black uppercase tracking-widest text-zinc-400 px-1">Conseils de l'IA Coach</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {recommendations.length > 0 ? recommendations.map((reco, i) => (
-                    <Card key={reco.id} className="border-zinc-100 hover:border-indigo-200 hover:shadow-lg transition-all group shadow-sm bg-white">
-                      <CardContent className="p-5 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                          <Sparkles size={18} />
+              <section className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 px-1">
+                  <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
+                    <Badge className="rounded-full bg-indigo-600 px-3 py-1">Coach IA</Badge>
+                    <span className="text-zinc-400">•</span>
+                    Conseils personnalisés
+                  </h2>
+                  <div className="text-xs font-black uppercase tracking-widest text-zinc-400">
+                    {recommendations.length || 0} recommandation{recommendations.length > 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {recommendations.length > 0 ? recommendations.map((reco) => (
+                    <Card key={reco.id} className="group rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100">
+                      <CardContent className="flex gap-4 p-6">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                          <Sparkles size={20} />
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="font-bold text-zinc-900 leading-tight">
+                        <div className="space-y-3">
+                          <h3 className="font-black leading-tight text-zinc-900">
                             {reco.type === 'lesson' ? 'Maîtriser une nouvelle leçon' : 'Renforcer vos acquis'}
                           </h3>
-                          <p className="text-xs text-zinc-500 leading-relaxed font-medium italic">
+                          <p className="text-xs font-medium italic leading-relaxed text-zinc-500">
                             {reco.reason}
                           </p>
                           <button
                             onClick={() => router.push(reco.type === 'lesson' ? `/lessons/${reco.reference_id}` : '/practice')}
-                            className="text-[10px] font-black uppercase tracking-widest text-indigo-600 flex items-center gap-1 hover:gap-2 transition-all"
+                            className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 transition-all hover:gap-2"
                           >
                             Commencer <ArrowRight size={10} />
                           </button>
@@ -264,38 +264,52 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card className="border-zinc-100 bg-zinc-50/50 col-span-2 border-dashed">
-                      <CardContent className="p-8 text-center space-y-2">
-                        <Calendar className="mx-auto text-zinc-300" size={32} />
-                        <p className="text-sm font-bold text-zinc-400">Réalisez un exercice pour débloquer vos conseils personnalisés.</p>
+                    <Card className="col-span-1 rounded-[2rem] border-2 border-dashed border-zinc-100 bg-white shadow-xl shadow-zinc-100 md:col-span-2">
+                      <CardContent className="space-y-3 p-10 text-center">
+                        <Calendar className="mx-auto text-zinc-300" size={34} />
+                        <p className="text-sm font-bold text-zinc-400">
+                          Réalisez un exercice pour débloquer vos conseils personnalisés.
+                        </p>
                       </CardContent>
                     </Card>
                   )}
                 </div>
-              </div>
+              </section>
             </div>
 
-            {/* Sidebar (Right) */}
-            <div className="lg:col-span-4 space-y-8">
-              <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[2.5rem] overflow-hidden">
-                <CardContent className="p-8 space-y-8">
+            <aside className="space-y-6 lg:col-span-4">
+              <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-2xl shadow-zinc-200/50">
+                <div className="mb-8 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <Target size={22} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900">Progression</h2>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Niveau {level} • {xp} XP</p>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
                   <CompetencyRadar data={competencyData} />
-
-                  <div className="h-px bg-zinc-100 w-full" />
-
+                  <div className="h-px w-full bg-zinc-100" />
                   <VocabProgress stats={vocabStats} />
-
-                  <div className="h-px bg-zinc-100 w-full" />
-
+                  <div className="h-px w-full bg-zinc-100" />
                   <LeagueStats xp={xp} />
-
-                  <div className="h-px bg-zinc-100 w-full" />
-
+                  <div className="h-px w-full bg-zinc-100" />
                   <GamificationStats profile={profile} />
-                </CardContent>
+                </div>
               </Card>
-            </div>
 
+              <Card className="rounded-[2.5rem] border-none bg-zinc-50 p-8 shadow-xl shadow-zinc-100">
+                <div className="mb-4 flex items-center gap-3">
+                  <TrendingUp className="text-zinc-400" size={20} />
+                  <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900">Guide rapide</h3>
+                </div>
+                <p className="text-xs font-medium italic leading-relaxed text-zinc-500">
+                  Commencez par l'objectif quotidien, révisez les notions dues, puis consultez vos corrections pour transformer vos erreurs en automatismes.
+                </p>
+              </Card>
+            </aside>
           </div>
         </div>
       </div>
