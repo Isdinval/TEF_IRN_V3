@@ -57,7 +57,7 @@ export default function Practice() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
 
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm');
+    let query = supabase.from('exercises').select('*').eq('type', 'qcm_centre_entrainement');
 
     if (review && user) {
       const { data: reviews } = await supabase
