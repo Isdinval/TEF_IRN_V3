@@ -19,6 +19,90 @@ interface GrammarQuestion {
   level: string;
 }
 
+interface ExerciseContent {
+  sentence?: string;
+  phrase?: string;
+  question?: string;
+  text?: string;
+  error_fragment?: string;
+  fragment?: string;
+  blank?: string;
+  correct_answer?: string;
+  answer?: string;
+  correction?: string;
+  correct?: string;
+  correct_answers?: string[];
+  explanation?: string;
+  category?: string;
+  theme?: string;
+  skill?: string;
+  competence?: string;
+}
+
+interface ExerciseRecord {
+  id: string;
+  instructions: string;
+  type: string;
+  level: string;
+  category?: string;
+  content: ExerciseContent;
+}
+
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const getExerciseCategory = (exercise: ExerciseRecord) =>
+  exercise.category ||
+  exercise.content.category ||
+  exercise.content.theme ||
+  exercise.content.skill ||
+  exercise.content.competence ||
+  "";
+
+const matchesSelectedCategory = (exercise: ExerciseRecord, selectedCategory: string) => {
+  const selected = normalizeText(selectedCategory);
+  const explicitCategory = getExerciseCategory(exercise);
+
+  if (explicitCategory) {
+    return normalizeText(explicitCategory) === selected;
+  }
+
+  // Compatibilité avec les anciennes lignes sans colonne/champ category :
+  // on accepte uniquement le nom complet de la catégorie dans les instructions,
+  // pas un préfixe comme "Conj" qui confond Conjugaison et Conjonction.
+  return normalizeText(exercise.instructions).includes(selected);
+};
+
+const formatExercise = (exercise: ExerciseRecord): GrammarQuestion => {
+  const sentence =
+    exercise.content.sentence ||
+    exercise.content.phrase ||
+    exercise.content.question ||
+    exercise.content.text ||
+    exercise.instructions;
+  const correction =
+    exercise.content.correct_answer ||
+    exercise.content.answer ||
+    exercise.content.correction ||
+    exercise.content.correct ||
+    exercise.content.correct_answers?.[0] ||
+    "";
+
+  return {
+    id: exercise.id,
+    sentence,
+    error_fragment: exercise.content.error_fragment || exercise.content.fragment || exercise.content.blank || "...",
+    correction,
+    explanation: exercise.content.explanation || "Règle de grammaire standard.",
+    category: getExerciseCategory(exercise) || exercise.instructions || "Grammaire",
+    level: exercise.level || "A2"
+  };
+};
+
 export default function GrammarCheckPage() {
   const [isStarted, setIsStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A2");
@@ -37,37 +121,36 @@ export default function GrammarCheckPage() {
 
   const startExercise = async () => {
     setLoading(true);
+    setCurrentIdx(0);
+    setInputValue("");
+    setStatus("typing");
+    setScore(0);
+    setFinished(false);
+
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from("exercises")
         .select("*")
         .eq("type", "trous")
-        .eq("level", selectedLevel);
+        .eq("level", selectedLevel)
+        .order("created_at", { ascending: false })
+        .limit(100);
 
-      if (selectedCategory && selectedCategory !== "Grammaire") {
-        query = query.ilike("instructions", `%${selectedCategory.substring(0, 4)}%`);
+      if (error) {
+        console.error("Erreur Supabase lors du chargement des exercices à trous", error);
       }
 
-      const { data, error } = await query
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const exercises = ((data || []) as ExerciseRecord[])
+        .filter((exercise) => matchesSelectedCategory(exercise, selectedCategory))
+        .map(formatExercise)
+        .filter((exercise) => exercise.sentence && exercise.correction)
+        .slice(0, 10);
 
-
-
-      if (data && data.length > 0) {
-        const formatted = data.map((d: any) => ({
-          id: d.id,
-          sentence: d.content.sentence || d.instructions,
-          error_fragment: d.content.error_fragment || "...",
-          correction: d.content.correct_answer || d.content.correct_answers?.[0],
-          explanation: d.content.explanation || "Règle de grammaire standard.",
-          category: d.instructions || d.category || "Grammaire",
-          level: d.level || "A2"
-        }));
-        setQuestions(formatted);
+      if (exercises.length > 0) {
+        setQuestions(exercises);
         setIsStarted(true);
       } else {
-        // Fallback robust
+        // Fallback robuste uniquement si aucun exercice Supabase ne correspond au niveau + catégorie.
         setQuestions([
           {
             id: "fb1",
@@ -75,7 +158,7 @@ export default function GrammarCheckPage() {
             error_fragment: "aller",
             correction: "allée",
             explanation: "Avec l'auxiliaire être, le participe passé s'accorde avec le sujet féminin.",
-            category: "Accord Participe Passé",
+            category: selectedCategory,
             level: selectedLevel
           }
         ]);
