@@ -11,7 +11,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const publicRoutes = ["/", "/login", "/guides", "/pricing", "/exercice-gratuit", "/placement-test", "/onboarding"];
   const isPublic = publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"));
 
-  if (isPublic) {
+  // Masquer la sidebar pendant l'examen pour immersion totale
+  const isExam = pathname === "/exam";
+
+  if (isPublic || isExam) {
     return <main className="h-full">{children}</main>;
   }
 
