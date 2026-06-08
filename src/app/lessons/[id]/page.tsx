@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { createClient } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Target, Sparkles, ArrowRight, Lightbulb, BookOpen, GraduationCap, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Target, Sparkles, ArrowRight, Lightbulb, BookOpen, GraduationCap, CheckCircle2, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -18,6 +18,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
   const [exercise, setExercise] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<"reading" | "quiz" | "result">("reading");
+  const [readingProgress, setReadingProgress] = useState(0);
 
   // Quiz state
   const [currentQ, setCurrentQ] = useState(0);
@@ -27,13 +28,13 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
 
   const supabase = createClient();
   const router = useRouter();
+  const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchData() {
       const { data: lessonData } = await supabase.from('lessons').select('*').eq('id', id).single();
       if (lessonData) setLesson(lessonData);
 
-      // Try to get a QCM exercise for this lesson
       const { data: exoData } = await supabase.from('exercises').select('*').eq('lesson_id', id).eq('type', 'qcm').limit(1).maybeSingle();
       if (exoData) setExercise(exoData);
 
@@ -41,6 +42,22 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     }
     fetchData();
   }, [id, supabase]);
+
+  // Reading progress tracking
+  useEffect(() => {
+    if (step !== "reading") return;
+    const handleScroll = () => {
+      const article = articleRef.current;
+      if (!article) return;
+      const rect = article.getBoundingClientRect();
+      const total = article.offsetHeight - window.innerHeight;
+      const scrolled = -rect.top;
+      const progress = Math.min(100, Math.max(0, (scrolled / total) * 100));
+      setReadingProgress(progress);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [step]);
 
   const handleNextQuestion = async () => {
     if (currentQ < (exercise?.content?.questions?.length || 0) - 1) {
@@ -80,7 +97,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       const totalQuestions = exercise.content.questions.length;
       const finalScore = (score / totalQuestions) * 100;
 
-      // 1. Enregistrer la tentative
       await supabase.from('exercise_attempts').insert({
         user_id: user.id,
         exercise_id: exercise.id,
@@ -88,7 +104,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         is_completed: true
       });
 
-      // 2. Enregistrer la progression leçon & XP (si > 50% de réussite)
       if (finalScore >= 50) {
         await supabase.from('lesson_progress').upsert({ user_id: user.id, lesson_id: id });
         await supabase.rpc('increment_xp', { amount: 100 });
@@ -99,14 +114,18 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
   if (loading && step === "reading") return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>;
   if (!lesson) return <div className="p-8 text-center text-slate-500 font-bold">Leçon non trouvée.</div>;
 
+  // Track dialogue block state for alternating speaker styling
+  let dialogueLineIndex = 0;
+
   const markdownComponents = {
     h1: ({ children }: any) => <h1 className="hidden">{children}</h1>,
     h2: ({ children }: any) => {
       const titleText = children?.toString() || "";
       const isTheorie = titleText.includes("Théorie");
       const isExemple = titleText.includes("Exemple");
+      dialogueLineIndex = 0; // reset on new section
       return (
-        <div className="flex items-center gap-3 mt-8 mb-5 first:mt-0">
+        <div className="flex items-center gap-3 mt-10 mb-5 first:mt-0">
           <div className={`w-9 h-9 flex items-center justify-center rounded-xl shrink-0 ${isTheorie ? 'bg-indigo-100 text-indigo-600' : isExemple ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
             {isTheorie ? <BookOpen size={18} /> : isExemple ? <GraduationCap size={18} /> : <Sparkles size={18} />}
           </div>
@@ -115,7 +134,21 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       );
     },
     h3: ({ children }: any) => <h3 className="text-lg font-bold text-slate-700 mt-8 mb-4 border-l-4 border-indigo-200 pl-4">{children}</h3>,
-    p: ({ children }: any) => <p className="text-slate-600 leading-relaxed mb-4 font-medium">{children}</p>,
+    p: ({ children, node }: any) => {
+      // Detect dialogue context blocks (bold label like "Appel chez le médecin")
+      const text = node?.children?.map((c: any) => c.value || "").join("") || "";
+      const isBoldLabel = node?.children?.length === 1 && node.children[0]?.tagName === "strong";
+      if (isBoldLabel) {
+        dialogueLineIndex = 0;
+        return (
+          <div className="flex items-center gap-2 mt-8 mb-3">
+            <MessageSquare size={15} className="text-emerald-500 shrink-0" />
+            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600">{children}</p>
+          </div>
+        );
+      }
+      return <p className="text-slate-600 leading-relaxed mb-4 font-medium">{children}</p>;
+    },
     ul: ({ children }: any) => <ul className="space-y-3 my-6">{children}</ul>,
     li: ({ children }: any) => (
       <li className="flex items-start gap-3 text-slate-600 font-medium">
@@ -123,6 +156,53 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         <span>{children}</span>
       </li>
     ),
+    // Italic = dialogue line
+    em: ({ children }: any) => {
+      const text = children?.toString() || "";
+      // Lines starting with "— " are dialogue
+      if (text.startsWith("— ")) {
+        const idx = dialogueLineIndex++;
+        const isFirst = idx % 2 === 0;
+        return (
+          <div className={`flex gap-3 my-2 ${isFirst ? 'justify-start' : 'justify-end'}`}>
+            <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-base font-semibold not-italic ${
+              isFirst
+                ? 'bg-slate-100 text-slate-700 rounded-tl-sm'
+                : 'bg-indigo-600 text-white rounded-tr-sm'
+            }`}>
+              {text.replace(/^— /, '')}
+            </div>
+          </div>
+        );
+      }
+      return <em className="italic text-slate-600">{children}</em>;
+    },
+    // Table for vocabulary
+    table: ({ children }: any) => (
+      <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm">
+        <table className="w-full text-sm">{children}</table>
+      </div>
+    ),
+    thead: ({ children }: any) => (
+      <thead className="bg-indigo-50 text-indigo-700">{children}</thead>
+    ),
+    tbody: ({ children }: any) => (
+      <tbody className="divide-y divide-zinc-50 bg-white">{children}</tbody>
+    ),
+    tr: ({ children }: any) => <tr className="hover:bg-zinc-50/60 transition-colors">{children}</tr>,
+    th: ({ children }: any) => (
+      <th className="px-5 py-3 text-left text-[11px] font-black uppercase tracking-widest">{children}</th>
+    ),
+    td: ({ children, node }: any) => {
+      // First column = term, styled bold
+      const isFirst = node?.position?.start?.column === 1 ||
+        (node?.parent?.children?.indexOf(node) === 0);
+      return (
+        <td className={`px-5 py-3 ${isFirst ? 'font-bold text-slate-800' : 'text-slate-500 font-medium'}`}>
+          {children}
+        </td>
+      );
+    },
     blockquote: ({ children }: any) => (
       <div className="my-10 p-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-100 rounded-[2rem] relative overflow-hidden shadow-sm">
         <Lightbulb className="absolute -right-4 -top-4 text-amber-200/30 w-32 h-32 rotate-12" />
@@ -130,7 +210,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
           <p className="text-[10px] font-black uppercase text-amber-600 tracking-[0.2em] mb-3 flex items-center gap-2">
             <Lightbulb size={14} fill="currentColor" /> L'Astuce du Coach
           </p>
-          <div className="text-amber-900 font-bold italic text-lg leading-relaxed">
+          <div className="text-amber-900 font-bold text-base leading-relaxed space-y-1">
             {children}
           </div>
         </div>
@@ -139,11 +219,21 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     strong: ({ children }: any) => <strong className="font-black text-indigo-900">{children}</strong>,
   };
 
-  // Clean the content to replace escaped newlines
   const cleanContent = lesson.content ? lesson.content.replace(/\\n/g, '\n') : "";
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-20">
+      {/* Reading progress bar */}
+      {step === "reading" && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-zinc-100">
+          <motion.div
+            className="h-full bg-indigo-500"
+            style={{ width: `${readingProgress}%` }}
+            transition={{ ease: "linear", duration: 0.1 }}
+          />
+        </div>
+      )}
+
       {loading && step !== "reading" && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -161,11 +251,15 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         <AnimatePresence mode="wait">
           {step === "reading" && (
             <motion.div key="reading" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <article className="space-y-10">
+              <article ref={articleRef} className="space-y-10">
                 <header className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <Badge className="bg-indigo-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Niveau {lesson.level}</Badge>
-                    <Badge variant="outline" className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border-zinc-200 text-zinc-400">{lesson.category}</Badge>
+                    <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-100 text-indigo-600 border-0">
+                      {lesson.level}
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-zinc-100 text-zinc-500 border-0">
+                      {lesson.category}
+                    </Badge>
                   </div>
                   <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">{lesson.title}</h1>
 
