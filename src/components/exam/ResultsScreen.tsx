@@ -87,7 +87,7 @@ export function ResultsScreen() {
                 </div>
 
                 {(result.section === 'CO' || result.section === 'CE') && (
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion className="w-full">
                     <AccordionItem value="details" className="border-none">
                       <AccordionTrigger className="hover:no-underline py-4 px-6 bg-slate-50 rounded-2xl flex justify-between items-center w-full">
                         <span className="font-bold text-slate-600">Détail des réponses</span>
