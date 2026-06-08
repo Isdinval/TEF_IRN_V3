@@ -12,13 +12,19 @@ This information is used to shape Next.js' roadmap and prioritize features.
 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
 https://nextjs.org/telemetry
 
- ✓ Ready in 2s
+ ✓ Ready in 1834ms
  ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 1984ms (194 modules)
- ○ Compiling /vocab ...
+ ✓ Compiled /src/middleware in 1386ms (194 modules)
+ ○ Compiling /exam ...
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled /vocab in 13s (1841 modules)
- GET /vocab 200 in 14076ms
- GET /vocab 200 in 58ms
- GET /vocab 200 in 55ms
+ ✓ Compiled /exam in 11.8s (2093 modules)
+ HEAD /exam 200 in 12814ms
+ GET /exam 200 in 74ms
+ GET /exam 200 in 39ms
+ GET /exam 200 in 52ms
+ GET /exam 200 in 35ms
+ ✓ Compiled in 1191ms (2075 modules)
+ GET /exam 200 in 406ms
+ GET /exam 200 in 52ms
+ ✓ Compiled in 1464ms (2075 modules)
