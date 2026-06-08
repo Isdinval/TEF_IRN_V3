@@ -3,7 +3,7 @@ export interface WritingError {
   texte_corrige: string;
   explication: string;
   type_erreur: 'grammaire' | 'vocabulaire' | 'orthographe' | 'syntaxe';
-  position_dans_texte: number;
+  position_dans_texte?: number; // Optionnel maintenant
 }
 
 export interface WritingScores {
@@ -19,7 +19,7 @@ export interface WritingFeedback {
   liste_des_erreurs: WritingError[];
   conseil_general: string;
   texte_corrige_complet: string;
-  error?: string; // For handling API errors
+  error?: string;
 }
 
 export interface WritingExercise {

@@ -31,7 +31,7 @@ OBJECTIF :
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}".
 2. Identifie les erreurs (grammaire, vocabulaire, cohérence, orthographe).
-3. Pour chaque erreur, fournis l'extrait exact du texte original.
+3. Pour chaque erreur, fournis l'extrait EXACT du texte original. Cet extrait doit être présent mot pour mot dans le texte du candidat.
 4. Donne un score global sur 100.
 5. Donne des scores détaillés par compétence.
 6. Fournis une explication pédagogique courte (une ligne) pour chaque erreur.
@@ -47,16 +47,17 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
   },
   "liste_des_erreurs": [
     {
-      "texte_original": "extrait exact",
+      "texte_original": "extrait exact trouvé dans le texte du candidat",
       "texte_corrige": "version corrigée",
       "explication": "explication courte",
-      "type_erreur": "grammaire" | "vocabulaire" | "orthographe" | "syntaxe",
-      "position_dans_texte": number (index de début)
+      "type_erreur": "grammaire" | "vocabulaire" | "orthographe" | "syntaxe"
     }
   ],
   "conseil_general": "string",
   "texte_corrige_complet": "string"
 }
+
+IMPORTANT : Ne fournis PAS d'index de position, car ils sont souvent erronés. Concentre-toi sur le fait que "texte_original" soit une chaîne de caractères EXACTEMENT présente dans le texte fourni.
 `;
 
     const response = await openai.chat.completions.create({

@@ -48,28 +48,50 @@ export const ZoneRedaction = ({
       return text;
     }
 
+    // Algorithme de matching robuste
+    // 1. Essayer de trouver chaque fragment dans le texte
+    // 2. Si plusieurs occurrences, on essaie de garder une certaine cohérence d'ordre
+
+    let currentSearchIndex = 0;
+    const matchedErrors = feedback.liste_des_erreurs.map((error, index) => {
+      let position = text.indexOf(error.texte_original, currentSearchIndex);
+
+      // Si pas trouvé après l'index actuel, chercher depuis le début
+      if (position === -1) {
+        position = text.indexOf(error.texte_original);
+      }
+
+      if (position !== -1) {
+        currentSearchIndex = position + error.texte_original.length;
+        return { ...error, position, originalIndex: index };
+      }
+      return null;
+    }).filter(Boolean) as any[];
+
+    // Trier par position pour le rendu
+    matchedErrors.sort((a, b) => a.position - b.position);
+
     let lastIndex = 0;
     const parts: (string | JSX.Element)[] = [];
 
-    const sortedErrors = [...feedback.liste_des_erreurs].sort((a, b) => a.position_dans_texte - b.position_dans_texte);
+    matchedErrors.forEach((error, idx) => {
+      // Éviter les chevauchements
+      if (error.position < lastIndex) return;
 
-    sortedErrors.forEach((error) => {
-      const originalIndex = feedback.liste_des_erreurs.indexOf(error);
-
-      if (error.position_dans_texte > lastIndex) {
-        parts.push(text.substring(lastIndex, error.position_dans_texte));
+      if (error.position > lastIndex) {
+        parts.push(text.substring(lastIndex, error.position));
       }
 
-      const fragment = text.substring(error.position_dans_texte, error.position_dans_texte + error.texte_original.length);
+      const fragment = text.substring(error.position, error.position + error.texte_original.length);
 
       parts.push(
         <motion.span
-          key={`error-${originalIndex}`}
-          ref={(el) => { errorRefs.current[originalIndex] = el; }}
+          key={`error-${error.originalIndex}-${idx}`}
+          ref={(el) => { errorRefs.current[error.originalIndex] = el; }}
           whileHover={{ scale: 1.02 }}
-          onClick={() => onSelectError(originalIndex)}
+          onClick={() => onSelectError(error.originalIndex)}
           className={`cursor-pointer rounded-sm border-b-2 px-0.5 transition-all duration-200 ${
-            activeErrorIndex === originalIndex
+            activeErrorIndex === error.originalIndex
               ? "border-indigo-600 bg-indigo-200 shadow-sm"
               : error.type_erreur === "grammaire"
               ? "border-rose-400 bg-rose-100/50 hover:bg-rose-200"
@@ -78,11 +100,11 @@ export const ZoneRedaction = ({
               : "border-blue-400 bg-blue-100/50 hover:bg-blue-200"
           }`}
         >
-          {fragment || error.texte_original}
+          {fragment}
         </motion.span>
       );
 
-      lastIndex = error.position_dans_texte + error.texte_original.length;
+      lastIndex = error.position + error.texte_original.length;
     });
 
     if (lastIndex < text.length) {
