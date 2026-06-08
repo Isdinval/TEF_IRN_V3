@@ -17,22 +17,18 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-/** Strip leading emoji + space from section titles (📝, 🚀, etc.) */
+/** Strip leading emoji + space from section titles */
 function stripEmoji(text: string) {
   return text.replace(/^[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]\s*/u, "").trim();
 }
 
 /**
- * Detect a mnemo string: a `strong` whose text is ALL-CAPS words separated by spaces / · / -
- * e.g. "DR MRS VANDERTRAMP"
+ * Detect a mnemo string: a `strong` whose text is ALL-CAPS words
  */
 function isMnemo(text: string) {
   return /^[A-Z][A-Z\s·\-]+[A-Z]$/.test(text.trim()) && text.trim().length > 4;
 }
 
-/**
- * Parse "DR MRS VANDERTRAMP" style string into letter-word pairs for badge grid.
- */
 function parseMnemoLetters(text: string): string[] {
   return text.trim().split(/[\s·]+/).filter(Boolean);
 }
@@ -180,7 +176,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
 
     ul: ({ children }: any) => <ul className="space-y-2 my-6">{children}</ul>,
 
-    // ordered list → dialectic plan cards (thèse / antithèse / synthèse)
     ol: ({ children }: any) => (
       <ol className="space-y-3 my-6 list-none p-0">{children}</ol>
     ),
@@ -188,7 +183,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     li: ({ children, node, ordered }: any) => {
       const rawText = node?.children?.map((c: any) => c.value || c.children?.map((cc: any) => cc.value || "").join("") || "").join("") || "";
       
-      // ⚠️ Attention items
       if (rawText.startsWith("⚠️") || rawText.startsWith("⚠")) {
         return (
           <li className="flex items-start gap-3">
@@ -200,7 +194,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         );
       }
       
-      // ✅ Règle items
       if (rawText.startsWith("✅")) {
         return (
           <li className="flex items-start gap-3">
@@ -212,7 +205,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         );
       }
 
-      // Ordered list item → simple paragraph style (pas de chip, juste propre)
       if (ordered) {
         return (
           <li className="p-4 rounded-2xl border bg-slate-50 border-slate-200 text-slate-700 font-medium">
@@ -221,7 +213,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         );
       }
 
-      // Default bullet item
       return (
         <li className="flex items-start gap-3 text-slate-600 font-medium">
           <div className="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
@@ -230,7 +221,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       );
     },
 
-    // Italic — dialogue bubbles
     em: ({ children }: any) => {
       const text = children?.toString() || "";
       if (text.startsWith("— ")) {
@@ -251,7 +241,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       return <em className="italic text-slate-600">{children}</em>;
     },
 
-    // strong — mnemo badges (DR MRS VANDERTRAMP style)
     strong: ({ children }: any) => {
       const text = children?.toString() || "";
       if (isMnemo(text)) {
@@ -269,10 +258,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       return <strong className="font-black text-indigo-900">{children}</strong>;
     },
 
-    // Tables
     table: ({ children }: any) => (
       <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm">
-        <table className="w-full text-sm">{children}<tr>
+        <table className="w-full text-sm">{children}</table>
       </div>
     ),
     thead: ({ children }: any) => <thead className="bg-indigo-50 text-indigo-700">{children}</thead>,
@@ -290,7 +278,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       );
     },
 
-    // Blockquote → Coach tip card
     blockquote: ({ children }: any) => (
       <div className="my-10 p-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-100 rounded-[2rem] relative overflow-hidden shadow-sm">
         <Lightbulb className="absolute -right-4 -top-4 text-amber-200/30 w-32 h-32 rotate-12" />
@@ -312,7 +299,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-20">
-      {/* Top reading progress bar - only visible in reading mode */}
       {step === "reading" && (
         <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-zinc-100">
           <motion.div
