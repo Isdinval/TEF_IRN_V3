@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use, useRef } from "react";
+import { useEffect, useState, use } from "react";
 import { createClient } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
 
   const supabase = createClient();
   const router = useRouter();
-  const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -47,12 +46,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
   useEffect(() => {
     if (step !== "reading") return;
     const handleScroll = () => {
-      const article = articleRef.current;
-      if (!article) return;
-      const rect = article.getBoundingClientRect();
-      const total = article.offsetHeight - window.innerHeight;
-      const scrolled = -rect.top;
-      const progress = Math.min(100, Math.max(0, (scrolled / total) * 100));
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const total = scrollHeight - clientHeight;
+      const progress = total > 0 ? Math.min(100, (scrollTop / total) * 100) : 0;
       setReadingProgress(progress);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -219,7 +215,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     strong: ({ children }: any) => <strong className="font-black text-indigo-900">{children}</strong>,
   };
 
-  const cleanContent = lesson.content ? lesson.content.replace(/\\n/g, '\n') : "";
+  const cleanContent = lesson.content ? lesson.content.replace(/\\n/g, '\n').replace(/\r/g, '') : "";
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-20">
@@ -251,7 +247,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
         <AnimatePresence mode="wait">
           {step === "reading" && (
             <motion.div key="reading" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <article ref={articleRef} className="space-y-10">
+              <article className="space-y-10">
                 <header className="space-y-6">
                   <div className="flex items-center gap-3">
                     <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-100 text-indigo-600 border-0">
