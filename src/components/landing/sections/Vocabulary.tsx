@@ -73,7 +73,7 @@ export function Vocabulary() {
                        transition={{ duration: 0.8, type: "spring", stiffness: 260, damping: 20 }}
                      >
                        {/* Front */}
-                       <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-2xl border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center text-center gap-8">
+                       <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-800 rounded-[4rem] p-12 shadow-2xl border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center text-center gap-8">
                           <div className="w-24 h-24 rounded-3xl bg-brand-gold/10 flex items-center justify-center text-brand-gold mb-4 group-hover:rotate-12 transition-transform">
                              <Rotate3d size={48} />
                           </div>
@@ -93,7 +93,7 @@ export function Vocabulary() {
 
                        {/* Back */}
                        <div
-                         className="absolute inset-0 backface-hidden bg-slate-900 rounded-[3rem] p-12 shadow-2xl border border-white/10 flex flex-col justify-between rotate-y-180 text-white"
+                         className="absolute inset-0 backface-hidden bg-slate-900 rounded-[4rem] p-12 shadow-2xl border border-white/10 flex flex-col justify-between rotate-y-180 text-white"
                        >
                           <div className="space-y-10">
                              <div>
@@ -121,8 +121,8 @@ export function Vocabulary() {
                  ))}
 
                  {/* Stack of other cards effect */}
-                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-slate-200/50 dark:bg-slate-800/40 rounded-[3rem] -z-10 border border-slate-200 dark:border-white/5" />
-                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-slate-100/50 dark:bg-slate-800/20 rounded-[3rem] -z-20 border border-slate-200 dark:border-white/5" />
+                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-slate-200/50 dark:bg-slate-800/40 rounded-[4rem] -z-10 border border-slate-200 dark:border-white/5" />
+                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-slate-100/50 dark:bg-slate-800/20 rounded-[4rem] -z-20 border border-slate-200 dark:border-white/5" />
               </div>
            </div>
         </div>

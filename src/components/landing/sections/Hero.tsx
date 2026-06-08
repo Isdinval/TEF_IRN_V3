@@ -97,7 +97,7 @@ export function Hero() {
             className="flex flex-col sm:flex-row items-center gap-6"
           >
             <Link href="/login?mode=signup">
-              <Button className="h-16 px-10 text-xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl shadow-2xl shadow-brand-blue/30 group">
+              <Button className="h-16 px-10 text-xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl shadow-2xl shadow-indigo-100/50 shadow-brand-blue/30 group">
                 Commencer gratuitement
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -144,9 +144,9 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.4 }}
           className="relative max-w-6xl mx-auto mt-20"
         >
-          <div className="relative rounded-[3rem] p-4 bg-slate-200/50 dark:bg-white/5 backdrop-blur-3xl border border-white/20 shadow-2xl overflow-hidden group">
+          <div className="relative rounded-[4rem] p-4 bg-slate-200/50 dark:bg-white/5 backdrop-blur-3xl border border-white/20 shadow-2xl shadow-indigo-100/50 overflow-hidden group">
              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-brand-purple/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-             <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 aspect-[21/9] flex items-center justify-center overflow-hidden relative">
+             <div className="rounded-[3.5rem] bg-white dark:bg-slate-900 aspect-[21/9] flex items-center justify-center overflow-hidden relative">
                 <div className="grid grid-cols-12 gap-8 w-full h-full p-12 opacity-40">
                    <div className="col-span-3 space-y-4">
                       <div className="h-8 w-full bg-slate-100 dark:bg-white/5 rounded-lg" />
@@ -177,7 +177,7 @@ export function Hero() {
                 <motion.div
                   animate={{ y: [0, -20, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute top-1/4 left-1/3 p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-white/5 z-20 flex items-center gap-4"
+                  className="absolute top-1/4 left-1/3 p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-indigo-100/50 border border-slate-100 dark:border-white/5 z-20 flex items-center gap-4"
                 >
                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white">
                       <CheckCircle2 size={24} />
@@ -191,7 +191,7 @@ export function Hero() {
                 <motion.div
                   animate={{ y: [0, 20, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute bottom-1/4 right-1/4 p-6 bg-brand-blue text-white rounded-3xl shadow-2xl shadow-brand-blue/40 z-20 flex items-center gap-4"
+                  className="absolute bottom-1/4 right-1/4 p-6 bg-brand-blue text-white rounded-3xl shadow-2xl shadow-indigo-100/50 shadow-brand-blue/40 z-20 flex items-center gap-4"
                 >
                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
                       <Star size={24} className="text-brand-gold" />

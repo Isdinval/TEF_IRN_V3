@@ -38,19 +38,19 @@ export function ExamHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 dark:bg-brand-dark border-b shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
             {state.examType === 'full' ? 'Examen Complet' : 'Épreuve Individuelle'}
           </span>
-          <h1 className="text-lg font-black text-[#002654]">
+          <h1 className="text-lg font-black text-[#002654] dark:text-white">
             {sectionNames[state.section]}
           </h1>
         </div>
 
         <div className="flex items-center gap-6">
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-2xl font-black transition-colors ${isLowTime ? 'bg-red-50 text-[#ED2939] animate-pulse' : 'bg-slate-50 text-slate-700'}`}>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-mono text-2xl font-black transition-colors ${isLowTime ? 'bg-red-50 text-[#ED2939] animate-pulse' : 'bg-slate-50 dark:bg-white dark:bg-slate-900/5 text-slate-700'}`}>
             <Timer size={24} className={isLowTime ? 'animate-bounce' : ''} />
             {formatTime}
           </div>

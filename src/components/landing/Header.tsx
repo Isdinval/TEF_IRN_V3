@@ -42,17 +42,17 @@ export function Header() {
             <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-brand-blue dark:hover:text-brand-gold transition-colors"
+              className="text-sm font-black text-slate-600 dark:text-slate-300 hover:text-brand-blue dark:hover:text-brand-gold transition-colors"
             >
               {link.name}
             </Link>
           ))}
           <ThemeToggle />
           <Link href="/login">
-            <Button variant="ghost" className="font-bold">Connexion</Button>
+            <Button variant="ghost" className="font-black">Connexion</Button>
           </Link>
           <Link href="/login?mode=signup">
-            <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
+            <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-2xl shadow-lg shadow-brand-blue/20">
               Essai Gratuit
             </Button>
           </Link>

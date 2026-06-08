@@ -48,7 +48,7 @@ export function ProblemSolution() {
           </motion.p>
         </div>
 
-        <div className="relative h-[600px] rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 dark:border-white/5">
+        <div className="relative h-[600px] rounded-[4rem] overflow-hidden shadow-2xl border border-slate-200 dark:border-white/5">
           <div className="absolute inset-0 flex">
              <div className="w-1/2 h-full p-8 md:p-16 flex flex-col justify-center gap-8 bg-white dark:bg-slate-800">
                 <div className="space-y-4">

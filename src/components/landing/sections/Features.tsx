@@ -61,7 +61,7 @@ export function Features() {
                viewport={{ once: true }}
                transition={{ duration: 0.6, delay: f.delay }}
              >
-                <Card className="group relative h-full rounded-[2.5rem] border-none bg-slate-50 dark:bg-white/5 p-10 overflow-hidden hover:translate-y-[-10px] transition-all duration-500">
+                <Card className="group relative h-full rounded-[3.5rem] border-none bg-slate-50 dark:bg-white/5 p-10 overflow-hidden hover:translate-y-[-10px] transition-all duration-500">
                    <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl shadow-opacity-20 mb-10 transition-transform group-hover:scale-110`}>
                       {f.icon}
                    </div>
@@ -72,7 +72,7 @@ export function Features() {
                    </p>
 
                    <div className="relative mt-auto pt-10">
-                      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-2xl p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-2xl shadow-indigo-100/50 p-4 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                          <div className="flex items-center gap-3 mb-4">
                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5" />
                             <div className="h-3 w-24 bg-slate-100 dark:bg-white/5 rounded-full" />
@@ -99,7 +99,7 @@ export function Features() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-20 p-12 rounded-[3rem] bg-brand-blue dark:bg-brand-purple flex flex-col md:flex-row items-center justify-between gap-12 text-white"
+          className="mt-20 p-12 rounded-[4rem] bg-brand-blue dark:bg-brand-purple flex flex-col md:flex-row items-center justify-between gap-12 text-white"
         >
            <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center">

@@ -51,7 +51,7 @@ export function FAQ() {
              return (
                <div
                  key={i}
-                 className={`rounded-3xl border transition-all duration-300 ${isOpen ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 shadow-xl' : 'bg-transparent border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'}`}
+                 className={`rounded-[2rem] border transition-all duration-300 ${isOpen ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 shadow-xl' : 'bg-transparent border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'}`}
                >
                  <button
                    onClick={() => setOpenIndex(isOpen ? null : i)}
@@ -83,7 +83,7 @@ export function FAQ() {
            })}
         </div>
 
-        <div className="mt-16 p-8 rounded-[2rem] bg-indigo-50 dark:bg-white/5 border border-indigo-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="mt-16 p-8 rounded-[3rem] bg-indigo-50 dark:bg-white/5 border border-indigo-100 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
            <div>
               <h4 className="font-black text-slate-900 dark:text-white mb-1">Vous avez encore des doutes ?</h4>
               <p className="text-sm text-slate-500 font-medium">Nos conseillers pédagogiques vous répondent en moins de 24h.</p>

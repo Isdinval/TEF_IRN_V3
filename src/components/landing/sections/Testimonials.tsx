@@ -55,7 +55,7 @@ export function Testimonials() {
                viewport={{ once: true }}
                transition={{ delay: i * 0.1 }}
              >
-                <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 dark:shadow-none dark:bg-white/5 relative overflow-hidden flex flex-col">
+                <Card className="h-full p-10 rounded-[3.5rem] border-none shadow-2xl shadow-zinc-200/50 shadow-slate-200/50 dark:shadow-none dark:bg-white/5 relative overflow-hidden flex flex-col">
                    <div className="absolute top-0 right-0 p-8 text-slate-100 dark:text-white/5">
                       <Quote size={80} fill="currentColor" />
                    </div>

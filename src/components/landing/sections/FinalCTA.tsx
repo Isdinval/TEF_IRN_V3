@@ -14,7 +14,7 @@ export function FinalCTA() {
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-[4rem] bg-slate-900 p-12 md:p-24 overflow-hidden text-center text-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]"
+          className="relative rounded-[5rem] bg-slate-900 p-12 md:p-24 overflow-hidden text-center text-white shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)]"
         >
           {/* Animated Background Elements */}
           <div className="absolute top-0 left-0 w-full h-full">
@@ -43,7 +43,7 @@ export function FinalCTA() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
               <Link href="/login?mode=signup">
-                <Button className="h-20 px-12 text-2xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-[2rem] shadow-2xl shadow-brand-blue/40 group relative overflow-hidden">
+                <Button className="h-20 px-12 text-2xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-[3.5rem] shadow-2xl shadow-brand-blue/40 group relative overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">
                     Je commence mon essai gratuit
                     <ChevronRight className="group-hover:translate-x-2 transition-transform duration-300" />

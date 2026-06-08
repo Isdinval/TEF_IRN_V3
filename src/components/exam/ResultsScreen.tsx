@@ -50,17 +50,17 @@ export function ResultsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-white dark:bg-slate-900/5 dark:bg-brand-dark py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center mx-auto mb-6 border-4 border-white ring-4 ring-indigo-50">
+          <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full shadow-xl flex items-center justify-center mx-auto mb-6 border-4 border-white ring-4 ring-indigo-50">
             <Trophy size={48} className="text-indigo-600" />
           </div>
-          <h1 className="text-4xl font-black text-[#002654]">Résultats de l'examen</h1>
-          <p className="text-xl text-slate-500 font-medium">{getEncouragement(percentage)}</p>
+          <h1 className="text-4xl font-black text-[#002654] dark:text-white">Résultats de l'examen</h1>
+          <p className="text-xl text-slate-500 dark:text-slate-400 font-medium">{getEncouragement(percentage)}</p>
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
+        <Card className="rounded-[3.5rem] border-none shadow-2xl shadow-slate-200/50 shadow-slate-200/50 overflow-hidden">
           <CardHeader className="bg-[#002654] text-white p-10 text-center flex flex-col items-center">
             <div className="text-6xl font-black mb-2">{totalScored}/{totalPossible}</div>
             <div className="text-indigo-200 font-bold uppercase tracking-widest text-sm">Score Global (QCM)</div>
@@ -74,9 +74,9 @@ export function ResultsScreen() {
             {sessionResults.map((result) => (
               <div key={result.section} className="space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
-                  <h3 className="text-xl font-black text-[#002654]">{sectionLabels[result.section]}</h3>
+                  <h3 className="text-xl font-black text-[#002654] dark:text-white">{sectionLabels[result.section]}</h3>
                   {result.section === 'CO' || result.section === 'CE' ? (
-                    <div className="px-4 py-1 bg-slate-100 rounded-full font-black text-slate-600">
+                    <div className="px-4 py-1 bg-slate-100 rounded-full font-black text-slate-600 dark:text-slate-400">
                       {result.score} / {result.total}
                     </div>
                   ) : (
@@ -89,19 +89,19 @@ export function ResultsScreen() {
                 {(result.section === 'CO' || result.section === 'CE') && (
                   <Accordion className="w-full">
                     <AccordionItem value="details" className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-slate-50 rounded-2xl flex justify-between items-center w-full">
-                        <span className="font-bold text-slate-600">Détail des réponses</span>
+                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-slate-50 dark:bg-white dark:bg-slate-900/5 dark:bg-brand-dark rounded-3xl flex justify-between items-center w-full">
+                        <span className="font-bold text-slate-600 dark:text-slate-400">Détail des réponses</span>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2 space-y-3">
                         {result.answers.map((ans, idx) => {
                           const q = EXAM_QUESTIONS.find(currQ => currQ.id === ans.questionId);
                           return (
-                            <div key={ans.questionId} className="p-4 rounded-xl border border-slate-100 flex items-start gap-4">
+                            <div key={ans.questionId} className="p-4 rounded-2xl border border-slate-100 dark:border-white/10 flex items-start gap-4">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                 {idx + 1}
                               </div>
                               <div className="flex-1 text-left">
-                                <div className="font-bold text-slate-700 mb-1">{(q as any)?.question}</div>
+                                <div className="font-bold text-slate-700 dark:text-slate-300 mb-1">{(q as any)?.question}</div>
                                 <div className="flex flex-wrap gap-4 text-sm font-bold">
                                   <div className="flex items-center gap-1.5 text-slate-400">
                                     Votre réponse: <span className={ans.isCorrect ? 'text-emerald-600' : 'text-red-600'}>{ans.userAnswer || 'Aucune'}</span>
@@ -125,27 +125,27 @@ export function ResultsScreen() {
                 {result.section === 'EE' && result.writingProductions && (
                   <div className="space-y-4">
                     {Object.entries(result.writingProductions).map(([qId, text], idx) => (
-                      <div key={qId} className="p-6 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
-                        <div className="flex items-center gap-2 mb-4 text-[#002654]">
+                      <div key={qId} className="p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-white/10 rounded-3xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-4 text-[#002654] dark:text-white">
                           <FileText size={20} />
                           <span className="font-black">Production {idx + 1}</span>
                         </div>
-                        <div className="text-slate-600 whitespace-pre-wrap italic">
+                        <div className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap italic">
                           "{text || "Aucun texte rédigé."}"
                         </div>
                       </div>
                     ))}
-                    <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 text-amber-800 text-sm font-medium">
+                    <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-amber-800 text-sm font-medium">
                       Note : Les productions écrites ne sont pas corrigées automatiquement dans cette simulation. Nous vous conseillons de les partager avec un tuteur pour une évaluation précise.
                     </div>
                   </div>
                 )}
 
                 {result.section === 'EO' && (
-                  <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 text-center">
+                  <div className="p-6 bg-slate-50 dark:bg-white dark:bg-slate-900/5 dark:bg-brand-dark rounded-3xl border-2 border-slate-100 dark:border-white/10 text-center">
                     <MessageSquare className="mx-auto mb-3 text-indigo-600" size={32} />
-                    <div className="font-black text-[#002654] mb-2">Simulation orale terminée</div>
-                    <p className="text-slate-500 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
+                    <div className="font-black text-[#002654] dark:text-white mb-2">Simulation orale terminée</div>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
                   </div>
                 )}
               </div>
@@ -156,14 +156,14 @@ export function ResultsScreen() {
         <div className="flex flex-col md:flex-row gap-4">
           <Button
             onClick={resetExam}
-            className="flex-1 h-16 rounded-2xl bg-[#002654] hover:bg-slate-800 text-lg font-black shadow-xl"
+            className="flex-1 h-16 rounded-3xl bg-[#002654] hover:bg-slate-800 text-lg font-black shadow-xl"
           >
             <RotateCcw className="mr-2" size={20} /> Refaire un examen
           </Button>
           <Button
             variant="outline"
             onClick={() => window.location.href = '/dashboard'}
-            className="flex-1 h-16 rounded-2xl border-2 border-[#002654] text-[#002654] hover:bg-slate-50 text-lg font-black"
+            className="flex-1 h-16 rounded-3xl border-2 border-[#002654] text-[#002654] dark:text-white hover:bg-slate-50 dark:bg-white dark:bg-slate-900/5 dark:bg-brand-dark text-lg font-black"
           >
             <Home className="mr-2" size={20} /> Retour au tableau de bord
           </Button>

@@ -89,7 +89,7 @@ export function Pricing() {
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
                transition={{ delay: i * 0.1 }}
-               className={`relative p-10 rounded-[3rem] border-2 transition-all duration-500 ${plan.highlight ? 'bg-brand-blue dark:bg-brand-purple text-white border-brand-blue dark:border-brand-purple shadow-2xl scale-105 z-10' : 'bg-slate-50 dark:bg-white/5 border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
+               className={`relative p-10 rounded-[4rem] border-2 transition-all duration-500 ${plan.highlight ? 'bg-brand-blue dark:bg-brand-purple text-white border-brand-blue dark:border-brand-purple shadow-2xl shadow-indigo-100/50 scale-105 z-10' : 'bg-slate-50 dark:bg-white/5 border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
              >
                 {plan.badge && (
                   <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full bg-brand-gold text-brand-dark font-black text-xs uppercase tracking-widest shadow-xl">

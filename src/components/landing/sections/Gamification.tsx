@@ -35,7 +35,7 @@ export function Gamification() {
                whileInView={{ opacity: 1, scale: 1 }}
                viewport={{ once: true }}
                transition={{ delay: i * 0.1 }}
-               className="flex flex-col items-center p-8 rounded-[2.5rem] bg-slate-50 dark:bg-white/5 group hover:bg-white dark:hover:bg-white/10 hover:shadow-2xl transition-all duration-500 cursor-default"
+               className="flex flex-col items-center p-8 rounded-[3.5rem] bg-slate-50 dark:bg-white/5 group hover:bg-white dark:hover:bg-white/10 hover:shadow-2xl transition-all duration-500 cursor-default"
              >
                 <div className={`w-20 h-20 rounded-3xl ${item.bg} ${item.color} flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
                    {item.icon}
@@ -45,7 +45,7 @@ export function Gamification() {
            ))}
         </div>
 
-        <div className="max-w-4xl mx-auto bg-slate-900 rounded-[3rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
+        <div className="max-w-4xl mx-auto bg-slate-900 rounded-[4rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
            <div className="absolute top-0 right-0 p-32 bg-brand-purple/20 blur-[120px] rounded-full" />
 
            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">

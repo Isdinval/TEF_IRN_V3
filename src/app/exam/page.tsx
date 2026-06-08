@@ -27,7 +27,7 @@ function ExamContent() {
 
   if (state.status === 'in_progress') {
     return (
-      <div className="flex flex-col min-h-screen bg-slate-50">
+      <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-white/5 dark:bg-brand-dark">
         <ExamHeader />
         <ProgressBar />
         <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
@@ -41,8 +41,8 @@ function ExamContent() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[90vh] p-4 bg-slate-50">
-      <Card className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] border-none shadow-2xl shadow-indigo-100">
+    <div className="flex items-center justify-center min-h-[90vh] p-4 bg-slate-50 dark:bg-white/5 dark:bg-brand-dark">
+      <Card className="w-full max-w-2xl overflow-hidden rounded-[3.5rem] border-none shadow-2xl shadow-indigo-100/50 shadow-indigo-100">
         <div className="bg-[#002654] p-12 text-center text-white relative">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <ShieldCheck size={120} />
@@ -51,42 +51,42 @@ function ExamContent() {
             <Award size={40} className="text-white" />
           </div>
           <h1 className="text-3xl font-black mb-2">Simulateur d'Examen Blanc</h1>
-          <p className="text-indigo-200 font-medium">
+          <p className="text-indigo-200 font-black">
             Entraînez-vous dans les conditions réelles du TEF IRN.
           </p>
         </div>
 
         <div className="p-12 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100">
+            <div className="p-6 bg-slate-50 dark:bg-white/5 dark:bg-brand-dark rounded-3xl border-2 border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#002654] shadow-sm">
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#002654] dark:text-white shadow-sm">
                   <Clock size={18} />
                 </div>
-                <span className="font-black text-[#002654]">Temps Réel</span>
+                <span className="font-black text-[#002654] dark:text-white">Temps Réel</span>
               </div>
-              <p className="text-sm text-slate-500 font-medium">Chronomètre décompteur avec alerte fin de temps.</p>
+              <p className="text-sm text-slate-500 font-black">Chronomètre décompteur avec alerte fin de temps.</p>
             </div>
-            <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100">
+            <div className="p-6 bg-slate-50 dark:bg-white/5 dark:bg-brand-dark rounded-3xl border-2 border-slate-100 dark:border-white/10">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-emerald-600 shadow-sm">
                   <CheckCircle2 size={18} />
                 </div>
-                <span className="font-black text-[#002654]">Score Immédiat</span>
+                <span className="font-black text-[#002654] dark:text-white">Score Immédiat</span>
               </div>
-              <p className="text-sm text-slate-500 font-medium">Correction automatique pour les épreuves QCM.</p>
+              <p className="text-sm text-slate-500 font-black">Correction automatique pour les épreuves QCM.</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <Button
               size="lg"
-              className="w-full h-16 bg-[#002654] hover:bg-slate-800 text-xl font-black rounded-2xl shadow-xl shadow-slate-200"
+              className="w-full h-16 bg-[#002654] hover:bg-slate-800 text-xl font-black rounded-3xl shadow-xl shadow-slate-200"
               onClick={() => setIsModalOpen(true)}
             >
               Lancer le chronomètre
             </Button>
-            <p className="text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+            <p className="text-center text-xs text-slate-400 font-black uppercase tracking-widest">
               Conforme au format officiel 2025
             </p>
           </div>
