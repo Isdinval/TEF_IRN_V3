@@ -16,10 +16,12 @@ import {
   Sparkles,
   Trophy,
   Brain,
-  Target
+  Target,
+  SkipForward
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
+import { validateVocabResponse } from "@/lib/vocab/utils";
 
 interface Flashcard {
   id: string;
@@ -52,6 +54,7 @@ export default function VocabCoach() {
   // Type state
   const [userInput, setUserInput] = useState("");
   const [typeChecked, setTypeChecked] = useState(false);
+  const [validationResult, setValidationResult] = useState<{ isValid: boolean; toleranceApplied: boolean; message?: string } | null>(null);
 
   const supabase = createClient();
   const categories = ["Administration", "Santé", "Travail", "Logement"];
@@ -105,6 +108,7 @@ export default function VocabCoach() {
     setQuizChecked(false);
     setUserInput("");
     setTypeChecked(false);
+    setValidationResult(null);
 
     if (nextStep === "quiz") {
       // Generate distractors
@@ -116,6 +120,14 @@ export default function VocabCoach() {
 
       const options = [...distractors, currentCards[idx].definition].sort(() => Math.random() - 0.5);
       setQuizOptions(options);
+    }
+  };
+
+  const handleSkip = () => {
+    if (index < cards.length - 1) {
+      prepareNextWord(cards, index + 1, "presentation");
+    } else {
+      finishSession(sessionMasteredCount);
     }
   };
 
@@ -373,12 +385,21 @@ export default function VocabCoach() {
                   </Card>
                 </div>
               </div>
-              <Button
-                onClick={() => handleStepComplete(true)}
-                className="h-16 px-12 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 text-xl"
-              >
-                C'est compris <ArrowRight className="ml-2" />
-              </Button>
+              <div className="flex gap-4 w-full max-w-lg">
+                <Button
+                  onClick={handleSkip}
+                  variant="secondary"
+                  className="h-16 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl text-xl hover:bg-zinc-200"
+                >
+                  Passer
+                </Button>
+                <Button
+                  onClick={() => handleStepComplete(true)}
+                  className="h-16 flex-[2] bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 text-xl"
+                >
+                  C'est compris <ArrowRight className="ml-2" />
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -414,13 +435,22 @@ export default function VocabCoach() {
               </div>
 
               {!quizChecked ? (
-                <Button
-                  disabled={!selectedOption}
-                  onClick={() => setQuizChecked(true)}
-                  className="w-full h-16 bg-zinc-900 text-white font-black rounded-2xl"
-                >
-                  Vérifier
-                </Button>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={handleSkip}
+                    variant="secondary"
+                    className="h-16 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl hover:bg-zinc-200"
+                  >
+                    Passer
+                  </Button>
+                  <Button
+                    disabled={!selectedOption}
+                    onClick={() => setQuizChecked(true)}
+                    className="h-16 flex-[2] bg-zinc-900 text-white font-black rounded-2xl"
+                  >
+                    Vérifier
+                  </Button>
+                </div>
               ) : (
                 <Button
                   onClick={() => handleStepComplete(selectedOption === current.definition)}
@@ -454,31 +484,47 @@ export default function VocabCoach() {
                   placeholder="Tapez le mot ici..."
                   className={`h-20 text-center text-3xl font-black rounded-2xl border-2 transition-all ${
                     typeChecked
-                    ? (userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-rose-500 bg-rose-50 text-rose-900')
+                    ? (validationResult?.isValid ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-rose-500 bg-rose-50 text-rose-900')
                     : 'border-zinc-200 focus:border-emerald-600'
                   }`}
                 />
 
                 {!typeChecked ? (
-                  <Button
-                    disabled={!userInput.trim()}
-                    onClick={() => setTypeChecked(true)}
-                    className="w-full h-16 bg-zinc-900 text-white font-black rounded-2xl"
-                  >
-                    Valider l'orthographe
-                  </Button>
+                  <div className="flex gap-4">
+                    <Button
+                      onClick={handleSkip}
+                      variant="secondary"
+                      className="h-16 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl hover:bg-zinc-200"
+                    >
+                      Passer
+                    </Button>
+                    <Button
+                      disabled={!userInput.trim()}
+                      onClick={() => {
+                        const res = validateVocabResponse(userInput, current.word);
+                        setValidationResult(res);
+                        setTypeChecked(true);
+                      }}
+                      className="h-16 flex-[2] bg-zinc-900 text-white font-black rounded-2xl"
+                    >
+                      Valider
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {userInput.toLowerCase().trim() !== current.word.toLowerCase().trim() && (
+                    <div className={`text-center p-3 rounded-xl font-bold text-sm ${validationResult?.isValid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                         {validationResult?.isValid ? (validationResult.message || "Excellent !") : "Presque ! Réessayez (attention à l'orthographe)"}
+                    </div>
+                    {!validationResult?.isValid && (
                       <div className="text-center p-4 bg-rose-50 rounded-xl text-rose-600 font-bold">
                         La bonne réponse était : <span className="text-xl uppercase underline decoration-2">{current.word}</span>
                       </div>
                     )}
                     <Button
-                      onClick={() => handleStepComplete(userInput.toLowerCase().trim() === current.word.toLowerCase().trim())}
-                      className={`w-full h-16 text-white font-black rounded-2xl ${userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? 'bg-emerald-600' : 'bg-rose-500'}`}
+                      onClick={() => handleStepComplete(validationResult?.isValid || false)}
+                      className={`w-full h-16 text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-rose-500'}`}
                     >
-                      {userInput.toLowerCase().trim() === current.word.toLowerCase().trim() ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" />
+                      {validationResult?.isValid ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" />
                     </Button>
                   </div>
                 )}
