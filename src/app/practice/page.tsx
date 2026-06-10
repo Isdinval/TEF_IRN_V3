@@ -55,16 +55,16 @@ function PracticeContent() {
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
 
     if (lessonId && topic) {
-      autoStart(lessonId, topic);
+      autoStart(lessonId, topic, level || undefined);
     }
   }, [searchParams]);
 
-  const autoStart = async (lessonId: string, topic: string) => {
+  const autoStart = async (lessonId: string, topic: string, level?: string) => {
     setLoading(true);
-    // On essaie de trouver un exercice spécifique à la leçon,
-    // sinon on se rabat sur le topic (catégorie)
+    // On essaie de trouver un exercice spécifique à la leçon
     const { data: lessonExo } = await supabase
       .from('exercises')
       .select('*')
@@ -77,19 +77,23 @@ function PracticeContent() {
       setExercise(lessonExo as Exercise);
       setMode("training");
     } else {
-      // Fallback sur le topic et le niveau de la leçon
-      const { data: lessonData } = await supabase
-        .from('lessons')
-        .select('level')
-        .eq('id', lessonId)
-        .single();
+      let targetLevel = level;
+      if (!targetLevel) {
+        const { data: lessonData } = await supabase
+          .from('lessons')
+          .select('level')
+          .eq('id', lessonId)
+          .single();
+        targetLevel = lessonData?.level;
+      }
 
-      if (lessonData) {
+      if (targetLevel) {
+        const normalizedTopic = topic ? (topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase()) : topic;
         const { data: topicExo } = await supabase
           .from('exercises')
           .select('*')
-          .eq('level', lessonData.level)
-          .eq('category', topic)
+          .eq('level', targetLevel)
+          .eq('category', normalizedTopic)
           .eq('type', 'qcm_centre_entrainement')
           .limit(1)
           .maybeSingle();
@@ -97,6 +101,19 @@ function PracticeContent() {
         if (topicExo) {
           setExercise(topicExo as Exercise);
           setMode("training");
+        } else {
+          // Dernier recours : n'importe quel QCM du même niveau
+          const { data: fallbackExo } = await supabase
+            .from('exercises')
+            .select('*')
+            .eq('level', targetLevel)
+            .eq('type', 'qcm_centre_entrainement')
+            .limit(1)
+            .maybeSingle();
+          if (fallbackExo) {
+            setExercise(fallbackExo as Exercise);
+            setMode("training");
+          }
         }
       }
     }

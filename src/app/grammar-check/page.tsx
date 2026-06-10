@@ -42,14 +42,9 @@ function GrammarCheckContent() {
     const level = searchParams.get('level');
 
     if (lessonId && topic) {
-      setSelectedCategory(topic);
+      if (topic) setSelectedCategory(topic);
       if (level) setSelectedLevel(level);
-
-      // On attend un court instant pour que les states soient mis à jour
-      const timer = setTimeout(() => {
-        startExercise();
-      }, 500);
-      return () => clearTimeout(timer);
+      startExercise(level || undefined, topic || undefined);
     }
   }, [searchParams]);
 
@@ -65,17 +60,46 @@ function GrammarCheckContent() {
     }
   }, [searchParams]);
 
-  const startExercise = async () => {
+  const startExercise = async (lvl?: string, cat?: string) => {
     setLoading(true);
+    const targetLevel = lvl || selectedLevel;
+    const targetCategory = cat || selectedCategory;
+    const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
     try {
       let query = supabase
         .from("exercises")
         .select("*")
         .eq("type", "trous")
-        .eq("level", selectedLevel);
+        .eq("level", targetLevel);
 
-      if (selectedCategory && selectedCategory !== "Grammaire") {
-        query = query.ilike("instructions", `%${selectedCategory.substring(0, 4)}%`);
+      if (targetCategory && targetCategory && targetCategory !== "Toutes") {
+        // Essayer d'abord par le champ category exact
+        const { data: catMatch } = await supabase
+          .from("exercises")
+          .select("*")
+          .eq("type", "trous")
+          .eq("level", targetLevel)
+          .eq("category", normalizedCategory)
+          .limit(5);
+
+        if (catMatch && catMatch.length > 0) {
+          const formatted = catMatch.map((d: any) => ({
+            id: d.id,
+            sentence: d.content.sentence || d.instructions,
+            error_fragment: d.content.error_fragment || "...",
+            correction: d.content.correct_answer || d.content.correct_answers?.[0],
+            explanation: d.content.explanation || "Règle de grammaire standard.",
+            category: d.category || targetCategory,
+            level: d.level || targetLevel
+          }));
+          setQuestions(formatted);
+          setIsStarted(true);
+          setLoading(false);
+          return;
+        }
+
+        // Sinon fallback sur le like dans instructions
+        query = query.ilike("instructions", `%${targetCategory.substring(0, 4)}%`);
       }
 
       const { data, error } = await query
@@ -219,7 +243,7 @@ function GrammarCheckContent() {
               </section>
 
               <Button
-                onClick={startExercise}
+                onClick={() => startExercise()}
                 disabled={loading}
                 className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
               >
@@ -239,7 +263,7 @@ function GrammarCheckContent() {
                   Travaillez les accords, la conjugaison et la syntaxe avec un feedback immédiat à chaque phrase.
                 </p>
                 <Button
-                  onClick={startExercise}
+                  onClick={() => startExercise()}
                   disabled={loading}
                   className="w-full h-14 bg-white text-rose-600 hover:bg-rose-50 font-black rounded-xl shadow-xl border-none"
                 >

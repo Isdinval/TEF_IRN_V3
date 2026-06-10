@@ -92,9 +92,10 @@ function VocabCoachContent() {
   const categories = ["Administration", "Santé", "Travail", "Logement"];
   const levels = ["A1", "A2", "B1", "B2"];
 
-  const startTraining = async (review: boolean = false) => {
+  const startTraining = async (review: boolean = false, lvl?: string, cat?: string) => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user;
 
     let query = supabase.from('vocabulary').select('*');
 
@@ -114,7 +115,10 @@ function VocabCoachContent() {
       query = query.in('id', ids);
       setIsReviewMode(true);
     } else {
-      query = query.eq('level', filters.level).eq('category', filters.category);
+      const targetLevel = lvl || filters.level;
+      const targetCategory = cat || filters.category;
+      const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
+      query = query.eq('level', targetLevel).eq('category', normalizedCategory);
       setIsReviewMode(false);
     }
 

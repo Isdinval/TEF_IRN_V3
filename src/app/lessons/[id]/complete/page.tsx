@@ -3,7 +3,6 @@
 import { useEffect, useState, use } from "react";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Sparkles,
@@ -41,7 +40,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
       const user = authData?.user;
       if (!user) return;
 
-      // 1. Fetch current lesson
       const { data: currentLesson } = await supabase
         .from('lessons')
         .select('*')
@@ -51,7 +49,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
       if (!currentLesson) return;
       setLesson(currentLesson);
 
-      // 2. Fetch all lessons in the same level/category path
       const { data: pathLessonsData } = await supabase
         .from('lessons')
         .select('id, title, order_index, created_at')
@@ -63,7 +60,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
       const pathLessons = (pathLessonsData as PathLesson[]) || [];
 
       if (pathLessons.length > 0) {
-        // 3. Fetch user's completed lessons in this path
         const lessonIds = pathLessons.map((l: PathLesson) => l.id);
         const { data: completedData } = await supabase
           .from('lesson_progress')
@@ -78,7 +74,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           total: pathLessons.length
         });
 
-        // 4. Find the next lesson
         const currentIndex = pathLessons.findIndex((l: PathLesson) => l.id === id);
         if (currentIndex !== -1 && currentIndex < pathLessons.length - 1) {
           setNextLesson(pathLessons[currentIndex + 1]);
@@ -106,7 +101,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
     <div className="max-w-6xl mx-auto p-8 py-16 min-h-screen">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-        {/* COLONNE GAUCHE: Bien joué ! */}
+        {/* COLONNE GAUCHE */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -130,7 +125,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
             </div>
           </div>
 
-          {/* Progress Card */}
           <Card className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-xl shadow-zinc-200/50">
             <div className="flex justify-between items-end mb-4">
               <div>
@@ -154,7 +148,6 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
             </p>
           </Card>
 
-          {/* Next Lesson Button */}
           <div>
             {nextLesson ? (
               <Link href={`/lessons/${nextLesson.id}`}>
@@ -186,7 +179,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="space-y-8"
+          className="space-y-10"
         >
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pratiquer maintenant</h2>
@@ -196,61 +189,67 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           <div className="space-y-6">
             {/* Grammar Card */}
             <Link href={practiceBaseUrl('grammar-check')} className="group block">
-              <Card className="border-2 border-zinc-50 hover:border-indigo-100 shadow-lg shadow-zinc-100 hover:shadow-indigo-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex items-center">
-                    <div className="w-32 h-32 bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                      <MessageSquare size={40} />
+              <Card className="relative overflow-hidden border-none shadow-2xl shadow-indigo-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <div className="flex items-stretch">
+                  <div className="w-4 bg-indigo-600" />
+                  <div className="flex-1 p-8 flex items-center gap-8">
+                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <MessageSquare size={32} />
                     </div>
-                    <div className="p-8 flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 mb-1">Corriger un texte</h4>
-                      <p className="text-base text-zinc-500 font-bold mb-4">Orthographe & Grammaire</p>
-                      <div className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                        C'est parti <ChevronRight size={18} />
-                      </div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 leading-tight">Corriger un texte</h4>
+                      <p className="text-slate-400 font-bold">Orthographe & Grammaire</p>
+                    </div>
+                    <div className="text-indigo-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>C'est parti</span>
+                      <ChevronRight size={16} />
                     </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
 
             {/* QCM Card */}
             <Link href={practiceBaseUrl('practice')} className="group block">
-              <Card className="border-2 border-zinc-50 hover:border-violet-100 shadow-lg shadow-zinc-100 hover:shadow-violet-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex items-center">
-                    <div className="w-32 h-32 bg-violet-50 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                      <GraduationCap size={40} />
+              <Card className="relative overflow-hidden border-none shadow-2xl shadow-violet-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <div className="flex items-stretch">
+                  <div className="w-4 bg-violet-600" />
+                  <div className="flex-1 p-8 flex items-center gap-8">
+                    <div className="w-16 h-16 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                      <GraduationCap size={32} />
                     </div>
-                    <div className="p-8 flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 mb-1">QCM</h4>
-                      <p className="text-base text-zinc-500 font-bold mb-4">Entraînement rapide</p>
-                      <div className="text-violet-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                        C'est parti <ChevronRight size={18} />
-                      </div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 leading-tight">QCM</h4>
+                      <p className="text-slate-400 font-bold">Entraînement rapide</p>
+                    </div>
+                    <div className="text-violet-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>C'est parti</span>
+                      <ChevronRight size={16} />
                     </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
 
             {/* Vocab Card */}
             <Link href={practiceBaseUrl('vocab')} className="group block">
-              <Card className="border-2 border-zinc-50 hover:border-sky-100 shadow-lg shadow-zinc-100 hover:shadow-sky-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex items-center">
-                    <div className="w-32 h-32 bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                      <Brain size={40} />
+              <Card className="relative overflow-hidden border-none shadow-2xl shadow-sky-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <div className="flex items-stretch">
+                  <div className="w-4 bg-sky-600" />
+                  <div className="flex-1 p-8 flex items-center gap-8">
+                    <div className="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                      <Brain size={32} />
                     </div>
-                    <div className="p-8 flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 mb-1">Vocabulaire</h4>
-                      <p className="text-base text-zinc-500 font-bold mb-4">Flashcards interactives</p>
-                      <div className="text-sky-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                        C'est parti <ChevronRight size={18} />
-                      </div>
+                    <div className="flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 leading-tight">Vocabulaire</h4>
+                      <p className="text-slate-400 font-bold">Flashcards interactives</p>
+                    </div>
+                    <div className="text-sky-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>C'est parti</span>
+                      <ChevronRight size={16} />
                     </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
           </div>
