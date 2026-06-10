@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,7 +35,8 @@ interface Flashcard {
 
 type Step = "presentation" | "quiz" | "type";
 
-export default function VocabCoach() {
+function VocabCoachContent() {
+  const searchParams = useSearchParams();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [index, setIndex] = useState(0);
   const [step, setStep] = useState<Step>("presentation");
@@ -56,7 +58,37 @@ export default function VocabCoach() {
   const [typeChecked, setTypeChecked] = useState(false);
   const [validationResult, setValidationResult] = useState<{ isValid: boolean; toleranceApplied: boolean; message?: string } | null>(null);
 
-  const supabase = createClient();
+      const supabase = createClient();
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
+
+    if (lessonId && topic) {
+      setFilters(prev => ({
+        ...prev,
+        category: topic,
+        level: level || prev.level
+      }));
+
+      const timer = setTimeout(() => {
+        startTraining();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+
+    if (lessonId && topic) {
+      // Pour vocab, on pré-remplit les filtres et on lance
+      setFilters(prev => ({ ...prev, category: topic }));
+      startTraining();
+    }
+  }, [searchParams]);
   const categories = ["Administration", "Santé", "Travail", "Logement"];
   const levels = ["A1", "A2", "B1", "B2"];
 
@@ -534,5 +566,14 @@ export default function VocabCoach() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+
+export default function VocabCoach() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-sky-600" size={48} /></div>}>
+      <VocabCoachContent />
+    </Suspense>
   );
 }

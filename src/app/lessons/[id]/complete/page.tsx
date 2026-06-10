@@ -9,7 +9,6 @@ import {
   Sparkles,
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   Brain,
   MessageSquare,
   GraduationCap,
@@ -101,150 +100,162 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
   if (!lesson) return <div>Leçon non trouvée.</div>;
 
+  const practiceBaseUrl = (page: string) => `/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
+
   return (
-    <div className="max-w-4xl mx-auto p-8 py-16 min-h-screen">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-12"
-      >
-        {/* Celebration Header */}
-        <div className="space-y-6">
-          <div className="relative inline-block">
-            <div className="w-40 h-40 bg-emerald-100 text-emerald-600 rounded-[3rem] flex items-center justify-center mx-auto rotate-12 relative z-10 shadow-2xl shadow-emerald-100">
-              <Trophy size={70} />
-            </div>
-            <div className="absolute inset-0 bg-emerald-200 blur-3xl opacity-30 -z-10" />
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-4 text-emerald-400/30"
-            >
-              <Sparkles size={180} />
-            </motion.div>
-          </div>
+    <div className="max-w-6xl mx-auto p-8 py-16 min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-          <div className="space-y-3">
-            <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-              Bien joué ! 🎉
-            </h1>
-            <p className="text-xl text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
-              Vous avez terminé la leçon <span className="text-indigo-600 font-black">"{lesson.title}"</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Card */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-xl shadow-zinc-200/50 max-w-md mx-auto">
-          <div className="flex justify-between items-end mb-4">
-            <div>
-              <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Ma progression</p>
-              <h3 className="text-2xl font-black text-slate-800">Parcours {lesson.level}</h3>
-            </div>
-            <p className="text-2xl font-black text-indigo-600">
-              {progress.completed}/{progress.total}
-            </p>
-          </div>
-          <div className="h-4 bg-zinc-100 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%` }}
-              className="h-full bg-indigo-600"
-            />
-          </div>
-          <p className="mt-4 text-sm font-bold text-zinc-500 capitalize">
-            {lesson.category}
-          </p>
-        </div>
-
-        {/* Primary Action: Next Lesson */}
-        <div className="max-w-md mx-auto">
-          {nextLesson ? (
-            <Link href={`/lessons/${nextLesson.id}`}>
-              <Button
-                size="lg"
-                className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-105 active:scale-95"
-              >
-                Leçon suivante <ArrowRight className="ml-2" size={24} />
-              </Button>
-            </Link>
-          ) : (
-            <div className="space-y-6">
-              <div className="p-8 bg-amber-50 rounded-[2.5rem] border border-amber-100">
-                <p className="text-2xl font-black text-amber-600">Parcours terminé 🎉</p>
-                <p className="text-amber-500 font-medium">Vous avez fini toutes les leçons de ce module !</p>
+        {/* COLONNE GAUCHE: Bien joué ! */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="space-y-12"
+        >
+          <div className="space-y-6">
+            <div className="relative inline-block">
+              <div className="w-32 h-32 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center rotate-12 relative z-10 shadow-xl shadow-emerald-100">
+                <Trophy size={50} />
               </div>
-              <Link href="/lessons">
-                <Button variant="outline" size="lg" className="w-full h-16 rounded-2xl border-2 font-black text-lg">
-                  Retour au catalogue
+              <div className="absolute inset-0 bg-emerald-200 blur-3xl opacity-30 -z-10" />
+            </div>
+
+            <div className="space-y-3">
+              <h1 className="text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Bien joué ! 🎉
+              </h1>
+              <p className="text-2xl text-slate-500 font-medium leading-relaxed">
+                Vous avez terminé la leçon <span className="text-indigo-600 font-black italic block mt-1">"{lesson.title}"</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Card */}
+          <Card className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-xl shadow-zinc-200/50">
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Ma progression</p>
+                <h3 className="text-2xl font-black text-slate-800">Parcours {lesson.level}</h3>
+              </div>
+              <p className="text-2xl font-black text-indigo-600">
+                {progress.completed}/{progress.total}
+              </p>
+            </div>
+            <div className="h-4 bg-zinc-100 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%` }}
+                className="h-full bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+              />
+            </div>
+            <p className="mt-4 text-sm font-bold text-zinc-500 capitalize flex items-center gap-2">
+              <BookOpen size={16} className="text-indigo-400" />
+              {lesson.category}
+            </p>
+          </Card>
+
+          {/* Next Lesson Button */}
+          <div>
+            {nextLesson ? (
+              <Link href={`/lessons/${nextLesson.id}`}>
+                <Button
+                  size="lg"
+                  className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Leçon suivante <ArrowRight className="ml-2" size={24} />
                 </Button>
               </Link>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="p-8 bg-amber-50 rounded-[2.5rem] border border-amber-100 text-center">
+                  <p className="text-2xl font-black text-amber-600">Parcours terminé 🎉</p>
+                  <p className="text-amber-500 font-medium">Vous avez fini toutes les leçons de ce module !</p>
+                </div>
+                <Link href="/lessons">
+                  <Button variant="outline" size="lg" className="w-full h-16 rounded-2xl border-2 font-black text-lg">
+                    Retour au catalogue
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </motion.div>
 
-        {/* Contextual Exercises */}
-        <div className="space-y-8 pt-8">
-          <div className="flex items-center gap-4 justify-center">
-            <div className="h-px bg-zinc-200 w-12" />
-            <h2 className="text-sm font-black text-zinc-400 uppercase tracking-[0.2em]">Pratiquer maintenant</h2>
-            <div className="h-px bg-zinc-200 w-12" />
+        {/* COLONNE DROITE: Pratiquer maintenant */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-8"
+        >
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pratiquer maintenant</h2>
+            <div className="h-px bg-zinc-100 flex-1" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href={`/grammar-check?lessonId=${lesson.id}&topic=${lesson.category}`} className="group">
-              <Card className="border-none shadow-lg shadow-zinc-100 hover:shadow-indigo-100 transition-all rounded-[2rem] h-full bg-white group-hover:-translate-y-1">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    <MessageSquare size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-800">Corriger un texte</h4>
-                    <p className="text-xs text-zinc-500 font-medium">Orthographe & Grammaire</p>
-                  </div>
-                  <div className="text-indigo-600 text-xs font-black flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    C'est parti <ChevronRight size={14} />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href={`/practice?lessonId=${lesson.id}&topic=${lesson.category}`} className="group">
-              <Card className="border-none shadow-lg shadow-zinc-100 hover:shadow-violet-100 transition-all rounded-[2rem] h-full bg-white group-hover:-translate-y-1">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                    <GraduationCap size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-800">QCM</h4>
-                    <p className="text-xs text-zinc-500 font-medium">Entraînement rapide</p>
-                  </div>
-                  <div className="text-violet-600 text-xs font-black flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    C'est parti <ChevronRight size={14} />
+          <div className="space-y-6">
+            {/* Grammar Card */}
+            <Link href={practiceBaseUrl('grammar-check')} className="group block">
+              <Card className="border-2 border-zinc-50 hover:border-indigo-100 shadow-lg shadow-zinc-100 hover:shadow-indigo-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="w-32 h-32 bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <MessageSquare size={40} />
+                    </div>
+                    <div className="p-8 flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 mb-1">Corriger un texte</h4>
+                      <p className="text-base text-zinc-500 font-bold mb-4">Orthographe & Grammaire</p>
+                      <div className="text-indigo-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                        C'est parti <ChevronRight size={18} />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            <Link href={`/vocab?lessonId=${lesson.id}&topic=${lesson.category}`} className="group">
-              <Card className="border-none shadow-lg shadow-zinc-100 hover:shadow-sky-100 transition-all rounded-[2rem] h-full bg-white group-hover:-translate-y-1">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center mx-auto group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                    <Brain size={24} />
+            {/* QCM Card */}
+            <Link href={practiceBaseUrl('practice')} className="group block">
+              <Card className="border-2 border-zinc-50 hover:border-violet-100 shadow-lg shadow-zinc-100 hover:shadow-violet-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="w-32 h-32 bg-violet-50 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                      <GraduationCap size={40} />
+                    </div>
+                    <div className="p-8 flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 mb-1">QCM</h4>
+                      <p className="text-base text-zinc-500 font-bold mb-4">Entraînement rapide</p>
+                      <div className="text-violet-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                        C'est parti <ChevronRight size={18} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-black text-slate-800">Vocabulaire</h4>
-                    <p className="text-xs text-zinc-500 font-medium">Flashcards interactives</p>
-                  </div>
-                  <div className="text-sky-600 text-xs font-black flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    C'est parti <ChevronRight size={14} />
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Vocab Card */}
+            <Link href={practiceBaseUrl('vocab')} className="group block">
+              <Card className="border-2 border-zinc-50 hover:border-sky-100 shadow-lg shadow-zinc-100 hover:shadow-sky-50 transition-all rounded-[2.5rem] bg-white overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-center">
+                    <div className="w-32 h-32 bg-sky-50 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                      <Brain size={40} />
+                    </div>
+                    <div className="p-8 flex-1">
+                      <h4 className="font-black text-2xl text-slate-800 mb-1">Vocabulaire</h4>
+                      <p className="text-base text-zinc-500 font-bold mb-4">Flashcards interactives</p>
+                      <div className="text-sky-600 font-black text-sm uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                        C'est parti <ChevronRight size={18} />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

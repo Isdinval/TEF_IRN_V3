@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,7 +19,8 @@ interface GrammarQuestion {
   level: string;
 }
 
-export default function GrammarCheckPage() {
+function GrammarCheckContent() {
+  const searchParams = useSearchParams();
   const [isStarted, setIsStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Grammaire");
@@ -33,7 +34,36 @@ export default function GrammarCheckPage() {
   const [finished, setFinished] = useState(false);
 
   const router = useRouter();
-  const supabase = createClient();
+      const supabase = createClient();
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
+
+    if (lessonId && topic) {
+      setSelectedCategory(topic);
+      if (level) setSelectedLevel(level);
+
+      // On attend un court instant pour que les states soient mis à jour
+      const timer = setTimeout(() => {
+        startExercise();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+
+    if (lessonId && topic) {
+      // Pour grammar-check, on utilise topic pour pré-remplir les filtres et lancer
+      setSelectedCategory(topic);
+      // On lance direct avec les réglages par défaut ou dérivés du topic
+      startExercise();
+    }
+  }, [searchParams]);
 
   const startExercise = async () => {
     setLoading(true);
@@ -368,5 +398,14 @@ export default function GrammarCheckPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+
+export default function GrammarCheckPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-rose-600" size={48} /></div>}>
+      <GrammarCheckContent />
+    </Suspense>
   );
 }
