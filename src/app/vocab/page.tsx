@@ -351,7 +351,7 @@ function VocabCoachContent() {
       <header className="mb-12 flex justify-between items-center">
         <div className="space-y-1">
           <Badge className="bg-emerald-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none shadow-lg shadow-emerald-100">
-            {current.category} • {current.level}
+            {current.level} • {current.category}
           </Badge>
           <h1 className="text-2xl font-black text-zinc-900 uppercase">
              {step === "presentation" && "Phase de Découverte"}
