@@ -20,6 +20,13 @@ import {
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+interface PathLesson {
+  id: string;
+  title: string;
+  order_index: number | null;
+  created_at: string;
+}
+
 export default function LessonComplete({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [loading, setLoading] = useState(true);
@@ -31,7 +38,8 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     async function fetchData() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
       if (!user) return;
 
       // 1. Fetch current lesson
@@ -45,7 +53,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
       setLesson(currentLesson);
 
       // 2. Fetch all lessons in the same level/category path
-      const { data: pathLessons } = await supabase
+      const { data: pathLessonsData } = await supabase
         .from('lessons')
         .select('id, title, order_index, created_at')
         .eq('level', currentLesson.level)
@@ -53,16 +61,18 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
         .order('order_index', { ascending: true })
         .order('created_at', { ascending: true });
 
-      if (pathLessons) {
+      const pathLessons = (pathLessonsData as PathLesson[]) || [];
+
+      if (pathLessons.length > 0) {
         // 3. Fetch user's completed lessons in this path
-        const lessonIds = pathLessons.map((l: any) => l.id);
+        const lessonIds = pathLessons.map((l: PathLesson) => l.id);
         const { data: completedData } = await supabase
           .from('lesson_progress')
           .select('lesson_id')
           .eq('user_id', user.id)
           .in('lesson_id', lessonIds);
 
-        const completedIds = new Set(completedData?.map((c: any) => c.lesson_id));
+        const completedIds = new Set((completedData || []).map((c: any) => c.lesson_id));
 
         setProgress({
           completed: completedIds.size,
@@ -70,7 +80,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
         });
 
         // 4. Find the next lesson
-        const currentIndex = pathLessons.findIndex((l: any) => l.id === id);
+        const currentIndex = pathLessons.findIndex((l: PathLesson) => l.id === id);
         if (currentIndex !== -1 && currentIndex < pathLessons.length - 1) {
           setNextLesson(pathLessons[currentIndex + 1]);
         }
@@ -138,7 +148,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           <div className="h-4 bg-zinc-100 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${(progress.completed / progress.total) * 100}%` }}
+              animate={{ width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%` }}
               className="h-full bg-indigo-600"
             />
           </div>
