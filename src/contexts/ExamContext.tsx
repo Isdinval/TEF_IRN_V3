@@ -72,7 +72,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
 
       if (questionsError) throw questionsError;
 
-      const mappedQuestions: Question[] = (questionsData || []).map(q => ({
+      const mappedQuestions: Question[] = (questionsData || []).map((q: any) => ({
         id: q.id,
         section: q.section as ExamSectionType,
         type: q.type as any,
@@ -162,11 +162,11 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [sessionResults]);
 
-  const questions = allQuestions.filter(q => q.section === state.section);
-  const currentQuestion = questions[state.currentQuestionIndex];
+  const questions = allQuestions.filter((q: Question) => q.section === state.section);
+  const currentQuestion = questions[state.currentQuestionIndex] || ({} as Question);
 
   const startExam = async (type: 'single' | 'full', section?: ExamSectionType) => {
-    const { examId, questions: fetchedQuestions } = await fetchExamContent();
+    const { examId } = await fetchExamContent();
 
     const startSection = type === 'full' ? 'CO' : (section || 'CO');
     const newState: ExamSessionState = {
@@ -212,12 +212,12 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const calculateSectionResults = (section: ExamSectionType, answers: Record<string, string>): ExamResult => {
-    const sectionQuestions = allQuestions.filter(q => q.section === section);
+    const sectionQuestions = allQuestions.filter((q: Question) => q.section === section);
     let score = 0;
     const detailAnswers: any[] = [];
     const sectionAnswers: Record<string, string> = {};
 
-    sectionQuestions.forEach(q => {
+    sectionQuestions.forEach((q: Question) => {
       const answer = answers[q.id] || '';
       sectionAnswers[q.id] = answer;
 

@@ -21,20 +21,14 @@ import {
 } from "@/components/ui/accordion";
 import { Progress } from '@/components/ui/progress';
 import { EXAM_QUESTIONS } from '@/data/examQuestions';
-import { ExamSectionType } from '@/types/exam';
+import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 
 export function ResultsScreen() {
   const { sessionResults, resetExam, allQuestions } = useExam();
 
-  const totalPossible = sessionResults.reduce((acc, res) => acc + res.total, 0);
-  const totalScored = sessionResults.reduce((acc, res) => acc + res.score, 0);
+  const totalPossible = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.total, 0);
+  const totalScored = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.score, 0);
   const percentage = totalPossible > 0 ? (totalScored / totalPossible) * 100 : 0;
-
-  const getStatusColor = (p: number) => {
-    if (p < 50) return 'bg-[#ED2939]';
-    if (p < 70) return 'bg-orange-500';
-    return 'bg-emerald-500';
-  };
 
   const getEncouragement = (p: number) => {
     if (p < 50) return "Continuez vos efforts ! La régularité est la clé de la réussite.";
@@ -71,7 +65,7 @@ export function ResultsScreen() {
           </CardHeader>
 
           <CardContent className="p-10 space-y-10">
-            {sessionResults.map((result) => (
+            {sessionResults.map((result: ExamResult) => (
               <div key={result.section} className="space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
                   <h3 className="text-xl font-black text-[#002654]">{sectionLabels[result.section]}</h3>
@@ -93,8 +87,8 @@ export function ResultsScreen() {
                         <span className="font-bold text-slate-600">Détail des réponses</span>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2 space-y-3">
-                        {result.answers.map((ans, idx) => {
-                          const q = allQuestions.find(currQ => currQ.id === ans.questionId) || EXAM_QUESTIONS.find(currQ => currQ.id === ans.questionId);
+                        {result.answers.map((ans: any, idx: number) => {
+                          const q = (allQuestions || []).find((currQ: Question) => currQ.id === ans.questionId) || EXAM_QUESTIONS.find((currQ: Question) => currQ.id === ans.questionId);
                           return (
                             <div key={ans.questionId} className="p-4 rounded-xl border border-slate-100 flex items-start gap-4">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
@@ -124,7 +118,7 @@ export function ResultsScreen() {
 
                 {result.section === 'EE' && result.writingProductions && (
                   <div className="space-y-4">
-                    {Object.entries(result.writingProductions).map(([qId, text], idx) => (
+                    {Object.entries(result.writingProductions).map(([qId, text]: [string, string], idx: number) => (
                       <div key={qId} className="p-6 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
                         <div className="flex items-center gap-2 mb-4 text-[#002654]">
                           <FileText size={20} />
