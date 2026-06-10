@@ -47,6 +47,7 @@ export interface ExamSessionState {
   startedAt?: number; // timestamp
   examType: 'single' | 'full';
   selectedSection?: ExamSectionType;
+  examId?: string;
 }
 
 export interface ExamResult {

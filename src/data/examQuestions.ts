@@ -1,5 +1,11 @@
 import { Question } from '../types/exam';
 
+/**
+ * FALLBACK DATA REFERENCE
+ * This file is kept as a local fallback only.
+ * The primary source of truth for exam content is now the Supabase 'exam_questions' table.
+ * If fetching from Supabase fails, these questions will be used.
+ */
 export const EXAM_QUESTIONS: Question[] = [
   // COMPRÉHENSION ORALE (20 questions)
   ...Array.from({ length: 20 }).map((_, i) => ({

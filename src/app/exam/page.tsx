@@ -11,10 +11,10 @@ import { ResultsScreen } from '@/components/exam/ResultsScreen';
 import { SectionTransition } from '@/components/exam/SectionTransition';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, Clock, Award, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Clock, Award, CheckCircle2, Loader2 } from 'lucide-react';
 
 function ExamContent() {
-  const { state } = useExam();
+  const { state, isLoading } = useExam();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (state.status === 'finished') {
@@ -81,10 +81,18 @@ function ExamContent() {
           <div className="space-y-4">
             <Button
               size="lg"
+              disabled={isLoading}
               className="w-full h-16 bg-[#002654] hover:bg-slate-800 text-xl font-black rounded-2xl shadow-xl shadow-slate-200"
               onClick={() => setIsModalOpen(true)}
             >
-              Lancer le chronomètre
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                  Chargement...
+                </>
+              ) : (
+                "Lancer le chronomètre"
+              )}
             </Button>
             <p className="text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
               Conforme au format officiel 2025

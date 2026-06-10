@@ -24,7 +24,7 @@ import { EXAM_QUESTIONS } from '@/data/examQuestions';
 import { ExamSectionType } from '@/types/exam';
 
 export function ResultsScreen() {
-  const { sessionResults, resetExam } = useExam();
+  const { sessionResults, resetExam, allQuestions } = useExam();
 
   const totalPossible = sessionResults.reduce((acc, res) => acc + res.total, 0);
   const totalScored = sessionResults.reduce((acc, res) => acc + res.score, 0);
@@ -94,7 +94,7 @@ export function ResultsScreen() {
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2 space-y-3">
                         {result.answers.map((ans, idx) => {
-                          const q = EXAM_QUESTIONS.find(currQ => currQ.id === ans.questionId);
+                          const q = allQuestions.find(currQ => currQ.id === ans.questionId) || EXAM_QUESTIONS.find(currQ => currQ.id === ans.questionId);
                           return (
                             <div key={ans.questionId} className="p-4 rounded-xl border border-slate-100 flex items-start gap-4">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
