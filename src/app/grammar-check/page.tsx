@@ -328,7 +328,7 @@ function GrammarCheckContent() {
       <div className="mb-8 flex justify-between items-center px-2">
         <div className="space-y-1">
           <Badge variant="outline" className="text-rose-600 border-rose-100 bg-rose-50 font-black text-[10px] uppercase tracking-widest">
-            Orthographe • Projet Voltaire
+            {selectedLevel} • {selectedCategory}
           </Badge>
           <h2 className="text-2xl font-black text-zinc-900">{current.category}</h2>
           <p className="text-[11px] font-medium text-zinc-400 italic">Identifiez l'erreur entre crochets et tapez la forme correcte.</p>
