@@ -68,9 +68,9 @@ export const FeedbackIA = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex-1 overflow-hidden flex flex-col"
+              className="h-full flex flex-col overflow-hidden"
             >
-              <ScrollArea className="flex-1">
+              <ScrollArea className="h-full w-full">
                 <div className="space-y-8 p-8 pb-10">
                   {/* Scores Section */}
                   <div className="grid grid-cols-2 gap-4">
@@ -123,30 +123,38 @@ export const FeedbackIA = ({
                               : "border-white/5 bg-white/5 hover:border-white/10"
                           }`}
                         >
-                          <div className="flex items-start gap-4 p-5">
-                            <div className={`mt-1.5 shrink-0 ${
-                              error.type_erreur === "grammaire" ? "text-rose-400" :
-                              error.type_erreur === "orthographe" ? "text-amber-400" :
-                              "text-blue-400"
-                            }`}>
-                              {error.type_erreur === "grammaire" ? <AlertCircle size={20} /> : <Info size={20} />}
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-medium text-zinc-500 line-through">
-                                  {error.texte_original}
-                                </span>
-                                <ChevronRight size={12} className="text-zinc-600" />
-                                <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
-                                  {error.texte_corrige}
-                                </span>
+                          <div className="flex flex-col gap-4 p-5">
+                            <div className="flex items-start gap-4">
+                              <div className={`mt-1.5 shrink-0 ${
+                                error.type_erreur === "grammaire" ? "text-rose-400" :
+                                error.type_erreur === "orthographe" ? "text-amber-400" :
+                                error.type_erreur === "conjugaison" ? "text-orange-400" :
+                                error.type_erreur === "syntaxe" ? "text-blue-400" :
+                                "text-zinc-400"
+                              }`}>
+                                {error.type_erreur === "conjugaison" ? <AlertCircle size={20} className="text-orange-400" /> : <Info size={20} />}
                               </div>
-                              <p className="text-xs font-bold leading-relaxed text-zinc-400">
-                                {error.explication}
-                              </p>
-                              <Badge variant="outline" className="text-[8px] uppercase tracking-tighter py-0 border-white/10 text-zinc-500">
-                                {error.type_erreur}
-                              </Badge>
+                              <div className="space-y-2 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm font-medium text-zinc-500 line-through">
+                                    {error.texte_original}
+                                  </span>
+                                  <ChevronRight size={12} className="text-zinc-600" />
+                                  <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
+                                    {error.texte_corrige}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-bold leading-relaxed text-zinc-400 whitespace-pre-wrap">
+                                  {error.explication}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
+                                    error.type_erreur === "conjugaison" ? "text-orange-400 border-orange-400/20" : "text-zinc-500"
+                                  }`}>
+                                    {error.type_erreur}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </motion.div>

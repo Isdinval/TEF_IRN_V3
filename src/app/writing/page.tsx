@@ -34,27 +34,27 @@ export default function WritingCoach() {
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchExercise() {
-      const { data } = await supabase
+    async function fetchData() {
+      const { data: exerciseData } = await supabase
         .from("exercises")
         .select("*")
         .eq("type", "ecrit")
         .limit(1)
         .maybeSingle();
 
-      if (data) {
+      if (exerciseData) {
         setExercise({
-          id: data.id,
-          instructions: data.instructions || fallbackExercise.instructions,
-          level: data.level || fallbackExercise.level,
-          content: data.content || fallbackExercise.content,
+          id: exerciseData.id,
+          instructions: exerciseData.instructions || fallbackExercise.instructions,
+          level: exerciseData.level || fallbackExercise.level,
+          content: exerciseData.content || fallbackExercise.content,
         });
       }
 
       setLoading(false);
     }
 
-    fetchExercise();
+    fetchData();
   }, [supabase]);
 
   const minWords = exercise.content?.min_words || 100;
@@ -183,7 +183,7 @@ export default function WritingCoach() {
         <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden pb-4">
           <div
             style={{ "--left-width": `${leftWidth}%` } as CSSProperties}
-            className="flex flex-col transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
+            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
           >
             <ZoneRedaction
               text={text}
@@ -212,7 +212,7 @@ export default function WritingCoach() {
 
           <div
             style={{ "--right-width": `${100 - leftWidth}%` } as CSSProperties}
-            className="flex flex-col transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
+            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
           >
             <FeedbackIA
               feedback={feedback}
