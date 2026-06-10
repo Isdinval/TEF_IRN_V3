@@ -48,15 +48,10 @@ export const ZoneRedaction = ({
       return text;
     }
 
-    // Algorithme de matching robuste
-    // 1. Essayer de trouver chaque fragment dans le texte
-    // 2. Si plusieurs occurrences, on essaie de garder une certaine cohérence d'ordre
-
     let currentSearchIndex = 0;
     const matchedErrors = feedback.liste_des_erreurs.map((error, index) => {
       let position = text.indexOf(error.texte_original, currentSearchIndex);
 
-      // Si pas trouvé après l'index actuel, chercher depuis le début
       if (position === -1) {
         position = text.indexOf(error.texte_original);
       }
@@ -68,14 +63,12 @@ export const ZoneRedaction = ({
       return null;
     }).filter(Boolean) as any[];
 
-    // Trier par position pour le rendu
     matchedErrors.sort((a, b) => a.position - b.position);
 
     let lastIndex = 0;
     const parts: (string | JSX.Element)[] = [];
 
     matchedErrors.forEach((error, idx) => {
-      // Éviter les chevauchements
       if (error.position < lastIndex) return;
 
       if (error.position > lastIndex) {
@@ -115,36 +108,42 @@ export const ZoneRedaction = ({
   }, [feedback, text, activeErrorIndex, onSelectError]);
 
   return (
-    <Card className="flex min-h-[680px] flex-1 flex-col overflow-hidden rounded-[2.5rem] border-none bg-white shadow-2xl shadow-zinc-200/50">
-      <CardHeader className="flex shrink-0 flex-row items-center justify-between border-b border-zinc-100 bg-zinc-50 px-8 py-5">
+    <Card className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border-2 border-indigo-50 bg-[#FAFAFA] shadow-2xl shadow-indigo-100/30">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between border-b border-zinc-100 bg-white px-8 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-xl shadow-zinc-200">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
             <PenTool size={20} />
           </div>
           <div>
-            <CardTitle className="text-sm font-black uppercase tracking-tight">Zone de rédaction</CardTitle>
-            <p className="text-[10px] font-bold text-zinc-400">Écrivez votre texte ci-dessous</p>
+            <CardTitle className="text-sm font-black uppercase tracking-tight text-zinc-900">Zone de rédaction</CardTitle>
+            <p className="text-[10px] font-bold text-zinc-400">Exprimez-vous librement</p>
           </div>
         </div>
         {isAnalyzing && (
-           <Badge className="animate-pulse border-none bg-indigo-100 text-[9px] font-black uppercase tracking-widest text-indigo-700">
-             Correction en cours...
+           <Badge className="animate-pulse border-none bg-indigo-100 text-[9px] font-black uppercase tracking-widest text-indigo-700 px-3 py-1">
+             Analyse en cours...
            </Badge>
         )}
         {feedback && !isAnalyzing && (
-          <Badge className="border-none bg-emerald-100 text-[9px] font-black uppercase tracking-widest text-emerald-700">
+          <Badge className="border-none bg-emerald-100 text-[9px] font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
             Analyse terminée
           </Badge>
         )}
       </CardHeader>
 
-      <CardContent className="relative flex-1 overflow-hidden p-0">
+      <CardContent className="relative flex-1 min-h-0 p-0">
         <AnimatePresence mode="wait">
           {!feedback ? (
-            <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+            <motion.div
+              key="edit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
               <Textarea
-                placeholder="Débutez votre rédaction ici..."
-                className="h-full w-full resize-none border-0 bg-transparent p-10 text-xl font-medium leading-relaxed text-zinc-800 focus-visible:ring-0"
+                placeholder="Rédigez votre réponse ici. L'IA analysera votre texte pour vous donner un feedback détaillé."
+                className="h-full w-full resize-none border-0 bg-transparent p-10 text-xl font-medium leading-relaxed text-zinc-800 focus-visible:ring-0 placeholder:text-zinc-300 placeholder:italic"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={isAnalyzing}
@@ -167,7 +166,7 @@ export const ZoneRedaction = ({
             <Button
               onClick={onAnalyze}
               disabled={isAnalyzing || wordCount < 5}
-              className="h-16 w-full rounded-2xl bg-zinc-900 text-lg font-black text-white shadow-2xl shadow-zinc-300 transition-all hover:bg-zinc-800 active:scale-95"
+              className="h-16 w-full rounded-2xl bg-zinc-900 text-lg font-black text-white shadow-2xl shadow-zinc-300 transition-all hover:bg-indigo-600 active:scale-95 border-none"
             >
               {isAnalyzing ? (
                 <>
