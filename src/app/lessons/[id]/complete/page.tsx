@@ -55,14 +55,14 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
       if (pathLessons) {
         // 3. Fetch user's completed lessons in this path
-        const lessonIds = pathLessons.map(l => l.id);
+        const lessonIds = pathLessons.map((l: any) => l.id);
         const { data: completedData } = await supabase
           .from('lesson_progress')
           .select('lesson_id')
           .eq('user_id', user.id)
           .in('lesson_id', lessonIds);
 
-        const completedIds = new Set(completedData?.map(c => c.lesson_id));
+        const completedIds = new Set(completedData?.map((c: any) => c.lesson_id));
 
         setProgress({
           completed: completedIds.size,
@@ -70,7 +70,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
         });
 
         // 4. Find the next lesson
-        const currentIndex = pathLessons.findIndex(l => l.id === id);
+        const currentIndex = pathLessons.findIndex((l: any) => l.id === id);
         if (currentIndex !== -1 && currentIndex < pathLessons.length - 1) {
           setNextLesson(pathLessons[currentIndex + 1]);
         }
