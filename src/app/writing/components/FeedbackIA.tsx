@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,31 +14,21 @@ import {
   Info,
   Quote,
   GraduationCap,
-  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WritingFeedback, WritingError } from "@/types/writing";
+import { WritingFeedback } from "@/types/writing";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-
-interface Lesson {
-  id: string;
-  title: string;
-  category: string;
-}
 
 interface FeedbackIAProps {
   feedback: WritingFeedback | null;
   activeErrorIndex: number | null;
   onSelectError: (index: number) => void;
-  lessons: Lesson[];
 }
 
 export const FeedbackIA = ({
   feedback,
   activeErrorIndex,
   onSelectError,
-  lessons,
 }: FeedbackIAProps) => {
   const router = useRouter();
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -51,85 +41,6 @@ export const FeedbackIA = ({
       });
     }
   }, [activeErrorIndex]);
-
-  // Enhanced matching logic
-  const findRelevantLesson = useCallback((error: WritingError) => {
-    if (!lessons || !lessons.length) return null;
-
-    const explanation = error.explication.toLowerCase();
-    const type = error.type_erreur.toLowerCase();
-
-    let bestMatch: Lesson | null = null;
-    let maxScore = 0;
-
-    const stopWords = ["le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "ce", "cette", "dans", "pour", "par", "sur", "avec", "est", "sont", "être", "avoir", "doit", "cas", "être", "fait", "plus"];
-
-    lessons.forEach((lesson: Lesson) => {
-      let score = 0;
-      const title = lesson.title.toLowerCase();
-      const category = lesson.category.toLowerCase();
-
-      // 1. Precise Category Match (High priority for Conjugaison)
-      if (category === type) {
-        score += 10;
-      } else if (type === "orthographe" && category === "grammaire") {
-        score += 2;
-      }
-
-      // 2. High Signal Pedagogical Keywords (Extreme weight)
-      // These words are uniquely identifying a lesson topic
-      const keywordsMap: Record<string, string[]> = {
-        "impératif": ["impératif", "conseils", "ordre"],
-        "passé composé": ["passé composé", "raconter au passé"],
-        "imparfait": ["imparfait", "décrire au passé"],
-        "futur": ["futur"],
-        "subjonctif": ["subjonctif"],
-        "conditionnel": ["conditionnel"],
-        "pronoms": ["pronom", "cod", "coi", "qui", "que", "dont", "où", "y", "en"],
-        "accords": ["accord", "adjectif", "participe passé"],
-        "négation": ["négation", "ne pas"],
-        "interrogation": ["interrogation", "question"],
-        "articles": ["article", "quantité"],
-        "comparaison": ["comparer", "préférences"],
-        "opinion": ["opinion", "pense que", "avis"],
-        "argumentation": ["argumenter", "convaincre", "nuances"],
-        "connecteurs": ["connecteur", "cause", "effet", "opposition", "but"],
-        "hypothèse": ["hypothèse", "condition", "si"],
-        "lieu": ["situer", "espace", "préposition"],
-        "administration": ["administratif", "mairie", "caf"],
-        "quotidien": ["travail", "santé", "famille", "logement", "transports"],
-      };
-
-      for (const [key, aliases] of Object.entries(keywordsMap)) {
-        const matchInExplanation = aliases.some(a => explanation.includes(a));
-        const matchInTitle = aliases.some(a => title.includes(a));
-
-        if (matchInExplanation && matchInTitle) {
-          score += 50; // Very strong match
-        }
-      }
-
-      // 3. Title Word Matching (Low weight, excluding stop words)
-      const titleWords = title.split(/[\s,()':]+/).filter(w => w.length > 3 && !stopWords.includes(w));
-      titleWords.forEach(word => {
-        if (explanation.includes(word)) {
-          score += 5;
-        }
-      });
-
-      // 4. Exact Title Match
-      if (explanation.includes(title)) {
-        score += 40;
-      }
-
-      if (score > maxScore && score > 15) {
-        maxScore = score;
-        bestMatch = lesson;
-      }
-    });
-
-    return bestMatch;
-  }, [lessons]);
 
   return (
     <Card className="flex h-full flex-1 shrink-0 flex-col overflow-hidden rounded-[2.5rem] border-none bg-[#111827] shadow-2xl shadow-indigo-900/20">
@@ -198,70 +109,56 @@ export const FeedbackIA = ({
                     </div>
 
                     <div className="space-y-3">
-                      {feedback.liste_des_erreurs?.map((error, index) => {
-                        const matchedLesson = findRelevantLesson(error) as Lesson | null;
-                        return (
-                          <motion.div
-                            key={`feedback-item-${index}`}
-                            ref={(el) => { itemRefs.current[index] = el; }}
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            onClick={() => onSelectError(index)}
-                            className={`cursor-pointer rounded-2xl border transition-all ${
-                              activeErrorIndex === index
-                                ? "scale-[1.02] border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
-                                : "border-white/5 bg-white/5 hover:border-white/10"
-                            }`}
-                          >
-                            <div className="flex flex-col gap-4 p-5">
-                              <div className="flex items-start gap-4">
-                                <div className={`mt-1.5 shrink-0 ${
-                                  error.type_erreur === "grammaire" ? "text-rose-400" :
-                                  error.type_erreur === "orthographe" ? "text-amber-400" :
-                                  error.type_erreur === "conjugaison" ? "text-orange-400" :
-                                  error.type_erreur === "syntaxe" ? "text-blue-400" :
-                                  "text-zinc-400"
-                                }`}>
-                                  {error.type_erreur === "conjugaison" ? <AlertCircle size={20} className="text-orange-400" /> : <Info size={20} />}
+                      {feedback.liste_des_erreurs?.map((error, index) => (
+                        <motion.div
+                          key={`feedback-item-${index}`}
+                          ref={(el) => { itemRefs.current[index] = el; }}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          onClick={() => onSelectError(index)}
+                          className={`cursor-pointer rounded-2xl border transition-all ${
+                            activeErrorIndex === index
+                              ? "scale-[1.02] border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
+                              : "border-white/5 bg-white/5 hover:border-white/10"
+                          }`}
+                        >
+                          <div className="flex flex-col gap-4 p-5">
+                            <div className="flex items-start gap-4">
+                              <div className={`mt-1.5 shrink-0 ${
+                                error.type_erreur === "grammaire" ? "text-rose-400" :
+                                error.type_erreur === "orthographe" ? "text-amber-400" :
+                                error.type_erreur === "conjugaison" ? "text-orange-400" :
+                                error.type_erreur === "syntaxe" ? "text-blue-400" :
+                                "text-zinc-400"
+                              }`}>
+                                {error.type_erreur === "conjugaison" ? <AlertCircle size={20} className="text-orange-400" /> : <Info size={20} />}
+                              </div>
+                              <div className="space-y-2 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm font-medium text-zinc-500 line-through">
+                                    {error.texte_original}
+                                  </span>
+                                  <ChevronRight size={12} className="text-zinc-600" />
+                                  <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
+                                    {error.texte_corrige}
+                                  </span>
                                 </div>
-                                <div className="space-y-2 flex-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-sm font-medium text-zinc-500 line-through">
-                                      {error.texte_original}
-                                    </span>
-                                    <ChevronRight size={12} className="text-zinc-600" />
-                                    <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
-                                      {error.texte_corrige}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs font-bold leading-relaxed text-zinc-400">
-                                    {error.explication}
-                                  </p>
-                                  <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
-                                      error.type_erreur === "conjugaison" ? "text-orange-400 border-orange-400/20" : "text-zinc-500"
-                                    }`}>
-                                      {error.type_erreur}
-                                    </Badge>
-
-                                    {matchedLesson && (
-                                      <Link
-                                        href={`/lessons/${matchedLesson.id}`}
-                                        target="_blank"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
-                                      >
-                                        Voir la leçon <ExternalLink size={10} />
-                                      </Link>
-                                    )}
-                                  </div>
+                                <p className="text-xs font-bold leading-relaxed text-zinc-400 whitespace-pre-wrap">
+                                  {error.explication}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
+                                    error.type_erreur === "conjugaison" ? "text-orange-400 border-orange-400/20" : "text-zinc-500"
+                                  }`}>
+                                    {error.type_erreur}
+                                  </Badge>
                                 </div>
                               </div>
                             </div>
-                          </motion.div>
-                        );
-                      })}
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
 

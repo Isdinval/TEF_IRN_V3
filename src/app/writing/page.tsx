@@ -29,7 +29,6 @@ export default function WritingCoach() {
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
   const [leftWidth, setLeftWidth] = useState(58);
-  const [lessons, setLessons] = useState<any[]>([]);
 
   const supabase = createClient();
   const router = useRouter();
@@ -50,14 +49,6 @@ export default function WritingCoach() {
           level: exerciseData.level || fallbackExercise.level,
           content: exerciseData.content || fallbackExercise.content,
         });
-      }
-
-      const { data: lessonsData } = await supabase
-        .from("lessons")
-        .select("id, title, category");
-
-      if (lessonsData) {
-        setLessons(lessonsData);
       }
 
       setLoading(false);
@@ -227,7 +218,6 @@ export default function WritingCoach() {
               feedback={feedback}
               activeErrorIndex={activeErrorIndex}
               onSelectError={handleSelectError}
-              lessons={lessons}
             />
           </div>
         </div>
