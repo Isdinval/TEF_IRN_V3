@@ -29,32 +29,43 @@ export default function WritingCoach() {
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
   const [leftWidth, setLeftWidth] = useState(58);
+  const [lessons, setLessons] = useState<any[]>([]);
 
   const supabase = createClient();
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchExercise() {
-      const { data } = await supabase
+    async function fetchData() {
+      // Fetch Exercise
+      const { data: exerciseData } = await supabase
         .from("exercises")
         .select("*")
         .eq("type", "ecrit")
         .limit(1)
         .maybeSingle();
 
-      if (data) {
+      if (exerciseData) {
         setExercise({
-          id: data.id,
-          instructions: data.instructions || fallbackExercise.instructions,
-          level: data.level || fallbackExercise.level,
-          content: data.content || fallbackExercise.content,
+          id: exerciseData.id,
+          instructions: exerciseData.instructions || fallbackExercise.instructions,
+          level: exerciseData.level || fallbackExercise.level,
+          content: exerciseData.content || fallbackExercise.content,
         });
+      }
+
+      // Fetch Lessons for matching
+      const { data: lessonsData } = await supabase
+        .from("lessons")
+        .select("id, title, category");
+
+      if (lessonsData) {
+        setLessons(lessonsData);
       }
 
       setLoading(false);
     }
 
-    fetchExercise();
+    fetchData();
   }, [supabase]);
 
   const minWords = exercise.content?.min_words || 100;
@@ -218,6 +229,7 @@ export default function WritingCoach() {
               feedback={feedback}
               activeErrorIndex={activeErrorIndex}
               onSelectError={handleSelectError}
+              lessons={lessons}
             />
           </div>
         </div>

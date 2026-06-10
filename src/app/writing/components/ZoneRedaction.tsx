@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PenTool, Sparkles, Loader2, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WritingFeedback } from "@/types/writing";
@@ -154,9 +155,13 @@ export const ZoneRedaction = ({
               key="preview"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="h-full overflow-auto bg-white p-10 text-xl font-medium leading-relaxed text-zinc-800"
+              className="h-full"
             >
-              <div className="whitespace-pre-wrap">{highlightedText}</div>
+              <ScrollArea className="h-full">
+                <div className="p-10 text-xl font-medium leading-relaxed text-zinc-800 whitespace-pre-wrap">
+                  {highlightedText}
+                </div>
+              </ScrollArea>
             </motion.div>
           )}
         </AnimatePresence>

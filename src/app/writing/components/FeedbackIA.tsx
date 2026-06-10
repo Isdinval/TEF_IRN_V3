@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,21 +14,31 @@ import {
   Info,
   Quote,
   GraduationCap,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WritingFeedback } from "@/types/writing";
+import { WritingFeedback, WritingError } from "@/types/writing";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+interface Lesson {
+  id: string;
+  title: string;
+  category: string;
+}
 
 interface FeedbackIAProps {
   feedback: WritingFeedback | null;
   activeErrorIndex: number | null;
   onSelectError: (index: number) => void;
+  lessons: Lesson[];
 }
 
 export const FeedbackIA = ({
   feedback,
   activeErrorIndex,
   onSelectError,
+  lessons,
 }: FeedbackIAProps) => {
   const router = useRouter();
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -41,6 +51,51 @@ export const FeedbackIA = ({
       });
     }
   }, [activeErrorIndex]);
+
+  // Matching logic: Find the most relevant lesson for an error
+  const findRelevantLesson = useCallback((error: WritingError) => {
+    if (!lessons || !lessons.length) return null;
+
+    const errorText = (error.explication + " " + error.type_erreur).toLowerCase();
+
+    let bestMatch: Lesson | null = null;
+    let maxScore = 0;
+
+    lessons.forEach((lesson: Lesson) => {
+      let score = 0;
+      const title = lesson.title.toLowerCase();
+      const category = lesson.category.toLowerCase();
+
+      // Prioritize category match
+      if (category === error.type_erreur) {
+        score += 2;
+      } else if (error.type_erreur === "orthographe" && category === "grammaire") {
+          score += 1;
+      }
+
+      // Keyword matching in title
+      const keywords = title.split(/\s+/);
+      keywords.forEach((kw: string) => {
+        if (kw.length > 3 && errorText.includes(kw)) {
+          score += 5;
+        }
+      });
+
+      // Special cases for common TEF topics
+      if (errorText.includes("passé") && title.includes("passé")) score += 10;
+      if (errorText.includes("futur") && title.includes("futur")) score += 10;
+      if (errorText.includes("subjonctif") && title.includes("subjonctif")) score += 10;
+      if (errorText.includes("accord") && title.includes("accord")) score += 10;
+      if (errorText.includes("pronom") && title.includes("pronom")) score += 10;
+
+      if (score > maxScore && score > 5) {
+        maxScore = score;
+        bestMatch = lesson;
+      }
+    });
+
+    return bestMatch;
+  }, [lessons]);
 
   return (
     <Card className="flex h-full flex-1 shrink-0 flex-col overflow-hidden rounded-[2.5rem] border-none bg-[#111827] shadow-2xl shadow-indigo-900/20">
@@ -109,48 +164,66 @@ export const FeedbackIA = ({
                     </div>
 
                     <div className="space-y-3">
-                      {feedback.liste_des_erreurs?.map((error, index) => (
-                        <motion.div
-                          key={`feedback-item-${index}`}
-                          ref={(el) => { itemRefs.current[index] = el; }}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          onClick={() => onSelectError(index)}
-                          className={`cursor-pointer rounded-2xl border transition-all ${
-                            activeErrorIndex === index
-                              ? "scale-[1.02] border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
-                              : "border-white/5 bg-white/5 hover:border-white/10"
-                          }`}
-                        >
-                          <div className="flex items-start gap-4 p-5">
-                            <div className={`mt-1.5 shrink-0 ${
-                              error.type_erreur === "grammaire" ? "text-rose-400" :
-                              error.type_erreur === "orthographe" ? "text-amber-400" :
-                              "text-blue-400"
-                            }`}>
-                              {error.type_erreur === "grammaire" ? <AlertCircle size={20} /> : <Info size={20} />}
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-medium text-zinc-500 line-through">
-                                  {error.texte_original}
-                                </span>
-                                <ChevronRight size={12} className="text-zinc-600" />
-                                <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
-                                  {error.texte_corrige}
-                                </span>
+                      {feedback.liste_des_erreurs?.map((error, index) => {
+                        const matchedLesson = findRelevantLesson(error) as Lesson | null;
+                        return (
+                          <motion.div
+                            key={`feedback-item-${index}`}
+                            ref={(el) => { itemRefs.current[index] = el; }}
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            onClick={() => onSelectError(index)}
+                            className={`cursor-pointer rounded-2xl border transition-all ${
+                              activeErrorIndex === index
+                                ? "scale-[1.02] border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
+                                : "border-white/5 bg-white/5 hover:border-white/10"
+                            }`}
+                          >
+                            <div className="flex flex-col gap-4 p-5">
+                              <div className="flex items-start gap-4">
+                                <div className={`mt-1.5 shrink-0 ${
+                                  error.type_erreur === "grammaire" ? "text-rose-400" :
+                                  error.type_erreur === "orthographe" ? "text-amber-400" :
+                                  "text-blue-400"
+                                }`}>
+                                  {error.type_erreur === "grammaire" ? <AlertCircle size={20} /> : <Info size={20} />}
+                                </div>
+                                <div className="space-y-2 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-medium text-zinc-500 line-through">
+                                      {error.texte_original}
+                                    </span>
+                                    <ChevronRight size={12} className="text-zinc-600" />
+                                    <span className="text-base font-black italic text-emerald-400 underline decoration-2 underline-offset-4">
+                                      {error.texte_corrige}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs font-bold leading-relaxed text-zinc-400">
+                                    {error.explication}
+                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-[8px] uppercase tracking-tighter py-0 border-white/10 text-zinc-500">
+                                      {error.type_erreur}
+                                    </Badge>
+
+                                    {matchedLesson && (
+                                      <Link
+                                        href={`/lessons/${matchedLesson.id}`}
+                                        target="_blank"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
+                                      >
+                                        Voir la leçon <ExternalLink size={10} />
+                                      </Link>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-xs font-bold leading-relaxed text-zinc-400">
-                                {error.explication}
-                              </p>
-                              <Badge variant="outline" className="text-[8px] uppercase tracking-tighter py-0 border-white/10 text-zinc-500">
-                                {error.type_erreur}
-                              </Badge>
                             </div>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   </div>
 
