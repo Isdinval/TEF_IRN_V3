@@ -2,8 +2,8 @@ export interface WritingError {
   texte_original: string;
   texte_corrige: string;
   explication: string;
-  type_erreur: 'grammaire' | 'vocabulaire' | 'orthographe' | 'syntaxe';
-  position_dans_texte?: number; // Optionnel maintenant
+  type_erreur: 'grammaire' | 'vocabulaire' | 'orthographe' | 'syntaxe' | 'conjugaison';
+  position_dans_texte?: number;
 }
 
 export interface WritingScores {

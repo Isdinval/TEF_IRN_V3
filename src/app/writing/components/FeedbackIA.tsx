@@ -52,7 +52,7 @@ export const FeedbackIA = ({
     }
   }, [activeErrorIndex]);
 
-  // Matching logic: Find the most relevant lesson for an error
+  // Enhanced matching logic
   const findRelevantLesson = useCallback((error: WritingError) => {
     if (!lessons || !lessons.length) return null;
 
@@ -69,42 +69,60 @@ export const FeedbackIA = ({
       const title = lesson.title.toLowerCase();
       const category = lesson.category.toLowerCase();
 
-      // 1. Category Boost
+      // 1. Precise Category Match (High priority for Conjugaison)
       if (category === type) {
+        score += 10;
+      } else if (type === "orthographe" && category === "grammaire") {
         score += 2;
       }
 
-      // 2. High Signal Pedagogical Keywords (High weight)
-      const highSignalWords = [
-        "impératif", "passé composé", "imparfait", "futur", "subjonctif",
-        "conditionnel", "pronom", "accord", "adjectif", "négation",
-        "interrogation", "article", "quantité", "relatif", "cod", "coi",
-        "cause", "effet", "opposition", "but", "hypothèse", "opinion"
-      ];
+      // 2. High Signal Pedagogical Keywords (Extreme weight)
+      // These words are uniquely identifying a lesson topic
+      const keywordsMap: Record<string, string[]> = {
+        "impératif": ["impératif", "conseils", "ordre"],
+        "passé composé": ["passé composé", "raconter au passé"],
+        "imparfait": ["imparfait", "décrire au passé"],
+        "futur": ["futur"],
+        "subjonctif": ["subjonctif"],
+        "conditionnel": ["conditionnel"],
+        "pronoms": ["pronom", "cod", "coi", "qui", "que", "dont", "où", "y", "en"],
+        "accords": ["accord", "adjectif", "participe passé"],
+        "négation": ["négation", "ne pas"],
+        "interrogation": ["interrogation", "question"],
+        "articles": ["article", "quantité"],
+        "comparaison": ["comparer", "préférences"],
+        "opinion": ["opinion", "pense que", "avis"],
+        "argumentation": ["argumenter", "convaincre", "nuances"],
+        "connecteurs": ["connecteur", "cause", "effet", "opposition", "but"],
+        "hypothèse": ["hypothèse", "condition", "si"],
+        "lieu": ["situer", "espace", "préposition"],
+        "administration": ["administratif", "mairie", "caf"],
+        "quotidien": ["travail", "santé", "famille", "logement", "transports"],
+      };
 
-      highSignalWords.forEach(word => {
-        if (explanation.includes(word) && title.includes(word)) {
-          score += 20;
-        } else if (explanation.includes(word) || title.includes(word)) {
-          // If word is in explanation, and lesson title matches the category of that word
-          // (Simplified logic: just check if word is in both)
+      for (const [key, aliases] of Object.entries(keywordsMap)) {
+        const matchInExplanation = aliases.some(a => explanation.includes(a));
+        const matchInTitle = aliases.some(a => title.includes(a));
+
+        if (matchInExplanation && matchInTitle) {
+          score += 50; // Very strong match
         }
-      });
+      }
 
-      // 3. Title Word Matching (Medium weight, excluding stop words)
-      const titleWords = title.split(/[\s,()':]+/).filter(w => w.length > 2 && !stopWords.includes(w));
+      // 3. Title Word Matching (Low weight, excluding stop words)
+      const titleWords = title.split(/[\s,()':]+/).filter(w => w.length > 3 && !stopWords.includes(w));
       titleWords.forEach(word => {
         if (explanation.includes(word)) {
           score += 5;
         }
       });
 
-      // 4. Exact Title Match (Highest weight)
+      // 4. Exact Title Match
       if (explanation.includes(title)) {
-        score += 30;
+        score += 40;
       }
 
-      if (score > maxScore && score > 8) {
+      if (score > maxScore && score > 15) {
         maxScore = score;
         bestMatch = lesson;
       }
@@ -201,9 +219,11 @@ export const FeedbackIA = ({
                                 <div className={`mt-1.5 shrink-0 ${
                                   error.type_erreur === "grammaire" ? "text-rose-400" :
                                   error.type_erreur === "orthographe" ? "text-amber-400" :
-                                  "text-blue-400"
+                                  error.type_erreur === "conjugaison" ? "text-orange-400" :
+                                  error.type_erreur === "syntaxe" ? "text-blue-400" :
+                                  "text-zinc-400"
                                 }`}>
-                                  {error.type_erreur === "grammaire" ? <AlertCircle size={20} /> : <Info size={20} />}
+                                  {error.type_erreur === "conjugaison" ? <AlertCircle size={20} className="text-orange-400" /> : <Info size={20} />}
                                 </div>
                                 <div className="space-y-2 flex-1">
                                   <div className="flex flex-wrap items-center gap-2">
@@ -219,7 +239,9 @@ export const FeedbackIA = ({
                                     {error.explication}
                                   </p>
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[8px] uppercase tracking-tighter py-0 border-white/10 text-zinc-500">
+                                    <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
+                                      error.type_erreur === "conjugaison" ? "text-orange-400 border-orange-400/20" : "text-zinc-500"
+                                    }`}>
                                       {error.type_erreur}
                                     </Badge>
 
