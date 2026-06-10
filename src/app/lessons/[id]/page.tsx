@@ -84,8 +84,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     } else {
       setLoading(true);
       await saveResults();
-      setStep("result");
-      setLoading(false);
+      router.push(`/lessons/${id}/complete`);
     }
   };
 
@@ -95,8 +94,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     } else {
       setLoading(true);
       await awardXpOnly();
-      setStep("result");
-      setLoading(false);
+      router.push(`/lessons/${id}/complete`);
     }
   };
 
@@ -495,7 +493,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
               <Button
                 size="lg"
                 className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push(`/lessons/${id}/complete`)}
               >
                 Retour au Dashboard
               </Button>
