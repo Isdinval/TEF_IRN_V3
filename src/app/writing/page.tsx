@@ -36,7 +36,6 @@ export default function WritingCoach() {
 
   useEffect(() => {
     async function fetchData() {
-      // Fetch Exercise
       const { data: exerciseData } = await supabase
         .from("exercises")
         .select("*")
@@ -53,7 +52,6 @@ export default function WritingCoach() {
         });
       }
 
-      // Fetch Lessons for matching
       const { data: lessonsData } = await supabase
         .from("lessons")
         .select("id, title, category");
@@ -194,7 +192,7 @@ export default function WritingCoach() {
         <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden pb-4">
           <div
             style={{ "--left-width": `${leftWidth}%` } as CSSProperties}
-            className="flex flex-col transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
+            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
           >
             <ZoneRedaction
               text={text}
@@ -223,7 +221,7 @@ export default function WritingCoach() {
 
           <div
             style={{ "--right-width": `${100 - leftWidth}%` } as CSSProperties}
-            className="flex flex-col transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
+            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
           >
             <FeedbackIA
               feedback={feedback}

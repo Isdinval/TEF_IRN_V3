@@ -56,39 +56,55 @@ export const FeedbackIA = ({
   const findRelevantLesson = useCallback((error: WritingError) => {
     if (!lessons || !lessons.length) return null;
 
-    const errorText = (error.explication + " " + error.type_erreur).toLowerCase();
+    const explanation = error.explication.toLowerCase();
+    const type = error.type_erreur.toLowerCase();
 
     let bestMatch: Lesson | null = null;
     let maxScore = 0;
+
+    const stopWords = ["le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "ce", "cette", "dans", "pour", "par", "sur", "avec", "est", "sont", "être", "avoir", "doit", "cas", "être", "fait", "plus"];
 
     lessons.forEach((lesson: Lesson) => {
       let score = 0;
       const title = lesson.title.toLowerCase();
       const category = lesson.category.toLowerCase();
 
-      // Prioritize category match
-      if (category === error.type_erreur) {
+      // 1. Category Boost
+      if (category === type) {
         score += 2;
-      } else if (error.type_erreur === "orthographe" && category === "grammaire") {
-          score += 1;
       }
 
-      // Keyword matching in title
-      const keywords = title.split(/\s+/);
-      keywords.forEach((kw: string) => {
-        if (kw.length > 3 && errorText.includes(kw)) {
+      // 2. High Signal Pedagogical Keywords (High weight)
+      const highSignalWords = [
+        "impératif", "passé composé", "imparfait", "futur", "subjonctif",
+        "conditionnel", "pronom", "accord", "adjectif", "négation",
+        "interrogation", "article", "quantité", "relatif", "cod", "coi",
+        "cause", "effet", "opposition", "but", "hypothèse", "opinion"
+      ];
+
+      highSignalWords.forEach(word => {
+        if (explanation.includes(word) && title.includes(word)) {
+          score += 20;
+        } else if (explanation.includes(word) || title.includes(word)) {
+          // If word is in explanation, and lesson title matches the category of that word
+          // (Simplified logic: just check if word is in both)
+        }
+      });
+
+      // 3. Title Word Matching (Medium weight, excluding stop words)
+      const titleWords = title.split(/[\s,()':]+/).filter(w => w.length > 2 && !stopWords.includes(w));
+      titleWords.forEach(word => {
+        if (explanation.includes(word)) {
           score += 5;
         }
       });
 
-      // Special cases for common TEF topics
-      if (errorText.includes("passé") && title.includes("passé")) score += 10;
-      if (errorText.includes("futur") && title.includes("futur")) score += 10;
-      if (errorText.includes("subjonctif") && title.includes("subjonctif")) score += 10;
-      if (errorText.includes("accord") && title.includes("accord")) score += 10;
-      if (errorText.includes("pronom") && title.includes("pronom")) score += 10;
+      // 4. Exact Title Match (Highest weight)
+      if (explanation.includes(title)) {
+        score += 30;
+      }
 
-      if (score > maxScore && score > 5) {
+      if (score > maxScore && score > 8) {
         maxScore = score;
         bestMatch = lesson;
       }
@@ -123,9 +139,9 @@ export const FeedbackIA = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex-1 overflow-hidden flex flex-col"
+              className="h-full flex flex-col overflow-hidden"
             >
-              <ScrollArea className="flex-1">
+              <ScrollArea className="h-full w-full">
                 <div className="space-y-8 p-8 pb-10">
                   {/* Scores Section */}
                   <div className="grid grid-cols-2 gap-4">
