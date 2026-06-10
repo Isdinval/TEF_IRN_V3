@@ -13,9 +13,10 @@ import {
 import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
+import { WritingTimer } from "./components/WritingTimer";
 
 const fallbackExercise: WritingExercise = {
-  instructions: "Rédigez un court message pour expliquer pourquoi vous souhaitez apprendre le français et vivre en France.",
+  instructions: "Rédigez un court message pour expliquer pourquoi vous souhaitez apprendre le français et vivre en France. (Section A)",
   level: "B1",
   content: { min_words: 100 },
 };
@@ -77,7 +78,6 @@ export default function WritingCoach() {
 
       if (data.error) {
         console.error("API Error:", data.error);
-        // Handle error display if needed
       } else {
         setFeedback(data);
 
@@ -125,23 +125,34 @@ export default function WritingCoach() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-8 p-6 pt-10 lg:p-10">
-        <header>
-          <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-            Atelier rédaction TEF IRN
-          </Badge>
-          <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-            COACH D'EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
-          </h1>
-          <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-            Rédigez votre réponse, lancez l'analyse IA et corrigez vos formulations comme dans les ateliers premium de Maitris.
-          </p>
+    <div className="h-screen bg-zinc-50/50 selection:bg-indigo-100 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col mx-auto w-full max-w-[1600px] p-6 lg:px-10 lg:py-8 overflow-hidden">
+
+        {/* Header Section */}
+        <header className="shrink-0 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+                Atelier rédaction TEF IRN
+              </Badge>
+              <h1 className="mb-2 text-4xl lg:text-5xl font-black tracking-tighter text-zinc-900 leading-none">
+                COACH D'EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
+              </h1>
+              <p className="max-w-2xl text-base lg:text-lg font-medium leading-relaxed text-zinc-500">
+                Rédigez votre réponse, lancez l'analyse IA et corrigez vos formulations.
+              </p>
+            </div>
+
+            <div className="w-full lg:w-80">
+              <WritingTimer exerciseId={exercise.id} instructions={exercise.instructions} />
+            </div>
+          </div>
         </header>
 
-        <Card className="rounded-[2rem] border-none bg-white p-6 shadow-xl shadow-zinc-200/50">
+        {/* Instructions Card */}
+        <Card className="shrink-0 rounded-[2rem] border-none bg-white p-6 shadow-xl shadow-zinc-200/50 mb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 flex-1">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
                 <BookOpen size={24} />
               </div>
@@ -151,25 +162,28 @@ export default function WritingCoach() {
               </div>
             </div>
             <div className="min-w-48 space-y-2">
-              <div className="flex gap-3">
-                <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  Niveau {exercise.level}
-                </Badge>
+              <div className="flex justify-end">
                 <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
                   {wordCount}/{minWords} mots
                 </Badge>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                <div className="h-full rounded-full bg-indigo-600 transition-all duration-500" style={{ width: `${completion}%` }} />
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    completion >= 100 ? "bg-emerald-500" : "bg-indigo-600"
+                  }`}
+                  style={{ width: `${completion}%` }}
+                />
               </div>
             </div>
           </div>
         </Card>
 
-        <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Main Workspace */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden pb-4">
           <div
             style={{ "--left-width": `${leftWidth}%` } as CSSProperties}
-            className="flex w-full flex-col transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[30%] lg:max-w-[80%]"
+            className="flex flex-col transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
           >
             <ZoneRedaction
               text={text}
@@ -184,21 +198,21 @@ export default function WritingCoach() {
             />
           </div>
 
-          <div className="hidden w-6 cursor-col-resize items-center justify-center self-stretch lg:flex" title="Ajuster la largeur">
-            <div className="h-12 w-1.5 rounded-full bg-zinc-200 transition-colors group-hover:bg-indigo-400" />
+          <div className="hidden w-2 cursor-col-resize items-center justify-center self-stretch lg:flex group relative" title="Ajuster la largeur">
+            <div className="h-12 w-1 rounded-full bg-zinc-200 transition-colors group-hover:bg-indigo-300" />
             <input
               type="range"
               min="35"
               max="70"
               value={leftWidth}
               onChange={(event) => setLeftWidth(parseInt(event.target.value, 10))}
-              className="absolute h-full w-6 cursor-col-resize opacity-0"
+              className="absolute h-full w-8 cursor-col-resize opacity-0 z-10"
             />
           </div>
 
           <div
             style={{ "--right-width": `${100 - leftWidth}%` } as CSSProperties}
-            className="flex w-full flex-col transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
+            className="flex flex-col transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
           >
             <FeedbackIA
               feedback={feedback}
