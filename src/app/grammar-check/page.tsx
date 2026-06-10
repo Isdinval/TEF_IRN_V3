@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,7 +19,8 @@ interface GrammarQuestion {
   level: string;
 }
 
-export default function GrammarCheckPage() {
+function GrammarCheckContent() {
+  const searchParams = useSearchParams();
   const [isStarted, setIsStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Grammaire");
@@ -33,19 +34,72 @@ export default function GrammarCheckPage() {
   const [finished, setFinished] = useState(false);
 
   const router = useRouter();
-  const supabase = createClient();
+      const supabase = createClient();
 
-  const startExercise = async () => {
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
+
+    if (lessonId && topic) {
+      if (topic) setSelectedCategory(topic);
+      if (level) setSelectedLevel(level);
+      startExercise(level || undefined, topic || undefined);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+
+    if (lessonId && topic) {
+      // Pour grammar-check, on utilise topic pour pré-remplir les filtres et lancer
+      setSelectedCategory(topic);
+      // On lance direct avec les réglages par défaut ou dérivés du topic
+      startExercise();
+    }
+  }, [searchParams]);
+
+  const startExercise = async (lvl?: string, cat?: string) => {
     setLoading(true);
+    const targetLevel = lvl || selectedLevel;
+    const targetCategory = cat || selectedCategory;
+    const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
     try {
       let query = supabase
         .from("exercises")
         .select("*")
         .eq("type", "trous")
-        .eq("level", selectedLevel);
+        .eq("level", targetLevel);
 
-      if (selectedCategory && selectedCategory !== "Grammaire") {
-        query = query.ilike("instructions", `%${selectedCategory.substring(0, 4)}%`);
+      if (targetCategory && targetCategory && targetCategory !== "Toutes") {
+        // Essayer d'abord par le champ category exact
+        const { data: catMatch } = await supabase
+          .from("exercises")
+          .select("*")
+          .eq("type", "trous")
+          .eq("level", targetLevel)
+          .eq("category", normalizedCategory)
+          .limit(5);
+
+        if (catMatch && catMatch.length > 0) {
+          const formatted = catMatch.map((d: any) => ({
+            id: d.id,
+            sentence: d.content.sentence || d.instructions,
+            error_fragment: d.content.error_fragment || "...",
+            correction: d.content.correct_answer || d.content.correct_answers?.[0],
+            explanation: d.content.explanation || "Règle de grammaire standard.",
+            category: d.category || targetCategory,
+            level: d.level || targetLevel
+          }));
+          setQuestions(formatted);
+          setIsStarted(true);
+          setLoading(false);
+          return;
+        }
+
+        // Sinon fallback sur le like dans instructions
+        query = query.ilike("instructions", `%${targetCategory.substring(0, 4)}%`);
       }
 
       const { data, error } = await query
@@ -189,7 +243,7 @@ export default function GrammarCheckPage() {
               </section>
 
               <Button
-                onClick={startExercise}
+                onClick={() => startExercise()}
                 disabled={loading}
                 className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
               >
@@ -209,7 +263,7 @@ export default function GrammarCheckPage() {
                   Travaillez les accords, la conjugaison et la syntaxe avec un feedback immédiat à chaque phrase.
                 </p>
                 <Button
-                  onClick={startExercise}
+                  onClick={() => startExercise()}
                   disabled={loading}
                   className="w-full h-14 bg-white text-rose-600 hover:bg-rose-50 font-black rounded-xl shadow-xl border-none"
                 >
@@ -368,5 +422,14 @@ export default function GrammarCheckPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+
+export default function GrammarCheckPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-rose-600" size={48} /></div>}>
+      <GrammarCheckContent />
+    </Suspense>
   );
 }

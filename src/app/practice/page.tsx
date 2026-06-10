@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +36,8 @@ interface Exercise {
 
 type Mode = "selection" | "training";
 
-export default function Practice() {
+function PracticeContent() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("selection");
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -48,7 +50,75 @@ export default function Practice() {
   const [isReviewMode, setIsReviewMode] = useState(false);
 
   const router = useRouter();
-  const supabase = createClient();
+    const supabase = createClient();
+
+  useEffect(() => {
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
+
+    if (lessonId && topic) {
+      autoStart(lessonId, topic, level || undefined);
+    }
+  }, [searchParams]);
+
+  const autoStart = async (lessonId: string, topic: string, level?: string) => {
+    setLoading(true);
+    // On essaie de trouver un exercice spécifique à la leçon
+    const { data: lessonExo } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .eq('type', 'qcm_centre_entrainement')
+      .limit(1)
+      .maybeSingle();
+
+    if (lessonExo) {
+      setExercise(lessonExo as Exercise);
+      setMode("training");
+    } else {
+      let targetLevel = level;
+      if (!targetLevel) {
+        const { data: lessonData } = await supabase
+          .from('lessons')
+          .select('level')
+          .eq('id', lessonId)
+          .single();
+        targetLevel = lessonData?.level;
+      }
+
+      if (targetLevel) {
+        const normalizedTopic = topic ? (topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase()) : topic;
+        const { data: topicExo } = await supabase
+          .from('exercises')
+          .select('*')
+          .eq('level', targetLevel)
+          .eq('category', normalizedTopic)
+          .eq('type', 'qcm_centre_entrainement')
+          .limit(1)
+          .maybeSingle();
+
+        if (topicExo) {
+          setExercise(topicExo as Exercise);
+          setMode("training");
+        } else {
+          // Dernier recours : n'importe quel QCM du même niveau
+          const { data: fallbackExo } = await supabase
+            .from('exercises')
+            .select('*')
+            .eq('level', targetLevel)
+            .eq('type', 'qcm_centre_entrainement')
+            .limit(1)
+            .maybeSingle();
+          if (fallbackExo) {
+            setExercise(fallbackExo as Exercise);
+            setMode("training");
+          }
+        }
+      }
+    }
+    setLoading(false);
+  };
 
   const categories = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"];
   const levels = ["A1", "A2", "B1", "B2"];
@@ -420,5 +490,13 @@ export default function Practice() {
         )}
       </footer>
     </div>
+  );
+}
+
+export default function Practice() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
+      <PracticeContent />
+    </Suspense>
   );
 }
