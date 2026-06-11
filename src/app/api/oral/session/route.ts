@@ -1,57 +1,73 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 export async function GET() {
+  const url = "https://api.openai.com/v1/realtime/client_secrets";
+
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ error: "Clé API OpenAI manquante." }, { status: 500 });
   }
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  const systemInstructions = `Tu es un examinateur officiel du TEF IRN (France).
+Ton rôle est de simuler une conversation orale naturelle avec un candidat.
 
-  // Liste des modèles à essayer par ordre de probabilité de succès
-  const modelsToTry = [
-    "gpt-4o-realtime-preview",
-    "gpt-realtime",
-    "gpt-4o-realtime-preview-2024-12-17",
-    "gpt-4o-realtime-preview-2024-10-01",
-    "gpt-4o-mini-realtime-preview"
-  ];
+🎯 Objectif :
+Faire parler le candidat de manière fluide et naturelle sur un sujet donné.
 
-  let lastError = null;
+📌 Sujet de la conversation :
+Simulation Section A : téléphonez pour poser des questions sur un service, comme le jour du TEF IRN.
 
-  for (const model of modelsToTry) {
-    try {
-      console.log(`Tentative de création de session avec le modèle : ${model}`);
-      // @ts-ignore
-      const session = await openai.beta.realtime.sessions.create({
-        model: model as any,
-        voice: "alloy",
-        instructions: "Tu es un examinateur du TEF IRN. Tu dois simuler une conversation de la Section A ou B. Sois naturel, pose des questions, et relance l'utilisateur.",
-      }, {
-        headers: {
-          "OpenAI-Beta": "realtime=v1" // Forçage du header beta spécifique au Realtime
-        }
-      });
+📌 Niveau du candidat :
+A2 à B1
 
-      console.log(`Session créée avec succès avec le modèle : ${model}`);
-      return NextResponse.json(session);
-    } catch (error: any) {
-      console.error(`Échec avec le modèle ${model} : `, error.message);
-      lastError = error;
+📌 Règles de conversation :
+- Tu parles uniquement en français.
+- Tu adoptes un ton humain, naturel et oral (comme un examinateur réel).
+- Tu poses des questions courtes et progressives.
+- Tu relances souvent : “Pouvez-vous expliquer davantage ?”, “Pourquoi pensez-vous cela ?”, “Avez-vous un exemple ?”
+- Tu ne fais PAS de correction grammaticale explicite.
+- Tu ne donnes PAS de feedback pédagogique.
+- Tu ne résumes pas les réponses du candidat.
 
-      // Si l'erreur n'est pas un 404 (ex: clé invalide, quota dépassé), on s'arrête tout de suite
-      if (error.status !== 404 && !error.message?.includes("not found")) {
-        break;
-      }
+📌 Dynamique :
+- Si le candidat parle peu → pose une question simple.
+- Si le candidat parle beaucoup → recentre sur le sujet.
+- Si silence → relance naturelle.
+
+📌 Style :
+- Naturel, professionnel, examen oral réel.
+- Pas de listes.
+- Pas d'explications longues.
+
+Commence la conversation immédiatement avec une question liée au sujet.`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-realtime",
+        instructions: systemInstructions,
+        voice: "alloy"
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("OpenAI Realtime client_secrets Error:", data);
+      return NextResponse.json({
+        error: data.error?.message || "Erreur lors de la création du client_secret OpenAI",
+        details: data.error
+      }, { status: response.status });
     }
-  }
 
-  // Si on arrive ici, tous les essais ont échoué
-  return NextResponse.json({
-    error: lastError?.message || "Impossible de créer une session OpenAI avec les modèles disponibles.",
-    details: lastError?.error || lastError,
-    hint: "Assurez-vous que votre compte OpenAI est au moins Tier 1 et que vous avez accès à l'API Realtime."
-  }, { status: lastError?.status || 500 });
+    // Le format retourné par /client_secrets en 2026 est { value: "ek_...", expires_at: ..., session: { ... } }
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error("Internal Server Error in /api/oral/session:", error);
+    return NextResponse.json({ error: "Erreur interne du serveur", details: error.message }, { status: 500 });
+  }
 }

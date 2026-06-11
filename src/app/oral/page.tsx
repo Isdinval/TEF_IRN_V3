@@ -28,8 +28,8 @@ export default function OralCoach() {
         throw new Error(data.error);
       }
 
-      const EPHEMERAL_KEY = data.client_secret?.value;
-      const sessionModel = data.model || "gpt-realtime";
+      const EPHEMERAL_KEY = data.value;
+      const sessionModel = data.session?.model || "gpt-realtime";
       if (!EPHEMERAL_KEY) {
         throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
       }
