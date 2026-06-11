@@ -48,9 +48,16 @@ Commence la conversation immédiatement avec une question liée au sujet.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-realtime",
-        instructions: systemInstructions,
-        voice: "alloy"
+        session: {
+          type: "realtime",
+          model: "gpt-realtime",
+          instructions: systemInstructions,
+          audio: {
+            output: {
+              voice: "alloy"
+            }
+          }
+        }
       }),
     });
 
@@ -64,7 +71,6 @@ Commence la conversation immédiatement avec une question liée au sujet.`;
       }, { status: response.status });
     }
 
-    // Le format retourné par /client_secrets en 2026 est { value: "ek_...", expires_at: ..., session: { ... } }
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("Internal Server Error in /api/oral/session:", error);
