@@ -225,7 +225,7 @@ Commence immédiatement la conversation avec une première question naturelle li
               voice: "cedar"
             }
           },
-          output_modalities: ["audio", "text"], // Ajout de 'text' pour garder la transcription dans l'UI
+          output_modalities: ["audio"], // Ajout de 'text' pour garder la transcription dans l'UI
           max_output_tokens: 4096
         }
       }),
