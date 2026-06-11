@@ -83,6 +83,17 @@ export default function OralCoach() {
         },
       });
 
+      if (!sdpResponse.ok) {
+        const errorText = await sdpResponse.text();
+        console.error("OpenAI WebRTC Error:", errorText);
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.error?.message || "Erreur de négociation WebRTC avec OpenAI.");
+        } catch {
+          throw new Error(`Erreur WebRTC (${sdpResponse.status}) : ${errorText.substring(0, 100)}`);
+        }
+      }
+
       const answer: RTCSessionDescriptionInit = {
         type: "answer",
         sdp: await sdpResponse.text(),
