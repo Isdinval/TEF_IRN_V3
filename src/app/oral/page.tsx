@@ -72,7 +72,7 @@ export default function OralCoach() {
 
       // 7. Connect to OpenAI Realtime WebRTC
       const baseUrl = "https://api.openai.com/v1/realtime";
-      const model = "gpt-4o-realtime-preview-2024-10-01";
+      const model = "gpt-realtime";
       const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
         method: "POST",
         body: offer.sdp,
@@ -90,10 +90,15 @@ export default function OralCoach() {
 
       setStatus("active");
       setIsListening(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Session start error:", err);
       setStatus("idle");
-      alert("Erreur lors de la connexion au micro. Vérifiez les autorisations.");
+      const errorMessage = err.message || "Erreur inconnue";
+      if (errorMessage.includes("getUserMedia") || errorMessage.includes("permission")) {
+        alert("Erreur de micro : Vérifiez que vous avez autorisé l'accès au micro dans votre navigateur.");
+      } else {
+        alert(`Erreur lors du démarrage de la session : ${errorMessage}`);
+      }
     }
   };
 
