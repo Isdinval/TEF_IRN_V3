@@ -142,7 +142,7 @@ export default function OralCoach() {
         <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              IA Realtime
+              IA Realtime v2.0
             </Badge>
             <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
               COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span>
