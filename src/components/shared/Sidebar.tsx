@@ -16,7 +16,8 @@ import {
   Zap,
   Sparkles,
   History,
-  Shield
+  Shield,
+  Flag
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -50,6 +51,7 @@ export function Sidebar() {
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Leçons", icon: BookOpen, href: "/lessons" },
+    { label: "Mes Parcours", icon: Flag, href: "/parcours" },
     { label: "Orthographe", icon: Zap, href: "/grammar-check" },
     { label: "Vocabulaire", icon: RotateCcw, href: "/vocab" },
     { label: "QCM Grammaire/Vocab", icon: Target, href: "/practice" },

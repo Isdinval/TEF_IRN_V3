@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { createClient } from "@/lib/supabase";
+import { getParcours } from "@/lib/parcours";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -28,6 +29,7 @@ interface PathLesson {
 export default function LessonComplete({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [loading, setLoading] = useState(true);
+  const [parcoursId, setParcoursId] = useState<string | null>(null);
   const [lesson, setLesson] = useState<any>(null);
   const [nextLesson, setNextLesson] = useState<any>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
@@ -79,6 +81,12 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           setNextLesson(pathLessons[currentIndex + 1]);
         }
       }
+
+
+      // Find current parcours ID
+      const allParcours = await getParcours();
+      const currentParcours = allParcours.find(p => p.level === currentLesson.level && p.category === currentLesson.category);
+      if (currentParcours) setParcoursId(currentParcours.id);
 
       setLoading(false);
     }
@@ -160,15 +168,15 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
               </Link>
             ) : (
               <div className="space-y-6">
-                <div className="p-8 bg-amber-50 rounded-[2.5rem] border border-amber-100 text-center">
-                  <p className="text-2xl font-black text-amber-600">Parcours terminé 🎉</p>
-                  <p className="text-amber-500 font-medium">Vous avez fini toutes les leçons de ce module !</p>
+                <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
+                  <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
+                  <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
+                  <Link href="/parcours">
+                    <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
+                      Voir mon parcours
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/lessons">
-                  <Button variant="outline" size="lg" className="w-full h-16 rounded-2xl border-2 font-black text-lg">
-                    Retour au catalogue
-                  </Button>
-                </Link>
               </div>
             )}
           </div>
