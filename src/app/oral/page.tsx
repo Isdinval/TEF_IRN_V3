@@ -74,7 +74,7 @@ export default function OralCoach() {
       // 7. Connect to OpenAI Realtime WebRTC
       const baseUrl = "https://api.openai.com/v1/realtime";
 
-      const sdpResponse = await fetch(`${baseUrl}?model=${sessionModel}`, {
+      const sdpResponse = await fetch(baseUrl, {
         method: "POST",
         body: offer.sdp,
         headers: {
