@@ -29,6 +29,7 @@ export default function OralCoach() {
       }
 
       const EPHEMERAL_KEY = data.client_secret?.value;
+      const sessionModel = data.model || "gpt-realtime";
       if (!EPHEMERAL_KEY) {
         throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
       }
@@ -72,8 +73,8 @@ export default function OralCoach() {
 
       // 7. Connect to OpenAI Realtime WebRTC
       const baseUrl = "https://api.openai.com/v1/realtime";
-      const model = "gpt-realtime";
-      const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
+
+      const sdpResponse = await fetch(`${baseUrl}?model=${sessionModel}`, {
         method: "POST",
         body: offer.sdp,
         headers: {

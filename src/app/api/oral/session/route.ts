@@ -1,39 +1,42 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
 export async function GET() {
-  const url = "https://api.openai.com/v1/realtime/sessions";
-
   if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: "Clé API OpenAI manquante dans les variables d'environnement." }, { status: 500 });
+    return NextResponse.json({ error: "Clé API OpenAI manquante." }, { status: 500 });
   }
 
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-realtime",
-        voice: "alloy",
-        instructions: "Tu es un examinateur du TEF IRN. Tu dois simuler une conversation de la Section A ou B. Sois naturel, pose des questions, et relance l'utilisateur.",
-      }),
+    // On tente d'abord avec gpt-realtime (vu dans le dashboard de l'utilisateur)
+    // On utilise 'as any' pour éviter les erreurs de type sur les nouveaux modèles
+    const session = await openai.beta.realtime.sessions.create({
+      model: "gpt-realtime" as any,
+      voice: "alloy",
+      instructions: "Tu es un examinateur du TEF IRN. Tu dois simuler une conversation de la Section A ou B. Sois naturel, pose des questions, et relance l'utilisateur.",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("OpenAI Realtime Session Error:", data);
-      return NextResponse.json({
-        error: data.error?.message || "Erreur lors de la création de la session OpenAI",
-        details: data.error
-      }, { status: response.status });
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(session);
   } catch (error: any) {
-    console.error("Internal Server Error in /api/oral/session:", error);
-    return NextResponse.json({ error: "Erreur interne du serveur", details: error.message }, { status: 500 });
+    console.error("OpenAI Realtime Session Error (gpt-realtime):", error);
+
+    // Fallback sur le modèle standard si gpt-realtime n'est pas reconnu par cet endpoint
+    try {
+      const sessionFallback = await openai.beta.realtime.sessions.create({
+        model: "gpt-4o-realtime-preview" as any,
+        voice: "alloy",
+        instructions: "Tu es un examinateur du TEF IRN. Tu dois simuler une conversation de la Section A ou B. Sois naturel, pose des questions, et relance l'utilisateur.",
+      });
+      return NextResponse.json(sessionFallback);
+    } catch (fallbackError: any) {
+      console.error("OpenAI Realtime Session Fallback Error:", fallbackError);
+      return NextResponse.json({
+        error: fallbackError.message || "Erreur lors de la création de la session OpenAI",
+        details: fallbackError.error || fallbackError
+      }, { status: fallbackError.status || 500 });
+    }
   }
 }
