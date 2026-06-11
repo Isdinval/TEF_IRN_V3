@@ -20,7 +20,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Progress } from '@/components/ui/progress';
-import { EXAM_QUESTIONS } from '@/data/examQuestions';
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 
 export function ResultsScreen() {
@@ -88,7 +87,7 @@ export function ResultsScreen() {
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2 space-y-3">
                         {result.answers.map((ans: any, idx: number) => {
-                          const q = (allQuestions || []).find((currQ: Question) => currQ.id === ans.questionId) || EXAM_QUESTIONS.find((currQ: Question) => currQ.id === ans.questionId);
+                          const q = (allQuestions || []).find((currQ: Question) => currQ.id === ans.questionId);
                           return (
                             <div key={ans.questionId} className="p-4 rounded-xl border border-slate-100 flex items-start gap-4">
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>

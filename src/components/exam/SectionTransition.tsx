@@ -14,19 +14,23 @@ const sectionNames: Record<ExamSectionType, string> = {
   EO: 'Expression Orale',
 };
 
-const sectionDurations: Record<ExamSectionType, string> = {
-  CO: '20 minutes',
-  CE: '30 minutes',
-  EE: '30 minutes',
-  EO: '10 minutes',
-};
-
 export function SectionTransition() {
-  const { state, startNextSection } = useExam();
+  const { state, startNextSection, activeExam } = useExam();
 
   const order: ExamSectionType[] = ['CO', 'CE', 'EE', 'EO'];
   const currentIndex = order.indexOf(state.section);
   const nextSection = order[currentIndex + 1];
+
+  const getDuration = (section: ExamSectionType) => {
+    if (!activeExam) return '20 minutes';
+    switch(section) {
+      case 'CO': return `${activeExam.duration_co || 20} minutes`;
+      case 'CE': return `${activeExam.duration_ce || 30} minutes`;
+      case 'EE': return `${activeExam.duration_ee || 30} minutes`;
+      case 'EO': return `${activeExam.duration_eo || 10} minutes`;
+      default: return '20 minutes';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -58,7 +62,7 @@ export function SectionTransition() {
                <div>
                   <div className="font-black text-[#002654] text-xl">{sectionNames[nextSection]}</div>
                   <div className="flex items-center gap-1.5 text-indigo-600 text-sm font-bold mt-1">
-                    <Clock size={14} /> {sectionDurations[nextSection]}
+                    <Clock size={14} /> {getDuration(nextSection)}
                   </div>
                </div>
                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm font-black">

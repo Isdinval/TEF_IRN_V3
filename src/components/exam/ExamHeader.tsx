@@ -14,18 +14,22 @@ const sectionNames: Record<ExamSectionType, string> = {
   EO: 'Expression Orale',
 };
 
-const sectionDurations: Record<ExamSectionType, number> = {
-  CO: 20 * 60,
-  CE: 30 * 60,
-  EE: 30 * 60,
-  EO: 10 * 60,
-};
-
 export function ExamHeader() {
-  const { state, finishSection } = useExam();
+  const { state, finishSection, activeExam } = useExam();
+
+  const getDuration = () => {
+    if (!activeExam) return 20 * 60;
+    switch(state.section) {
+      case 'CO': return (activeExam.duration_co || 20) * 60;
+      case 'CE': return (activeExam.duration_ce || 30) * 60;
+      case 'EE': return (activeExam.duration_ee || 30) * 60;
+      case 'EO': return (activeExam.duration_eo || 10) * 60;
+      default: return 20 * 60;
+    }
+  };
 
   const { formatTime, isLowTime } = useTimer({
-    duration: sectionDurations[state.section],
+    duration: getDuration(),
     startedAt: state.startedAt,
     isActive: state.status === 'in_progress',
     onTimeUp: finishSection,

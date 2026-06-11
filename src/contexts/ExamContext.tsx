@@ -2,14 +2,23 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { ExamSectionType, ExamSessionState, Question, ExamResult } from '../types/exam';
-import { EXAM_QUESTIONS } from '../data/examQuestions';
 import { createClient } from '@/lib/supabase';
+
+export interface ExamMetadata {
+  id: string;
+  label: string;
+  duration_co: number;
+  duration_ce: number;
+  duration_ee: number;
+  duration_eo: number;
+}
 
 interface ExamContextType {
   state: ExamSessionState;
   questions: Question[];
   allQuestions: Question[];
   currentQuestion: Question;
+  activeExam: ExamMetadata | null;
   startExam: (type: 'single' | 'full', section?: ExamSectionType) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
@@ -40,8 +49,9 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+  const [activeExam, setActiveExam] = useState<ExamMetadata | null>(null);
   const [sessionResults, setSessionResults] = useState<ExamResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
 
@@ -50,7 +60,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     try {
       let query = supabase
         .from('exams')
-        .select('id, label');
+        .select('id, label, duration_co, duration_ce, duration_ee, duration_eo');
 
       if (examId) {
         query = query.eq('id', examId);
@@ -63,6 +73,8 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       if (examError || !examData) {
         throw new Error(examError?.message || 'No active exam found');
       }
+
+      setActiveExam(examData as ExamMetadata);
 
       const { data: questionsData, error: questionsError } = await supabase
         .from('exam_questions')
@@ -95,53 +107,60 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify({
         examId: examData.id,
         questions: mappedQuestions,
+        examMetadata: examData,
         timestamp: Date.now()
       }));
 
       return { examId: examData.id, questions: mappedQuestions };
     } catch (error) {
-      console.warn("Failed to fetch exam from Supabase, falling back to local data:", error);
-      setAllQuestions(EXAM_QUESTIONS);
-      return { examId: 'fallback', questions: EXAM_QUESTIONS };
+      console.error("Failed to fetch exam from Supabase:", error);
+      return { examId: null, questions: [] };
     } finally {
       setIsLoading(false);
     }
   }, [supabase]);
 
-  // Load state from localStorage on mount
+  // Load state from localStorage on mount or fetch active exam
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const savedResults = localStorage.getItem(RESULTS_KEY);
-    const cachedQuestions = localStorage.getItem(QUESTIONS_CACHE_KEY);
+    const init = async () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const savedResults = localStorage.getItem(RESULTS_KEY);
+      const cachedQuestions = localStorage.getItem(QUESTIONS_CACHE_KEY);
 
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setState(parsed);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setState(parsed);
 
-        // If we have a saved state but no questions yet, try to load from cache or refetch
-        if (cachedQuestions) {
-          const { examId, questions } = JSON.parse(cachedQuestions);
-          if (examId === parsed.examId) {
-            setAllQuestions(questions);
-          } else {
-            fetchExamContent(parsed.examId);
+          if (cachedQuestions) {
+            const { examId, questions, examMetadata } = JSON.parse(cachedQuestions);
+            if (examId === parsed.examId) {
+              setAllQuestions(questions);
+              setActiveExam(examMetadata);
+              setIsLoading(false);
+              return;
+            }
           }
-        } else if (parsed.examId) {
-          fetchExamContent(parsed.examId);
+          await fetchExamContent(parsed.examId);
+        } catch (e) {
+          console.error("Failed to load exam state", e);
+          await fetchExamContent();
         }
-      } catch (e) {
-        console.error("Failed to load exam state", e);
+      } else {
+        // No saved session, but we still want to preload the active exam metadata for the UI
+        await fetchExamContent();
       }
-    }
 
-    if (savedResults) {
-      try {
-        setSessionResults(JSON.parse(savedResults));
-      } catch (e) {
-        console.error("Failed to load session results", e);
+      if (savedResults) {
+        try {
+          setSessionResults(JSON.parse(savedResults));
+        } catch (e) {
+          console.error("Failed to load session results", e);
+        }
       }
-    }
+    };
+
+    init();
   }, [fetchExamContent]);
 
   // Save state to localStorage
@@ -166,12 +185,19 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const currentQuestion = questions[state.currentQuestionIndex] || ({} as Question);
 
   const startExam = async (type: 'single' | 'full', section?: ExamSectionType) => {
-    const { examId } = await fetchExamContent();
+    let currentExamId = activeExam?.id;
+    let currentQuestions = allQuestions;
+
+    if (!currentExamId) {
+      const result = await fetchExamContent();
+      currentExamId = result.examId || undefined;
+      currentQuestions = result.questions;
+    }
 
     const startSection = type === 'full' ? 'CO' : (section || 'CO');
     const newState: ExamSessionState = {
       examType: type,
-      examId,
+      examId: currentExamId,
       section: startSection,
       selectedSection: section,
       currentQuestionIndex: 0,
@@ -295,6 +321,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     });
     setSessionResults([]);
     setAllQuestions([]);
+    // Note: We don't clear activeExam here as we want to keep the metadata for the landing page
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(RESULTS_KEY);
     localStorage.removeItem(QUESTIONS_CACHE_KEY);
@@ -306,6 +333,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       questions,
       allQuestions,
       currentQuestion,
+      activeExam,
       startExam,
       nextQuestion,
       prevQuestion,

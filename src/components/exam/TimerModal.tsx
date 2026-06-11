@@ -18,15 +18,26 @@ interface TimerModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const options = [
-  { id: 'CO', name: 'Compréhension orale', duration: '20 min', icon: Headset, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { id: 'CE', name: 'Compréhension écrite', duration: '30 min', icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  { id: 'EE', name: 'Expression écrite', duration: '30 min', icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
-  { id: 'EO', name: 'Expression orale', duration: '10 min', icon: Mic, color: 'text-purple-600', bg: 'bg-purple-50' },
-];
-
 export function TimerModal({ isOpen, onOpenChange }: TimerModalProps) {
-  const { startExam } = useExam();
+  const { startExam, activeExam } = useExam();
+
+  const options = [
+    { id: 'CO', name: 'Compréhension orale', duration: `${activeExam?.duration_co || 20} min`, icon: Headset, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'CE', name: 'Compréhension écrite', duration: `${activeExam?.duration_ce || 30} min`, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'EE', name: 'Expression écrite', duration: `${activeExam?.duration_ee || 30} min`, icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { id: 'EO', name: 'Expression orale', duration: `${activeExam?.duration_eo || 10} min`, icon: Mic, color: 'text-purple-600', bg: 'bg-purple-50' },
+  ];
+
+  const totalDuration = (activeExam?.duration_co || 20) +
+                        (activeExam?.duration_ce || 30) +
+                        (activeExam?.duration_ee || 30) +
+                        (activeExam?.duration_eo || 10);
+
+  const formatTotalTime = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h${m > 0 ? m.toString().padStart(2, '0') : ''}` : `${m} min`;
+  };
 
   const handleSelect = (sectionId: string) => {
     startExam('single', sectionId as ExamSectionType);
@@ -62,7 +73,7 @@ export function TimerModal({ isOpen, onOpenChange }: TimerModalProps) {
               </div>
               <div className="text-left">
                 <div className="font-black text-[#002654] text-lg">Examen Complet</div>
-                <div className="text-sm text-slate-500 font-medium">1h30 • Les 4 épreuves</div>
+                <div className="text-sm text-slate-500 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
               </div>
             </div>
             <div className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-black">POPULAIRE</div>
