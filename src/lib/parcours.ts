@@ -54,7 +54,7 @@ export async function getParcoursProgress(userId: string, level: string, categor
   const total = lessons.length;
   if (total === 0) return { total: 0, completed: 0, percent: 0, isCompleted: false };
 
-  const lessonIds = lessons.map(l => l.id);
+  const lessonIds = lessons.map((l: any) => l.id);
 
   // Get completed lessons for this user in this parcours
   const { data: progress, error: progressError } = await supabase

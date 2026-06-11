@@ -43,11 +43,11 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
         .from('lesson_progress')
         .select('lesson_id')
         .eq('user_id', user.id)
-        .in('lesson_id', allLessons.map(l => l.id));
+        .in('lesson_id', allLessons.map((l: any) => l.id));
 
-      const completedIds = new Set(completedData?.map(c => c.lesson_id) || []);
+      const completedIds = new Set(completedData?.map((c: any) => c.lesson_id) || []);
 
-      const lessonsWithStatus = allLessons.map(l => ({
+      const lessonsWithStatus = allLessons.map((l: any) => ({
         ...l,
         isCompleted: completedIds.has(l.id)
       }));

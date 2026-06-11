@@ -174,7 +174,7 @@ export default function Dashboard() {
           return { ...p, progress: prog };
         });
         const parcoursWithProgress = await Promise.all(progressPromises);
-        const inProgress = parcoursWithProgress.filter(p => p.progress.percent > 0 && p.progress.percent < 100);
+        const inProgress = parcoursWithProgress.filter((p: any) => p.progress.percent > 0 && p.progress.percent < 100);
         setInProgressParcours(inProgress);
       setLoading(false);
     }
