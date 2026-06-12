@@ -22,6 +22,21 @@ export interface Lesson {
   order_index: number;
   level: string;
   category: string;
+  duration?: number;
+  difficulty?: 'facile' | 'moyen' | 'difficile';
+  objective?: string;
+}
+
+export interface Exercise {
+  id: string;
+  lesson_id: string | null;
+  type: string;
+  level: string;
+  instructions: string;
+  category: string;
+  difficulty: 'facile' | 'moyen' | 'difficile';
+  success_rate?: number;
+  attempts_count?: number;
 }
 
 export async function getParcours(): Promise<Parcours[]> {
@@ -40,7 +55,6 @@ export async function getParcours(): Promise<Parcours[]> {
 }
 
 export async function getParcoursProgress(userId: string, level: string, category: string): Promise<ParcoursProgress> {
-  // Get all lessons for this parcours
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('id')
@@ -56,7 +70,6 @@ export async function getParcoursProgress(userId: string, level: string, categor
 
   const lessonIds = lessons.map((l: any) => l.id);
 
-  // Get completed lessons for this user in this parcours
   const { data: progress, error: progressError } = await supabase
     .from('lesson_progress')
     .select('lesson_id')
@@ -92,7 +105,7 @@ export async function getParcoursById(id: string): Promise<Parcours | null> {
 export async function getLessonsForParcours(level: string, category: string): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
-    .select('id, title, order_index, level, category')
+    .select('id, title, order_index, level, category, duration, difficulty, objective')
     .eq('level', level)
     .eq('category', category)
     .order('order_index', { ascending: true });
@@ -103,4 +116,57 @@ export async function getLessonsForParcours(level: string, category: string): Pr
   }
 
   return data || [];
+}
+
+export async function getRecommendedExercises(userId: string, level: string, category: string): Promise<Exercise[]> {
+  // Map parcours category to exercise category (case sensitivity)
+  const exerciseCategory = category.charAt(0).toUpperCase() + category.slice(1);
+
+  // Fetch exercises for this parcours
+  const { data: exercises, error: exercisesError } = await supabase
+    .from('exercises')
+    .select('id, lesson_id, type, level, instructions, category, difficulty')
+    .eq('level', level)
+    .eq('category', exerciseCategory)
+    .limit(50);
+
+  if (exercisesError || !exercises) return [];
+
+  const exerciseIds = exercises.map(e => e.id);
+
+  // Fetch user attempts for these exercises
+  const { data: attempts, error: attemptsError } = await supabase
+    .from('exercise_attempts')
+    .select('exercise_id, score, is_completed')
+    .eq('user_id', userId)
+    .in('exercise_id', exerciseIds);
+
+  if (attemptsError) return exercises.slice(0, 6);
+
+  // Calculate stats for each exercise
+  const exerciseStats = exercises.map(ex => {
+    const exAttempts = attempts.filter(a => a.exercise_id === ex.id);
+    const completedAttempts = exAttempts.filter(a => a.is_completed);
+    const successRate = completedAttempts.length > 0
+      ? Math.max(...completedAttempts.map(a => a.score || 0))
+      : 0;
+
+    return {
+      ...ex,
+      success_rate: successRate,
+      attempts_count: exAttempts.length,
+      is_completed: completedAttempts.length > 0
+    };
+  });
+
+  // Sorting logic:
+  // 1. Not attempted or success rate < 70%
+  // 2. Others
+  const recommended = exerciseStats.sort((a, b) => {
+    if (!a.is_completed && b.is_completed) return -1;
+    if (a.is_completed && !b.is_completed) return 1;
+    return (a.success_rate || 0) - (b.success_rate || 0);
+  });
+
+  return recommended.slice(0, 6);
 }

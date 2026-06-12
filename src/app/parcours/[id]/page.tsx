@@ -1,83 +1,55 @@
-"use client";
-
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, Parcours, ParcoursProgress, Lesson } from "@/lib/parcours";
+import { createClient } from "@/lib/supabase-server";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getRecommendedExercises } from "@/lib/parcours";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Target, CheckCircle2, Lock, ArrowLeft, Play, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Target, ArrowLeft, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { PageTransition } from "@/components/shared/Animations";
+import LessonCard from "./components/LessonCard";
+import ExerciseCard from "./components/ExerciseCard";
+import { redirect } from "next/navigation";
 
-export default function ParcoursDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const [loading, setLoading] = useState(true);
-  const [parcours, setParcours] = useState<Parcours | null>(null);
-  const [progress, setProgress] = useState<ParcoursProgress | null>(null);
-  const [lessons, setLessons] = useState<(Lesson & { isCompleted: boolean })[]>([]);
-  const router = useRouter();
-  const supabase = createClient();
+export default async function ParcoursDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
 
-  useEffect(() => {
-    async function loadData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      const p = await getParcoursById(id);
-      if (!p) {
-        setLoading(false);
-        return;
-      }
-
-      const prog = await getParcoursProgress(user.id, p.level, p.category);
-      const allLessons = await getLessonsForParcours(p.level, p.category);
-
-      // Fetch completed lessons for status
-      const { data: completedData } = await supabase
-        .from('lesson_progress')
-        .select('lesson_id')
-        .eq('user_id', user.id)
-        .in('lesson_id', allLessons.map((l: any) => l.id));
-
-      const completedIds = new Set(completedData?.map((c: any) => c.lesson_id) || []);
-
-      const lessonsWithStatus = allLessons.map((l: any) => ({
-        ...l,
-        isCompleted: completedIds.has(l.id)
-      }));
-
-      setParcours(p);
-      setProgress(prog);
-      setLessons(lessonsWithStatus);
-      setLoading(false);
-    }
-    loadData();
-  }, [id, supabase, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
-      </div>
-    );
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
   }
 
+  const parcours = await getParcoursById(id);
   if (!parcours) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <h1 className="text-2xl font-black">Parcours non trouvé</h1>
-        <Button onClick={() => router.push("/parcours")}>Retour aux parcours</Button>
+        <Link href="/parcours">
+          <Button>Retour aux parcours</Button>
+        </Link>
       </div>
     );
   }
 
-  const firstUncompletedLesson = lessons.find(l => !l.isCompleted);
+  const progress = await getParcoursProgress(user.id, parcours.level, parcours.category);
+  const allLessons = await getLessonsForParcours(parcours.level, parcours.category);
+
+  // Fetch completed lessons
+  const { data: completedData } = await supabase
+    .from('lesson_progress')
+    .select('lesson_id')
+    .eq('user_id', user.id)
+    .in('lesson_id', allLessons.map(l => l.id));
+
+  const completedIds = new Set(completedData?.map(c => c.lesson_id) || []);
+
+  const lessonsWithStatus = allLessons.map(l => ({
+    ...l,
+    isCompleted: completedIds.has(l.id)
+  }));
+
+  const firstUncompletedLesson = lessonsWithStatus.find(l => !l.isCompleted);
+  const recommendedExercises = await getRecommendedExercises(user.id, parcours.level, parcours.category);
 
   const getLessonUrl = (lessonId: string) => {
     return `/lessons/${lessonId}?parcoursId=${parcours.id}`;
@@ -85,111 +57,147 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/parcours" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 mb-8 transition-colors">
-            <ArrowLeft size={16} /> Retour aux parcours
-          </Link>
+      <div className="min-h-screen bg-[#F8FAFC] pb-24">
+        {/* Header Section */}
+        <div className="bg-white border-b border-slate-100">
+          <div className="max-w-5xl mx-auto px-6 py-8">
+            <Link href="/parcours" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-8 transition-colors">
+              <ArrowLeft size={14} /> Retour aux parcours
+            </Link>
 
-          <header className="mb-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-indigo-600 rounded-full px-4 py-1 text-xs font-black uppercase tracking-widest border-none">
+                  <Badge className="bg-indigo-600 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
                     {parcours.level}
                   </Badge>
-                  <Badge variant="outline" className="rounded-full px-4 py-1 text-xs font-black uppercase tracking-widest border-zinc-200 capitalize">
+                  <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-slate-200 text-slate-500 capitalize">
                     {parcours.category}
                   </Badge>
                 </div>
-                <h1 className="text-5xl font-black text-slate-900 tracking-tighter capitalize">
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight capitalize">
                   {parcours.category} {parcours.level}
                 </h1>
+                <p className="text-lg font-medium text-slate-500 max-w-2xl leading-relaxed italic">
+                  "{parcours.objective}"
+                </p>
               </div>
 
               {firstUncompletedLesson && (
-                <Button
-                  onClick={() => router.push(getLessonUrl(firstUncompletedLesson.id))}
-                  size="lg"
-                  className="h-16 px-8 rounded-2xl bg-zinc-900 text-white font-black text-lg hover:bg-black shadow-xl shadow-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Play className="mr-2" size={20} fill="currentColor" />
-                  {progress?.completed === 0 ? "Commencer le parcours" : "Reprendre la leçon"}
-                </Button>
+                <Link href={getLessonUrl(firstUncompletedLesson.id)}>
+                  <Button
+                    size="lg"
+                    className="h-16 px-8 rounded-2xl bg-zinc-900 text-white font-black text-lg hover:bg-indigo-600 shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Play className="mr-2" size={20} fill="currentColor" />
+                    {progress?.completed === 0 ? "Commencer le parcours" : "Reprendre la leçon"}
+                  </Button>
+                </Link>
               )}
             </div>
+          </div>
+        </div>
 
-            <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-xl shadow-zinc-200/50">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-indigo-600">
-                    <Target size={20} />
-                    <span className="text-xs font-black uppercase tracking-widest">Objectif du parcours</span>
+        <div className="max-w-5xl mx-auto px-6 mt-12">
+          {/* Progression Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <Card className="md:col-span-2 rounded-[2.5rem] border-none bg-white p-8 shadow-xl shadow-slate-200/40">
+              <div className="space-y-6">
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Progression globale</span>
+                    <div className="text-3xl font-black text-indigo-600">{progress?.percent}%</div>
                   </div>
-                  <p className="text-lg font-medium text-slate-600 leading-relaxed italic">
-                    "{parcours.objective}"
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    {progress?.completed} / {progress?.total} leçons
                   </p>
                 </div>
-
-                <div className="space-y-6">
-                  <div className="flex justify-between items-end">
-                    <span className="text-xs font-black uppercase tracking-widest text-zinc-400">Progression globale</span>
-                    <span className="text-3xl font-black text-indigo-600">{progress?.percent}%</span>
-                  </div>
-                  <div className="h-4 w-full overflow-hidden rounded-full bg-zinc-100">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress?.percent}%` }}
-                      className="h-full bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
-                    />
-                  </div>
-                  <p className="text-xs font-bold text-zinc-400 text-right">
-                    {progress?.completed} sur {progress?.total} leçons complétées
-                  </p>
+                <div className="h-4 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-all duration-1000"
+                    style={{ width: `${progress?.percent}%` }}
+                  />
                 </div>
               </div>
             </Card>
-          </header>
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-6 px-1">
-              Programme du parcours
-            </h2>
+            <Card className="rounded-[2.5rem] border-none bg-indigo-600 p-8 shadow-xl shadow-indigo-200/40 flex flex-col justify-center text-white">
+              <div className="flex items-center gap-3 mb-2 opacity-80">
+                <Target size={20} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Niveau visé</span>
+              </div>
+              <div className="text-4xl font-black">{parcours.level}</div>
+              <p className="text-xs font-bold mt-2 opacity-70">
+                Maîtrisez les bases du {parcours.category}
+              </p>
+            </Card>
+          </div>
 
-            <div className="space-y-4">
-              {lessons.map((lesson, index) => (
-                <Link key={lesson.id} href={getLessonUrl(lesson.id)}>
-                  <Card className={`group border-none shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden mb-4 ${lesson.isCompleted ? 'bg-emerald-50/30' : 'bg-white'}`}>
-                    <CardContent className="p-6 flex items-center gap-6">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg
-                        ${lesson.isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-zinc-100 text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600'}`}>
-                        {index + 1}
-                      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            {/* Lessons List */}
+            <div className="lg:col-span-8 space-y-8">
+              <div className="flex items-center justify-between px-2">
+                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                  Programme
+                </h2>
+                <Badge variant="secondary" className="rounded-full font-black text-[10px] px-3">
+                  {allLessons.length} LEÇONS
+                </Badge>
+              </div>
 
-                      <div className="flex-1">
-                        <h3 className={`font-black text-lg ${lesson.isCompleted ? 'text-slate-600' : 'text-slate-900'}`}>
-                          {lesson.title}
-                        </h3>
-                      </div>
-
-                      <div className="shrink-0">
-                        {lesson.isCompleted ? (
-                          <div className="flex items-center gap-2 text-emerald-600 font-black text-xs uppercase tracking-widest">
-                            <CheckCircle2 size={20} />
-                            <span className="hidden sm:inline">Complété</span>
-                          </div>
-                        ) : (
-                          <div className="text-zinc-300 group-hover:text-indigo-600 transition-colors">
-                            <ArrowRight size={20} />
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+              <div className="space-y-4">
+                {lessonsWithStatus.map((lesson, index) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    index={index}
+                    isNext={firstUncompletedLesson?.id === lesson.id}
+                    category={parcours.category}
+                    parcoursId={parcours.id}
+                  />
+                ))}
+              </div>
             </div>
-          </section>
+
+            {/* Recommendations / Sidebar */}
+            <div className="lg:col-span-4 space-y-8">
+              <div className="flex items-center gap-2 px-2">
+                <Sparkles size={20} className="text-indigo-600" />
+                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                  Entraînement
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {recommendedExercises.length > 0 ? (
+                  recommendedExercises.map((exercise) => (
+                    <ExerciseCard key={exercise.id} exercise={exercise} />
+                  ))
+                ) : (
+                  <div className="bg-white rounded-3xl p-8 text-center space-y-4 shadow-sm border-2 border-dashed border-slate-100">
+                    <p className="text-sm font-medium text-slate-400">
+                      Terminez des leçons pour débloquer des exercices recommandés !
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Card className="rounded-[2rem] border-none bg-zinc-900 p-6 text-white overflow-hidden relative">
+                <div className="relative z-10 space-y-4">
+                  <h3 className="font-black text-lg leading-tight">Besoin d'aide ?</h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed">
+                    Accédez à notre guide complet sur la {parcours.category} {parcours.level} pour approfondir vos connaissances.
+                  </p>
+                  <Button variant="outline" className="w-full border-zinc-700 text-white hover:bg-zinc-800 rounded-xl font-black text-xs">
+                    VOIR LE GUIDE
+                  </Button>
+                </div>
+                <div className="absolute -bottom-8 -right-8 opacity-10">
+                  <BookText size={120} />
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </PageTransition>
