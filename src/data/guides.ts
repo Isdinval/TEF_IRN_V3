@@ -173,4 +173,101 @@ Le stress paralyse la mémoire. La meilleure solution contre le stress est la **
 [Commencer mon entraînement B2](/login)
     `
   }
+  {
+  slug: "conjugaison-a2-essentiel",
+  title: "Conjugaison A2 : les 5 temps essentiels du TEF IRN",
+  description: "Un mémo visuel des conjugaisons incontournables au niveau A2 — passé composé, imparfait, futur et impératif — avec les règles clés et les pièges à éviter.",
+  content: `# Conjugaison A2 : les 5 temps essentiels du TEF IRN
+
+  > Ce guide est un mémo de référence, pas un cours. Gardez-le ouvert pendant vos révisions.
+  
+  ---
+  
+  ## Les 5 temps à maîtriser absolument
+  
+  | Temps | Usage en un mot | Exemple |
+  |---|---|---|
+  | Passé composé | Événement | *J'ai déposé mon dossier.* |
+  | Imparfait | Décor / habitude | *Il faisait froid.* |
+  | Futur proche | Projet imminent | *Je vais partir.* |
+  | Futur simple | Projection | *Je vivrai en France.* |
+  | Impératif | Instruction | *Tournez à gauche.* |
+  
+  ---
+  
+  ## Passé composé — la règle des auxiliaires
+  
+  **AVOIR** → la grande majorité des verbes  
+  **ÊTRE** → DR MRS VANDERTRAMP + tous les verbes pronominaux
+  
+  > **DR MRS VANDERTRAMP** : Descendre, Rentrer, Monter, Rester, Sortir — Venir, Aller, Naître, Devenir, Entrer, Retourner, Tomber, Retourner, Arriver, Mourir, Partir
+  
+  ⚠️ **Accord avec ÊTRE uniquement** : *Elle est partie / Ils sont arrivés / Elles se sont levées*  
+  Avec AVOIR, le participe reste invariable : *Elle a mangé / Ils ont pris*
+  
+  **Participes irréguliers à connaître par cœur**  
+  faire → fait · dire → dit · prendre → pris · mettre → mis · voir → vu · savoir → su · pouvoir → pu · vouloir → voulu · être → été · avoir → eu
+  
+  ---
+  
+  ## Imparfait — la formation en 1 règle
+  
+  Radical du présent (**nous**) + terminaisons **-ais / -ais / -ait / -ions / -iez / -aient**
+  
+  | Verbe | Nous (présent) | Radical | Je |
+  |---|---|---|---|
+  | parler | parlons | parl- | parlais |
+  | finir | finissons | finiss- | finissais |
+  | prendre | prenons | pren- | prenais |
+  | être | sommes | ét- | étais |
+  
+  ---
+  
+  ## Passé composé vs Imparfait — la règle d'or
+  
+  **Imparfait = le décor** (ce qui durait, habitudes, descriptions)  
+  **Passé composé = l'événement** (ce qui s'est passé, action précise)
+  
+  Indices imparfait : *souvent, tous les jours, chaque matin, d'habitude, autrefois*  
+  Indices passé composé : *hier, soudain, tout à coup, puis, ensuite, finalement, une fois*
+  
+  > *Il **faisait** beau* (décor) *quand soudain il **a commencé** à pleuvoir.* (événement)
+  
+  ---
+  
+  ## Futur proche vs Futur simple
+  
+  **Futur proche** = aller (conjugué) + infinitif → action certaine et proche  
+  **Futur simple** = infinitif + **-ai / -as / -a / -ons / -ez / -ont** → projection, promesse
+  
+  Irréguliers clés du futur simple :  
+  être → **sera** · avoir → **aura** · aller → **ira** · faire → **fera** · pouvoir → **pourra** · venir → **viendra** · savoir → **saura** · voir → **verra**
+  
+  ---
+  
+  ## Impératif — 3 personnes, 1 piège
+  
+  Uniquement : **tu / nous / vous** — sans pronom sujet.
+  
+  ⚠️ Verbes en **-ER** : **pas de -s** à la 2e personne du singulier  
+  → *Mange, Tourne, Continue* (et non ~~Manges~~, ~~Tournes~~)
+  
+  Exceptions à retenir :  
+  être → **Sois / Soyons / Soyez**  
+  avoir → **Aie / Ayons / Ayez**  
+  aller → **Va / Allons / Allez**
+  
+  ---
+  
+  ## Les 5 erreurs les plus fréquentes au TEF IRN
+  
+  1. **Ils ont parti** ❌ → *Ils sont partis* ✓ (partir → être)
+  2. **Elle est arrivé** ❌ → *Elle est arrivée* ✓ (accord avec être)
+  3. **Tourne**~~s~~ à gauche ❌ → *Tourne* ✓ (verbe en -ER, impératif tu)
+  4. **Je naissais** ❌ → *Je suis né(e)* ✓ (naissance = action ponctuelle)
+  5. **L'année prochaine, je vais vivre** ❌ → *je vivrai* ✓ (futur lointain = futur simple)
+  `,
+    tag: "Conjugaison",
+    readTime: "8 min"
+  }
 ];
