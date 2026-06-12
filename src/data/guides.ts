@@ -174,6 +174,7 @@ Le stress paralyse la mémoire. La meilleure solution contre le stress est la **
     `
   }
   {
+  id: "",
   slug: "conjugaison-a2-essentiel",
   title: "Conjugaison A2 : les 5 temps essentiels du TEF IRN",
   description: "Un mémo visuel des conjugaisons incontournables au niveau A2 — passé composé, imparfait, futur et impératif — avec les règles clés et les pièges à éviter.",
