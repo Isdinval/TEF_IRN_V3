@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
@@ -49,5 +50,3 @@ export function BreadcrumbParcours() {
     </nav>
   );
 }
-
-import React from "react";

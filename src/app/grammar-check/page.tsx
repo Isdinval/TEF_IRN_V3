@@ -282,7 +282,7 @@ function GrammarCheckContent() {
           <div className="text-7xl font-black text-rose-600 mb-8">
             {Math.round((score / questions.length) * 100)}%
           </div>
-          <Button onClick={() => setFinished(false) || setIsStarted(false)} className="w-full h-14 rounded-2xl text-lg bg-zinc-900 hover:bg-zinc-800 text-white font-black">
+          <Button onClick={() => { setFinished(false); setIsStarted(false); }} className="w-full h-14 rounded-2xl text-lg bg-zinc-900 hover:bg-zinc-800 text-white font-black">
             Terminer
           </Button>
         </Card>
