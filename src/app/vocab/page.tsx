@@ -177,7 +177,7 @@ function VocabCoachContent() {
   };
 
   const prepareQuiz = (current: Flashcard) => {
-    const others = cards.filter(c => c.id !== current.id).map(c => c.definition);
+    const others = cards.filter((c: any) => c.id !== current.id).map((c: any) => c.definition);
     const options = [current.definition, ...others.slice(0, 3)];
     setQuizOptions(options.sort(() => Math.random() - 0.5));
     setQuizChecked(false);
@@ -233,7 +233,7 @@ function VocabCoachContent() {
                     onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                     className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-4 font-bold text-zinc-900 focus:ring-2 focus:ring-sky-600"
                   >
-                    {["Administration", "Logement", "Santé", "Travail", "Vie quotidienne"].map(c => (
+                    {["Administration", "Logement", "Santé", "Travail", "Vie quotidienne"].map((c: any) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>

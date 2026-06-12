@@ -68,11 +68,11 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         .from('lesson_progress')
         .select('lesson_id')
         .eq('user_id', userId)
-        .in('lesson_id', allLessons.map(l => l.id));
+        .in('lesson_id', allLessons.map((l: any) => l.id));
 
-      const completedIds = new Set(completedData?.map(c => c.lesson_id) || []);
+      const completedIds = new Set(completedData?.map((c: any) => c.lesson_id) || []);
 
-      const lessonsWithStatus = allLessons.map(l => ({
+      const lessonsWithStatus = allLessons.map((l: any) => ({
         ...l,
         isCompleted: completedIds.has(l.id)
       }));
@@ -160,8 +160,8 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const currentLesson = lessons.find(l => !l.isCompleted) || lessons[lessons.length - 1] || null;
-  const nextLesson = lessons.find(l => !l.isCompleted) || null;
+  const currentLesson = lessons.find((l: any) => !l.isCompleted) || lessons[lessons.length - 1] || null;
+  const nextLesson = lessons.find((l: any) => !l.isCompleted) || null;
 
   return (
     <ParcoursContext.Provider value={{
