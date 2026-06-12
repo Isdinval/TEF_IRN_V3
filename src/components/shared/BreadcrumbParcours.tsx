@@ -36,7 +36,7 @@ export function BreadcrumbParcours() {
         <Home size={12} />
       </Link>
 
-      {steps.map((step, index) => (
+      {steps.map((step: any, index: number) => (
         <React.Fragment key={index}>
           <ChevronRight size={10} className="shrink-0 text-zinc-300" />
           <Link

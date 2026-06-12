@@ -94,7 +94,7 @@ function VocabCoachContent() {
           .lte("next_review", new Date().toISOString());
 
         if (srsData && srsData.length > 0) {
-          query = query.in("id", srsData.map(d => d.word_id));
+          query = query.in("id", srsData.map((d: any) => d.word_id));
         } else {
           query = query.eq("level", filters.level).limit(10);
         }
