@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones } from "lucide-react";
 import Link from "next/link";
+import { Exercise } from "@/lib/parcours";
 
 interface ExerciseCardProps {
-  exercise: any;
+  exercise: Exercise & { is_completed?: boolean };
 }
 
 const typeIcons: Record<string, any> = {
@@ -31,14 +32,16 @@ const typeLabels: Record<string, string> = {
   qcm_centre_entrainement: "Entraînement",
 };
 
+const difficultyColors: Record<string, string> = {
+  facile: "bg-emerald-50 text-emerald-600 border-emerald-100",
+  moyen: "bg-amber-50 text-amber-600 border-amber-100",
+  difficile: "bg-rose-50 text-rose-600 border-rose-100",
+};
+
 export default function ExerciseCard({ exercise }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
-
-  const difficultyColor = {
-    facile: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    moyen: "bg-amber-50 text-amber-600 border-amber-100",
-    difficile: "bg-rose-50 text-rose-600 border-rose-100",
-  }[exercise.difficulty || "facile"];
+  const difficulty = exercise.difficulty || "facile";
+  const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
 
   const getExerciseUrl = () => {
     switch (exercise.type) {
@@ -67,7 +70,7 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
               <Icon size={24} />
             </div>
             <Badge variant="outline" className={`rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider ${difficultyColor}`}>
-              {exercise.difficulty || 'facile'}
+              {difficulty}
             </Badge>
           </div>
 
@@ -87,8 +90,8 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
                   <Star
                     key={s}
                     size={12}
-                    fill={(exercise.success_rate / 20) >= s ? "#f59e0b" : "transparent"}
-                    className={(exercise.success_rate / 20) >= s ? "text-amber-500" : "text-zinc-200"}
+                    fill={(exercise.success_rate! / 20) >= s ? "#f59e0b" : "transparent"}
+                    className={(exercise.success_rate! / 20) >= s ? "text-amber-500" : "text-zinc-200"}
                   />
                 ))}
               </div>

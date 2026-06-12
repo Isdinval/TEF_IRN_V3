@@ -68,7 +68,7 @@ export async function getParcoursProgress(userId: string, level: string, categor
   const total = lessons.length;
   if (total === 0) return { total: 0, completed: 0, percent: 0, isCompleted: false };
 
-  const lessonIds = lessons.map((l: any) => l.id);
+  const lessonIds = lessons.map((l: { id: string }) => l.id);
 
   const { data: progress, error: progressError } = await supabase
     .from('lesson_progress')
@@ -132,7 +132,7 @@ export async function getRecommendedExercises(userId: string, level: string, cat
 
   if (exercisesError || !exercises) return [];
 
-  const exerciseIds = exercises.map(e => e.id);
+  const exerciseIds = exercises.map((e: { id: string }) => e.id);
 
   // Fetch user attempts for these exercises
   const { data: attempts, error: attemptsError } = await supabase
@@ -144,11 +144,11 @@ export async function getRecommendedExercises(userId: string, level: string, cat
   if (attemptsError) return exercises.slice(0, 6);
 
   // Calculate stats for each exercise
-  const exerciseStats = exercises.map(ex => {
-    const exAttempts = attempts.filter(a => a.exercise_id === ex.id);
-    const completedAttempts = exAttempts.filter(a => a.is_completed);
+  const exerciseStats = exercises.map((ex: Exercise) => {
+    const exAttempts = (attempts || []).filter((a: any) => a.exercise_id === ex.id);
+    const completedAttempts = exAttempts.filter((a: any) => a.is_completed);
     const successRate = completedAttempts.length > 0
-      ? Math.max(...completedAttempts.map(a => a.score || 0))
+      ? Math.max(...completedAttempts.map((a: any) => a.score || 0))
       : 0;
 
     return {
@@ -162,7 +162,7 @@ export async function getRecommendedExercises(userId: string, level: string, cat
   // Sorting logic:
   // 1. Not attempted or success rate < 70%
   // 2. Others
-  const recommended = exerciseStats.sort((a, b) => {
+  const recommended = exerciseStats.sort((a: any, b: any) => {
     if (!a.is_completed && b.is_completed) return -1;
     if (a.is_completed && !b.is_completed) return 1;
     return (a.success_rate || 0) - (b.success_rate || 0);

@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Clock, BarChart, ArrowRight, BookOpen, PenTool, Pen, Mic, MessageSquare, BookText } from "lucide-react";
+import { CheckCircle2, Clock, ArrowRight, BookOpen, PenTool, Pen, Mic, MessageSquare, BookText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { Lesson } from "@/lib/parcours";
 
 interface LessonCardProps {
-  lesson: any;
+  lesson: Lesson & { isCompleted?: boolean };
   index: number;
   isNext: boolean;
   category: string;
@@ -26,15 +27,17 @@ const categoryIcons: Record<string, any> = {
   "compréhension écrite": BookOpen,
 };
 
+const difficultyColors: Record<string, string> = {
+  facile: "bg-emerald-100 text-emerald-700",
+  moyen: "bg-amber-100 text-amber-700",
+  difficile: "bg-rose-100 text-rose-700",
+};
+
 export default function LessonCard({ lesson, index, isNext, category, parcoursId }: LessonCardProps) {
   const Icon = categoryIcons[category.toLowerCase()] || BookOpen;
   const lessonUrl = `/lessons/${lesson.id}?parcoursId=${parcoursId}`;
-
-  const difficultyColor = {
-    facile: "bg-emerald-100 text-emerald-700",
-    moyen: "bg-amber-100 text-amber-700",
-    difficile: "bg-rose-100 text-rose-700",
-  }[lesson.difficulty || "facile"];
+  const difficulty = lesson.difficulty || "facile";
+  const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
 
   return (
     <motion.div
@@ -72,7 +75,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
             <div className="flex-1 text-center md:text-left space-y-3">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                 <Badge variant="secondary" className={`rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
-                  {lesson.difficulty || 'facile'}
+                  {difficulty}
                 </Badge>
                 <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] font-bold uppercase tracking-wider">
                   <Clock size={14} />

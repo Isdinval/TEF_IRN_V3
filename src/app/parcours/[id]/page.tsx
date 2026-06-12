@@ -3,7 +3,7 @@ import { getParcoursById, getParcoursProgress, getLessonsForParcours, getRecomme
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Target, ArrowLeft, Play, Sparkles } from "lucide-react";
+import { Target, ArrowLeft, Play, Sparkles, BookText } from "lucide-react";
 import Link from "next/link";
 import { PageTransition } from "@/components/shared/Animations";
 import LessonCard from "./components/LessonCard";
