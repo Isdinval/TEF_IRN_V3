@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
   BookOpen,
@@ -19,14 +19,17 @@ import {
   Shield,
   Flag
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 
-export function Sidebar() {
+function SidebarContent() {
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const parcoursId = searchParams.get("parcoursId");
 
   useEffect(() => {
     async function fetchProfile() {
@@ -48,6 +51,14 @@ export function Sidebar() {
     router.push("/login");
   };
 
+  const getHrefWithContext = (baseHref: string) => {
+    if (!parcoursId) return baseHref;
+    // When navigating via sidebar, we keep the parcoursId context but drop lessonId
+    const newParams = new URLSearchParams();
+    newParams.set("parcoursId", parcoursId);
+    return `${baseHref}?${newParams.toString()}`;
+  };
+
   const menuItems = [
     { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Leçons", icon: BookOpen, href: "/lessons" },
@@ -66,7 +77,7 @@ export function Sidebar() {
     <div className="w-64 border-r border-zinc-100 bg-white h-screen sticky top-0 flex flex-col selection:bg-indigo-100 shrink-0">
       {/* Brand Header */}
       <div className="p-8">
-        <Link href="/dashboard" className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
+        <Link href={getHrefWithContext("/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center text-white shadow-xl shadow-zinc-200"
@@ -83,7 +94,7 @@ export function Sidebar() {
         {menuItems.map((item) => (
           <Link
             key={item.href}
-            href={item.href}
+            href={getHrefWithContext(item.href)}
             className={`flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl transition-all group ${
               isActive(item.href)
                 ? "bg-zinc-50 text-zinc-900 border border-zinc-100 shadow-sm"
@@ -123,7 +134,7 @@ export function Sidebar() {
         {/* User Actions */}
         <div className="flex flex-col gap-1">
           <Link
-            href="/settings"
+            href={getHrefWithContext("/settings")}
             className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${
               isActive("/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"
             }`}
@@ -142,5 +153,13 @@ export function Sidebar() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <Suspense fallback={<div className="w-64 border-r border-zinc-100 bg-white h-screen" />}>
+      <SidebarContent />
+    </Suspense>
   );
 }
