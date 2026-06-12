@@ -2,12 +2,12 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
+import { ParcoursTopBar } from "./ParcoursTopBar";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Routes publiques sans Sidebar
-  // On utilise startsWith ou une regex pour gérer les sous-pages (ex: /guides/slug)
   const publicRoutes = ["/", "/login", "/guides", "/pricing", "/exercice-gratuit", "/placement-test", "/onboarding"];
   const isPublic = publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"));
 
@@ -21,9 +21,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col min-h-screen relative">
+        <ParcoursTopBar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

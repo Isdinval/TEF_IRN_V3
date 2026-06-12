@@ -79,6 +79,10 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
   const firstUncompletedLesson = lessons.find(l => !l.isCompleted);
 
+  const getLessonUrl = (lessonId: string) => {
+    return `/lessons/${lessonId}?parcoursId=${parcours.id}`;
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
@@ -105,7 +109,7 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
               {firstUncompletedLesson && (
                 <Button
-                  onClick={() => router.push(`/lessons/${firstUncompletedLesson.id}`)}
+                  onClick={() => router.push(getLessonUrl(firstUncompletedLesson.id))}
                   size="lg"
                   className="h-16 px-8 rounded-2xl bg-zinc-900 text-white font-black text-lg hover:bg-black shadow-xl shadow-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -154,7 +158,7 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
             <div className="space-y-4">
               {lessons.map((lesson, index) => (
-                <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
+                <Link key={lesson.id} href={getLessonUrl(lesson.id)}>
                   <Card className={`group border-none shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden mb-4 ${lesson.isCompleted ? 'bg-emerald-50/30' : 'bg-white'}`}>
                     <CardContent className="p-6 flex items-center gap-6">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg

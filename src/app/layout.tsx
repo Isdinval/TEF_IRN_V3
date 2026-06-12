@@ -3,6 +3,7 @@ import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import { AppLayout } from "@/components/shared/AppLayout";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppLayout>{children}</AppLayout>
+          <ParcoursWrapper>
+            <AppLayout>{children}</AppLayout>
+          </ParcoursWrapper>
         </ThemeProvider>
       </body>
     </html>
