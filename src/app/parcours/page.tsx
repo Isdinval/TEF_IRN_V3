@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcours, getParcoursProgress, Parcours, ParcoursProgress } from "@/lib/parcours";
+import { getParcours, getParcoursProgress } from "@/lib/parcours";
+import { Parcours, ParcoursProgress } from "@/types/parcours";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -10,7 +10,8 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { getParcours, Lesson as PathLesson } from "@/lib/parcours";
+import { getParcours } from "@/lib/parcours";
+import { Lesson as PathLesson } from "@/types/parcours";
 import { BreadcrumbParcours } from "@/components/parcours/BreadcrumbParcours";
 import { useParcours } from "@/contexts/ParcoursContext";
 
