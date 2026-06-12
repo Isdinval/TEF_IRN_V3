@@ -12,8 +12,9 @@ import {
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { BreadcrumbParcours } from "@/components/parcours/BreadcrumbParcours";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,8 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
 
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const parcoursId = searchParams.get("parcoursId");
 
   useEffect(() => {
     async function fetchData() {
@@ -84,7 +87,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     } else {
       setLoading(true);
       await saveResults();
-      router.push(`/lessons/${id}/complete`);
+      router.push(`/lessons/${id}/complete${parcoursId ? `?parcoursId=${parcoursId}` : ''}`);
     }
   };
 
@@ -94,237 +97,147 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     } else {
       setLoading(true);
       await awardXpOnly();
-      router.push(`/lessons/${id}/complete`);
-    }
-  };
-
-  const awardXpOnly = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('lesson_progress').upsert({ user_id: user.id, lesson_id: id });
-      await supabase.rpc('increment_xp', { amount: 100 });
+      router.push(`/lessons/${id}/complete${parcoursId ? `?parcoursId=${parcoursId}` : ''}`);
     }
   };
 
   const saveResults = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user && exercise) {
-      const totalQuestions = exercise.content.questions.length;
-      const finalScore = (score / totalQuestions) * 100;
-      await supabase.from('exercise_attempts').insert({
-        user_id: user.id,
-        exercise_id: exercise.id,
+    if (!user) return;
+
+    const finalScore = Math.round((score / exercise.content.questions.length) * 100);
+
+    // Save attempt
+    await fetch('/api/exercise-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exerciseId: exercise.id,
         score: finalScore,
-        is_completed: true,
-      });
-      if (finalScore >= 50) {
-        await supabase.from('lesson_progress').upsert({ user_id: user.id, lesson_id: id });
-        await supabase.rpc('increment_xp', { amount: 100 });
-      }
-    }
+        answers: []
+      })
+    });
+
+    // Save lesson progress
+    await supabase.from('lesson_progress').insert({
+      user_id: user.id,
+      lesson_id: id
+    });
   };
 
-  if (loading && step === "reading") return (
-    <div className="flex items-center justify-center h-screen">
-      <Loader2 className="animate-spin text-indigo-600" size={40} />
-    </div>
-  );
-  if (!lesson) return <div className="p-8 text-center text-slate-500 font-bold">Leçon non trouvée.</div>;
+  const awardXpOnly = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-  // ── markdown state ──
-  let dialogueLineIndex = 0;
+    await fetch('/api/exercise-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exerciseId: null,
+        score: 100,
+        answers: []
+      })
+    });
+
+    await supabase.from('lesson_progress').insert({
+      user_id: user.id,
+      lesson_id: id
+    });
+  };
+
+  if (loading || !lesson) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
+          <p className="font-bold text-slate-500 animate-pulse">Chargement de la leçon...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-process markdown for a "cleaner" view
+  const cleanContent = lesson.content;
 
   const markdownComponents = {
-    h1: ({ children }: any) => <h1 className="hidden">{children}</h1>,
+    h2: ({ children, ...props }: any) => {
+      const text = String(children);
+      const label = stripEmoji(text);
+      let icon = <BookOpen className="text-indigo-500" size={24} />;
+      if (text.toLowerCase().includes("objectif")) icon = <Target className="text-amber-500" size={24} />;
+      if (text.toLowerCase().includes("exemple")) icon = <Sparkles className="text-emerald-500" size={24} />;
+      if (text.toLowerCase().includes("astuce")) icon = <Lightbulb className="text-violet-500" size={24} />;
 
-    h2: ({ children }: any) => {
-      const raw = children?.toString() || "";
-      const title = stripEmoji(raw);
-      const isTheorie = title.includes("Théorie");
-      const isExemple = title.includes("Exemple");
-      dialogueLineIndex = 0;
       return (
-        <div className="flex items-center gap-3 mt-10 mb-5 first:mt-0">
-          <div className={`w-9 h-9 flex items-center justify-center rounded-xl shrink-0
-            ${isTheorie ? 'bg-indigo-100 text-indigo-600' : isExemple ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-            {isTheorie ? <BookOpen size={18} /> : isExemple ? <GraduationCap size={18} /> : <Sparkles size={18} />}
+        <div className="mt-16 mb-8 group">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+              {icon}
+            </div>
+            <h2 {...props} className="text-2xl font-black text-slate-800 m-0 tracking-tight uppercase">
+              {label}
+            </h2>
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none">{title}</h2>
+          <div className="h-1 w-20 bg-indigo-500 rounded-full" />
         </div>
       );
     },
-
-    h3: ({ children }: any) => (
-      <h3 className="text-lg font-bold text-slate-700 mt-8 mb-4 border-l-4 border-indigo-200 pl-4">{children}</h3>
-    ),
-
-    p: ({ children, node }: any) => {
-      const isBoldLabel = node?.children?.length === 1 && node.children[0]?.tagName === "strong";
-      if (isBoldLabel) {
-        dialogueLineIndex = 0;
-        return (
-          <div className="flex items-center gap-2 mt-8 mb-3">
-            <MessageSquare size={15} className="text-emerald-500 shrink-0" />
-            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600">{children}</p>
-          </div>
-        );
-      }
-      return <p className="text-slate-600 leading-relaxed mb-4 font-medium">{children}</p>;
-    },
-
-    ul: ({ children }: any) => <ul className="space-y-2 my-6">{children}</ul>,
-
-    ol: ({ children }: any) => (
-      <ol className="space-y-3 my-6 list-none p-0">{children}</ol>
-    ),
-
-    li: ({ children, node, ordered }: any) => {
-      const rawText = node?.children?.map((c: any) => c.value || c.children?.map((cc: any) => cc.value || "").join("") || "").join("") || "";
-      
-      if (rawText.startsWith("⚠️") || rawText.startsWith("⚠")) {
-        return (
-          <li className="flex items-start gap-3">
-            <span className="mt-0.5 shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-100 text-orange-700 text-[11px] font-black uppercase tracking-wide">
-              <AlertTriangle size={11} /> Attention
-            </span>
-            <span className="text-slate-600 font-medium">{children}</span>
-          </li>
-        );
-      }
-      
-      if (rawText.startsWith("✅")) {
-        return (
-          <li className="flex items-start gap-3">
-            <span className="mt-0.5 shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[11px] font-black uppercase tracking-wide">
-              <CheckCircle2 size={11} /> Règle
-            </span>
-            <span className="text-slate-600 font-medium">{children}</span>
-          </li>
-        );
-      }
-
-      if (ordered) {
-        return (
-          <li className="p-4 rounded-2xl border bg-slate-50 border-slate-200 text-slate-700 font-medium">
-            {children}
-          </li>
-        );
-      }
-
-      return (
-        <li className="flex items-start gap-3 text-slate-600 font-medium">
-          <div className="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-          <span>{children}</span>
-        </li>
-      );
-    },
-
-    em: ({ children }: any) => {
-      const text = children?.toString() || "";
-      if (text.startsWith("— ")) {
-        const idx = dialogueLineIndex++;
-        const isMe = idx % 2 === 0;
-        return (
-          <div className={`flex my-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-base font-semibold not-italic leading-snug ${
-              isMe
-                ? 'bg-indigo-600 text-white rounded-tr-sm'
-                : 'bg-slate-100 text-slate-700 rounded-tl-sm'
-            }`}>
-              {text.replace(/^— /, '')}
-            </div>
-          </div>
-        );
-      }
-      return <em className="italic text-slate-600">{children}</em>;
-    },
-
+    p: ({ children }: any) => <p className="text-lg leading-relaxed text-slate-600 mb-6 font-medium">{children}</p>,
     strong: ({ children }: any) => {
-      const text = children?.toString() || "";
+      const text = String(children);
       if (isMnemo(text)) {
         const letters = parseMnemoLetters(text);
         return (
-          <span className="inline-flex flex-wrap gap-1.5 my-2">
-            {letters.map((word, i) => (
-              <span key={i} className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-black tracking-wide">
-                {word}
+          <span className="inline-flex gap-1 my-2">
+            {letters.map((l, i) => (
+              <span key={i} className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                {l}
               </span>
             ))}
           </span>
         );
       }
-      return <strong className="font-black text-indigo-900">{children}</strong>;
+      return <strong className="font-black text-slate-900 bg-indigo-50 px-1 rounded-sm">{children}</strong>;
     },
-
-    table: ({ children }: any) => (
-      <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm">
-        <table className="w-full text-sm">{children}</table>
-      </div>
-    ),
-    thead: ({ children }: any) => <thead className="bg-indigo-50 text-indigo-700">{children}</thead>,
-    tbody: ({ children }: any) => <tbody className="divide-y divide-zinc-50 bg-white">{children}</tbody>,
-    tr: ({ children }: any) => <tr className="hover:bg-zinc-50/60 transition-colors">{children}</tr>,
-    th: ({ children }: any) => (
-      <th className="px-5 py-3 text-left text-[11px] font-black uppercase tracking-widest">{children}</th>
-    ),
-    td: ({ children, node }: any) => {
-      const isFirst = (node?.parent?.children?.indexOf(node) === 0);
-      return (
-        <td className={`px-5 py-3 ${isFirst ? 'font-bold text-slate-800' : 'text-slate-500 font-medium'}`}>
-          {children}
-        </td>
-      );
-    },
-
     blockquote: ({ children }: any) => (
-      <div className="my-10 p-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-100 rounded-[2rem] relative overflow-hidden shadow-sm">
-        <Lightbulb className="absolute -right-4 -top-4 text-amber-200/30 w-32 h-32 rotate-12" />
-        <div className="relative z-10">
-          <p className="text-[10px] font-black uppercase text-amber-600 tracking-[0.2em] mb-3 flex items-center gap-2">
-            <Lightbulb size={14} fill="currentColor" /> L'Astuce du Coach
-          </p>
-          <div className="text-amber-900 font-bold text-base leading-relaxed space-y-1">
-            {children}
-          </div>
+      <div className="my-8 p-8 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-[2rem] border-l-8 border-indigo-500 relative overflow-hidden">
+        <div className="relative z-10 text-indigo-900 font-bold italic text-xl leading-relaxed">
+          {children}
         </div>
+        <Lightbulb className="absolute -right-4 -bottom-4 w-32 h-32 text-indigo-500/10 -rotate-12" />
       </div>
+    ),
+    ul: ({ children }: any) => <ul className="space-y-4 my-8">{children}</ul>,
+    li: ({ children }: any) => (
+      <li className="flex gap-4 items-start group">
+        <div className="mt-1.5 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+          <CheckCircle2 size={12} className="text-emerald-600" />
+        </div>
+        <span className="text-lg text-slate-600 font-medium leading-snug">{children}</span>
+      </li>
     ),
   };
 
-  const cleanContent = lesson.content
-    ? lesson.content.replace(/\\n/g, '\n').replace(/\r/g, '')
-    : "";
-
   return (
-    <div className="min-h-screen bg-zinc-50/50 pb-20">
-      {step === "reading" && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-zinc-100">
-          <motion.div
-            className="h-full bg-indigo-500"
-            style={{ width: `${readingProgress}%` }}
-            transition={{ ease: "linear", duration: 0.1 }}
-          />
-        </div>
-      )}
+    <div className="min-h-screen bg-slate-50/50">
+      {/* Progress Bar Top */}
+      <div className="fixed top-0 left-0 w-full h-1.5 bg-slate-100 z-[60]">
+        <motion.div
+          className="h-full bg-indigo-600"
+          initial={{ width: 0 }}
+          animate={{ width: `${readingProgress}%` }}
+        />
+      </div>
 
-      {loading && step !== "reading" && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="animate-spin text-indigo-600 mx-auto" size={40} />
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-              Enregistrement de vos progrès...
-            </p>
-          </div>
-        </div>
-      )}
+      <div className="max-w-4xl mx-auto px-6 pt-20 pb-20">
+        <BreadcrumbParcours currentPage={lesson.title} />
 
-      <div className="max-w-4xl mx-auto px-6 pt-8">
         <Link
-          href="/lessons"
-          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 transition-colors mb-10 group"
+          href={parcoursId ? `/parcours/${parcoursId}` : "/parcours"}
+          className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 mb-8 transition-all group"
         >
-          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-          Retour au catalogue
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          {parcoursId ? "Retour au parcours" : "Retour au catalogue"}
         </Link>
 
         <AnimatePresence mode="wait">
@@ -493,9 +406,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
               <Button
                 size="lg"
                 className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105"
-                onClick={() => router.push(`/lessons/${id}/complete`)}
+                onClick={() => router.push(`/lessons/${id}/complete${parcoursId ? `?parcoursId=${parcoursId}` : ''}`)}
               >
-                Retour au Dashboard
+                Continuer
               </Button>
             </motion.div>
           )}

@@ -1,28 +1,7 @@
 import { createClient } from '@/lib/supabase';
+import { Parcours, ParcoursProgress, Lesson } from '@/types/parcours';
 
 const supabase = createClient();
-
-export interface Parcours {
-  id: string;
-  level: string;
-  category: string;
-  objective: string;
-}
-
-export interface ParcoursProgress {
-  total: number;
-  completed: number;
-  percent: number;
-  isCompleted: boolean;
-}
-
-export interface Lesson {
-  id: string;
-  title: string;
-  order_index: number;
-  level: string;
-  category: string;
-}
 
 export async function getParcours(): Promise<Parcours[]> {
   const { data, error } = await supabase
@@ -40,7 +19,6 @@ export async function getParcours(): Promise<Parcours[]> {
 }
 
 export async function getParcoursProgress(userId: string, level: string, category: string): Promise<ParcoursProgress> {
-  // Get all lessons for this parcours
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('id')
@@ -54,9 +32,8 @@ export async function getParcoursProgress(userId: string, level: string, categor
   const total = lessons.length;
   if (total === 0) return { total: 0, completed: 0, percent: 0, isCompleted: false };
 
-  const lessonIds = lessons.map((l: any) => l.id);
+  const lessonIds = lessons.map((l: { id: string }) => l.id);
 
-  // Get completed lessons for this user in this parcours
   const { data: progress, error: progressError } = await supabase
     .from('lesson_progress')
     .select('lesson_id')
@@ -79,7 +56,7 @@ export async function getParcoursById(id: string): Promise<Parcours | null> {
     .from('parcours')
     .select('*')
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching parcours by id:', error);

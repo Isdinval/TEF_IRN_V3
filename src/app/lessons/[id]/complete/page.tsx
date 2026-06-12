@@ -2,62 +2,60 @@
 
 import { useEffect, useState, use } from "react";
 import { createClient } from "@/lib/supabase";
-import { getParcours } from "@/lib/parcours";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  Sparkles,
-  ArrowRight,
-  BookOpen,
-  Brain,
-  MessageSquare,
-  GraduationCap,
-  Loader2,
-  ChevronRight,
-  Trophy,
+  Trophy, ArrowRight, ChevronRight, MessageSquare, GraduationCap, Brain, Loader2, BookOpen
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-
-interface PathLesson {
-  id: string;
-  title: string;
-  order_index: number | null;
-  created_at: string;
-}
+import { getParcours, Lesson as PathLesson } from "@/lib/parcours";
+import { BreadcrumbParcours } from "@/components/parcours/BreadcrumbParcours";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 export default function LessonComplete({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [loading, setLoading] = useState(true);
-  const [parcoursId, setParcoursId] = useState<string | null>(null);
   const [lesson, setLesson] = useState<any>(null);
-  const [nextLesson, setNextLesson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
+  const [parcoursId, setParcoursId] = useState<string | null>(null);
 
   const supabase = createClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { updateProgress } = useParcours();
+  const urlParcoursId = searchParams.get("parcoursId");
 
   useEffect(() => {
     async function fetchData() {
-      const { data: authData } = await supabase.auth.getUser();
-      const user = authData?.user;
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Update global parcours progress if we are in a parcours context
+      await updateProgress();
+
+      // Fetch lesson details
       const { data: currentLesson } = await supabase
         .from('lessons')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (!currentLesson) return;
+      if (!currentLesson) {
+        setLoading(false);
+        return;
+      }
       setLesson(currentLesson);
 
+      // Fetch all lessons for the same level and category to calculate progress
       const { data: pathLessonsData } = await supabase
         .from('lessons')
-        .select('id, title, order_index, created_at')
+        .select('id, title, order_index')
         .eq('level', currentLesson.level)
         .eq('category', currentLesson.category)
-        .order('order_index', { ascending: true })
-        .order('created_at', { ascending: true });
+        .order('order_index', { ascending: true });
 
       const pathLessons = (pathLessonsData as PathLesson[]) || [];
 
@@ -82,16 +80,19 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
         }
       }
 
-
       // Find current parcours ID
-      const allParcours = await getParcours();
-      const currentParcours = allParcours.find(p => p.level === currentLesson.level && p.category === currentLesson.category);
-      if (currentParcours) setParcoursId(currentParcours.id);
+      if (urlParcoursId) {
+        setParcoursId(urlParcoursId);
+      } else {
+        const allParcours = await getParcours();
+        const currentParcours = allParcours.find(p => p.level === currentLesson.level && p.category === currentLesson.category);
+        if (currentParcours) setParcoursId(currentParcours.id);
+      }
 
       setLoading(false);
     }
     fetchData();
-  }, [id, supabase]);
+  }, [id, supabase, updateProgress, urlParcoursId]);
 
   if (loading) {
     return (
@@ -103,12 +104,17 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
   if (!lesson) return <div>Leçon non trouvée.</div>;
 
-  const practiceBaseUrl = (page: string) => `/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
+  const practiceBaseUrl = (page: string) => {
+      let url = `/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
+      if (parcoursId) url += `&parcoursId=${parcoursId}`;
+      return url;
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-8 py-16 min-h-screen">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      <BreadcrumbParcours currentPage="Félicitations" />
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
         {/* COLONNE GAUCHE */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -156,28 +162,36 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
             </p>
           </Card>
 
-          <div>
+          <div className="space-y-4">
             {nextLesson ? (
-              <Link href={`/lessons/${nextLesson.id}`}>
-                <Button
-                  size="lg"
-                  className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  Leçon suivante <ArrowRight className="ml-2" size={24} />
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                onClick={() => router.push(`/lessons/${nextLesson.id}${parcoursId ? `?parcoursId=${parcoursId}` : ''}`)}
+                className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Continuer mon parcours <ArrowRight className="ml-2" size={24} />
+              </Button>
             ) : (
-              <div className="space-y-6">
-                <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
-                  <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
-                  <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
-                  <Link href="/parcours">
-                    <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
-                      Voir mon parcours
-                    </Button>
-                  </Link>
-                </div>
+              <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
+                <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
+                <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
+                <Link href="/parcours">
+                  <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
+                    Voir mes parcours
+                  </Button>
+                </Link>
               </div>
+            )}
+
+            {parcoursId && (
+               <Button
+                 variant="ghost"
+                 size="lg"
+                 onClick={() => router.push(`/parcours/${parcoursId}`)}
+                 className="w-full h-16 text-lg font-bold rounded-2xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+               >
+                 Retour au plan du parcours
+               </Button>
             )}
           </div>
         </motion.div>
@@ -193,6 +207,10 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
             <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pratiquer maintenant</h2>
             <div className="h-px bg-zinc-100 flex-1" />
           </div>
+
+          <p className="text-slate-500 font-medium">
+            Renforcez vos connaissances sur <span className="text-indigo-600 font-bold">{lesson.category}</span> avec ces exercices ciblés.
+          </p>
 
           <div className="space-y-6">
             {/* Grammar Card */}

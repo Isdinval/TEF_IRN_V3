@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, Parcours, ParcoursProgress, Lesson } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours } from "@/lib/parcours";
+import { Parcours, ParcoursProgress, Lesson } from "@/types/parcours";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Target, CheckCircle2, Lock, ArrowLeft, Play, ArrowRight } from "lucide-react";
+import { Loader2, Target, CheckCircle2, Lock, ArrowLeft, Play, ArrowRight, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { PageTransition } from "@/components/shared/Animations";
+import { useParcours } from "@/contexts/ParcoursContext";
+import { BreadcrumbParcours } from "@/components/parcours/BreadcrumbParcours";
 
 export default function ParcoursDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [loading, setLoading] = useState(true);
+  const [loadingLocal, setLoadingLocal] = useState(true);
   const [parcours, setParcours] = useState<Parcours | null>(null);
   const [progress, setProgress] = useState<ParcoursProgress | null>(null);
   const [lessons, setLessons] = useState<(Lesson & { isCompleted: boolean })[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+  const { setActiveParcoursById, activeParcours } = useParcours();
 
   useEffect(() => {
     async function loadData() {
@@ -31,23 +36,26 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
       const p = await getParcoursById(id);
       if (!p) {
-        setLoading(false);
+        setLoadingLocal(false);
         return;
+      }
+
+      if (!activeParcours || activeParcours.id !== id) {
+        await setActiveParcoursById(id);
       }
 
       const prog = await getParcoursProgress(user.id, p.level, p.category);
       const allLessons = await getLessonsForParcours(p.level, p.category);
 
-      // Fetch completed lessons for status
       const { data: completedData } = await supabase
         .from('lesson_progress')
         .select('lesson_id')
         .eq('user_id', user.id)
-        .in('lesson_id', allLessons.map((l: any) => l.id));
+        .in('lesson_id', allLessons.map((l: Lesson) => l.id));
 
-      const completedIds = new Set(completedData?.map((c: any) => c.lesson_id) || []);
+      const completedIds = new Set(completedData?.map((c: { lesson_id: string }) => c.lesson_id) || []);
 
-      const lessonsWithStatus = allLessons.map((l: any) => ({
+      const lessonsWithStatus = allLessons.map((l: Lesson) => ({
         ...l,
         isCompleted: completedIds.has(l.id)
       }));
@@ -55,12 +63,12 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
       setParcours(p);
       setProgress(prog);
       setLessons(lessonsWithStatus);
-      setLoading(false);
+      setLoadingLocal(false);
     }
     loadData();
-  }, [id, supabase, router]);
+  }, [id, supabase, router, setActiveParcoursById, activeParcours]);
 
-  if (loading) {
+  if (loadingLocal) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="animate-spin text-indigo-600" size={48} />
@@ -83,9 +91,7 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
     <PageTransition>
       <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
         <div className="max-w-4xl mx-auto">
-          <Link href="/parcours" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 mb-8 transition-colors">
-            <ArrowLeft size={16} /> Retour aux parcours
-          </Link>
+          <BreadcrumbParcours />
 
           <header className="mb-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -105,7 +111,7 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
 
               {firstUncompletedLesson && (
                 <Button
-                  onClick={() => router.push(`/lessons/${firstUncompletedLesson.id}`)}
+                  onClick={() => router.push(`/lessons/${firstUncompletedLesson.id}?parcoursId=${id}`)}
                   size="lg"
                   className="h-16 px-8 rounded-2xl bg-zinc-900 text-white font-black text-lg hover:bg-black shadow-xl shadow-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -148,13 +154,14 @@ export default function ParcoursDetailPage({ params }: { params: Promise<{ id: s
           </header>
 
           <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-6 px-1">
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-6 px-1 flex items-center gap-2">
+              <BookOpen size={20} className="text-indigo-600" />
               Programme du parcours
             </h2>
 
             <div className="space-y-4">
               {lessons.map((lesson, index) => (
-                <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
+                <Link key={lesson.id} href={`/lessons/${lesson.id}?parcoursId=${id}`}>
                   <Card className={`group border-none shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden mb-4 ${lesson.isCompleted ? 'bg-emerald-50/30' : 'bg-white'}`}>
                     <CardContent className="p-6 flex items-center gap-6">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg

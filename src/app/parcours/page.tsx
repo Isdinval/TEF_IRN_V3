@@ -57,7 +57,7 @@ export default function ParcoursPage() {
       <section className="mb-16">
         <div className="flex items-center gap-4 mb-8 px-1">
           <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-            <Badge className={`${badgeColor} rounded-full px-4 py-1`}>{title}</Badge>
+            <Badge className={`${badgeColor} rounded-full px-4 py-1 border-none shadow-sm`}>{title}</Badge>
             <span className="text-zinc-300">•</span>
             {items.length} parcours
           </h2>

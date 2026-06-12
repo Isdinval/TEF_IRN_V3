@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import {
   Target
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BreadcrumbParcours } from "@/components/parcours/BreadcrumbParcours";
 
 interface Exercise {
   id: string;
@@ -50,7 +50,8 @@ function PracticeContent() {
   const [isReviewMode, setIsReviewMode] = useState(false);
 
   const router = useRouter();
-    const supabase = createClient();
+  const supabase = createClient();
+  const parcoursId = searchParams.get("parcoursId");
 
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
@@ -64,7 +65,6 @@ function PracticeContent() {
 
   const autoStart = async (lessonId: string, topic: string, level?: string) => {
     setLoading(true);
-    // On essaie de trouver un exercice spécifique à la leçon
     const { data: lessonExo } = await supabase
       .from('exercises')
       .select('*')
@@ -101,401 +101,331 @@ function PracticeContent() {
         if (topicExo) {
           setExercise(topicExo as Exercise);
           setMode("training");
-        } else {
-          // Dernier recours : n'importe quel QCM du même niveau
-          const { data: fallbackExo } = await supabase
-            .from('exercises')
-            .select('*')
-            .eq('level', targetLevel)
-            .eq('type', 'qcm_centre_entrainement')
-            .limit(1)
-            .maybeSingle();
-          if (fallbackExo) {
-            setExercise(fallbackExo as Exercise);
-            setMode("training");
-          }
         }
       }
     }
     setLoading(false);
   };
 
-  const categories = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"];
-  const levels = ["A1", "A2", "B1", "B2"];
-
-  const startTraining = async (review: boolean = false) => {
+  const startExercise = async (level: string, category: string) => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("level", level)
+      .eq("category", category)
+      .eq("type", "qcm_centre_entrainement")
+      .limit(1)
+      .maybeSingle();
 
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm_centre_entrainement');
-
-    if (review && user) {
-      const { data: reviews } = await supabase
-        .from('user_reviews')
-        .select('exercise_id')
-        .eq('user_id', user.id)
-        .lte('next_review_at', new Date().toISOString());
-
-      const ids = reviews?.map((r: any) => r.exercise_id) || [];
-      if (ids.length === 0) {
-        alert("Bravo ! Vous n'avez aucune révision urgente.");
-        setLoading(false);
-        return;
-      }
-      query = query.in('id', ids);
-      setIsReviewMode(true);
-    } else {
-      query = query.eq('level', filters.level).eq('category', filters.category);
-      setIsReviewMode(false);
-    }
-
-    const { data, error } = await query.limit(1);
-
-    if (error) {
-      console.error(error);
-      alert("Erreur lors du chargement.");
-    } else if (data && data.length > 0) {
-      const ex = data[0] as Exercise;
-      setExercise(ex);
+    if (data) {
+      setExercise(data as Exercise);
       setMode("training");
       setCurrentQuestionIndex(0);
       setScore(0);
       setIsFinished(false);
-      setSelected(null);
-      setIsChecked(false);
-    } else {
-      alert("Aucun exercice trouvé pour ce niveau et cette catégorie.");
     }
     setLoading(false);
   };
 
-  const handleCheck = () => {
-    if (!exercise) return;
-    const correctAnswer = exercise.content.correct_answers[currentQuestionIndex];
-
-    if (selected === correctAnswer) {
-      setScore(prev => prev + 1);
-    }
-    setIsChecked(true);
+  const handleAnswer = (index: number) => {
+    if (isChecked) return;
+    setSelected(index);
   };
 
-  const handleNext = async () => {
-    if (!exercise) return;
-    const totalQuestions = exercise.content.questions.length;
+  const checkAnswer = () => {
+    if (selected === null || isChecked) return;
+    setIsChecked(true);
+    if (selected === exercise?.content.correct_answers[currentQuestionIndex]) {
+      setScore((prev) => prev + 1);
+    }
+  };
 
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+  const nextQuestion = async () => {
+    if (!exercise) return;
+    if (currentQuestionIndex < exercise.content.questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
-      // Finished exercise
-      await saveExerciseProgress();
-      setIsFinished(true);
+      await finishExercise();
     }
   };
 
-  const saveExerciseProgress = async () => {
+  const finishExercise = async () => {
     if (!exercise) return;
-    const total = exercise.content.questions.length;
-    const percentage = Math.round((score / total) * 100);
+    setLoading(true);
+    const finalScore = Math.round((score / exercise.content.questions.length) * 100);
 
     try {
-      await fetch('/api/exercise-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/exercise-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           exerciseId: exercise.id,
-          score: percentage,
-          answers: { correct: score, total: total }
-        })
+          score: finalScore,
+          answers: [],
+        }),
       });
-    } catch (err) {
-      console.error("Error saving score:", err);
+    } catch (e) {
+      console.error(e);
     }
+
+    setIsFinished(true);
+    setLoading(false);
+  };
+
+  const reset = () => {
+    setMode("selection");
+    setExercise(null);
+    setCurrentQuestionIndex(0);
+    setSelected(null);
+    setIsChecked(false);
+    setScore(0);
+    setIsFinished(false);
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50">
-        <Loader2 className="animate-spin text-indigo-600 mb-4" size={48} />
-        <p className="text-zinc-500 font-bold animate-pulse">Préparation de votre exercice...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+        <p className="text-slate-500 font-bold animate-pulse">Chargement de l'exercice...</p>
       </div>
     );
   }
-
-  if (mode === "selection") {
-    return (
-      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
-        <header className="mb-12">
-          <Badge className="bg-indigo-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-indigo-100">
-            Centre d'Entraînement
-          </Badge>
-          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
-            QCM GRAMMAIRE <span className="text-indigo-600">&</span> VOCAB
-          </h1>
-          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
-            Pratiquez les règles de la langue française avec nos exercices interactifs de type Voltaire.
-          </p>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
-            <div className="space-y-10">
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                    <GraduationCap size={24} />
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {levels.map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setFilters({ ...filters, level: l })}
-                      className={`
-                        h-20 rounded-2xl border-2 font-black text-xl transition-all
-                        ${filters.level === l ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-inner' : 'border-zinc-100 hover:border-zinc-300 text-zinc-400'}
-                      `}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                    <LayoutGrid size={24} />
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {categories.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setFilters({ ...filters, category: c })}
-                      className={`
-                        p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between
-                        ${filters.category === c ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-100 hover:border-zinc-300 text-zinc-500'}
-                      `}
-                    >
-                      {c}
-                      {filters.category === c && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <Button
-                onClick={() => startTraining(false)}
-                className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
-              >
-                COMMENCER L'EXERCICE
-              </Button>
-            </div>
-          </Card>
-
-          <div className="space-y-6">
-            <Card className="border-none shadow-2xl shadow-indigo-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white relative overflow-hidden">
-               <div className="relative z-10">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
-                    <Brain size={28} />
-                  </div>
-                  <h3 className="text-2xl font-black mb-2 tracking-tight">Révision urgente</h3>
-                  <p className="text-indigo-100 text-sm font-medium mb-8 leading-relaxed">
-                    Notre algorithme a identifié des points faibles. Révisez-les maintenant pour ne pas oublier.
-                  </p>
-                  <Button
-                    onClick={() => startTraining(true)}
-                    className="w-full h-14 bg-white text-indigo-600 hover:bg-indigo-50 font-black rounded-xl shadow-xl border-none"
-                  >
-                    Réviser mon SRS
-                  </Button>
-               </div>
-               <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
-            </Card>
-
-            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="text-zinc-400" size={20} />
-                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide Rapide</h4>
-              </div>
-              <div className="space-y-4">
-                 <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                   Un exercice est composé de 5 questions. Lisez attentivement et choisissez la bonne option.
-                 </p>
-                 <div className="h-px bg-zinc-200 w-full" />
-                 <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
-                    <Target size={14} className="text-indigo-600" /> Objectif : 80% de réussite
-                 </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isFinished && exercise) {
-    const totalQuestions = exercise.content.questions.length;
-    const percentage = Math.round((score / totalQuestions) * 100);
-
-    return (
-      <div className="flex items-center justify-center min-h-screen p-8 bg-zinc-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-xl"
-        >
-          <Card className="text-center p-12 rounded-[4rem] shadow-2xl shadow-indigo-100 border-none bg-white">
-            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
-              <CheckCircle2 className="text-green-600" size={48} />
-            </div>
-            <h1 className="text-4xl font-black mb-4 tracking-tighter">Exercice Terminé !</h1>
-            <p className="text-zinc-400 mb-10 font-bold text-lg">
-              Tu as répondu correctement à <span className="text-zinc-900">{score}</span> questions sur <span className="text-zinc-900">{totalQuestions}</span>.
-            </p>
-
-            <div className="relative mb-12">
-               <div className="text-8xl font-black text-indigo-600 tracking-tighter">
-                {percentage}%
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-300 mt-2">Score de maîtrise</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-10">
-               <div className="bg-zinc-50 p-6 rounded-3xl">
-                  <div className="text-zinc-400 text-[10px] font-black uppercase mb-1">XP GAGNÉS</div>
-                  <div className="text-2xl font-black text-zinc-900">+{percentage}</div>
-               </div>
-               <div className="bg-zinc-50 p-6 rounded-3xl">
-                  <div className="text-zinc-400 text-[10px] font-black uppercase mb-1">DASHBOARD</div>
-                  <div className="text-xs font-black text-indigo-600 uppercase">Mise à jour OK</div>
-               </div>
-            </div>
-
-            <Button
-              className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all"
-              onClick={() => setMode("selection")}
-            >
-              Retour à la sélection
-            </Button>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
-
-  const currentQuestionText = exercise?.content?.questions[currentQuestionIndex];
-  const currentOptions = exercise?.content?.options[currentQuestionIndex];
-  const totalQuestions = exercise?.content?.questions.length || 5;
 
   return (
-    <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
-      <header className="mb-12 flex justify-between items-end">
-        <div className="space-y-2">
-          <button
-            onClick={() => setMode("selection")}
-            className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors font-bold text-sm mb-4"
-          >
-            <ChevronLeft size={16} /> Quitter
-          </button>
-          <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none">
-              {exercise?.level} • {isReviewMode ? "Révision" : exercise?.category}
-            </Badge>
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">QCM Voltaire</span>
-          </div>
-          <h2 className="text-3xl font-black text-zinc-900 tracking-tighter uppercase leading-none">
-            {exercise?.instructions.replace('.', '')}
-          </h2>
-        </div>
-        <div className="flex flex-col items-end gap-3">
-            <div className="text-xs font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200">
-              Question {currentQuestionIndex + 1} / {totalQuestions}
-            </div>
-            <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-indigo-600"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
-                />
-            </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50/50 p-6 lg:p-12">
+      <div className="max-w-5xl mx-auto">
+        <BreadcrumbParcours currentPage="QCM" />
 
-      <div className="flex-1 flex flex-col justify-center mb-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQuestionIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-12"
-          >
-            <div className="p-12 bg-white border-2 border-zinc-100 shadow-2xl shadow-zinc-100 rounded-[4rem] text-4xl text-center font-black text-zinc-900 leading-tight tracking-tight relative">
-               <Target className="absolute -top-6 left-1/2 -translate-x-1/2 text-indigo-600 bg-white w-12 h-12 p-2 rounded-2xl shadow-lg border-2 border-zinc-100" />
-              {currentQuestionText}
-            </div>
+        {mode === "selection" ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+            <header className="space-y-4">
+              <Badge className="bg-indigo-600 rounded-full px-4 py-1 text-xs font-black uppercase tracking-widest border-none">
+                Centre d'entraînement
+              </Badge>
+              <h1 className="text-5xl font-black text-slate-900 tracking-tighter">
+                PRATIQUE <span className="text-indigo-600">QCM</span>
+              </h1>
+              <p className="text-xl text-slate-500 font-medium max-w-2xl">
+                Choisissez votre niveau et la catégorie pour commencer une session d'entraînement rapide.
+              </p>
+            </header>
 
-            <div className="grid grid-cols-1 gap-4">
-              <p className="text-center text-xs font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Choisissez la bonne réponse :</p>
-              {currentOptions?.map((option, i) => (
-                <button
-                  key={i}
-                  disabled={isChecked}
-                  onClick={() => setSelected(i)}
-                  className={`
-                    w-full p-8 rounded-3xl border-2 text-left transition-all flex justify-between items-center font-black text-xl
-                    ${selected === i ? 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-lg' : 'border-zinc-50 bg-white text-zinc-500 hover:border-zinc-200 shadow-sm'}
-                    ${isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-none' : ''}
-                    ${isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-none' : ''}
-                  `}
-                >
-                  <span>{option}</span>
-                  {isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" size={28} />}
-                  {isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" size={28} />}
-                </button>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <Target size={20} />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Configuration</h3>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Niveau CEFR</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["A1", "A2", "B1", "B2"].map((lvl) => (
+                        <button
+                          key={lvl}
+                          onClick={() => setFilters({ ...filters, level: lvl })}
+                          className={`py-3 rounded-xl font-black text-sm transition-all ${
+                            filters.level === lvl ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                          }`}
+                        >
+                          {lvl}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Catégorie</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setFilters({ ...filters, category: cat })}
+                          className={`py-3 px-4 rounded-xl font-black text-sm text-left transition-all ${
+                            filters.category === cat ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => startExercise(filters.level, filters.category)}
+                    className="w-full h-16 rounded-2xl bg-zinc-900 hover:bg-black text-white font-black text-lg shadow-xl shadow-zinc-200"
+                  >
+                    Lancer l'entraînement
+                    <ArrowRight className="ml-2" />
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="space-y-6">
+                <Card className="p-8 rounded-[2.5rem] border-none bg-indigo-600 text-white shadow-xl shadow-indigo-200/50">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <GraduationCap size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-lg uppercase tracking-tight">Format Examen</h4>
+                      <p className="text-indigo-100 text-sm font-medium">5 questions par session</p>
+                    </div>
+                  </div>
+                  <p className="text-indigo-50 font-medium leading-relaxed italic">
+                    "Ces exercices sont conçus pour valider rapidement vos acquis sur des points précis de la langue française."
+                  </p>
+                </Card>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="p-6 rounded-[2rem] border-none bg-white shadow-lg shadow-zinc-200/50 flex flex-col items-center text-center gap-2">
+                    <LayoutGrid className="text-indigo-600" size={24} />
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Questions</span>
+                    <span className="text-xl font-black text-slate-900">160+ QCM</span>
+                  </Card>
+                  <Card className="p-6 rounded-[2rem] border-none bg-white shadow-lg shadow-zinc-200/50 flex flex-col items-center text-center gap-2">
+                    <Calendar className="text-emerald-500" size={24} />
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Révision</span>
+                    <span className="text-xl font-black text-slate-900">Quotidienne</span>
+                  </Card>
+                </div>
+              </div>
             </div>
           </motion.div>
-        </AnimatePresence>
-      </div>
-
-      <footer className="flex justify-between items-center p-6 bg-white border border-zinc-100 rounded-[2.5rem] shadow-xl shadow-zinc-100 mb-8">
-        <div className="flex gap-4">
-           <div className="flex flex-col">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</span>
-              <span className="text-xl font-black text-zinc-900">{score} / {totalQuestions}</span>
-           </div>
-        </div>
-
-        {!isChecked ? (
-          <Button
-            disabled={selected === null}
-            onClick={handleCheck}
-            className="h-16 px-12 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl shadow-xl shadow-zinc-200 text-lg transition-all active:scale-95"
-          >
-            Vérifier la réponse
-          </Button>
         ) : (
-          <Button
-            onClick={handleNext}
-            className="h-16 px-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 flex gap-2 text-lg transition-all active:scale-95"
-          >
-            {currentQuestionIndex < totalQuestions - 1 ? "Question suivante" : "Terminer l'exercice"} <ArrowRight size={24} />
-          </Button>
+          <div className="max-w-3xl mx-auto py-8">
+            <AnimatePresence mode="wait">
+              {!isFinished ? (
+                <motion.div key="training" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-8">
+                  <div className="flex justify-between items-center bg-white px-8 py-6 rounded-[2.5rem] border border-zinc-100 shadow-sm">
+                    <button onClick={reset} className="flex items-center gap-2 text-zinc-400 hover:text-indigo-600 font-bold transition-colors">
+                      <ChevronLeft size={20} />
+                      Quitter
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="font-black border-zinc-200">{filters.level}</Badge>
+                      <div className="h-4 w-px bg-zinc-100" />
+                      <span className="text-sm font-black text-slate-600">{currentQuestionIndex + 1} / {exercise?.content.questions.length}</span>
+                    </div>
+                  </div>
+
+                  <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[3rem] overflow-hidden">
+                    <CardContent className="p-12 text-center space-y-12">
+                      <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+                        <Brain size={32} />
+                      </div>
+                      <h3 className="text-3xl font-black text-slate-800 leading-tight">
+                        {exercise?.content.questions[currentQuestionIndex]}
+                      </h3>
+
+                      <div className="grid grid-cols-1 gap-4 text-left max-w-xl mx-auto">
+                        {exercise?.content.options[currentQuestionIndex].map((opt, i) => (
+                          <button
+                            key={i}
+                            disabled={isChecked}
+                            onClick={() => handleAnswer(i)}
+                            className={`
+                              w-full p-6 rounded-2xl border-2 transition-all font-bold text-lg flex items-center justify-between group
+                              ${selected === i ? "border-indigo-600 bg-indigo-50 text-indigo-900" : "border-zinc-100 bg-white text-slate-500 hover:border-indigo-200 hover:text-indigo-600"}
+                              ${isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] ? "border-emerald-500 bg-emerald-50 text-emerald-900" : ""}
+                              ${isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] ? "border-rose-500 bg-rose-50 text-rose-900" : ""}
+                            `}
+                          >
+                            <span>{opt}</span>
+                            {isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" />}
+                            {isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" />}
+                          </button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex justify-center">
+                    {!isChecked ? (
+                      <Button
+                        disabled={selected === null}
+                        onClick={checkAnswer}
+                        className="px-16 h-16 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95"
+                      >
+                        Vérifier ma réponse
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={nextQuestion}
+                        className="px-16 h-16 bg-zinc-900 hover:bg-black rounded-2xl font-black text-lg shadow-xl shadow-zinc-200 transition-all hover:scale-105 active:scale-95"
+                      >
+                        {currentQuestionIndex < (exercise?.content.questions.length || 0) - 1 ? "Question suivante" : "Voir mon score"}
+                        <ArrowRight className="ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-12 py-12">
+                  <div className="relative inline-block">
+                    <div className="w-48 h-48 rounded-[3.5rem] bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto rotate-12 relative z-10 shadow-xl shadow-emerald-50">
+                      <Sparkles size={80} />
+                    </div>
+                    <div className="absolute inset-0 bg-emerald-200 blur-3xl opacity-20 -z-10" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <h2 className="text-5xl font-black text-slate-900">Session terminée !</h2>
+                    <p className="text-2xl text-slate-500 font-medium italic">Excellent travail. Vous progressez rapidement.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm">
+                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Score final</p>
+                      <p className="text-5xl font-black text-indigo-600">{Math.round((score / (exercise?.content.questions.length || 1)) * 100)}%</p>
+                    </div>
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm">
+                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">XP Gagnés</p>
+                      <p className="text-5xl font-black text-amber-500">+{score * 20}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button onClick={reset} size="lg" className="px-12 h-16 rounded-2xl bg-zinc-100 text-zinc-600 hover:bg-zinc-200 font-black text-lg">
+                      Nouvel entraînement
+                    </Button>
+                    {parcoursId ? (
+                        <Button
+                          onClick={() => router.push(`/parcours/${parcoursId}`)}
+                          size="lg"
+                          className="px-12 h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-xl shadow-indigo-100"
+                        >
+                          Reprendre mon parcours
+                        </Button>
+                    ) : (
+                        <Button onClick={() => router.push("/dashboard")} size="lg" className="px-12 h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-xl shadow-indigo-100">
+                          Tableau de bord
+                        </Button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         )}
-      </footer>
+      </div>
     </div>
   );
 }
 
-export default function Practice() {
+export default function PracticePage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    }>
       <PracticeContent />
     </Suspense>
   );
