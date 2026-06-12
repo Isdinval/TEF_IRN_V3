@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useParcours } from "@/contexts/ParcoursContext";
+import { BreadcrumbParcours } from "@/components/shared/BreadcrumbParcours";
 import {
   ArrowRight,
   CheckCircle2,
@@ -18,7 +20,8 @@ import {
   Brain,
   Sparkles,
   ChevronLeft,
-  Target
+  Target,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -48,9 +51,10 @@ function PracticeContent() {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ level: "A2", category: "Grammaire" });
   const [isReviewMode, setIsReviewMode] = useState(false);
+  const { activeParcours } = useParcours();
 
   const router = useRouter();
-    const supabase = createClient();
+  const supabase = createClient();
 
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
@@ -59,8 +63,10 @@ function PracticeContent() {
 
     if (lessonId && topic) {
       autoStart(lessonId, topic, level || undefined);
+    } else if (activeParcours && mode === "selection") {
+      setFilters({ level: activeParcours.level, category: activeParcours.category });
     }
-  }, [searchParams]);
+  }, [searchParams, activeParcours]);
 
   const autoStart = async (lessonId: string, topic: string, level?: string) => {
     setLoading(true);
@@ -101,208 +107,161 @@ function PracticeContent() {
         if (topicExo) {
           setExercise(topicExo as Exercise);
           setMode("training");
-        } else {
-          // Dernier recours : n'importe quel QCM du même niveau
-          const { data: fallbackExo } = await supabase
-            .from('exercises')
-            .select('*')
-            .eq('level', targetLevel)
-            .eq('type', 'qcm_centre_entrainement')
-            .limit(1)
-            .maybeSingle();
-          if (fallbackExo) {
-            setExercise(fallbackExo as Exercise);
-            setMode("training");
-          }
         }
       }
     }
     setLoading(false);
   };
 
-  const categories = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"];
-  const levels = ["A1", "A2", "B1", "B2"];
-
-  const startTraining = async (review: boolean = false) => {
+  const startTraining = async (review = false) => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    setIsReviewMode(review);
 
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm_centre_entrainement');
+    if (review) {
+      const { data: reviewExo } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('type', 'qcm_centre_entrainement')
+        .limit(1)
+        .single();
 
-    if (review && user) {
-      const { data: reviews } = await supabase
-        .from('user_reviews')
-        .select('exercise_id')
-        .eq('user_id', user.id)
-        .lte('next_review_at', new Date().toISOString());
-
-      const ids = reviews?.map((r: any) => r.exercise_id) || [];
-      if (ids.length === 0) {
-        alert("Bravo ! Vous n'avez aucune révision urgente.");
-        setLoading(false);
-        return;
-      }
-      query = query.in('id', ids);
-      setIsReviewMode(true);
+      if (reviewExo) setExercise(reviewExo as Exercise);
     } else {
-      query = query.eq('level', filters.level).eq('category', filters.category);
-      setIsReviewMode(false);
+      const { data: normalExo } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('level', filters.level)
+        .eq('category', filters.category)
+        .eq('type', 'qcm_centre_entrainement')
+        .limit(1)
+        .maybeSingle();
+
+      if (normalExo) setExercise(normalExo as Exercise);
     }
 
-    const { data, error } = await query.limit(1);
-
-    if (error) {
-      console.error(error);
-      alert("Erreur lors du chargement.");
-    } else if (data && data.length > 0) {
-      const ex = data[0] as Exercise;
-      setExercise(ex);
-      setMode("training");
-      setCurrentQuestionIndex(0);
-      setScore(0);
-      setIsFinished(false);
-      setSelected(null);
-      setIsChecked(false);
-    } else {
-      alert("Aucun exercice trouvé pour ce niveau et cette catégorie.");
-    }
+    setMode("training");
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setIsFinished(false);
     setLoading(false);
   };
 
   const handleCheck = () => {
-    if (!exercise) return;
-    const correctAnswer = exercise.content.correct_answers[currentQuestionIndex];
-
-    if (selected === correctAnswer) {
-      setScore(prev => prev + 1);
-    }
+    if (selected === null || !exercise) return;
+    const correct = exercise.content.correct_answers[currentQuestionIndex];
+    if (selected === correct) setScore(s => s + 1);
     setIsChecked(true);
   };
 
   const handleNext = async () => {
-    if (!exercise) return;
-    const totalQuestions = exercise.content.questions.length;
-
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+    if (currentQuestionIndex < (exercise?.content.questions.length || 5) - 1) {
+      setCurrentQuestionIndex(i => i + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
-      // Finished exercise
-      await saveExerciseProgress();
       setIsFinished(true);
+      // Update XP and practice status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Record attempt
+        await supabase.from('exercise_attempts').insert({
+          user_id: user.id,
+          exercise_id: exercise?.id,
+          score: Math.round((score / (exercise?.content.questions.length || 5)) * 100),
+          is_completed: true
+        });
+
+        // Update profile XP
+        const xpToAdd = Math.round((score / (exercise?.content.questions.length || 5)) * 100);
+        const { data: profile } = await supabase.from('profiles').select('total_xp').eq('id', user.id).single();
+        await supabase.from('profiles').update({
+          total_xp: (profile?.total_xp || 0) + xpToAdd,
+          last_activity_at: new Date().toISOString()
+        }).eq('id', user.id);
+
+        // Update last_practice_at in user_parcours_progress if in parcours mode
+        if (activeParcours) {
+          await supabase.from('user_parcours_progress')
+            .update({ last_practice_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .eq('parcours_id', activeParcours.id);
+        }
+      }
     }
   };
-
-  const saveExerciseProgress = async () => {
-    if (!exercise) return;
-    const total = exercise.content.questions.length;
-    const percentage = Math.round((score / total) * 100);
-
-    try {
-      await fetch('/api/exercise-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exerciseId: exercise.id,
-          score: percentage,
-          answers: { correct: score, total: total }
-        })
-      });
-    } catch (err) {
-      console.error("Error saving score:", err);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50">
-        <Loader2 className="animate-spin text-indigo-600 mb-4" size={48} />
-        <p className="text-zinc-500 font-bold animate-pulse">Préparation de votre exercice...</p>
-      </div>
-    );
-  }
 
   if (mode === "selection") {
     return (
-      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
-        <header className="mb-12">
-          <Badge className="bg-indigo-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-indigo-100">
-            Centre d'Entraînement
-          </Badge>
-          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
-            QCM GRAMMAIRE <span className="text-indigo-600">&</span> VOCAB
+      <div className="max-w-6xl mx-auto p-8 pt-16 min-h-screen">
+        <BreadcrumbParcours />
+        <header className="mb-16 space-y-4">
+          <div className="flex items-center gap-3">
+             <Badge className="bg-indigo-600 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
+                Training Center
+             </Badge>
+             {activeParcours && (
+               <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-indigo-200 text-indigo-600 bg-indigo-50 flex items-center gap-2">
+                 <Sparkles size={12} /> Contextualisé : {activeParcours.category} {activeParcours.level}
+               </Badge>
+             )}
+          </div>
+          <h1 className="text-6xl font-black text-zinc-900 tracking-tighter leading-none">
+            QCM Grammaire <br />& Vocabulaire
           </h1>
-          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
-            Pratiquez les règles de la langue française avec nos exercices interactifs de type Voltaire.
+          <p className="text-xl text-zinc-400 font-medium max-w-2xl leading-relaxed">
+            Entraînez-vous sur des points précis pour automatiser vos réflexes et réussir votre examen.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
-            <div className="space-y-10">
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                    <GraduationCap size={24} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="border-none shadow-2xl shadow-zinc-100 rounded-[3rem] p-10 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Niveau</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["A1", "A2", "B1", "B2"].map((l) => (
+                      <button
+                        key={l}
+                        onClick={() => setFilters({ ...filters, level: l })}
+                        className={`h-14 flex-1 rounded-2xl font-black text-sm transition-all ${filters.level === l ? 'bg-zinc-900 text-white shadow-xl' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {l}
+                      </button>
+                    ))}
                   </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {levels.map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setFilters({ ...filters, level: l })}
-                      className={`
-                        h-20 rounded-2xl border-2 font-black text-xl transition-all
-                        ${filters.level === l ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-inner' : 'border-zinc-100 hover:border-zinc-300 text-zinc-400'}
-                      `}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </section>
 
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                    <LayoutGrid size={24} />
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Catégorie</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setFilters({ ...filters, category: c })}
+                        className={`h-14 flex-1 rounded-2xl font-black text-xs transition-all ${filters.category === c ? 'bg-indigo-600 text-white shadow-xl' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {c}
+                      </button>
+                    ))}
                   </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {categories.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setFilters({ ...filters, category: c })}
-                      className={`
-                        p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between
-                        ${filters.category === c ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-100 hover:border-zinc-300 text-zinc-500'}
-                      `}
-                    >
-                      {c}
-                      {filters.category === c && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              </div>
 
               <Button
-                onClick={() => startTraining(false)}
-                className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
+                onClick={() => startTraining()}
+                disabled={loading}
+                className="w-full h-20 mt-10 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
               >
-                COMMENCER L'EXERCICE
+                {loading ? <Loader2 className="animate-spin" /> : "Commencer l'entraînement"}
+                <ArrowRight className="ml-2" />
               </Button>
-            </div>
-          </Card>
+            </Card>
+          </div>
 
-          <div className="space-y-6">
-            <Card className="border-none shadow-2xl shadow-indigo-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white relative overflow-hidden">
+          <div className="space-y-8">
+            <Card className="relative overflow-hidden border-none shadow-2xl shadow-indigo-100 rounded-[3rem] p-10 bg-indigo-600 text-white">
                <div className="relative z-10">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
-                    <Brain size={28} />
-                  </div>
                   <h3 className="text-2xl font-black mb-2 tracking-tight">Révision urgente</h3>
                   <p className="text-indigo-100 text-sm font-medium mb-8 leading-relaxed">
                     Notre algorithme a identifié des points faibles. Révisez-les maintenant pour ne pas oublier.

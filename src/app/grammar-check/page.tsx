@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, LayoutGrid, Calendar } from "lucide-react";
+import { useParcours } from "@/contexts/ParcoursContext";
+import { BreadcrumbParcours } from "@/components/shared/BreadcrumbParcours";
+import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, LayoutGrid, Calendar, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GrammarQuestion {
@@ -32,9 +34,10 @@ function GrammarCheckContent() {
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const { activeParcours } = useParcours();
 
   const router = useRouter();
-      const supabase = createClient();
+  const supabase = createClient();
 
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
@@ -45,20 +48,11 @@ function GrammarCheckContent() {
       if (topic) setSelectedCategory(topic);
       if (level) setSelectedLevel(level);
       startExercise(level || undefined, topic || undefined);
+    } else if (activeParcours && !isStarted) {
+      setSelectedLevel(activeParcours.level);
+      setSelectedCategory(activeParcours.category);
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-
-    if (lessonId && topic) {
-      // Pour grammar-check, on utilise topic pour pré-remplir les filtres et lancer
-      setSelectedCategory(topic);
-      // On lance direct avec les réglages par défaut ou dérivés du topic
-      startExercise();
-    }
-  }, [searchParams]);
+  }, [searchParams, activeParcours]);
 
   const startExercise = async (lvl?: string, cat?: string) => {
     setLoading(true);
@@ -72,7 +66,7 @@ function GrammarCheckContent() {
         .eq("type", "trous")
         .eq("level", targetLevel);
 
-      if (targetCategory && targetCategory && targetCategory !== "Toutes") {
+      if (targetCategory && targetCategory !== "Toutes") {
         // Essayer d'abord par le champ category exact
         const { data: catMatch } = await supabase
           .from("exercises")
@@ -97,42 +91,21 @@ function GrammarCheckContent() {
           setLoading(false);
           return;
         }
-
-        // Sinon fallback sur le like dans instructions
-        query = query.ilike("instructions", `%${targetCategory.substring(0, 4)}%`);
       }
 
-      const { data, error } = await query
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-
-
-      if (data && data.length > 0) {
+      // Fallback
+      const { data } = await query.limit(5);
+      if (data) {
         const formatted = data.map((d: any) => ({
           id: d.id,
           sentence: d.content.sentence || d.instructions,
           error_fragment: d.content.error_fragment || "...",
           correction: d.content.correct_answer || d.content.correct_answers?.[0],
           explanation: d.content.explanation || "Règle de grammaire standard.",
-          category: d.instructions || d.category || "Grammaire",
-          level: d.level || "A2"
+          category: d.category || targetCategory,
+          level: d.level || targetLevel
         }));
         setQuestions(formatted);
-        setIsStarted(true);
-      } else {
-        // Fallback robust
-        setQuestions([
-          {
-            id: "fb1",
-            sentence: "Elle est [aller] au cinéma.",
-            error_fragment: "aller",
-            correction: "allée",
-            explanation: "Avec l'auxiliaire être, le participe passé s'accorde avec le sujet féminin.",
-            category: "Accord Participe Passé",
-            level: selectedLevel
-          }
-        ]);
         setIsStarted(true);
       }
     } catch (err) {
@@ -142,74 +115,75 @@ function GrammarCheckContent() {
     }
   };
 
-  const handleVerify = async () => {
+  const handleVerify = () => {
     const current = questions[currentIdx];
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
-      setStatus("correct");
       setScore(s => s + 1);
+      setStatus("correct");
     } else {
       setStatus("wrong");
     }
-
-    if (!isCorrect) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from('user_errors').upsert({
-            user_id: user.id,
-            category: current.category,
-            sub_category: current.error_fragment
-          }, { onConflict: 'user_id, category, sub_category' });
-        }
-      } catch (e) {}
-    }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setInputValue("");
       setStatus("typing");
     } else {
       setFinished(true);
+      // Update XP and practice status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Update last_practice_at in user_parcours_progress if in parcours mode
+        if (activeParcours) {
+          await supabase.from('user_parcours_progress')
+            .update({ last_practice_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .eq('parcours_id', activeParcours.id);
+        }
+      }
     }
   };
 
-  if (!isStarted && !finished) {
+  if (!isStarted) {
     return (
-      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
-        <header className="mb-12">
-          <Badge className="bg-rose-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-rose-100">
-            Atelier Orthographe
-          </Badge>
-          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
-            ORTHOGRAPHE <span className="text-rose-600">&</span> GRAMMAIRE
+      <div className="max-w-6xl mx-auto p-8 pt-16 min-h-screen">
+        <BreadcrumbParcours />
+        <header className="mb-16 space-y-4">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-rose-600 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
+              Grammar Checker
+            </Badge>
+             {activeParcours && (
+               <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-600 bg-rose-50 flex items-center gap-2">
+                 <Sparkles size={12} /> Contextualisé : {activeParcours.category} {activeParcours.level}
+               </Badge>
+             )}
+          </div>
+          <h1 className="text-6xl font-black text-zinc-900 tracking-tighter leading-none">
+            Zéro faute, <br />Maximum Impact
           </h1>
-          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
-            Corrigez des phrases ciblées, révisez les règles essentielles et consolidez vos automatismes pour le TEF IRN.
+          <p className="text-xl text-zinc-400 font-medium max-w-2xl leading-relaxed">
+            Corrigez des phrases réelles pour maîtriser les subtilités de la langue française.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <Card className="lg:col-span-2 border-none shadow-2xl shadow-zinc-100 rounded-[3rem] p-10 bg-white">
             <div className="space-y-10">
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
-                    <GraduationCap size={24} />
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <section className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Choisir votre niveau</label>
+                <div className="flex flex-wrap gap-2">
                   {["A1", "A2", "B1", "B2"].map((lvl) => (
                     <button
                       key={lvl}
                       onClick={() => setSelectedLevel(lvl)}
                       className={`
-                        h-20 rounded-2xl border-2 font-black text-xl transition-all
-                        ${selectedLevel === lvl ? "border-rose-600 bg-rose-50 text-rose-600 shadow-inner" : "border-zinc-100 hover:border-zinc-300 text-zinc-400"}
+                        h-16 flex-1 rounded-2xl font-black text-lg transition-all
+                        ${selectedLevel === lvl ? "bg-zinc-900 text-white shadow-xl" : "bg-zinc-50 hover:bg-zinc-100 text-zinc-400"}
                       `}
                     >
                       {lvl}
@@ -218,15 +192,10 @@ function GrammarCheckContent() {
                 </div>
               </section>
 
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-                    <LayoutGrid size={24} />
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((cat) => (
+              <section className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Thématique</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {["Grammaire", "Conjugaison", "Syntaxe", "Toutes"].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
@@ -313,8 +282,8 @@ function GrammarCheckContent() {
           <div className="text-7xl font-black text-rose-600 mb-8">
             {Math.round((score / questions.length) * 100)}%
           </div>
-          <Button onClick={() => router.push('/dashboard')} className="w-full h-14 rounded-2xl text-lg bg-zinc-900 hover:bg-zinc-800 text-white font-black">
-            Retour au Dashboard
+          <Button onClick={() => setFinished(false) || setIsStarted(false)} className="w-full h-14 rounded-2xl text-lg bg-zinc-900 hover:bg-zinc-800 text-white font-black">
+            Terminer
           </Button>
         </Card>
       </div>

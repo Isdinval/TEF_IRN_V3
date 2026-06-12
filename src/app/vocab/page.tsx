@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useParcours } from "@/contexts/ParcoursContext";
+import { BreadcrumbParcours } from "@/components/shared/BreadcrumbParcours";
 import {
   Volume2,
   ArrowRight,
@@ -18,7 +20,8 @@ import {
   Trophy,
   Brain,
   Target,
-  SkipForward
+  SkipForward,
+  X
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,6 +50,7 @@ function VocabCoachContent() {
   const [filters, setFilters] = useState({ level: "A2", category: "Administration" });
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
+  const { activeParcours } = useParcours();
 
   // Quiz state
   const [quizOptions, setQuizOptions] = useState<string[]>([]);
@@ -56,263 +60,212 @@ function VocabCoachContent() {
   // Type state
   const [userInput, setUserInput] = useState("");
   const [typeChecked, setTypeChecked] = useState(false);
-  const [validationResult, setValidationResult] = useState<{ isValid: boolean; toleranceApplied: boolean; message?: string } | null>(null);
+  const [validationResult, setValidationResult] = useState<{ isValid: boolean; message?: string } | null>(null);
 
-      const supabase = createClient();
+  const supabase = createClient();
 
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
     const level = searchParams.get('level');
-
-    if (lessonId && topic) {
-      setFilters(prev => ({
-        ...prev,
-        category: topic,
-        level: level || prev.level
-      }));
-
-      const timer = setTimeout(() => {
-        startTraining();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
 
-    if (lessonId && topic) {
-      // Pour vocab, on pré-remplit les filtres et on lance
-      setFilters(prev => ({ ...prev, category: topic }));
-      startTraining();
+    if (level && topic) {
+      setFilters({ level, category: topic });
+    } else if (activeParcours && mode === "selection") {
+      // Just pre-fill, don't force
+      setFilters({ level: activeParcours.level, category: "Administration" }); // Category mapping might be needed
     }
-  }, [searchParams]);
-  const categories = ["Administration", "Santé", "Travail", "Logement"];
-  const levels = ["A1", "A2", "B1", "B2"];
+  }, [searchParams, activeParcours]);
 
-  const startTraining = async (review: boolean = false, lvl?: string, cat?: string) => {
+  const startTraining = async (review = false) => {
     setLoading(true);
-    const { data: authData } = await supabase.auth.getUser();
-    const user = authData?.user;
+    setIsReviewMode(review);
 
-    let query = supabase.from('vocabulary').select('*');
+    let query = supabase.from("vocabulary").select("*");
 
-    if (review && user) {
-      const { data: reviews } = await supabase
-        .from('user_vocabulary_reviews')
-        .select('vocab_id')
-        .eq('user_id', user.id)
-        .lte('next_review_at', new Date().toISOString());
+    if (review) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // En mode révision, on récupère les mots SRS dus
+        const { data: srsData } = await supabase
+          .from("user_vocabulary_reviews")
+          .select("word_id")
+          .eq("user_id", user.id)
+          .lte("next_review", new Date().toISOString());
 
-      const ids = reviews?.map((r: any) => r.vocab_id) || [];
-      if (ids.length === 0) {
-        alert("Bravo ! Vous n'avez aucune révision urgente.");
-        setLoading(false);
-        return;
+        if (srsData && srsData.length > 0) {
+          query = query.in("id", srsData.map(d => d.word_id));
+        } else {
+          query = query.eq("level", filters.level).limit(10);
+        }
       }
-      query = query.in('id', ids);
-      setIsReviewMode(true);
     } else {
-      const targetLevel = lvl || filters.level;
-      const targetCategory = cat || filters.category;
-      const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
-      query = query.eq('level', targetLevel).eq('category', normalizedCategory);
-      setIsReviewMode(false);
+      query = query.eq("level", filters.level).eq("category", filters.category).limit(10);
     }
 
-    const { data } = await query.limit(10);
+    const { data, error } = await query;
 
     if (data && data.length > 0) {
-      setCards(data);
-      prepareNextWord(data, 0, "presentation");
+      setCards(data as Flashcard[]);
       setMode("training");
+      setIndex(0);
+      setStep("presentation");
       setFinished(false);
       setSessionMasteredCount(0);
-    } else {
-      alert("Aucun mot trouvé.");
     }
     setLoading(false);
   };
 
-  const prepareNextWord = (currentCards: Flashcard[], idx: number, nextStep: Step) => {
-    setIndex(idx);
-    setStep(nextStep);
-    setFlipped(false);
-    setSelectedOption(null);
-    setQuizChecked(false);
-    setUserInput("");
-    setTypeChecked(false);
-    setValidationResult(null);
-
-    if (nextStep === "quiz") {
-      // Generate distractors
-      const distractors = currentCards
-        .filter(c => c.id !== currentCards[idx].id)
-        .map(c => c.definition)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
-
-      const options = [...distractors, currentCards[idx].definition].sort(() => Math.random() - 0.5);
-      setQuizOptions(options);
-    }
-  };
-
-  const handleSkip = () => {
-    if (index < cards.length - 1) {
-      prepareNextWord(cards, index + 1, "presentation");
-    } else {
-      finishSession(sessionMasteredCount);
-    }
-  };
-
   const handleStepComplete = async (success: boolean) => {
+    const current = cards[index];
+
     if (step === "presentation") {
-      prepareNextWord(cards, index, "quiz");
+      setStep("quiz");
+      prepareQuiz(current);
     } else if (step === "quiz") {
-      if (success) prepareNextWord(cards, index, "type");
-      else prepareNextWord(cards, index, "presentation");
-    } else if (step === "type") {
-      const { data: { user } } = await supabase.auth.getUser();
       if (success) {
-        if (user) await updateVocabularySRS(user.id, cards[index].id, true);
-        setSessionMasteredCount(prev => prev + 1);
+        setStep("type");
+        setUserInput("");
+        setTypeChecked(false);
+      } else {
+        setStep("presentation");
+        setFlipped(false);
+      }
+    } else if (step === "type") {
+      if (success) {
+        // Record mastery
+        setSessionMasteredCount(s => s + 1);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await updateVocabularySRS(user.id, current.id, true);
+
+          // Update last_practice_at in user_parcours_progress if in parcours mode
+          if (activeParcours) {
+            await supabase.from('user_parcours_progress')
+              .update({ last_practice_at: new Date().toISOString() })
+              .eq('user_id', user.id)
+              .eq('parcours_id', activeParcours.id);
+          }
+        }
 
         if (index < cards.length - 1) {
-          prepareNextWord(cards, index + 1, "presentation");
+          setIndex(index + 1);
+          setStep("presentation");
+          setFlipped(false);
         } else {
-          finishSession(sessionMasteredCount + 1);
+          setFinished(true);
         }
       } else {
-        prepareNextWord(cards, index, "presentation");
+        setStep("presentation");
+        setFlipped(false);
       }
     }
   };
 
-  const finishSession = async (count: number) => {
-    await fetch('/api/exercise-complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        exerciseId: cards[index].id,
-        score: count * 10,
-        answers: { type: 'vocab_memrise', mastered: count, category: filters.category, level: filters.level }
-      })
-    });
-    setFinished(true);
+  const handleSkip = () => {
+     if (index < cards.length - 1) {
+          setIndex(index + 1);
+          setStep("presentation");
+          setFlipped(false);
+          setQuizChecked(false);
+          setSelectedOption(null);
+          setTypeChecked(false);
+          setUserInput("");
+      } else {
+          setFinished(true);
+      }
+  };
+
+  const prepareQuiz = (current: Flashcard) => {
+    const others = cards.filter(c => c.id !== current.id).map(c => c.definition);
+    const options = [current.definition, ...others.slice(0, 3)];
+    setQuizOptions(options.sort(() => Math.random() - 0.5));
+    setQuizChecked(false);
+    setSelectedOption(null);
   };
 
   if (mode === "selection") {
     return (
-      <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
-        <header className="mb-12">
-          <Badge className="bg-emerald-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-emerald-100">
-            Entraînement Cognitif
-          </Badge>
-          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
-            MAÎTRISE DU <span className="text-emerald-600">VOCABULAIRE</span>
+      <div className="max-w-6xl mx-auto p-8 pt-16 min-h-screen">
+        <BreadcrumbParcours />
+        <header className="mb-16 space-y-4">
+          <div className="flex items-center gap-3">
+             <Badge className="bg-sky-600 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
+                Vocab Coach
+             </Badge>
+             {activeParcours && (
+               <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-sky-200 text-sky-600 bg-sky-50 flex items-center gap-2">
+                 <Sparkles size={12} /> Contextualisé : {activeParcours.level}
+               </Badge>
+             )}
+          </div>
+          <h1 className="text-6xl font-black text-zinc-900 tracking-tighter leading-none">
+            Maîtrisez le <br />Vocabulaire
           </h1>
-          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
-            Apprenez les mots utiles au TEF IRN par la répétition espacée, avec reconnaissance puis production active.
+          <p className="text-xl text-zinc-400 font-medium max-w-2xl leading-relaxed">
+            Un système d'apprentissage intelligent qui s'adapte à votre mémoire pour un vocabulaire durable.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-2 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-white">
-            <div className="space-y-10">
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                    <GraduationCap size={24} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2">
+            <Card className="border-none shadow-2xl shadow-zinc-100 rounded-[3rem] p-10 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Niveau</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["A1", "A2", "B1", "B2"].map((l) => (
+                      <button
+                        key={l}
+                        onClick={() => setFilters({ ...filters, level: l })}
+                        className={`h-14 flex-1 rounded-2xl font-black text-sm transition-all ${filters.level === l ? 'bg-zinc-900 text-white shadow-xl' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {l}
+                      </button>
+                    ))}
                   </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {levels.map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setFilters({ ...filters, level: l })}
-                      className={`
-                        h-20 rounded-2xl border-2 font-black text-xl transition-all
-                        ${filters.level === l ? "border-emerald-600 bg-emerald-50 text-emerald-600 shadow-inner" : "border-zinc-100 hover:border-zinc-300 text-zinc-400"}
-                      `}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </section>
 
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                    <LayoutGrid size={24} />
-                  </div>
-                  <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Thématique</h2>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Thématique</label>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                    className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-4 font-bold text-zinc-900 focus:ring-2 focus:ring-sky-600"
+                  >
+                    {["Administration", "Logement", "Santé", "Travail", "Vie quotidienne"].map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {categories.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setFilters({ ...filters, category: c })}
-                      className={`
-                        p-6 rounded-2xl border-2 text-left font-bold transition-all flex items-center justify-between
-                        ${filters.category === c ? "border-emerald-600 bg-emerald-50 text-emerald-900" : "border-zinc-100 hover:border-zinc-300 text-zinc-500"}
-                      `}
-                    >
-                      {c}
-                      {filters.category === c && <div className="w-2 h-2 bg-emerald-600 rounded-full" />}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              </div>
 
               <Button
-                className="w-full h-20 bg-zinc-900 hover:bg-zinc-800 text-white rounded-[2rem] text-2xl font-black shadow-2xl shadow-zinc-300 transition-all active:scale-[0.98]"
-                onClick={() => startTraining(false)}
+                onClick={() => startTraining()}
                 disabled={loading}
+                className="w-full h-20 mt-10 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all"
               >
-                {loading ? <Loader2 className="animate-spin" /> : "DÉCOUVRIR DE NOUVEAUX MOTS"}
+                {loading ? <Loader2 className="animate-spin" /> : "Lancer la session"}
+                <ArrowRight className="ml-2" />
               </Button>
-            </div>
-          </Card>
-
-          <div className="space-y-6">
-            <Card className="border-none shadow-2xl shadow-emerald-100 rounded-[2.5rem] p-8 bg-gradient-to-br from-emerald-600 to-teal-700 text-white relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
-                  <Brain size={28} />
-                </div>
-                <h3 className="text-2xl font-black mb-2 tracking-tight">Révision urgente</h3>
-                <p className="text-emerald-50 text-sm font-medium mb-8 leading-relaxed">
-                  Votre mémoire vous signale les mots à revoir maintenant. Réactivez-les avant qu'ils ne s'effacent.
-                </p>
-                <Button
-                  onClick={() => startTraining(true)}
-                  disabled={loading}
-                  className="w-full h-14 bg-white text-emerald-600 hover:bg-emerald-50 font-black rounded-xl shadow-xl border-none"
-                >
-                  Réviser mon SRS
-                </Button>
-              </div>
-              <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
             </Card>
+          </div>
 
-            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="text-zinc-400" size={20} />
-                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide rapide</h4>
-              </div>
-              <div className="space-y-4">
-                <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                  Chaque mot passe par une découverte, un QCM de reconnaissance puis une saisie active pour renforcer la mémorisation.
-                </p>
-                <div className="h-px bg-zinc-200 w-full" />
-                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
-                  <Target size={14} className="text-emerald-600" /> Objectif : 10 mots ancrés
-                </div>
-              </div>
+          <div className="space-y-8">
+            <Card className="relative overflow-hidden border-none shadow-2xl shadow-sky-100 rounded-[3rem] p-10 bg-sky-600 text-white">
+               <div className="relative z-10">
+                  <h3 className="text-2xl font-black mb-2 tracking-tight">Révisions SRS</h3>
+                  <p className="text-sky-100 text-sm font-medium mb-8 leading-relaxed">
+                    Vous avez 12 mots à réviser aujourd'hui pour ne pas les oublier.
+                  </p>
+                  <Button
+                    onClick={() => startTraining(true)}
+                    className="w-full h-14 bg-white text-sky-600 hover:bg-sky-50 font-black rounded-xl shadow-xl"
+                  >
+                    Réviser maintenant
+                  </Button>
+               </div>
+               <Brain className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
             </Card>
           </div>
         </div>
@@ -322,24 +275,22 @@ function VocabCoachContent() {
 
   if (finished) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh] p-8">
-        <Card className="max-w-md w-full text-center p-12 rounded-[3rem] border-none shadow-2xl shadow-emerald-100 bg-white">
-          <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 text-emerald-600">
-            <Trophy size={48} />
-          </div>
-          <h2 className="text-4xl font-black mb-4 text-zinc-900 tracking-tight">Félicitations !</h2>
-          <p className="text-zinc-500 mb-10 font-medium italic text-lg leading-relaxed">
-            Vous avez ancré <span className="text-zinc-900 font-bold">{sessionMasteredCount}</span> nouveaux mots dans votre mémoire à long terme.
-          </p>
-          <div className="flex flex-col gap-4">
-            <Button className="w-full h-16 bg-zinc-900 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-zinc-200" onClick={() => window.location.href='/dashboard'}>
-              Tableau de bord
+      <div className="flex items-center justify-center min-h-screen p-8 bg-zinc-50">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-xl">
+          <Card className="text-center p-12 rounded-[4rem] shadow-2xl bg-white border-none">
+            <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-8">
+              <Trophy className="text-sky-600" size={48} />
+            </div>
+            <h1 className="text-4xl font-black mb-4 tracking-tighter uppercase">Session terminée !</h1>
+            <p className="text-zinc-400 mb-10 font-bold text-lg">Vous avez maîtrisé {sessionMasteredCount} nouveaux mots.</p>
+            <Button
+              className="w-full h-20 bg-zinc-900 text-white font-black rounded-3xl text-xl"
+              onClick={() => setMode("selection")}
+            >
+              Retour
             </Button>
-            <Button variant="ghost" className="text-zinc-400 font-bold hover:text-zinc-900" onClick={() => setMode("selection")}>
-              Nouvelle thématique
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
       </div>
     );
   }
@@ -347,44 +298,35 @@ function VocabCoachContent() {
   const current = cards[index];
 
   return (
-    <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
-      <header className="mb-12 flex justify-between items-center">
-        <div className="space-y-1">
-          <Badge className="bg-emerald-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none shadow-lg shadow-emerald-100">
-            {current.level} • {current.category}
-          </Badge>
-          <h1 className="text-2xl font-black text-zinc-900 uppercase">
-             {step === "presentation" && "Phase de Découverte"}
-             {step === "quiz" && "Reconnaissance"}
-             {step === "type" && "Production Active"}
-          </h1>
+    <div className="min-h-screen bg-zinc-50/50 flex flex-col p-8 pt-16">
+      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col items-center justify-center">
+        <div className="w-full flex justify-between items-center mb-12">
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Niveau {current.level}</span>
+              <span className="text-sm font-black text-zinc-900 uppercase">{current.category}</span>
+           </div>
+           <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Progression</p>
+                <p className="text-lg font-black text-sky-600">{index + 1} / {cards.length}</p>
+              </div>
+              <div className="w-16 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
+                <div className="h-full bg-sky-600 transition-all duration-500" style={{ width: `${((index + 1) / cards.length) * 100}%` }} />
+              </div>
+           </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-            <div className="text-xs font-black text-zinc-400 uppercase tracking-widest">
-              Mot {index + 1} / {cards.length}
-            </div>
-            <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-emerald-600"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((index) / cards.length) * 100}%` }}
-                />
-            </div>
-        </div>
-      </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center gap-10">
         <AnimatePresence mode="wait">
           {step === "presentation" && (
             <motion.div
-              key="pres"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
+              key="presentation"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               className="w-full flex flex-col items-center gap-10"
             >
               <div
-                className="relative w-full max-w-lg aspect-[4/3] cursor-pointer perspective-1000 group"
+                className="w-full h-[450px] cursor-pointer perspective-1000 group"
                 onClick={() => setFlipped(!flipped)}
               >
                 <div className={`
