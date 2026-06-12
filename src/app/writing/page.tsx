@@ -1,8 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -21,7 +21,7 @@ const fallbackExercise: WritingExercise = {
   content: { min_words: 100 },
 };
 
-export default function WritingCoach() {
+function WritingCoachContent() {
   const [text, setText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
@@ -32,13 +32,22 @@ export default function WritingCoach() {
 
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     async function fetchData() {
-      const { data: exerciseData } = await supabase
+      const exerciseId = searchParams.get('id');
+
+      let query = supabase
         .from("exercises")
         .select("*")
-        .eq("type", "ecrit")
+        .eq("type", "ecrit");
+
+      if (exerciseId) {
+        query = query.eq("id", exerciseId);
+      }
+
+      const { data: exerciseData } = await query
         .limit(1)
         .maybeSingle();
 
@@ -50,178 +59,143 @@ export default function WritingCoach() {
           content: exerciseData.content || fallbackExercise.content,
         });
       }
-
       setLoading(false);
     }
-
     fetchData();
-  }, [supabase]);
+  }, [searchParams, supabase]);
 
-  const minWords = exercise.content?.min_words || 100;
-  const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const completion = Math.min((wordCount / minWords) * 100, 100);
-
-  const handleAnalyze = async () => {
+  const handleCorrection = useCallback(async () => {
+    if (!text.trim()) return;
     setIsAnalyzing(true);
-    setActiveErrorIndex(null);
     try {
       const response = await fetch("/api/writing/correct", {
         method: "POST",
-        body: JSON.stringify({
-          text,
-          subject: exercise.instructions,
-          targetLevel: exercise.level,
-        }),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, instructions: exercise.instructions }),
       });
-      const data = (await response.json()) as WritingFeedback;
-
-      if (data.error) {
-        console.error("API Error:", data.error);
-      } else {
-        setFeedback(data);
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          await fetch("/api/exercise-complete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              exerciseId: exercise.id,
-              score: data.score_global,
-              answers: { text, feedback: data },
-            }),
-          });
-        }
-      }
+      const data = await response.json();
+      setFeedback(data);
     } catch (error) {
-      console.error("Analyse error:", error);
+      console.error("Correction error:", error);
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [text, exercise.instructions]);
 
-  const reset = () => {
-    setFeedback(null);
-    setActiveErrorIndex(null);
-  };
-
-  const handleSelectError = useCallback((index: number) => {
-    setActiveErrorIndex(index);
+  const handleResize = useCallback((e: MouseEvent) => {
+    const newWidth = (e.clientX / window.innerWidth) * 100;
+    if (newWidth > 30 && newWidth < 80) {
+      setLeftWidth(newWidth);
+    }
   }, []);
+
+  const stopResize = useCallback(() => {
+    window.removeEventListener("mousemove", handleResize);
+    window.removeEventListener("mouseup", stopResize);
+  }, [handleResize]);
+
+  const startResize = useCallback(() => {
+    window.addEventListener("mousemove", handleResize);
+    window.addEventListener("mouseup", stopResize);
+  }, [handleResize, stopResize]);
+
+  const wordCount = useMemo(() => {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  }, [text]);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50">
-        <Loader2 className="mb-4 animate-spin text-indigo-600" size={44} />
-        <p className="animate-pulse text-sm font-black uppercase tracking-widest text-zinc-400">
-          Préparation de l'atelier d'écriture...
-        </p>
+      <div className="flex items-center justify-center h-[100dvh] bg-slate-50">
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-zinc-50/50 selection:bg-indigo-100 flex flex-col overflow-hidden">
-      <div className="flex-1 flex flex-col mx-auto w-full max-w-[1600px] p-6 lg:px-10 lg:py-8 overflow-hidden">
-
-        {/* Header Section */}
-        <header className="shrink-0 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-            <div>
-              <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-                Atelier rédaction TEF IRN
-              </Badge>
-              <h1 className="mb-2 text-4xl lg:text-5xl font-black tracking-tighter text-zinc-900 leading-none">
-                COACH D'EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
-              </h1>
-              <p className="max-w-2xl text-base lg:text-lg font-medium leading-relaxed text-zinc-500">
-                Rédigez votre réponse, lancez l'analyse IA et corrigez vos formulations.
-              </p>
-            </div>
-
-            <div className="w-full lg:w-80">
-              <WritingTimer exerciseId={exercise.id} instructions={exercise.instructions} />
-            </div>
-          </div>
-        </header>
-
-        {/* Instructions Card */}
-        <Card className="shrink-0 rounded-[2rem] border-none bg-white p-6 shadow-xl shadow-zinc-200/50 mb-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4 flex-1">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-                <BookOpen size={24} />
+    <div className="h-[100dvh] overflow-hidden bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      <div className="flex h-full relative">
+        {/* Left Side: Writing Zone */}
+        <div
+          className="h-full flex flex-col overflow-hidden transition-[width] duration-75 ease-out"
+          style={{ width: `${leftWidth}%` }}
+        >
+          <header className="p-4 border-b bg-white flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-600 p-2 rounded-lg text-white">
+                <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">Sujet de l'exercice</p>
-                <p className="text-sm font-bold leading-relaxed text-zinc-700">{exercise.instructions}</p>
+                <h1 className="font-bold text-slate-800 tracking-tight">Coach d'Expression Écrite</h1>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
+                    Niveau {exercise.level}
+                  </Badge>
+                </div>
               </div>
             </div>
-            <div className="min-w-48 space-y-2">
-              <div className="flex justify-end">
-                <Badge variant="outline" className="rounded-full border-zinc-200 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  {wordCount}/{minWords} mots
-                </Badge>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    completion >= 100 ? "bg-emerald-500" : "bg-indigo-600"
-                  }`}
-                  style={{ width: `${completion}%` }}
-                />
-              </div>
+
+            <WritingTimer instructions={exercise.instructions} />
+          </header>
+
+          <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">
+            <div className="max-w-3xl mx-auto h-full flex flex-col gap-6">
+              <Card className="p-5 border-indigo-100 shadow-sm bg-white shrink-0">
+                <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Sujet à traiter</h3>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  {exercise.instructions}
+                </p>
+              </Card>
+
+              <ZoneRedaction
+                text={text}
+                setText={setText}
+                onAnalyze={handleCorrection}
+                onReset={() => { setText(""); setFeedback(null); }}
+                onSelectError={(idx) => setActiveErrorIndex(idx)}
+                isAnalyzing={isAnalyzing}
+                feedback={feedback}
+                activeErrorIndex={activeErrorIndex}
+                wordCount={wordCount}
+              />
             </div>
-          </div>
-        </Card>
+          </main>
+        </div>
 
-        {/* Main Workspace */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden pb-4">
-          <div
-            style={{ "--left-width": `${leftWidth}%` } as CSSProperties}
-            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--left-width)] lg:min-w-[35%] lg:max-w-[75%]"
-          >
-            <ZoneRedaction
-              text={text}
-              setText={setText}
-              isAnalyzing={isAnalyzing}
-              feedback={feedback}
-              activeErrorIndex={activeErrorIndex}
-              onAnalyze={handleAnalyze}
-              onReset={reset}
-              onSelectError={handleSelectError}
-              wordCount={wordCount}
-            />
+        {/* Resizer */}
+        <div
+          className="w-1 bg-slate-200 hover:bg-indigo-400 cursor-col-resize transition-colors relative z-20"
+          onMouseDown={startResize}
+        >
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 bg-white border rounded-full flex items-center justify-center shadow-sm pointer-events-none">
+            <div className="w-0.5 h-4 bg-slate-300 rounded-full mx-0.5" />
+            <div className="w-0.5 h-4 bg-slate-300 rounded-full mx-0.5" />
           </div>
+        </div>
 
-          <div className="hidden w-2 cursor-col-resize items-center justify-center self-stretch lg:flex group relative" title="Ajuster la largeur">
-            <div className="h-12 w-1 rounded-full bg-zinc-200 transition-colors group-hover:bg-indigo-300" />
-            <input
-              type="range"
-              min="35"
-              max="70"
-              value={leftWidth}
-              onChange={(event) => setLeftWidth(parseInt(event.target.value, 10))}
-              className="absolute h-full w-8 cursor-col-resize opacity-0 z-10"
-            />
-          </div>
-
-          <div
-            style={{ "--right-width": `${100 - leftWidth}%` } as CSSProperties}
-            className="flex flex-col h-full transition-all duration-300 lg:w-[var(--right-width)] lg:min-w-[25%]"
-          >
-            <FeedbackIA
-              feedback={feedback}
-              activeErrorIndex={activeErrorIndex}
-              onSelectError={handleSelectError}
-            />
-          </div>
+        {/* Right Side: Feedback Zone */}
+        <div
+          className="h-full bg-[#111827] relative"
+          style={{ width: `${100 - leftWidth}%` }}
+        >
+          <FeedbackIA
+            feedback={feedback}
+            activeErrorIndex={activeErrorIndex}
+            onSelectError={setActiveErrorIndex}
+          />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function WritingCoach() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[100dvh] bg-slate-50">
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+      </div>
+    }>
+      <WritingCoachContent />
+    </Suspense>
   );
 }

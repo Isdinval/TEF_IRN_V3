@@ -25,9 +25,9 @@ export default function ParcoursPage() {
         return;
       }
 
-      const allParcours = await getParcours();
+      const allParcours = await getParcours(supabase);
       const progressPromises = allParcours.map(async (p) => {
-        const prog = await getParcoursProgress(user.id, p.level, p.category);
+        const prog = await getParcoursProgress(user.id, p.level, p.category, supabase);
         return { ...p, progress: prog };
       });
 

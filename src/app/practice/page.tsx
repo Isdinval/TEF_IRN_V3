@@ -56,14 +56,32 @@ function PracticeContent() {
   const { activeParcours, nextLesson } = useParcours();
 
   useEffect(() => {
+    const exerciseId = searchParams.get("id");
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
     const level = searchParams.get('level');
 
-    if (lessonId && topic) {
+    if (exerciseId) {
+      startSpecificExercise(exerciseId);
+    } else if (lessonId && topic) {
       autoStart(lessonId, topic, level || undefined);
     }
   }, [searchParams]);
+
+  const startSpecificExercise = async (id: string) => {
+    setLoading(true);
+    const { data: ex } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (ex) {
+      setExercise(ex as Exercise);
+      setMode("training");
+    }
+    setLoading(false);
+  };
 
   const autoStart = async (lessonId: string, topic: string, level?: string) => {
     setLoading(true);
@@ -109,31 +127,16 @@ function PracticeContent() {
     setLoading(false);
   };
 
-  const startTraining = async (review: boolean = false) => {
+  const startExercise = async () => {
     setLoading(true);
-    setIsReviewMode(review);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm_centre_entrainement');
-
-    if (review && user) {
-      const { data: errors } = await supabase
-        .from('user_errors')
-        .select('exercise_id')
-        .eq('user_id', user.id)
-        .limit(20);
-
-      if (errors && errors.length > 0) {
-        const ids = errors.map((e: any) => e.exercise_id);
-        query = query.in('id', ids);
-      } else {
-        query = query.eq('level', filters.level).eq('category', filters.category);
-      }
-    } else {
-      query = query.eq('level', filters.level).eq('category', filters.category);
-    }
-
-    const { data, error } = await query.limit(1).maybeSingle();
+    const { data, error } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("level", filters.level)
+      .eq("category", filters.category)
+      .eq("type", "qcm_centre_entrainement")
+      .limit(1)
+      .maybeSingle();
 
     if (data) {
       setExercise(data as Exercise);
@@ -146,120 +149,108 @@ function PracticeContent() {
   };
 
   const handleCheck = () => {
-    if (selected === null) return;
-    const isCorrect = selected === exercise?.content.correct_answers[currentQuestionIndex];
-    if (isCorrect) setScore(s => s + 1);
+    if (selected === null || !exercise) return;
     setIsChecked(true);
-
-    if (!isCorrect && exercise) {
-      saveError(exercise.id);
+    if (selected === exercise.content.correct_answers[currentQuestionIndex]) {
+      setScore(score + 1);
     }
   };
 
-  const saveError = async (exoId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from('user_errors').upsert({
-      user_id: user.id,
-      exercise_id: exoId,
-      last_error_at: new Date().toISOString()
-    });
-  };
-
-  const handleNext = () => {
-    if (currentQuestionIndex < (exercise?.content.questions.length || 0) - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+  const handleNext = async () => {
+    if (!exercise) return;
+    if (currentQuestionIndex < exercise.content.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
       setIsFinished(true);
-      if (score / (exercise?.content.questions.length || 5) >= 0.8) {
-        updateXP();
-      }
+      await supabase.from("exercise_attempts").insert({
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        exercise_id: exercise.id,
+        score: Math.round((score / exercise.content.questions.length) * 100),
+        is_completed: true
+      });
     }
   };
 
-  const updateXP = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const xp = Math.round((score / (exercise?.content.questions.length || 5)) * 100);
-    await supabase.rpc('add_xp', { amount: xp });
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-rose-600" size={48} />
+      </div>
+    );
+  }
 
   if (mode === "selection") {
     return (
-      <div className="max-w-6xl mx-auto p-6 lg:p-12 pt-16">
-        <ParcoursBreadcrumb className="mb-8" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-12">
-            <header>
-              <Badge className="mb-4 rounded-full border-none bg-rose-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-100">
-                QCM Grammaire & Vocabulaire
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6">
-                PRATIQUE <span className="text-rose-600">CIBLÉE</span>
-              </h1>
-              <p className="text-xl font-medium text-slate-500 leading-relaxed max-w-xl">
-                Choisissez votre niveau et votre catégorie pour commencer un entraînement rapide de 5 questions.
-              </p>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Niveau</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["A1", "A2", "B1", "B2"].map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setFilters({ ...filters, level: l })}
-                      className={`h-14 rounded-2xl font-black text-lg transition-all ${filters.level === l ? 'bg-rose-600 text-white shadow-xl shadow-rose-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Catégorie</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setFilters({ ...filters, category: c })}
-                      className={`h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${filters.category === c ? 'bg-rose-600 text-white shadow-xl shadow-rose-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => startTraining()}
-              disabled={loading}
-              className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black text-2xl rounded-3xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 flex gap-4"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : "Lancer l'entraînement"} <ArrowRight size={28} />
-            </Button>
+      <div className="min-h-screen bg-zinc-50/30 p-6 pt-16 lg:p-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-12">
+            <Badge className="bg-rose-100 text-rose-600 border-none rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4">
+              Centre d'Entraînement
+            </Badge>
+            <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
+              QCM <span className="text-rose-600">Voltaire</span>
+            </h1>
+            <p className="max-w-2xl text-lg font-bold text-slate-500 leading-relaxed italic">
+               Perfectionnez votre grammaire et orthographe avec des exercices ciblés par niveau.
+            </p>
           </div>
 
-          <div className="space-y-8">
-            <Card className="border-none shadow-2xl shadow-rose-100 rounded-[3rem] p-8 bg-rose-600 text-white relative overflow-hidden group">
-               <div className="relative z-10">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm group-hover:scale-110 transition-transform">
-                    <Sparkles size={32} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <Card className="lg:col-span-2 border-none shadow-2xl shadow-rose-100/50 rounded-[4rem] overflow-hidden bg-white p-12 relative">
+               <div className="relative z-10 space-y-12">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                        <GraduationCap size={16} /> Niveau TEF IRN
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {["A1", "A2", "B1", "B2"].map((l) => (
+                          <button
+                            key={l}
+                            onClick={() => setFilters({ ...filters, level: l })}
+                            className={`h-14 rounded-2xl font-black text-sm transition-all ${filters.level === l ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                          >
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                        <LayoutGrid size={16} /> Thématique
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => setFilters({ ...filters, category: c })}
+                            className={`h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-black mb-2 tracking-tight">Révision urgente</h3>
-                  <p className="text-rose-100 text-sm font-medium mb-8 leading-relaxed">
-                    Notre algorithme a identifié des points faibles. Révisez-les maintenant pour ne pas oublier.
-                  </p>
+
                   <Button
-                    onClick={() => startTraining(true)}
-                    className="w-full h-14 bg-white text-rose-600 hover:bg-rose-50 font-black rounded-xl shadow-xl border-none"
+                    onClick={startExercise}
+                    className="w-full h-24 bg-zinc-900 hover:bg-black text-white font-black rounded-[2rem] text-2xl shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
                   >
-                    Réviser mon SRS
+                    GÉNÉRER MON ENTRAÎNEMENT
+                    <ArrowRight className="ml-3" size={28} />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsReviewMode(!isReviewMode)}
+                    className={`w-full h-16 rounded-2xl font-black text-sm transition-all flex gap-3 ${isReviewMode ? 'bg-indigo-50 text-indigo-600' : 'text-zinc-400'}`}
+                  >
+                    <Brain size={20} />
+                    Activer la révision basée sur l'SRS
                   </Button>
                </div>
                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />

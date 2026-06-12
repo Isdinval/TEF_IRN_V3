@@ -1,6 +1,7 @@
-import { createClient } from '@/lib/supabase';
+import { createClient } from './supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-const supabase = createClient();
+const defaultSupabase = createClient();
 
 export interface Parcours {
   id: string;
@@ -39,7 +40,7 @@ export interface Exercise {
   attempts_count?: number;
 }
 
-export async function getParcours(): Promise<Parcours[]> {
+export async function getParcours(supabase: SupabaseClient = defaultSupabase): Promise<Parcours[]> {
   const { data, error } = await supabase
     .from('parcours')
     .select('*')
@@ -54,7 +55,7 @@ export async function getParcours(): Promise<Parcours[]> {
   return data || [];
 }
 
-export async function getParcoursProgress(userId: string, level: string, category: string): Promise<ParcoursProgress> {
+export async function getParcoursProgress(userId: string, level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<ParcoursProgress> {
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('id')
@@ -87,7 +88,7 @@ export async function getParcoursProgress(userId: string, level: string, categor
   return { total, completed, percent, isCompleted };
 }
 
-export async function getParcoursById(id: string): Promise<Parcours | null> {
+export async function getParcoursById(id: string, supabase: SupabaseClient = defaultSupabase): Promise<Parcours | null> {
   const { data, error } = await supabase
     .from('parcours')
     .select('*')
@@ -102,7 +103,7 @@ export async function getParcoursById(id: string): Promise<Parcours | null> {
   return data;
 }
 
-export async function getLessonsForParcours(level: string, category: string): Promise<Lesson[]> {
+export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
     .select('id, title, order_index, level, category, duration, difficulty, objective')
@@ -118,23 +119,21 @@ export async function getLessonsForParcours(level: string, category: string): Pr
   return data || [];
 }
 
-export async function getRecommendedExercises(userId: string, level: string, category: string): Promise<Exercise[]> {
-  // Map parcours category to exercise category (case sensitivity)
+export async function getRecommendedExercises(userId: string, level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Exercise[]> {
+  // Try both capitalized and lower case for category matching in exercises table
   const exerciseCategory = category.charAt(0).toUpperCase() + category.slice(1);
 
-  // Fetch exercises for this parcours
   const { data: exercises, error: exercisesError } = await supabase
     .from('exercises')
     .select('id, lesson_id, type, level, instructions, category, difficulty')
     .eq('level', level)
-    .eq('category', exerciseCategory)
+    .or(`category.eq.${exerciseCategory},category.eq.${category}`)
     .limit(50);
 
   if (exercisesError || !exercises) return [];
 
   const exerciseIds = exercises.map((e: { id: string }) => e.id);
 
-  // Fetch user attempts for these exercises
   const { data: attempts, error: attemptsError } = await supabase
     .from('exercise_attempts')
     .select('exercise_id, score, is_completed')
@@ -143,8 +142,7 @@ export async function getRecommendedExercises(userId: string, level: string, cat
 
   if (attemptsError) return exercises.slice(0, 6);
 
-  // Calculate stats for each exercise
-  const exerciseStats = exercises.map((ex: Exercise) => {
+  const exerciseStats = (exercises as Exercise[]).map((ex: Exercise) => {
     const exAttempts = (attempts || []).filter((a: any) => a.exercise_id === ex.id);
     const completedAttempts = exAttempts.filter((a: any) => a.is_completed);
     const successRate = completedAttempts.length > 0
@@ -159,12 +157,11 @@ export async function getRecommendedExercises(userId: string, level: string, cat
     };
   });
 
-  // Sorting logic:
-  // 1. Not attempted or success rate < 70%
-  // 2. Others
   const recommended = exerciseStats.sort((a: any, b: any) => {
+    // 1. Prioritize non-completed
     if (!a.is_completed && b.is_completed) return -1;
     if (a.is_completed && !b.is_completed) return 1;
+    // 2. Prioritize low success rate
     return (a.success_rate || 0) - (b.success_rate || 0);
   });
 
