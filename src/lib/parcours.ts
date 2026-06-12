@@ -3,6 +3,9 @@ import { Parcours, Lesson, ParcoursProgress } from '@/types/parcours';
 
 const supabase = createClient();
 
+// Re-export types from '@/types/parcours' for backward compatibility
+export type { Parcours, Lesson, ParcoursProgress };
+
 export async function getParcours(): Promise<Parcours[]> {
   const { data, error } = await supabase
     .from('parcours')
