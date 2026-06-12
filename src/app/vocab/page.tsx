@@ -199,11 +199,11 @@ function VocabCoachContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
             <header>
-              <Badge className="mb-4 rounded-full border-none bg-sky-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-sky-100">
+              <Badge className="mb-4 rounded-full border-none bg-emerald-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-100">
                 Coach Vocabulaire
               </Badge>
               <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6">
-                VOTRE <span className="text-sky-600">LEXIQUE</span> <br />IMMÉDIAT.
+                VOTRE <span className="text-emerald-600">LEXIQUE</span> <br />IMMÉDIAT.
               </h1>
               <p className="text-xl font-medium text-slate-500 leading-relaxed max-w-xl">
                 Maîtrisez les mots essentiels du TEF IRN grâce à notre méthode de mémorisation active en 3 étapes.
@@ -218,7 +218,7 @@ function VocabCoachContent() {
                     <button
                       key={l}
                       onClick={() => setFilters({ ...filters, level: l })}
-                      className={`h-14 rounded-2xl font-black text-lg transition-all ${filters.level === l ? 'bg-sky-600 text-white shadow-xl shadow-sky-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
+                      className={`h-14 rounded-2xl font-black text-lg transition-all ${filters.level === l ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
                     >
                       {l}
                     </button>
@@ -233,7 +233,7 @@ function VocabCoachContent() {
                     <button
                       key={c}
                       onClick={() => setFilters({ ...filters, category: c })}
-                      className={`h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-sky-600 text-white shadow-xl shadow-sky-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
+                      className={`h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
                     >
                       {c}
                     </button>
@@ -294,19 +294,19 @@ function VocabCoachContent() {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-xl"
         >
-          <Card className="text-center p-12 rounded-[4rem] shadow-2xl shadow-sky-100 border-none bg-white">
-            <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-8 text-sky-600">
+          <Card className="text-center p-12 rounded-[4rem] shadow-2xl shadow-emerald-100 border-none bg-white">
+            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8 text-emerald-600">
               <Trophy size={48} />
             </div>
             <h1 className="text-4xl font-black mb-4 tracking-tighter">Session Terminée !</h1>
             <p className="text-zinc-400 mb-10 font-bold text-lg">
-              Mots maîtrisés : <span className="text-sky-600">{sessionMasteredCount}</span> / {cards.length}
+              Mots maîtrisés : <span className="text-emerald-600">{sessionMasteredCount}</span> / {cards.length}
             </p>
 
             <div className="space-y-4">
               {activeParcours && (
                 <Button
-                  className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-200 transition-all"
+                  className="w-full h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-emerald-200 transition-all"
                   onClick={() => nextLesson()}
                 >
                   Continuer mon parcours
@@ -346,7 +346,7 @@ function VocabCoachContent() {
           <div className="flex items-center gap-4">
              <div className="text-right hidden sm:block">
                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Maîtrise session</div>
-               <div className="text-sm font-black text-sky-600">{index + 1} / {cards.length}</div>
+               <div className="text-sm font-black text-emerald-600">{index + 1} / {cards.length}</div>
              </div>
              <div className="h-12 w-12 bg-white rounded-xl shadow-sm border border-zinc-100 flex items-center justify-center font-black text-zinc-900">
                {Math.round(((index + 1) / cards.length) * 100)}%
@@ -468,7 +468,7 @@ function VocabCoachContent() {
               ) : (
                 <Button
                   onClick={() => handleStepComplete(selectedOption === current.definition)}
-                  className={`w-full h-16 text-white font-black rounded-2xl ${selectedOption === current.definition ? 'bg-emerald-600' : 'bg-rose-500'}`}
+                  className={`w-full h-16 text-white font-black rounded-2xl ${selectedOption === current.definition ? 'bg-emerald-600' : 'bg-red-500'}`}
                 >
                   {selectedOption === current.definition ? "Continuer" : "Réessayer le mot"} <ArrowRight className="ml-2" />
                 </Button>
@@ -536,7 +536,7 @@ function VocabCoachContent() {
                     )}
                     <Button
                       onClick={() => handleStepComplete(validationResult?.isValid || false)}
-                      className={`w-full h-16 text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-rose-500'}`}
+                      className={`w-full h-16 text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-red-500'}`}
                     >
                       {validationResult?.isValid ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" />
                     </Button>
@@ -554,7 +554,7 @@ function VocabCoachContent() {
 
 export default function VocabCoach() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-sky-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-emerald-600" size={48} /></div>}>
       <VocabCoachContent />
     </Suspense>
   );

@@ -13,7 +13,7 @@ interface ParcoursContextType {
   isLoading: boolean;
   refreshProgress: () => Promise<void>;
   exitParcours: () => void;
-  nextLesson: () => Promise<void>;
+  nextLesson: (currentLessonId?: string) => Promise<void>;
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -36,10 +36,16 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       const p = await getParcoursById(pId);
-      if (!p) return;
+      if (!p) {
+        setIsLoading(false);
+        return;
+      }
 
       const prog = await getParcoursProgress(user.id, p.level, p.category);
       const lessons = await getLessonsForParcours(p.level, p.category);
@@ -123,7 +129,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const nextLesson = async () => {
+  const nextLesson = async (currentLessonId?: string) => {
     if (!activeParcours) return;
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -131,6 +137,17 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
 
     const lessons = await getLessonsForParcours(activeParcours.level, activeParcours.category);
 
+    // 1. Mark current as completed if we are coming from a lesson or practice
+    const idToMark = currentLessonId || lessonId;
+    if (idToMark) {
+      await supabase.from('lesson_progress').upsert({
+        user_id: user.id,
+        lesson_id: idToMark,
+        completed_at: new Date().toISOString()
+      });
+    }
+
+    // 2. Fetch updated completion status
     const { data: completedData } = await supabase
       .from('lesson_progress')
       .select('lesson_id')
@@ -139,7 +156,17 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
 
     const completedIds = new Set((completedData || []).map((c: any) => c.lesson_id));
 
-    const next = lessons.find(l => !completedIds.has(l.id));
+    // 3. Find the first uncompleted lesson AFTER the current one if possible, or any uncompleted
+    const currentIndex = idToMark ? lessons.findIndex(l => l.id === idToMark) : -1;
+    let next = null;
+
+    if (currentIndex !== -1) {
+      next = lessons.slice(currentIndex + 1).find(l => !completedIds.has(l.id));
+    }
+
+    if (!next) {
+      next = lessons.find(l => !completedIds.has(l.id));
+    }
 
     if (next) {
       router.push(`/lessons/${next.id}?parcoursId=${activeParcours.id}`);

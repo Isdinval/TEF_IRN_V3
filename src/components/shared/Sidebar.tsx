@@ -53,6 +53,7 @@ function SidebarContent() {
 
   const getHrefWithContext = (baseHref: string) => {
     if (!parcoursId) return baseHref;
+    // When navigating via sidebar, we keep the parcoursId context but drop lessonId
     const newParams = new URLSearchParams();
     newParams.set("parcoursId", parcoursId);
     return `${baseHref}?${newParams.toString()}`;

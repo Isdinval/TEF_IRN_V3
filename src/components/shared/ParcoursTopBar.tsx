@@ -12,7 +12,8 @@ export function ParcoursTopBar() {
   const { activeParcours, progress, exitParcours, nextLesson, isLoading } = useParcours();
   const pathname = usePathname();
 
-  if (pathname.includes("/lessons/") && !pathname.includes("/complete")) return null;
+  // Show TopBar even during lesson reading/quiz if it's part of a parcours context
+  // But we hide it for absolute immersion if requested, but here user wants it visible during quiz
   if (!activeParcours || isLoading) return null;
 
   return (
