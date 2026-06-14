@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
+import { BottomNav } from "./BottomNav";
 import { ParcoursTopBar } from "./ParcoursTopBar";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -21,11 +22,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen relative">
+      <div className="flex-1 flex flex-col min-h-screen relative pb-20 md:pb-0">
         <ParcoursTopBar />
         <main className="flex-1 overflow-auto">
           {children}
         </main>
+        <BottomNav />
       </div>
     </div>
   );

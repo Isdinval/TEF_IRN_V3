@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppLayout } from "@/components/shared/AppLayout";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,9 +35,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ParcoursWrapper>
-            <AppLayout>{children}</AppLayout>
-          </ParcoursWrapper>
+          <QueryProvider>
+            <ParcoursWrapper>
+              <AppLayout>{children}</AppLayout>
+            </ParcoursWrapper>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
