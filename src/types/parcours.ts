@@ -3,6 +3,10 @@ import { Parcours as DBParcours, Lesson as DBLesson } from "@/lib/parcours";
 export interface Parcours extends DBParcours {}
 export interface Lesson extends DBLesson {
   isCompleted?: boolean;
+  exerciseStats?: {
+    total: number;
+    completed: number;
+  };
 }
 
 export interface ParcoursProgress {

@@ -40,16 +40,43 @@ function GrammarCheckContent() {
   const { activeParcours, nextLesson } = useParcours();
 
   useEffect(() => {
+    const exerciseId = searchParams.get('id');
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
     const level = searchParams.get('level');
 
-    if (lessonId && topic) {
+    if (exerciseId) {
+      startSpecificExercise(exerciseId);
+    } else if (lessonId && topic) {
       if (topic) setSelectedCategory(topic);
       if (level) setSelectedLevel(level);
       startExercise(level || undefined, topic || undefined);
     }
   }, [searchParams]);
+
+  const startSpecificExercise = async (id: string) => {
+    setLoading(true);
+    const { data: d } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (d) {
+      const formatted = [{
+        id: d.id,
+        sentence: d.content.sentence || d.instructions,
+        error_fragment: d.content.error_fragment || "...",
+        correction: d.content.correct_answer || d.content.correct_answers?.[0],
+        explanation: d.content.explanation || "Règle de grammaire standard.",
+        category: d.category,
+        level: d.level
+      }];
+      setQuestions(formatted);
+      setIsStarted(true);
+    }
+    setLoading(false);
+  };
 
   const startExercise = async (lvl?: string, cat?: string) => {
     setLoading(true);
@@ -100,7 +127,7 @@ function GrammarCheckContent() {
           error_fragment: d.content.error_fragment || "...",
           correction: d.content.correct_answer || d.content.correct_answers?.[0],
           explanation: d.content.explanation || "Règle de grammaire standard.",
-          category: d.category || targetLevel,
+          category: d.category || targetCategory,
           level: d.level || targetLevel
         }));
         setQuestions(formatted);
@@ -113,26 +140,22 @@ function GrammarCheckContent() {
     }
   };
 
-  const handleCheck = () => {
+  const checkCorrection = () => {
+    if (status !== "typing") return;
     const current = questions[currentIdx];
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
       setStatus("correct");
-      setScore(s => s + 1);
-      updateXP(10);
+      setScore(score + 1);
     } else {
       setStatus("wrong");
     }
   };
 
-  const updateXP = async (amount: number) => {
-    await supabase.rpc('add_xp', { amount });
-  };
-
   const nextQuestion = () => {
     if (currentIdx < questions.length - 1) {
-      setCurrentIdx(prev => prev + 1);
+      setCurrentIdx(currentIdx + 1);
       setInputValue("");
       setStatus("typing");
     } else {
@@ -140,135 +163,57 @@ function GrammarCheckContent() {
     }
   };
 
-  if (!isStarted) {
+  if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6 lg:p-12 pt-16">
-        <ParcoursBreadcrumb className="mb-8" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-12">
-            <header>
-              <Badge className="mb-4 rounded-full border-none bg-blue-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-100">
-                Orthographe & Grammaire
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6">
-                ZÉRO <span className="text-blue-600">FAUTE.</span>
-              </h1>
-              <p className="text-xl font-medium text-slate-500 leading-relaxed max-w-xl">
-                Identifiez et corrigez les erreurs dans des phrases courtes pour améliorer votre expression écrite.
-              </p>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Niveau</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["A1", "A2", "B1", "B2"].map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setSelectedLevel(l)}
-                      className={`h-14 rounded-2xl font-black text-lg transition-all ${selectedLevel === l ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Catégorie</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedCategory(c)}
-                      className={`h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => startExercise()}
-              disabled={loading}
-              className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black text-2xl rounded-3xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 flex gap-4"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : "Commencer l'exercice"} <ArrowRight size={28} />
-            </Button>
-          </div>
-
-          <div className="space-y-8">
-            <Card className="border-none shadow-2xl shadow-blue-100 rounded-[3rem] p-8 bg-blue-600 text-white relative overflow-hidden group">
-               <div className="relative z-10">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm group-hover:scale-110 transition-transform">
-                    <Zap size={32} />
-                  </div>
-                  <h3 className="text-2xl font-black mb-2 tracking-tight">Mode Turbo</h3>
-                  <p className="text-blue-100 text-sm font-medium mb-8 leading-relaxed">
-                    Corrigez 5 phrases le plus vite possible pour gagner un bonus de XP.
-                  </p>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-white/10 p-3 rounded-xl border border-white/10">
-                    <Target size={14} /> +50 XP par session
-                  </div>
-               </div>
-               <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
-            </Card>
-
-            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="text-zinc-400" size={20} />
-                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Aujourd'hui</h4>
-              </div>
-              <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                Pratiquer l'orthographe 5 minutes par jour réduit les erreurs de 40% lors de l'examen réel.
-              </p>
-            </Card>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
       </div>
     );
   }
 
   if (finished) {
+    const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="flex items-center justify-center min-h-screen p-8 bg-zinc-50">
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-xl"
+          className="max-w-md w-full"
         >
-          <Card className="text-center p-12 rounded-[4rem] shadow-2xl shadow-blue-100 border-none bg-white">
-            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-8 text-blue-600">
-              <GraduationCap size={48} />
+          <Card className="p-12 text-center rounded-[3rem] shadow-2xl border-none bg-white">
+            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
+              <CheckCircle2 className="text-indigo-600" size={40} />
             </div>
-            <h1 className="text-4xl font-black mb-4 tracking-tighter">Session Terminée !</h1>
-            <p className="text-zinc-400 mb-10 font-bold text-lg">
-              Score final : <span className="text-blue-600">{score}</span> / {questions.length}
-            </p>
+            <h2 className="text-3xl font-black mb-2">Entraînement Terminé !</h2>
+            <p className="text-zinc-500 font-bold mb-8 italic">Excellent travail, continuez ainsi !</p>
+
+            <div className="bg-zinc-50 rounded-3xl p-8 mb-10">
+              <div className="text-6xl font-black text-indigo-600 mb-2">{percentage}%</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Taux de réussite</div>
+            </div>
 
             <div className="space-y-4">
               {activeParcours && (
                 <Button
-                  className="w-full h-20 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-blue-200 transition-all"
+                  className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-lg shadow-xl shadow-indigo-100"
                   onClick={() => nextLesson()}
                 >
-                  Continuer mon parcours
+                  Continuer le parcours
                 </Button>
               )}
               <Button
-                variant={activeParcours ? "ghost" : "default"}
-                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-blue-600' : 'h-20 bg-zinc-900 hover:bg-zinc-800 text-white'} font-black rounded-3xl text-lg transition-all`}
+                variant="ghost"
+                className="w-full h-12 text-zinc-400 font-black hover:text-indigo-600"
                 onClick={() => {
-                  setIsStarted(false);
                   setFinished(false);
+                  setIsStarted(false);
                   setCurrentIdx(0);
                   setScore(0);
-                  setQuestions([]);
+                  setInputValue("");
+                  setStatus("typing");
                 }}
               >
-                {activeParcours ? "Retour à la sélection libre" : "Refaire une session"}
+                Refaire un exercice
               </Button>
             </div>
           </Card>
@@ -277,102 +222,234 @@ function GrammarCheckContent() {
     );
   }
 
-  const current = questions[currentIdx];
-
-  return (
-    <div className="max-w-4xl mx-auto p-6 lg:p-12 pt-16">
-      <header className="mb-12 flex justify-between items-center">
-        <div>
-           <Badge className="bg-blue-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none mb-2">
-            {current.level} • {current.category}
+  if (!isStarted) {
+    return (
+      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
+        <div className="max-w-4xl mx-auto">
+          <Badge className="bg-indigo-600 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-indigo-100 border-none">
+            Module de Correction
           </Badge>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tighter">CORRECTION DE TEXTE</h2>
-        </div>
-        <div className="text-right">
-          <div className="text-xs font-black text-zinc-400 uppercase tracking-widest">Progression</div>
-          <div className="text-xl font-black text-blue-600">{currentIdx + 1} / {questions.length}</div>
-        </div>
-      </header>
+          <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
+            CHASSE AUX <span className="text-indigo-600">ERREURS</span>
+          </h1>
+          <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed mb-12 italic">
+            Améliorez votre précision en identifiant et corrigeant les fautes de grammaire, d'orthographe et de conjugaison.
+          </p>
 
-      <div className="space-y-12">
-        <Card className="p-12 rounded-[3.5rem] bg-white border border-zinc-100 shadow-2xl shadow-zinc-100 text-center space-y-8">
-           <p className="text-3xl font-black text-slate-800 leading-tight">
-             "{current.sentence}"
-           </p>
-           <div className="flex flex-col items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Corrigez le fragment suivant :</span>
-              <span className="px-6 py-2 bg-rose-50 text-rose-600 rounded-full font-black text-xl border border-rose-100 line-through decoration-2">
-                {current.error_fragment}
-              </span>
-           </div>
-        </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <Card className="p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-6">
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <Target size={16} /> Niveau visé
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {["A1", "A2", "B1", "B2"].map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setSelectedLevel(l)}
+                      className={`h-12 rounded-xl font-black text-sm transition-all ${selectedLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-        <div className="space-y-6">
-          <div className="relative">
-             <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={status !== "typing"}
-              placeholder="Écrivez votre correction ici..."
-              className={`w-full h-24 text-center text-3xl font-black rounded-3xl border-4 transition-all outline-none ${
-                status === "typing" ? "border-zinc-100 focus:border-blue-600 bg-white" :
-                status === "correct" ? "border-emerald-500 bg-emerald-50 text-emerald-900" :
-                "border-rose-500 bg-rose-50 text-rose-900"
-              }`}
-              onKeyDown={(e) => e.key === "Enter" && status === "typing" && handleCheck()}
-            />
-            {status === "correct" && <CheckCircle2 className="absolute right-8 top-1/2 -translate-y-1/2 text-emerald-500" size={40} />}
-            {status === "wrong" && <XCircle className="absolute right-8 top-1/2 -translate-y-1/2 text-rose-500" size={40} />}
-          </div>
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <Sparkles size={16} /> Thématique
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setSelectedCategory(c)}
+                      className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Card>
 
-          <AnimatePresence>
-            {status !== "typing" && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-8 rounded-[2.5rem] ${status === "correct" ? "bg-emerald-50 border border-emerald-100" : "bg-rose-50 border border-rose-100"}`}
-              >
-                <h4 className={`font-black uppercase text-xs tracking-widest mb-3 ${status === "correct" ? "text-emerald-600" : "text-rose-600"}`}>
-                  {status === "correct" ? "Excellent !" : "Oups, la réponse était :"}
-                </h4>
-                {status === "wrong" && (
-                   <div className="text-2xl font-black text-rose-900 mb-4 underline decoration-4">{current.correction}</div>
-                )}
-                <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
-                  "{current.explanation}"
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <div className="space-y-6">
+              <Card className="p-8 rounded-[2.5rem] border-none bg-indigo-600 text-white shadow-xl shadow-indigo-200/50 flex flex-col justify-center relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4 opacity-80">
+                    <Zap size={20} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Mode Classique</span>
+                  </div>
+                  <h3 className="text-2xl font-black mb-2 uppercase">Prêt à corriger ?</h3>
+                  <p className="text-sm font-medium opacity-80 mb-6 italic">
+                    5 questions aléatoires basées sur vos critères pour un entraînement rapide.
+                  </p>
+                  <Button
+                    onClick={() => startExercise()}
+                    className="w-full h-14 bg-white text-indigo-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg"
+                  >
+                    LANCER L'EXERCICE
+                  </Button>
+                </div>
+                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12" />
+              </Card>
 
-          <div className="flex gap-4">
-             {status === "typing" ? (
-               <Button
-                onClick={handleCheck}
-                disabled={!inputValue.trim()}
-                className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black text-xl rounded-3xl"
-              >
-                Vérifier
-              </Button>
-             ) : (
-               <Button
-                onClick={nextQuestion}
-                className={`w-full h-20 text-white font-black text-xl rounded-3xl ${status === "correct" ? "bg-emerald-600" : "bg-red-500"}`}
-              >
-                Question suivante <ArrowRight className="ml-2" />
-              </Button>
-             )}
+              <div className="flex items-center gap-4 px-4 text-zinc-400">
+                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                    <GraduationCap size={16} /> TEF IRN
+                 </div>
+                 <div className="w-1 h-1 bg-zinc-300 rounded-full" />
+                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                    <Calendar size={16} /> Entraînement Quotidien
+                 </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    );
+  }
+
+  const current = questions[currentIdx];
+
+  return (
+    <div className="min-h-screen bg-zinc-50 flex flex-col">
+      <header className="bg-white border-b border-zinc-100 px-6 py-6 lg:px-12">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setIsStarted(false)}
+              className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-900 transition-colors"
+            >
+              <ArrowRight className="rotate-180" size={20} />
+            </button>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <Badge className="bg-indigo-600 rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                  {current?.level}
+                </Badge>
+                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">
+                  {current?.category}
+                </span>
+              </div>
+              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Question {currentIdx + 1} / {questions.length}</h2>
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</div>
+              <div className="text-lg font-black text-zinc-900">{score} / {questions.length}</div>
+            </div>
+            <div className="h-10 w-px bg-zinc-100 mx-2" />
+            <div className="w-32 h-2 bg-zinc-100 rounded-full overflow-hidden">
+               <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
+                className="h-full bg-indigo-600"
+               />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="max-w-4xl w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIdx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-12"
+            >
+              <div className="bg-white p-12 lg:p-20 rounded-[4rem] shadow-2xl shadow-zinc-200/50 text-center space-y-12 border border-zinc-50 relative overflow-hidden">
+                <div className="relative z-10">
+                   <h3 className="text-4xl lg:text-5xl font-black text-zinc-900 leading-tight tracking-tight mb-8">
+                    {current?.sentence}
+                  </h3>
+                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl font-black text-lg uppercase tracking-widest">
+                    <Target size={20} />
+                    Corriger : "{current?.error_fragment}"
+                  </div>
+                </div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
+              </div>
+
+              <div className="max-w-2xl mx-auto space-y-6">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    disabled={status !== "typing"}
+                    placeholder="Tapez votre correction ici..."
+                    className={`w-full h-24 bg-white border-4 rounded-3xl px-8 text-2xl font-black transition-all outline-none text-center shadow-xl
+                      ${status === "typing" ? "border-zinc-100 focus:border-indigo-600 group-hover:border-zinc-200" :
+                        status === "correct" ? "border-emerald-500 text-emerald-600 bg-emerald-50" : "border-rose-500 text-rose-600 bg-rose-50"}`}
+                    onKeyPress={(e) => e.key === "Enter" && status === "typing" && checkCorrection()}
+                    autoFocus
+                  />
+                  <AnimatePresence>
+                    {status === "correct" && (
+                      <motion.div
+                        initial={{ scale: 0 }} animate={{ scale: 1 }}
+                        className="absolute -right-4 -top-4 w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg z-20"
+                      >
+                        <CheckCircle2 size={24} />
+                      </motion.div>
+                    )}
+                    {status === "wrong" && (
+                      <motion.div
+                        initial={{ scale: 0 }} animate={{ scale: 1 }}
+                        className="absolute -right-4 -top-4 w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-lg z-20"
+                      >
+                        <XCircle size={24} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {status === "typing" ? (
+                  <Button
+                    onClick={checkCorrection}
+                    disabled={!inputValue.trim()}
+                    className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    VÉRIFIER MA RÉPONSE
+                  </Button>
+                ) : (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                    <Card className={`p-8 rounded-[2rem] border-none shadow-xl ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
+                       <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
+                          <Sparkles size={16} /> Explication Pédagogique
+                       </div>
+                       <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
+                       <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
+                          Réponse correcte : <span className="underline decoration-wavy">{current?.correction}</span>
+                       </div>
+                    </Card>
+                    <Button
+                      onClick={nextQuestion}
+                      className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
+                    >
+                      {currentIdx < questions.length - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
+                      <ArrowRight size={24} />
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
     </div>
   );
 }
 
-export default function GrammarCheck() {
+export default function GrammarCheckPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-blue-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
       <GrammarCheckContent />
     </Suspense>
   );
