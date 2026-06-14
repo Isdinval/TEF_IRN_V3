@@ -1,156 +1,69 @@
-# Maitris — Coach IA pour le TEF IRN
+# Maitris — Coach IA pour le TEF IRN 🇫🇷
 
-> Plateforme SaaS de préparation au TEF IRN (Test d'Évaluation de Français — Immigration, Réfugiés, Nationalité) alimentée par l'IA. Live sur [tef-irn-v3.vercel.app](https://tef-irn-v3.vercel.app).
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase)](https://supabase.com/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai)](https://openai.com/)
 
----
-
-## Présentation
-
-Maitris est un coach IA personnel qui accompagne les candidats au TEF IRN du niveau A1 au B2. La plateforme propose :
-
-- **Coach Oral IA** — simulation d'examinateur en temps réel via l'API OpenAI
-- **Correction Écrite** — feedback ligne par ligne avec explications pédagogiques
-- **Radar de Compétences** — visualisation des points forts/faibles par compétence
-- **Méthode Adaptative** — exercices personnalisés selon l'historique d'erreurs
-- **+5 000 exercices** générés et validés pédagogiquement
-- Conforme à la **loi 2024-42** (nationalité & séjour)
+**Maitris** est une plateforme SaaS de pointe conçue pour accompagner les candidats à la réussite du **TEF IRN** (Test d'Évaluation de Français pour l'Intégration, la Résidence et la Nationalité). Alliant intelligence artificielle et pédagogie moderne, Maitris offre une expérience d'apprentissage immersive et personnalisée.
 
 ---
 
-## Stack technique
+## ✨ Fonctionnalités Clés
 
-| Couche | Technologie |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Langage | TypeScript 5 |
-| Base de données | Supabase (PostgreSQL + Auth + SSR) |
-| Paiement | Stripe |
-| IA | OpenAI API (`openai` ^4.68) |
-| Analytics | PostHog |
-| UI | Tailwind CSS v4 + shadcn/ui + Framer Motion |
-| Charts | Recharts |
-| Tests E2E | Playwright |
-| Déploiement | Vercel |
+### ✍️ Written Expression Coach
+Un éditeur intelligent qui fournit un feedback instantané et détaillé sur vos productions écrites.
+- **Analyse pédagogique** : Correction par type d'erreur (grammaire, syntaxe, vocabulaire).
+- **Reformulations réalistes** : Suggestions adaptées aux niveaux A2 à B2.
+- **Double Scroll Sync** : Navigation fluide entre vos erreurs et les explications de l'IA.
 
----
+### 🗣️ Oral Coach (OpenAI Realtime)
+Pratiquez l'épreuve orale avec un examinateur virtuel en temps réel.
+- **Conversations fluides** : Basé sur l'API OpenAI Realtime pour une latence minimale.
+- **Simulations de sections** : Entraînement spécifique pour les Sections A et B de l'examen.
 
-## Structure du projet
+### 📊 Dashboard & Progression
+Suivez vos performances grâce à un tableau de bord premium et gamifié.
+- **Radar de Compétences** : Visualisation de votre niveau sur les différents axes du CECRL.
+- **Système de Ligues** : Restez motivé en grimpant dans le classement des utilisateurs.
+- **Objectifs Quotidiens** : Suivi de l'XP et de la régularité.
 
-```
-TEF_IRN_V3/
-├── src/
-│   ├── app/                  # App Router Next.js 15
-│   │   ├── (auth)/           # Routes authentifiées
-│   │   ├── (public)/         # Landing, guides, tarifs
-│   │   ├── api/              # Route Handlers (API server-side)
-│   │   └── layout.tsx
-│   ├── components/           # Composants React réutilisables
-│   ├── lib/
-│   │   ├── supabase/         # Clients Supabase (server, client, middleware)
-│   │   └── stripe/           # Helpers Stripe
-│   └── types/                # Types TypeScript globaux
-├── public/                   # Assets statiques
-├── supabase/
-│   └── migrations/           # Migrations SQL Supabase
-├── docs/                     # Documentation interne
-├── AGENTS.md                 # Instructions pour agents IA (Jules, Claude, Copilot)
-└── CLAUDE.md                 # Alias → AGENTS.md
-```
+### 🧠 Apprentissage Adaptatif (SRS)
+Optimisez votre mémorisation avec notre moteur de répétition espacée (Spaced Repetition System).
+- **SRS Intelligent** : Algorithme SM-2 personnalisé pour le vocabulaire et les exercices.
+- **Moteur de Recommandation** : Suggestions de leçons basées sur vos erreurs récurrentes.
 
 ---
 
-## Démarrage local
+## 🛠️ Stack Technique
 
-### Prérequis
+- **Frontend** : Next.js 15 (App Router), React 19, TypeScript.
+- **Styling** : Tailwind CSS v4, Framer Motion, @base-ui/react.
+- **Backend & Auth** : Supabase (PostgreSQL, Auth SSR, Edge Functions).
+- **IA** : OpenAI GPT-4o-mini & GPT-Realtime (WebRTC).
+- **Paiements** : Stripe Checkout & Webhooks.
 
-- Node.js 22+
-- npm 11+ (ou pnpm / bun)
-- Compte Supabase (projet créé)
-- Compte Stripe (mode test)
-- Clé API OpenAI
+---
 
-### Installation
+## 🚀 Installation & Développement
 
 ```bash
-git clone https://github.com/Isdinval/TEF_IRN_V3.git
-cd TEF_IRN_V3
 npm install
-```
-
-### Variables d'environnement
-
-Crée un fichier `.env.local` à la racine :
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://<projet>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<clé_anon>
-SUPABASE_SERVICE_ROLE_KEY=<clé_service>
-
-# OpenAI
-OPENAI_API_KEY=sk-...
-
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# PostHog (optionnel)
-NEXT_PUBLIC_POSTHOG_KEY=phc_...
-NEXT_PUBLIC_POSTHOG_HOST=https://eu.posthog.com
-```
-
-### Lancer le serveur de développement
-
-```bash
 npm run dev
 ```
 
-Ouvre [http://localhost:3000](http://localhost:3000).
+---
 
-### Appliquer les migrations Supabase
+## 📄 Documentation
 
-```bash
-npx supabase db push
-```
+Pour plus de détails, explorez notre dossier `docs/` :
+- [Documentation Technique](./docs/technical-documentation.md)
+- [Systèmes IA](./docs/AI_SYSTEMS.md)
+- [Base de données & SRS](./docs/DATABASE_AND_SRS.md)
+- [Référentiel TEF IRN](./docs/tef-irn-reference.md)
 
 ---
 
-## Scripts disponibles
-
-```bash
-npm run dev      # Serveur de développement (Next.js)
-npm run build    # Build de production
-npm run start    # Serveur de production
-npm run lint     # ESLint
-npx playwright test  # Tests E2E
-```
-
----
-
-## Déploiement
-
-Le projet est déployé automatiquement sur **Vercel** à chaque push sur `main`.
-
-Variables d'environnement à configurer dans le dashboard Vercel (identiques au `.env.local`).
-
-Pour les webhooks Stripe en production, mettre à jour l'URL dans le dashboard Stripe :
-```
-https://tef-irn-v3.vercel.app/api/stripe/webhook
-```
-
----
-
-## Notes importantes
-
-- **Next.js 15 App Router uniquement** — pas de `pages/`, toute la logique est dans `src/app/`
-- **Tailwind CSS v4** — syntaxe et configuration différentes de v3 (pas de `tailwind.config.js` classique)
-- Les **Route Handlers** (`app/api/`) remplacent les anciens `pages/api/`
-- L'authentification est gérée entièrement via **Supabase SSR** (`@supabase/ssr`)
-- Les appels OpenAI se font **côté serveur uniquement** (Route Handlers), jamais côté client
-
----
-
-## Licence
+## ⚖️ Licence
 
 Projet privé — tous droits réservés © 2025 Maitris AI.
