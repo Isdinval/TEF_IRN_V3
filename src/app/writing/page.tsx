@@ -99,7 +99,7 @@ function WritingCoachContent() {
       // Save to database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await fetch("/api/exercise-complete", {
+        const completeRes = await fetch("/api/exercise-complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -112,13 +112,17 @@ function WritingCoachContent() {
             }
           })
         });
+
+        if (completeRes.ok) {
+          router.refresh(); // Ensure the parcours page will see fresh data if navigating back
+        }
       }
     } catch (error) {
       console.error("Correction error:", error);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, exercise, supabase]);
+  }, [text, exercise, supabase, router]);
 
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;

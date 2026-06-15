@@ -48,7 +48,9 @@ function PracticeContent() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
+  const id = searchParams.get('id');
   const lessonId = searchParams.get('lessonId');
   const topic = searchParams.get('topic');
   const level = searchParams.get('level');
@@ -56,18 +58,35 @@ function PracticeContent() {
 
   useEffect(() => {
     const init = async () => {
-      if (lessonId && !topic) {
-        fetchExercise(lessonId);
+      if (id) {
+        await fetchExerciseById(id);
+      } else if (lessonId && !topic) {
+        await fetchExercise(lessonId);
       } else if (topic) {
-        autoStart(lessonId || undefined, topic, level || undefined);
+        await autoStart(lessonId || undefined, topic, level || undefined);
       } else if (isReviewMode) {
-        fetchReviewExercises();
+        await fetchReviewExercises();
       } else {
         setMode("selection");
       }
     };
     init();
-  }, [lessonId, topic, isReviewMode]);
+  }, [id, lessonId, topic, isReviewMode]);
+
+  const fetchExerciseById = async (exId: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('id', exId)
+      .single();
+
+    if (data) {
+      setExercise(data as Exercise);
+      setMode("practice");
+    }
+    setIsLoading(false);
+  };
 
   const fetchExercise = async (lid: string) => {
     setIsLoading(true);
@@ -100,7 +119,6 @@ function PracticeContent() {
       setExercise(data as Exercise);
       setMode("practice");
     } else if (t) {
-       // Si pas de catégorie précise, on cherche par instruction ou contenu via search
        const { data: searchData } = await supabase
          .from('exercises')
          .select('*')
@@ -119,7 +137,6 @@ function PracticeContent() {
 
   const fetchReviewExercises = async () => {
     setIsLoading(true);
-    // Logique SRS simplifiée pour la démo
     const { data } = await supabase
       .from('exercises')
       .select('*')
@@ -149,36 +166,48 @@ function PracticeContent() {
       setSelected(null);
       setIsChecked(false);
     } else {
-      setIsFinished(true);
+      setIsSaving(true);
       await saveResult();
+      setIsFinished(true);
+      setIsSaving(false);
+      router.refresh(); // Clear client-side cache for server data
     }
   };
 
   const saveResult = async () => {
-    const finalScore = Math.round((score / (exercise?.content.questions.length || 1)) * 100);
+    const total = exercise?.content.questions.length || 1;
+    const finalScore = Math.round((score / total) * 100);
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user && exercise) {
-      await fetch('/api/exercise-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exerciseId: exercise.id,
-          score: finalScore,
-          answers: {
-            correct: score,
-            total: exercise.content.questions.length
-          }
-        })
-      });
+      try {
+        const response = await fetch('/api/exercise-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exerciseId: exercise.id,
+            score: finalScore,
+            answers: {
+              correct: score,
+              total: total
+            }
+          })
+        });
+        if (!response.ok) throw new Error("Failed to save");
+        console.log("Result saved successfully");
+      } catch (err) {
+        console.error("Error saving result:", err);
+      }
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isSaving) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
         <Loader2 className="h-12 w-12 animate-spin text-rose-600" />
-        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Chargement de l'exercice...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+          {isSaving ? "Enregistrement de vos progrès..." : "Chargement de l'exercice..."}
+        </p>
       </div>
     );
   }
@@ -219,7 +248,7 @@ function PracticeContent() {
               </div>
               <div className="space-y-4">
                  <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                   Un exercice est composé de 5 questions. Lisez attentivement et choisissez la bonne option.
+                   Un exercice est composé de plusieurs questions. Lisez attentivement et choisissez la bonne option.
                  </p>
                  <div className="h-px bg-zinc-200 w-full" />
                  <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">

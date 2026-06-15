@@ -10,6 +10,7 @@ import { Exercise } from "@/lib/parcours";
 
 interface ExerciseCardProps {
   exercise: Exercise & { is_completed?: boolean };
+  parcoursId?: string;
 }
 
 const typeIcons: Record<string, any> = {
@@ -38,18 +39,21 @@ const difficultyColors: Record<string, string> = {
   difficile: "bg-rose-50 text-rose-600 border-rose-100",
 };
 
-export default function ExerciseCard({ exercise }: ExerciseCardProps) {
+export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
 
   const getExerciseUrl = () => {
-    // We pass 'id' for exact exercise matching, and 'topic'/'level' for context if needed
     const params = new URLSearchParams({
       id: exercise.id,
       topic: exercise.category,
       level: exercise.level
     });
+
+    if (parcoursId) {
+      params.set("parcoursId", parcoursId);
+    }
 
     switch (exercise.type) {
       case 'qcm':
@@ -103,7 +107,6 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
                         initial={false}
                         animate={{
                           scale: (exercise.success_rate! / 20) >= s ? [1, 1.3, 1] : 1,
-                          opacity: 1
                         }}
                       >
                         <Star
