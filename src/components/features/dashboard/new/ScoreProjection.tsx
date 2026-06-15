@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Target, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface ScoreProjectionProps {
   currentLevel: string;
@@ -11,12 +12,17 @@ interface ScoreProjectionProps {
 }
 
 export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: ScoreProjectionProps) {
+  const router = useRouter();
+
   // Logic to map score to level string
   let levelDisplay = "A2+";
   if (estimatedScore >= 500) levelDisplay = "B2+";
   else if (estimatedScore >= 400) levelDisplay = "B1+";
   else if (estimatedScore >= 300) levelDisplay = "B1";
   else if (estimatedScore >= 200) levelDisplay = "A2";
+
+  // Calculate progress percentage for the bar (0-699 scale)
+  const progressPercent = Math.min(Math.max((estimatedScore / 699) * 100, 5), 100);
 
   return (
     <Card className="overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-200/50 rounded-[2.5rem] relative">
@@ -47,13 +53,16 @@ export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: Sco
             <div className="h-2 w-full rounded-full bg-white/20 overflow-hidden">
                <motion.div
                  initial={{ width: 0 }}
-                 animate={{ width: "65%" }}
+                 animate={{ width: `${progressPercent}%` }}
                  className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                />
             </div>
           </div>
 
-          <button className="flex w-full items-center justify-between rounded-2xl bg-white/10 p-4 transition-all hover:bg-white/20 group">
+          <button
+            onClick={() => router.push('/exam')}
+            className="flex w-full items-center justify-between rounded-2xl bg-white/10 p-4 transition-all hover:bg-white/20 group"
+          >
              <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
                    <Target size={16} />

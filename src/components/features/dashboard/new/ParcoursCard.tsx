@@ -35,12 +35,12 @@ export function ParcoursCard({ id, level, category, progress }: ParcoursCardProp
         <div className="space-y-3">
           <div className="flex justify-between text-xs font-bold text-zinc-500">
             <span>Progression</span>
-            <span>{progress.completed}/{progress.total} leçons</span>
+            <span>{progress.completed || 0}/{progress.total || 0} leçons</span>
           </div>
           <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-100 p-0.5 border border-zinc-50">
             <div
               className="h-full rounded-full bg-violet-600 shadow-[0_0_10px_rgba(124,58,237,0.3)] transition-all duration-1000"
-              style={{ width: `${progress.percent}%` }}
+              style={{ width: `${progress.percent || 0}%` }}
             />
           </div>
         </div>
@@ -49,7 +49,7 @@ export function ParcoursCard({ id, level, category, progress }: ParcoursCardProp
           onClick={() => router.push(`/parcours/${id}`)}
           className="mt-8 h-14 w-full rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center justify-center gap-2"
         >
-          Continuer <ArrowRight size={18} />
+          {progress.percent > 0 ? "Continuer" : "Commencer"} <ArrowRight size={18} />
         </Button>
       </CardContent>
     </Card>

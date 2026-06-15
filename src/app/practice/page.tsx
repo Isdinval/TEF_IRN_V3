@@ -1,34 +1,32 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import { createClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { createClient } from '@/lib/supabase-browser';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
-  ArrowRight,
+  Loader2,
   CheckCircle2,
   XCircle,
-  Loader2,
-  LayoutGrid,
-  GraduationCap,
-  Calendar,
-  Brain,
-  Sparkles,
   ChevronLeft,
-  Target
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
-import { useParcours } from "@/contexts/ParcoursContext";
+  ArrowRight,
+  BookOpen,
+  Target,
+  Sparkles,
+  Zap,
+  Calendar
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useParcours } from '@/contexts/ParcoursContext';
 
 interface Exercise {
   id: string;
-  level: string;
   instructions: string;
+  type: string;
   category: string;
+  level: string;
   content: {
     questions: string[];
     options: string[][];
@@ -36,221 +34,178 @@ interface Exercise {
   };
 }
 
-type Mode = "selection" | "training";
-
 function PracticeContent() {
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>("selection");
+  const supabase = createClient();
+  const { activeParcours, nextLesson } = useParcours();
+
+  const [mode, setMode] = useState<"selection" | "practice">("selection");
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ level: "A2", category: "Grammaire" });
-  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const router = useRouter();
-  const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
+  const lessonId = searchParams.get('lessonId');
+  const topic = searchParams.get('topic');
+  const level = searchParams.get('level');
+  const isReviewMode = searchParams.get('mode') === 'review';
 
   useEffect(() => {
-    const exerciseId = searchParams.get("id");
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
+    const init = async () => {
+      if (lessonId && !topic) {
+        fetchExercise(lessonId);
+      } else if (topic) {
+        autoStart(lessonId || undefined, topic, level || undefined);
+      } else if (isReviewMode) {
+        fetchReviewExercises();
+      } else {
+        setMode("selection");
+      }
+    };
+    init();
+  }, [lessonId, topic, isReviewMode]);
 
-    if (exerciseId) {
-      startSpecificExercise(exerciseId);
-    } else if (lessonId && topic) {
-      autoStart(lessonId, topic, level || undefined);
-    }
-  }, [searchParams]);
-
-  const startSpecificExercise = async (id: string) => {
-    setLoading(true);
-    const { data: ex } = await supabase
-      .from("exercises")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (ex) {
-      setExercise(ex as Exercise);
-      setMode("training");
-    }
-    setLoading(false);
-  };
-
-  const autoStart = async (lessonId: string, topic: string, level?: string) => {
-    setLoading(true);
-    const { data: lessonExo } = await supabase
+  const fetchExercise = async (lid: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase
       .from('exercises')
       .select('*')
-      .eq('lesson_id', lessonId)
-      .eq('type', 'qcm_centre_entrainement')
+      .eq('lesson_id', lid)
+      .eq('type', 'qcm')
       .limit(1)
-      .maybeSingle();
-
-    if (lessonExo) {
-      setExercise(lessonExo as Exercise);
-      setMode("training");
-    } else {
-      let targetLevel = level;
-      if (!targetLevel) {
-        const { data: lessonData } = await supabase
-          .from('lessons')
-          .select('level')
-          .eq('id', lessonId)
-          .single();
-        targetLevel = lessonData?.level;
-      }
-
-      if (targetLevel) {
-        const normalizedTopic = topic ? (topic.charAt(0).toUpperCase() + topic.slice(1).toLowerCase()) : topic;
-        const { data: topicExo } = await supabase
-          .from('exercises')
-          .select('*')
-          .eq('level', targetLevel)
-          .eq('category', normalizedTopic)
-          .eq('type', 'qcm_centre_entrainement')
-          .limit(1)
-          .maybeSingle();
-
-        if (topicExo) {
-          setExercise(topicExo as Exercise);
-          setMode("training");
-        }
-      }
-    }
-    setLoading(false);
-  };
-
-  const startExercise = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("exercises")
-      .select("*")
-      .eq("level", filters.level)
-      .eq("category", filters.category)
-      .eq("type", "qcm_centre_entrainement")
-      .limit(1)
-      .maybeSingle();
+      .single();
 
     if (data) {
       setExercise(data as Exercise);
-      setMode("training");
-      setCurrentQuestionIndex(0);
-      setScore(0);
-      setIsFinished(false);
+      setMode("practice");
     }
-    setLoading(false);
+    setIsLoading(false);
+  };
+
+  const autoStart = async (lid?: string, t?: string, lvl?: string) => {
+    setIsLoading(true);
+    let query = supabase.from('exercises').select('*').eq('type', 'qcm');
+
+    if (lid) query = query.eq('lesson_id', lid);
+    if (t) query = query.ilike('category', `%${t}%`);
+    if (lvl) query = query.eq('level', lvl);
+
+    const { data } = await query.limit(1).single();
+
+    if (data) {
+      setExercise(data as Exercise);
+      setMode("practice");
+    } else if (t) {
+       // Si pas de catégorie précise, on cherche par instruction ou contenu via search
+       const { data: searchData } = await supabase
+         .from('exercises')
+         .select('*')
+         .eq('type', 'qcm')
+         .filter('instructions', 'ilike', `%${t}%`)
+         .limit(1)
+         .single();
+
+       if (searchData) {
+         setExercise(searchData as Exercise);
+         setMode("practice");
+       }
+    }
+    setIsLoading(false);
+  };
+
+  const fetchReviewExercises = async () => {
+    setIsLoading(true);
+    // Logique SRS simplifiée pour la démo
+    const { data } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('type', 'qcm')
+      .limit(1)
+      .single();
+
+    if (data) {
+      setExercise(data as Exercise);
+      setMode("practice");
+    }
+    setIsLoading(false);
   };
 
   const handleCheck = () => {
-    if (selected === null || !exercise) return;
+    if (selected === null) return;
     setIsChecked(true);
-    if (selected === exercise.content.correct_answers[currentQuestionIndex]) {
-      setScore(score + 1);
+    if (selected === exercise?.content.correct_answers[currentQuestionIndex]) {
+      setScore(prev => prev + 1);
     }
   };
 
   const handleNext = async () => {
-    if (!exercise) return;
-    if (currentQuestionIndex < exercise.content.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    const totalQuestions = exercise?.content.questions.length || 0;
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
       setIsFinished(true);
-      await supabase.from("exercise_attempts").insert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        exercise_id: exercise.id,
-        score: Math.round((score / exercise.content.questions.length) * 100),
-        is_completed: true
+      await saveResult();
+    }
+  };
+
+  const saveResult = async () => {
+    const finalScore = Math.round((score / (exercise?.content.questions.length || 1)) * 100);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && exercise) {
+      await fetch('/api/exercise-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId: exercise.id,
+          score: finalScore,
+          answers: {
+            correct: score,
+            total: exercise.content.questions.length
+          }
+        })
       });
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-rose-600" size={48} />
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
+        <Loader2 className="h-12 w-12 animate-spin text-rose-600" />
+        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Chargement de l'exercice...</p>
       </div>
     );
   }
 
   if (mode === "selection") {
     return (
-      <div className="min-h-screen bg-zinc-50/30 p-6 pt-16 lg:p-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12">
-            <Badge className="bg-rose-100 text-rose-600 border-none rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4">
-              Centre d'Entraînement
-            </Badge>
-            <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
-              QCM <span className="text-rose-600">Voltaire</span>
-            </h1>
-            <p className="max-w-2xl text-lg font-bold text-slate-500 leading-relaxed italic">
-               Perfectionnez votre grammaire et orthographe avec des exercices ciblés par niveau.
-            </p>
-          </div>
+      <div className="min-h-screen bg-zinc-50 p-8 pt-20">
+        <div className="max-w-4xl mx-auto space-y-12">
+          <header>
+            <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4 uppercase">Centre d'entraînement</h1>
+            <p className="text-zinc-500 font-medium italic text-lg">Choisissez votre mode de pratique pour booster votre score TEF.</p>
+          </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <Card className="lg:col-span-2 border-none shadow-2xl shadow-rose-100/50 rounded-[4rem] overflow-hidden bg-white p-12 relative">
-               <div className="relative z-10 space-y-12">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                        <GraduationCap size={16} /> Niveau TEF IRN
-                      </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {["A1", "A2", "B1", "B2"].map((l) => (
-                          <button
-                            key={l}
-                            onClick={() => setFilters({ ...filters, level: l })}
-                            className={`h-14 rounded-2xl font-black text-sm transition-all ${filters.level === l ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                          >
-                            {l}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                        <LayoutGrid size={16} /> Thématique
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe"].map((c) => (
-                          <button
-                            key={c}
-                            onClick={() => setFilters({ ...filters, category: c })}
-                            className={`h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                          >
-                            {c}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card
+              className="group border-none shadow-xl shadow-zinc-100 rounded-[3rem] p-10 bg-white hover:shadow-2xl hover:shadow-rose-100 transition-all cursor-pointer relative overflow-hidden"
+              onClick={() => fetchReviewExercises()}
+            >
+               <div className="relative z-10">
+                  <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    <Zap size={32} />
                   </div>
-
-                  <Button
-                    onClick={startExercise}
-                    className="w-full h-24 bg-zinc-900 hover:bg-black text-white font-black rounded-[2rem] text-2xl shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
-                  >
-                    GÉNÉRER MON ENTRAÎNEMENT
-                    <ArrowRight className="ml-3" size={28} />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsReviewMode(!isReviewMode)}
-                    className={`w-full h-16 rounded-2xl font-black text-sm transition-all flex gap-3 ${isReviewMode ? 'bg-indigo-50 text-indigo-600' : 'text-zinc-400'}`}
-                  >
-                    <Brain size={20} />
-                    Activer la révision basée sur l'SRS
+                  <h3 className="text-2xl font-black text-zinc-900 mb-2 uppercase">Révision Intelligente</h3>
+                  <p className="text-zinc-500 text-sm font-medium mb-8 leading-relaxed italic">
+                    L'IA sélectionne les notions où vous avez le plus de difficultés.
+                  </p>
+                  <Button className="rounded-2xl bg-zinc-900 text-white font-black px-8 h-12 uppercase text-xs tracking-widest">
+                    Lancer l'SRS
                   </Button>
                </div>
                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
