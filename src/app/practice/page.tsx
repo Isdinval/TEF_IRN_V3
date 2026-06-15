@@ -19,8 +19,8 @@ import {
   Calendar,
   GraduationCap,
   Trophy,
-  RotateCcw,
-  Activity
+  Activity,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
@@ -51,7 +51,7 @@ interface ExerciseDB {
   };
 }
 
-const CATEGORIES = ["Toutes", "Grammaire", "Vocabulaire", "Compréhension écrite", "Compréhension orale", "Expression écrite"];
+const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
 const LEVELS = ['A1', 'A2', 'B1', 'B2'];
 
 function PracticeContent() {
@@ -133,31 +133,42 @@ function PracticeContent() {
 
   const autoStart = async (t: string, lvl?: string) => {
     setIsLoading(true);
+    setScore(0);
+    setCurrentIdx(0);
+    setSelected(null);
+    setIsChecked(false);
+
     let query = supabase.from('exercises').select('*').eq('type', 'qcm');
     if (t) query = query.ilike('category', `%${t}%`);
     if (lvl) query = query.eq('level', lvl);
 
-    const { data } = await query.limit(2);
+    const { data } = await query.limit(5);
     if (data && data.length > 0) {
       const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
-      setQuestions(allQs.slice(0, 15));
+      setQuestions(allQs.slice(0, 10));
       setMode("practice");
     }
     setIsLoading(false);
   };
 
   const fetchReviewExercises = async () => {
-    setQuestions([]);
     setIsLoading(true);
+    setScore(0);
+    setCurrentIdx(0);
+    setSelected(null);
+    setIsChecked(false);
+
     const { data } = await supabase
       .from('exercises')
       .select('*')
       .eq('type', 'qcm')
-      .limit(2);
+      .limit(5);
 
     if (data && data.length > 0) {
-      const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
-      setQuestions(allQs.slice(0, 15));
+      const allQs = (data as ExerciseDB[])
+        .flatMap(mapExerciseToQuestions)
+        .sort(() => Math.random() - 0.5);
+      setQuestions(allQs.slice(0, 10));
       setMode("practice");
     }
     setIsLoading(false);
@@ -230,177 +241,125 @@ function PracticeContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col p-6 lg:p-12 overflow-x-hidden">
         <div className="max-w-6xl mx-auto w-full">
-          <motion.header
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-600 flex items-center justify-center text-white shadow-xl shadow-rose-200">
-                <Activity size={28} />
+          <header className="mb-12">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center text-white shadow-lg shadow-rose-200">
+                <Activity size={24} />
               </div>
-              <div>
-                <h1 className="text-4xl lg:text-5xl font-black text-zinc-900 tracking-tighter uppercase leading-none">Pratique TEF IRN</h1>
-                <p className="text-zinc-400 font-bold mt-1 italic">Personnalisez votre entraînement pour une réussite maximale.</p>
-              </div>
+              <h1 className="text-4xl font-black text-zinc-900 tracking-tighter uppercase">Centre d'Entraînement QCM</h1>
             </div>
-          </motion.header>
+            <p className="text-zinc-500 font-medium italic">Pratiquez la grammaire, la conjugaison et le vocabulaire du TEF IRN.</p>
+          </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Catalogue */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="lg:col-span-2"
-            >
-              <Card className="p-10 rounded-[3rem] border-none shadow-2xl shadow-zinc-200/40 bg-white h-full flex flex-col">
-                <div className="flex items-center gap-4 mb-10 pb-6 border-b border-zinc-100">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white">
-                    <BookOpen size={22} />
-                  </div>
-                  <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Catalogue d'exercices</h2>
+            {/* Design identique à grammar-check */}
+            <Card className="lg:col-span-2 p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-8">
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <Target size={16} /> Niveau CECRL
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {LEVELS.map((l: string) => (
+                    <button
+                      key={l}
+                      onClick={() => toggleLevel(l)}
+                      className={`h-12 rounded-xl font-black text-sm transition-all ${selectedLevels.includes(l) ? 'bg-rose-600 text-white shadow-lg shadow-rose-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                    >
+                      {l}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="space-y-12 flex-1">
-                  {/* Niveaux Selection */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                       <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Niveaux ciblés</label>
-                       <Badge variant="outline" className="text-[10px] font-black border-zinc-200 text-zinc-400 rounded-full px-3">Multi-sélection possible</Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-4">
-                      {LEVELS.map((lvl: string) => {
-                        const isSelected = selectedLevels.includes(lvl);
-                        return (
-                          <button
-                            key={lvl}
-                            onClick={() => toggleLevel(lvl)}
-                            className={`
-                              group relative h-20 w-24 rounded-3xl font-black text-xl transition-all border-4 flex flex-col items-center justify-center
-                              ${isSelected
-                                ? 'bg-rose-600 border-rose-600 text-white shadow-xl shadow-rose-100'
-                                : 'bg-white border-zinc-50 text-zinc-300 hover:border-zinc-200 hover:text-zinc-900'}
-                            `}
-                          >
-                            <span className="relative z-10">{lvl}</span>
-                            {!isSelected && <div className="absolute inset-0 bg-zinc-50 rounded-[inherit] scale-0 group-hover:scale-100 transition-transform -z-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Catégories Selection */}
-                  <div className="space-y-6">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Thématiques</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {CATEGORIES.map((cat: string) => {
-                        const isSelected = selectedCategory === cat;
-                        return (
-                          <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`
-                              h-14 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all border-2 text-center
-                              ${isSelected
-                                ? 'bg-zinc-900 border-zinc-900 text-white shadow-xl shadow-zinc-200'
-                                : 'bg-zinc-50 border-zinc-50 text-zinc-400 hover:bg-zinc-100 hover:border-zinc-200'}
-                            `}
-                          >
-                            {cat}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+              <div className="space-y-4">
+                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                  <Sparkles size={16} /> Thématique
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                  {CATEGORIES.map((c: string) => (
+                    <button
+                      key={c}
+                      onClick={() => setSelectedCategory(c)}
+                      className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-200' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
                 </div>
+              </div>
+            </Card>
 
-                <div className="mt-12">
+            <div className="space-y-6">
+              <Card className="p-8 rounded-[2.5rem] border-none bg-rose-600 text-white shadow-xl shadow-rose-200/50 flex flex-col justify-center relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4 opacity-80">
+                    <Zap size={20} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Mode Classique</span>
+                  </div>
+                  <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Prêt à pratiquer ?</h3>
+                  <p className="text-sm font-medium opacity-80 mb-6 italic">
+                    Une session de 10-15 QCM basés sur vos critères.
+                  </p>
                   <Button
                     onClick={startCustomExercise}
                     disabled={selectedLevels.length === 0}
-                    className="w-full h-24 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-[2rem] text-2xl shadow-2xl shadow-rose-200 transition-all active:scale-95 flex gap-4 group"
+                    className="w-full h-14 bg-white text-rose-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg"
                   >
-                    LANCER L'ENTRAÎNEMENT
-                    <ArrowRight size={28} className="group-hover:translate-x-2 transition-transform" />
+                    LANCER L'EXERCICE
                   </Button>
                 </div>
+                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12" />
               </Card>
-            </motion.div>
 
-            {/* Right Column: Cards */}
-            <div className="space-y-8">
               {/* SRS Card */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
+              <Card
+                className="group p-8 rounded-[2.5rem] border-none shadow-xl shadow-zinc-200/50 bg-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all"
+                onClick={fetchReviewExercises}
               >
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    <Zap size={28} />
+                  </div>
+                  <h3 className="text-xl font-black text-zinc-900 mb-2 uppercase tracking-tight leading-none">Révision Intelligente</h3>
+                  <p className="text-zinc-500 text-xs font-medium leading-relaxed italic mb-6">
+                    L'IA sélectionne les notions où vous avez le plus de difficultés.
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase tracking-widest">
+                    Lancer le mode SRS <ArrowRight size={14} />
+                  </div>
+                </div>
+                <Sparkles className="absolute -bottom-4 -right-4 w-24 h-24 text-zinc-50 rotate-12 group-hover:text-rose-50 transition-colors" />
+              </Card>
+
+              {/* Parcours Card */}
+              {activeParcours && (
                 <Card
-                  className="group p-10 rounded-[3rem] border-none shadow-2xl shadow-zinc-200/40 bg-white relative overflow-hidden cursor-pointer hover:translate-y-[-4px] transition-all"
-                  onClick={fetchReviewExercises}
+                  className="group p-8 rounded-[2.5rem] border-none shadow-xl shadow-rose-100 bg-zinc-900 text-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all"
+                  onClick={() => nextLesson()}
                 >
                   <div className="relative z-10">
-                    <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-[1.5rem] flex items-center justify-center mb-8 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                      <Zap size={32} />
+                    <div className="flex items-center gap-2 mb-4 opacity-70">
+                      <GraduationCap size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Votre Parcours</span>
                     </div>
-                    <h3 className="text-2xl font-black text-zinc-900 mb-3 uppercase tracking-tight">Révision Intelligente</h3>
-                    <p className="text-zinc-500 text-sm font-medium leading-relaxed italic mb-10">
-                      L'algorithme SRS analyse vos erreurs passées pour vous proposer les exercices les plus pertinents.
-                    </p>
-                    <div className="inline-flex items-center gap-2 text-xs font-black text-rose-600 uppercase tracking-[0.2em] group-hover:gap-4 transition-all">
-                      MODE SRS ACTIF <ArrowRight size={16} />
+                    <h3 className="text-xl font-black mb-2 uppercase tracking-tight">Reprendre la leçon</h3>
+                    <div className="h-12 bg-white text-zinc-900 rounded-xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest hover:bg-rose-50 transition-colors">
+                      Continuer <ArrowRight size={16} />
                     </div>
                   </div>
-                  <Sparkles className="absolute -bottom-6 -right-6 w-32 h-32 text-zinc-50 rotate-12 group-hover:text-rose-50 transition-colors" />
+                  <Sparkles className="absolute -bottom-4 -right-4 w-24 h-24 opacity-5 rotate-12" />
                 </Card>
-              </motion.div>
-
-              {/* Parcours Card (Conditional) */}
-              {activeParcours && (
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Card
-                    className="group p-10 rounded-[3rem] border-none shadow-2xl shadow-rose-100 bg-zinc-900 text-white relative overflow-hidden cursor-pointer hover:translate-y-[-4px] transition-all"
-                    onClick={() => nextLesson()}
-                  >
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                          <GraduationCap size={20} className="text-rose-400" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">VOTRE PARCOURS</span>
-                      </div>
-                      <h3 className="text-2xl font-black mb-3 uppercase tracking-tight">Reprendre la leçon</h3>
-                      <p className="text-zinc-400 text-sm font-medium leading-relaxed italic mb-8">
-                        Continuez votre apprentissage là où vous vous êtes arrêté.
-                      </p>
-                      <div className="h-14 bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest hover:bg-rose-50 transition-colors shadow-lg">
-                        CONTINUER <ArrowRight size={18} />
-                      </div>
-                    </div>
-                    <Sparkles className="absolute -bottom-6 -right-6 w-32 h-32 opacity-5 rotate-12" />
-                  </Card>
-                </motion.div>
               )}
 
-              {/* Stats/Badge placeholder */}
-              <motion.div
-                 initial={{ opacity: 0, x: 30 }}
-                 animate={{ opacity: 1, x: 0 }}
-                 transition={{ delay: 0.4 }}
-                 className="p-8 bg-zinc-100 rounded-[2.5rem] border-2 border-dashed border-zinc-200 flex flex-col items-center text-center"
-              >
-                <div className="w-12 h-12 rounded-full bg-zinc-200 flex items-center justify-center mb-4">
-                   <Target size={24} className="text-zinc-400" />
-                </div>
-                <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Objectif Quotidien</h4>
-                <p className="text-sm font-black text-zinc-600 uppercase tracking-tight">80% de réussite</p>
-              </motion.div>
+              <div className="flex items-center gap-4 px-4 text-zinc-400">
+                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                    <GraduationCap size={16} /> TEF IRN
+                 </div>
+                 <div className="w-1 h-1 bg-zinc-300 rounded-full" />
+                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                    <Calendar size={16} /> Quotidien
+                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -537,7 +496,7 @@ function PracticeContent() {
                           <Sparkles size={16} /> Explication Pédagogique
                         </div>
                         <p className="text-lg font-bold leading-relaxed italic">
-                          {currentQuestion.explanation || "Bravo ! C'est la bonne réponse."}
+                          {currentQuestion.explanation || (selected === currentQuestion.correctAnswer ? "Bravo ! C'est la bonne réponse." : "Oups ! Regardez la correction.")}
                         </p>
                       </Card>
                     </motion.div>
@@ -635,14 +594,6 @@ function PracticeContent() {
             </div>
 
             <div className="space-y-6 relative z-10">
-              {activeParcours && (
-                <Button
-                  className="w-full h-24 bg-zinc-900 hover:bg-black text-white font-black rounded-[2.5rem] text-2xl shadow-2xl shadow-zinc-300 transition-all active:scale-95 flex gap-4"
-                  onClick={() => nextLesson()}
-                >
-                  CONTINUER MON PARCOURS <GraduationCap size={28} />
-                </Button>
-              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button
                   variant="outline"
@@ -662,10 +613,20 @@ function PracticeContent() {
                   className="h-16 text-zinc-400 hover:text-rose-600 font-black rounded-2xl text-lg transition-all active:scale-95 flex gap-3 uppercase tracking-widest"
                   onClick={() => setMode("selection")}
                 >
-                  Selection <ArrowRight size={20} />
+                  Sélection <ArrowRight size={20} />
                 </Button>
               </div>
+              {activeParcours && (
+                <Button
+                  className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-[2.5rem] text-2xl shadow-2xl shadow-zinc-300 transition-all active:scale-95 flex gap-4"
+                  onClick={() => nextLesson()}
+                >
+                  CONTINUER MON PARCOURS <GraduationCap size={28} />
+                </Button>
+              )}
             </div>
+
+            <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
           </Card>
         </motion.div>
       </div>
