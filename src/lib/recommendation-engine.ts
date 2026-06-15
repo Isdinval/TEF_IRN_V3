@@ -14,20 +14,24 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     .order('frequency', { ascending: false })
     .limit(3);
 
-  if (!errors || errors.length === 0) return;
+  if (!errors || errors.length === 0) {
+    // Fallback : suggérer un type d'exercice général
+    await createGenericRecommendation(userId);
+    return;
+  }
 
   const topError = errors[0];
 
   // 2. Chercher une leçon qui correspond à la catégorie de l'erreur
   const { data: lesson } = await supabase
     .from('lessons')
-    .select('id, title')
-    .eq('category', topError.category)
+    .select('id, title, category')
+    .eq('category', topError.category.toLowerCase())
     .limit(1)
     .single();
 
   if (lesson) {
-    // 3. Créer la recommandation
+    // 3. Créer la recommandation de leçon
     await supabase.from('recommendations').upsert({
       user_id: userId,
       type: 'lesson',
@@ -35,7 +39,33 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       reason: `Nous avons remarqué des difficultés récurrentes en ${topError.category}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`,
       status: 'pending'
     }, { onConflict: 'user_id, reference_id' });
+  } else {
+    // 4. Si pas de leçon spécifique, suggérer de l'entraînement dans cette catégorie
+    await supabase.from('recommendations').insert({
+      user_id: userId,
+      type: 'exercise',
+      reason: `Besoin d'entraînement en ${topError.category} ? Faire 10 exercices de type QCM pour renforcer vos bases.`,
+      status: 'pending'
+    });
   }
+}
+
+async function createGenericRecommendation(userId: string) {
+  const supabase = await createClient();
+  const options = [
+    { type: 'exercise', reason: "Travailler la compréhension orale avec des QCM de niveau B2." },
+    { type: 'review', reason: "C'est le moment idéal pour réviser vos acquis avec l'algorithme SRS." },
+    { type: 'exercise', reason: "Pratiquez l'expression écrite pour améliorer votre score global." }
+  ];
+
+  const randomOption = options[Math.floor(Math.random() * options.length)];
+
+  await supabase.from('recommendations').insert({
+    user_id: userId,
+    type: randomOption.type,
+    reason: randomOption.reason,
+    status: 'pending'
+  });
 }
 
 export async function generateRecommendation(userId: string) {
@@ -55,7 +85,9 @@ export async function generateRecommendation(userId: string) {
   }
 
   // 2. Identifier la catégorie la plus problématique
-  const categories = failures.map(f => (f.exercises as any).category);
+  const categories = failures.map(f => (f.exercises as any)?.category).filter(Boolean);
+  if (categories.length === 0) return null;
+
   const mostFrequentCategory = categories.reduce((a, b, i, arr) =>
     arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
   );
@@ -66,22 +98,21 @@ export async function generateRecommendation(userId: string) {
     .select('id')
     .eq('user_id', userId)
     .eq('status', 'pending')
-    .limit(1);
+    .limit(3);
 
-  if (existingReco && existingReco.length > 0) {
-    return null; // On n'ajoute pas de doublon
+  if (existingReco && existingReco.length >= 3) {
+    return null;
   }
 
-  // 4. Trouver une leçon ou exercice de cette catégorie non encore réussi
+  // 4. Trouver une leçon de cette catégorie
   const { data: suggestion } = await supabase
     .from('lessons')
     .select('id, title')
-    .eq('category', mostFrequentCategory)
+    .eq('category', mostFrequentCategory.toLowerCase())
     .limit(1)
     .single();
 
   if (suggestion) {
-    // 5. Créer la recommandation
     await supabase.from('recommendations').insert({
       user_id: userId,
       type: 'lesson',

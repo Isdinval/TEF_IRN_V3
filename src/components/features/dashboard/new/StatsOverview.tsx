@@ -11,6 +11,8 @@ interface StatsOverviewProps {
 }
 
 export function StatsOverview({ studyTime, completedExercises, avgScore, pendingCorrections }: StatsOverviewProps) {
+  const displayScore = avgScore > 0 ? `${avgScore}%` : "-";
+
   const stats = [
     {
       label: "Temps d'étude",
@@ -28,10 +30,10 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
     },
     {
       label: "Score Moyen",
-      value: `${avgScore}%`,
+      value: displayScore,
       icon: History,
       color: "bg-blue-50 text-blue-600",
-      detail: "Performance"
+      detail: avgScore > 0 ? "Estimation TEF" : "Commencez à pratiquer"
     },
     {
       label: "En attente",
@@ -54,8 +56,9 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
             </div>
             <div className="space-y-1">
               <p className="text-2xl font-black text-zinc-900">{stat.value}</p>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col">
                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{stat.label}</p>
+                 <p className="text-[8px] font-bold text-zinc-300 uppercase tracking-tighter mt-0.5">{stat.detail}</p>
               </div>
             </div>
           </CardContent>
