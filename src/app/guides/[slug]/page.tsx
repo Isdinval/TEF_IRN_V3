@@ -1,52 +1,127 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { guides } from "@/data/guides";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Clock,
   Share2,
   Sparkles,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Calendar,
+  User,
+  ExternalLink
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { createClient } from "@/lib/supabase";
+import { Guide } from "@/types/guides";
+import GuideContent from "@/components/features/guides/GuideContent";
 
 export default function GuideDetailPage() {
   const { slug } = useParams();
   const router = useRouter();
+  const [guide, setGuide] = useState<Guide | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const guide = guides.find((g) => g.slug === slug);
+  const supabase = createClient();
 
-  if (!guide) {
+  useEffect(() => {
+    async function fetchGuide() {
+      if (!slug) return;
+
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('guides')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single();
+
+      if (error) {
+        console.error('Error fetching guide:', error);
+        setGuide(null);
+      } else {
+        setGuide(data);
+      }
+      setIsLoading(false);
+    }
+
+    fetchGuide();
+  }, [slug]);
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-8">
-        <h1 className="text-2xl font-bold mb-4">Guide non trouvé</h1>
-        <Button onClick={() => router.push("/guides")}>Retour aux guides</Button>
+      <div className="min-h-screen bg-white pb-20">
+        <div className="max-w-4xl mx-auto px-6 pt-24 space-y-8">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-8 w-2/3" />
+          <div className="space-y-4 pt-12">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </div>
       </div>
     );
   }
 
+  if (!guide) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-[#FAFAFA]">
+        <div className="p-6 bg-white rounded-[2.5rem] shadow-xl text-center space-y-6 max-w-md">
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto">
+            <BookOpen size={40} />
+          </div>
+          <h1 className="text-2xl font-black text-zinc-900">Guide introuvable</h1>
+          <p className="text-slate-500 font-medium">Désolé, ce guide n'existe pas ou n'est plus disponible.</p>
+          <Button onClick={() => router.push("/guides")} className="w-full h-12 bg-zinc-900 rounded-xl font-bold">
+            Retour au centre de ressources
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedDate = new Date(guide.created_at).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
   return (
-    <div className="min-h-screen bg-white selection:bg-indigo-100 pb-20">
+    <div className="min-h-screen bg-white selection:bg-blue-100 pb-20">
       {/* Navigation Sticky Bar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link href="/guides" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold transition-colors">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-50 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <Link href="/guides" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition-colors">
             <ArrowLeft size={18} />
-            <span className="text-sm">Retour aux guides</span>
+            <span className="text-sm">Ressources</span>
           </Link>
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400">
+            <button
+              className="p-2 hover:bg-gray-50 rounded-full transition-colors text-slate-400"
+              onClick={() => {
+                navigator.share({
+                  title: guide.title,
+                  text: guide.description || '',
+                  url: window.location.href,
+                }).catch(() => {
+                   // Fallback for browsers that don't support Web Share API
+                   navigator.clipboard.writeText(window.location.href);
+                   alert('Lien copié dans le presse-papier !');
+                });
+              }}
+            >
               <Share2 size={18} />
             </button>
             <Link href="/login">
-              <Button size="sm" className="bg-indigo-600 font-bold rounded-xl shadow-lg shadow-indigo-100">
+              <Button size="sm" className="bg-blue-600 font-black rounded-xl shadow-lg shadow-blue-100 px-6">
                 S'entraîner
               </Button>
             </Link>
@@ -55,75 +130,83 @@ export default function GuideDetailPage() {
       </nav>
 
       {/* Hero Header */}
-      <header className="max-w-4xl mx-auto px-6 pt-16 pb-12">
+      <header className="max-w-6xl mx-auto px-6 pt-16 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-8"
         >
-          <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-50 text-indigo-600 hover:bg-indigo-50 border-none font-black uppercase tracking-widest text-[10px] px-3 py-1">
-              {guide.tag}
+          <div className="flex flex-wrap items-center gap-4">
+            <Badge className="bg-blue-50 text-blue-600 hover:bg-blue-50 border-none font-black uppercase tracking-widest text-[10px] px-3 py-1">
+              {guide.type}
             </Badge>
+            {guide.level && (
+               <Badge variant="outline" className="text-slate-400 font-black text-[10px] uppercase border-gray-100">
+                 {guide.level}
+               </Badge>
+            )}
             <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold">
               <Clock size={14} />
-              {guide.readTime} de lecture
+              {guide.reading_time} min de lecture
             </div>
           </div>
 
-          <h1 className="text-4xl lg:text-6xl font-black tracking-tight text-zinc-900 leading-[1.1]">
+          <h1 className="text-4xl lg:text-7xl font-black tracking-tight text-zinc-900 leading-[1.05]">
             {guide.title}
           </h1>
 
-          <p className="text-xl text-slate-500 font-medium leading-relaxed italic border-l-4 border-indigo-100 pl-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 py-6 border-y border-gray-50">
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  M
+                </div>
+                <div>
+                   <p className="text-xs font-black text-zinc-900 uppercase tracking-widest">Par Maitris</p>
+                   <p className="text-xs text-slate-400 font-medium">Expert TEF IRN</p>
+                </div>
+             </div>
+             <div className="hidden sm:block w-[1px] h-8 bg-gray-100"></div>
+             <div className="flex items-center gap-2 text-slate-400 text-xs font-bold">
+                <Calendar size={14} />
+                Publié le {formattedDate}
+             </div>
+          </div>
+
+          <p className="text-2xl text-slate-500 font-medium leading-relaxed max-w-4xl">
             {guide.description}
           </p>
         </motion.div>
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-6">
-        <motion.article
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="prose prose-slate prose-indigo max-w-none
-            prose-headings:font-black prose-headings:tracking-tight
-            prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6
-            prose-p:text-lg prose-p:leading-relaxed prose-p:text-slate-600
-            prose-strong:text-zinc-900 prose-strong:font-bold
-            prose-blockquote:border-indigo-500 prose-blockquote:bg-indigo-50/50 prose-blockquote:p-6 prose-blockquote:rounded-2xl prose-blockquote:not-italic prose-blockquote:font-bold prose-blockquote:text-indigo-900"
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {guide.content}
-          </ReactMarkdown>
-        </motion.article>
+      <main className="max-w-6xl mx-auto px-6 pt-8">
+        <GuideContent guide={guide} />
 
-        {/* Dynamic CTA Section */}
-        <section className="mt-24 p-8 lg:p-12 bg-zinc-900 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl shadow-indigo-100">
+        {/* Action Sidebar for Desktop / Bottom CTA for Mobile */}
+        <section className="mt-24 p-8 lg:p-16 bg-blue-600 rounded-[3rem] text-white relative overflow-hidden shadow-2xl shadow-blue-100">
           <div className="absolute top-0 right-0 p-12 opacity-10">
-            <Sparkles size={120} className="text-indigo-400" />
+            <Sparkles size={140} className="text-white" />
           </div>
 
-          <div className="relative z-10 space-y-6">
-            <Badge className="bg-indigo-500/20 text-indigo-300 border-none font-black text-[10px] uppercase tracking-widest">
-              Passer à l'action
+          <div className="relative z-10 space-y-8 max-w-2xl">
+            <Badge className="bg-white/20 text-white border-none font-black text-[10px] uppercase tracking-widest px-4 py-1">
+              Prêt à passer à l'action ?
             </Badge>
-            <h2 className="text-3xl font-black tracking-tight">
-              Ne laissez pas votre avenir au hasard.
+            <h2 className="text-3xl lg:text-5xl font-black tracking-tight leading-tight">
+              Ne laissez pas votre avenir au hasard. Pratiquez dès maintenant.
             </h2>
-            <p className="text-zinc-400 text-lg font-medium max-w-xl">
-              Les guides sont un bon début, mais la pratique est la clé. Notre IA vous prépare aux conditions réelles du TEF IRN 2025.
+            <p className="text-blue-100 text-xl font-medium">
+              Ce guide vous a donné les bases. Notre IA vous donne l'expérience nécessaire pour réussir le jour J.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/login">
-                <Button size="lg" className="h-14 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-indigo-600/20 w-full sm:w-auto">
-                  Essayer Maitris Gratuitement
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button size="lg" className="h-16 px-10 bg-white text-blue-600 hover:bg-blue-50 font-black text-xl rounded-2xl shadow-xl w-full">
+                  Démarrer l'entraînement
                 </Button>
               </Link>
-              <Link href="/pricing">
-                <Button size="lg" variant="outline" className="h-14 px-8 border-white/20 hover:bg-white/5 text-white font-bold rounded-2xl w-full sm:w-auto">
-                  Voir les offres Premium
+              <Link href="/practice" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
+                  Voir les exercices <ExternalLink size={18} className="ml-2" />
                 </Button>
               </Link>
             </div>
@@ -131,16 +214,16 @@ export default function GuideDetailPage() {
         </section>
 
         {/* Footer Navigation */}
-        <div className="mt-20 pt-12 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-8">
+        <div className="mt-20 pt-12 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-100">M</div>
+              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-100">M</div>
               <div>
-                <p className="font-bold text-zinc-900">Maitris</p>
-                <p className="text-xs text-slate-400">Le coach IA pour votre réussite.</p>
+                <p className="font-black text-zinc-900 tracking-tight">Maitris</p>
+                <p className="text-xs text-slate-400 font-medium">Le coach IA pour votre réussite au TEF IRN.</p>
               </div>
            </div>
-           <Link href="/guides" className="text-indigo-600 font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
-             Plus de guides <ChevronRight size={18} />
+           <Link href="/guides" className="text-blue-600 font-black flex items-center gap-2 hover:translate-x-1 transition-transform">
+             Voir tous les guides <ChevronRight size={18} />
            </Link>
         </div>
       </main>
