@@ -37,6 +37,19 @@ function WritingCoachContent() {
   useEffect(() => {
     async function fetchData() {
       const exerciseId = searchParams.get('id');
+      const subjectParam = searchParams.get('subject');
+      const levelParam = searchParams.get('level');
+
+      if (subjectParam) {
+        setExercise({
+          id: exerciseId || undefined,
+          instructions: subjectParam,
+          level: levelParam || "B1",
+          content: { min_words: 100 }
+        });
+        setLoading(false);
+        return;
+      }
 
       let query = supabase
         .from("exercises")
@@ -71,16 +84,38 @@ function WritingCoachContent() {
       const response = await fetch("/api/writing/correct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, instructions: exercise.instructions }),
+        body: JSON.stringify({
+          text,
+          subject: exercise.instructions, // Pass subject for AI context
+          targetLevel: exercise.level
+        }),
       });
       const data = await response.json();
       setFeedback(data);
+
+      // Save to database
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await fetch("/api/exercise-complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            exerciseId: exercise.id,
+            score: data.score_global,
+            answers: {
+              text,
+              subject: exercise.instructions,
+              feedback: data
+            }
+          })
+        });
+      }
     } catch (error) {
       console.error("Correction error:", error);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, exercise.instructions]);
+  }, [text, exercise, supabase]);
 
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;
