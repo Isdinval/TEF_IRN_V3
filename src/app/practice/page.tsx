@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,7 @@ interface Exercise {
 
 function PracticeContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const supabase = createClient();
   const { activeParcours, nextLesson } = useParcours();
 
@@ -282,9 +283,15 @@ function PracticeContent() {
               <Button
                 variant={activeParcours ? "ghost" : "default"}
                 className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-rose-600' : 'h-20 bg-zinc-900 hover:bg-zinc-800 text-white'} font-black rounded-3xl text-lg transition-all`}
-                onClick={() => setMode("selection")}
+                onClick={() => {
+                  if (activeParcours) {
+                    router.push(`/parcours/${activeParcours.id}`);
+                  } else {
+                    setMode("selection");
+                  }
+                }}
               >
-                {activeParcours ? "Retour à la sélection libre" : "Refaire un exercice"}
+                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
               </Button>
             </div>
           </Card>
@@ -302,7 +309,13 @@ function PracticeContent() {
       <header className="mb-12 flex justify-between items-end">
         <div className="space-y-2">
           <button
-            onClick={() => setMode("selection")}
+            onClick={() => {
+              if (activeParcours) {
+                router.push(`/parcours/${activeParcours.id}`);
+              } else {
+                setMode("selection");
+              }
+            }}
             className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors font-bold text-sm mb-4"
           >
             <ChevronLeft size={16} /> Quitter

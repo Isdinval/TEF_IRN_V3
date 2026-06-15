@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +67,7 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
 
   return (
     <motion.div
+      layout
       whileHover={{ y: -6, scale: 1.02 }}
       className="h-full"
     >
@@ -97,17 +98,33 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
                 <div className="flex items-center gap-1">
                    <div className="flex items-center">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
+                      <motion.div
                         key={s}
-                        size={10}
-                        fill={(exercise.success_rate! / 20) >= s ? "#f59e0b" : "transparent"}
-                        className={(exercise.success_rate! / 20) >= s ? "text-amber-500" : "text-zinc-200"}
-                      />
+                        initial={false}
+                        animate={{
+                          scale: (exercise.success_rate! / 20) >= s ? [1, 1.3, 1] : 1,
+                          opacity: 1
+                        }}
+                      >
+                        <Star
+                          size={10}
+                          fill={(exercise.success_rate! / 20) >= s ? "#f59e0b" : "transparent"}
+                          className={(exercise.success_rate! / 20) >= s ? "text-amber-500" : "text-zinc-200"}
+                        />
+                      </motion.div>
                     ))}
                   </div>
-                  <span className="text-xs font-black text-slate-600 ml-1">
-                    {exercise.success_rate}%
-                  </span>
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={exercise.success_rate}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="text-xs font-black text-slate-600 ml-1"
+                    >
+                      {exercise.success_rate}%
+                    </motion.span>
+                  </AnimatePresence>
                 </div>
               </div>
             ) : (
@@ -119,7 +136,17 @@ export default function ExerciseCard({ exercise }: ExerciseCardProps) {
 
             <div className="flex flex-col items-end gap-1.5">
                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tentatives</span>
-               <span className="text-xs font-black text-slate-600">{exercise.attempts_count || 0}</span>
+               <AnimatePresence mode="wait">
+                <motion.span
+                  key={exercise.attempts_count}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.2 }}
+                  className="text-xs font-black text-slate-600"
+                >
+                  {exercise.attempts_count || 0}
+                </motion.span>
+               </AnimatePresence>
             </div>
           </div>
 

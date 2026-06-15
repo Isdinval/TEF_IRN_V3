@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   getParcoursById,
@@ -22,70 +22,139 @@ import {
   ArrowLeft,
   BookText,
   Clock,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import LessonCard from "./components/LessonCard";
 import ExerciseCard from "./components/ExerciseCard";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 export default function ParcoursDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { activeParcours: contextParcours } = useParcours();
   const [parcours, setParcours] = useState<ParcoursType | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [progress, setProgress] = useState<any>(null);
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
   const [guideSlug, setGuideSlug] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpdateToast, setShowUpdateToast] = useState(false);
 
   const supabase = createClient();
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!id) return;
+  const fetchData = useCallback(async (isInitial = true) => {
+    if (!id) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+    if (isInitial) setIsLoading(true);
 
-      const parcoursData = await getParcoursById(id as string);
-      if (!parcoursData) {
-        setIsLoading(false);
-        return;
-      }
-
-      setParcours(parcoursData);
-
-      const [lessonsData, progressData, exercisesData] = await Promise.all([
-        getLessonsForParcours(parcoursData.level, parcoursData.category),
-        getParcoursProgress(user.id, parcoursData.level, parcoursData.category),
-        getRecommendedExercises(user.id, parcoursData.level, parcoursData.category)
-      ]);
-
-      setAllLessons(lessonsData);
-      setProgress(progressData);
-      setRecommendedExercises(exercisesData);
-
-      // Fetch associated guide
-      const { data: guideData } = await supabase
-        .from('guides')
-        .select('slug')
-        .eq('parcours_id', id)
-        .eq('is_published', true)
-        .single();
-
-      if (guideData) {
-        setGuideSlug(guideData.slug);
-      }
-
-      setIsLoading(false);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
     }
 
+    const parcoursData = await getParcoursById(id as string);
+    if (!parcoursData) {
+      if (isInitial) setIsLoading(false);
+      return;
+    }
+    setParcours(parcoursData);
+
+    const [lessonsData, progressData, exercisesData] = await Promise.all([
+      getLessonsForParcours(parcoursData.level, parcoursData.category),
+      getParcoursProgress(user.id, parcoursData.level, parcoursData.category),
+      getRecommendedExercises(user.id, parcoursData.level, parcoursData.category)
+    ]);
+
+    setAllLessons(lessonsData);
+    setProgress(progressData);
+    setRecommendedExercises(exercisesData);
+
+    // Fetch associated guide
+    const { data: guideData } = await supabase
+      .from('guides')
+      .select('slug')
+      .eq('parcours_id', id)
+      .eq('is_published', true)
+      .single();
+
+    if (guideData) {
+      setGuideSlug(guideData.slug);
+    }
+
+    if (isInitial) {
+      setIsLoading(false);
+    } else {
+      setShowUpdateToast(true);
+      setTimeout(() => setShowUpdateToast(false), 3000);
+    }
+  }, [id, router, supabase]);
+
+  useEffect(() => {
     fetchData();
-  }, [id, router]);
+  }, [fetchData]);
+
+  // Realtime Subscription
+  useEffect(() => {
+    let channel: any;
+
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      channel = supabase
+        .channel('parcours-updates-' + id)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'exercise_attempts',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log("Realtime update: Exercise attempt detected");
+            fetchData(false);
+          }
+        )
+        .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'user_parcours_progress',
+              filter: `user_id=eq.${user.id}`
+            },
+            () => {
+              console.log("Realtime update: Parcours progress detected");
+              fetchData(false);
+            }
+          )
+        .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${user.id}`
+            },
+            () => {
+              console.log("Realtime update: Profile detected");
+              fetchData(false);
+            }
+          )
+        .subscribe();
+    };
+
+    setupSubscription();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [supabase, fetchData, id]);
 
   if (isLoading) {
     return (
@@ -116,6 +185,23 @@ export default function ParcoursDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] pb-24">
+      {/* Update Notification */}
+      <AnimatePresence>
+        {showUpdateToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 20, x: "-50%" }}
+            className="fixed bottom-10 left-1/2 z-50 bg-zinc-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-zinc-800"
+          >
+            <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+              <CheckCircle2 size={14} className="text-white" />
+            </div>
+            <span className="text-sm font-bold">Progression mise à jour en direct !</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Hero Header */}
       <div className="bg-white border-b border-slate-100 pt-24 pb-20 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-24 opacity-5 rotate-12 pointer-events-none">
@@ -168,7 +254,14 @@ export default function ParcoursDetailPage() {
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
                   <span className="text-xs font-black uppercase tracking-widest text-slate-400">Votre Progression</span>
-                  <div className="text-5xl font-black text-indigo-600 tracking-tighter">{progress?.percent}%</div>
+                  <motion.div
+                    key={progress?.percent}
+                    initial={{ opacity: 0.5, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-5xl font-black text-indigo-600 tracking-tighter"
+                  >
+                    {progress?.percent}%
+                  </motion.div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-slate-900 uppercase tracking-tight">
@@ -178,9 +271,11 @@ export default function ParcoursDetailPage() {
                 </div>
               </div>
               <div className="h-6 w-full overflow-hidden rounded-full bg-slate-100 p-1">
-                <div
-                  className="h-full bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all duration-1000 ease-out"
-                  style={{ width: `${progress?.percent}%` }}
+                <motion.div
+                  className="h-full bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress?.percent}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
                 />
               </div>
             </div>

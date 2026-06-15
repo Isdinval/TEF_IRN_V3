@@ -153,13 +153,35 @@ function GrammarCheckContent() {
     }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setInputValue("");
       setStatus("typing");
     } else {
       setFinished(true);
+      await saveResults();
+    }
+  };
+
+  const saveResults = async () => {
+    const finalScore = Math.round((score / questions.length) * 100);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && questions.length > 0) {
+      // Assuming all questions from same exercise set or first ID as reference
+      await fetch('/api/exercise-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId: questions[0].id,
+          score: finalScore,
+          answers: {
+            correct: score,
+            total: questions.length
+          }
+        })
+      });
     }
   };
 
@@ -202,18 +224,22 @@ function GrammarCheckContent() {
                 </Button>
               )}
               <Button
-                variant="ghost"
-                className="w-full h-12 text-zinc-400 font-black hover:text-indigo-600"
+                variant={activeParcours ? "ghost" : "default"}
+                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-indigo-600' : 'h-16 bg-zinc-900 text-white'} font-black rounded-2xl text-lg transition-all`}
                 onClick={() => {
-                  setFinished(false);
-                  setIsStarted(false);
-                  setCurrentIdx(0);
-                  setScore(0);
-                  setInputValue("");
-                  setStatus("typing");
+                  if (activeParcours) {
+                    router.push(`/parcours/${activeParcours.id}`);
+                  } else {
+                    setFinished(false);
+                    setIsStarted(false);
+                    setCurrentIdx(0);
+                    setScore(0);
+                    setInputValue("");
+                    setStatus("typing");
+                  }
                 }}
               >
-                Refaire un exercice
+                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
               </Button>
             </div>
           </Card>
@@ -318,7 +344,13 @@ function GrammarCheckContent() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
             <button
-              onClick={() => setIsStarted(false)}
+              onClick={() => {
+                if (activeParcours) {
+                  router.push(`/parcours/${activeParcours.id}`);
+                } else {
+                  setIsStarted(false);
+                }
+              }}
               className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-900 transition-colors"
             >
               <ArrowRight className="rotate-180" size={20} />
