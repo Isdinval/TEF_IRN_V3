@@ -91,7 +91,7 @@ export default function ParcoursDetailPage() {
         .select('slug')
         .eq('parcours_id', id)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
       if (guideData) setGuideSlug(guideData.slug);
 

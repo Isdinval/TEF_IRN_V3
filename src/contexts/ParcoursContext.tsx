@@ -65,7 +65,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         parcours_id: pId,
         current_lesson_id: lId,
         last_activity_at: new Date().toISOString(),
-        progress_percent: prog.percent
+        progress_percentage: prog.percent
       });
 
       await supabase.from('profiles').update({
