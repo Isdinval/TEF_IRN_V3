@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { ParcoursTopBar } from "./ParcoursTopBar";
+import { ChatCoach } from "@/components/features/coach/ChatCoach";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +28,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto">
           {children}
         </main>
+        {/* Popup Coach IA (désactivé sur la page coach complète) */}
+        {pathname !== "/coach" && (
+           <div className="hidden md:block">
+             <ChatCoach mode="popup" />
+           </div>
+        )}
         <BottomNav />
       </div>
     </div>

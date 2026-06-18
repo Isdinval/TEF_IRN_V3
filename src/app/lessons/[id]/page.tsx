@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Loader2, Target, Sparkles, ArrowRight, Lightbulb,
-  BookOpen, GraduationCap, CheckCircle2, MessageSquare, AlertTriangle,
+  BookOpen, GraduationCap, CheckCircle2, MessageSquare, Bot, AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from 'react-markdown';
@@ -337,13 +337,27 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
             >
               <article className="space-y-10">
                 <header className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-100 text-indigo-600 border-0">
-                      {lesson.level}
-                    </Badge>
-                    <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-zinc-100 text-zinc-500 border-0">
-                      {lesson.category}
-                    </Badge>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-indigo-100 text-indigo-600 border-0">
+                        {lesson.level}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-zinc-100 text-zinc-500 border-0">
+                        {lesson.category}
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const coachBtn = document.querySelector(".fixed.bottom-6.right-6") as HTMLButtonElement;
+                        if (coachBtn) coachBtn.click();
+                      }}
+                      className="rounded-xl border-indigo-100 text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100 font-bold flex gap-2 h-9"
+                    >
+                      <Bot size={16} />
+                      Question au Coach ?
+                    </Button>
                   </div>
 
                   <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
