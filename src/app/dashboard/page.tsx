@@ -1,16 +1,26 @@
 "use client";
 
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase";
+import {
+  Loader2,
+  TrendingUp,
+  Sparkles,
+  Zap,
+  Target,
+  Trophy,
+  Activity,
+  History
+} from "lucide-react";
 import { PageTransition } from "@/components/shared/Animations";
-import { Loader2, Sparkles, TrendingUp } from "lucide-react";
 import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHeader";
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
-import { PerformanceRadar } from "@/components/features/dashboard/new/PerformanceRadar";
-import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
-import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
-import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { RecommendationCard } from "@/components/features/dashboard/new/RecommendationCard";
+import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
+import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
+import { PerformanceRadar } from "@/components/features/dashboard/new/PerformanceRadar";
+import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { XPChart } from "@/components/features/dashboard/new/XPChart";
 import { SubSkillHeatmap } from "@/components/features/dashboard/new/SubSkillHeatmap";
@@ -29,7 +39,6 @@ export default function DashboardPage() {
       if (!user) throw new Error("Non authentifié");
 
       const { data: dashboardData, error } = await supabase.rpc("get_dashboard_data");
-
       if (error) throw error;
       return dashboardData;
     },
@@ -65,22 +74,21 @@ export default function DashboardPage() {
     );
   }
 
-  const {
-    profile,
-    xp_today,
-    study_time_today,
-    recent_corrections,
-    reviews_count,
-    competency_radar,
-    sub_competencies,
-    vocab_stats,
-    in_progress_parcours,
-    recommendations
-  } = data;
+  // Hard safety extraction
+  const profile = data.profile || {};
+  const xp_today = data.xp_today || 0;
+  const study_time_today = data.study_time_today || 0;
+  const recent_corrections = data.recent_corrections || [];
+  const reviews_count = data.reviews_count || 0;
+  const competency_radar = data.competency_radar || [];
+  const sub_competencies = data.sub_competencies || [];
+  const in_progress_parcours = data.in_progress_parcours || [];
+  const recommendations = data.recommendations || [];
 
   // Projection simple
-  const avgScore = competency_radar.length > 0
-    ? Math.round(competency_radar.reduce((acc: number, curr: any) => acc + curr.A, 0) / competency_radar.length)
+  const radarLen = (competency_radar?.length || 0);
+  const avgScore = radarLen > 0
+    ? Math.round(competency_radar.reduce((acc: number, curr: any) => acc + (curr.A || 0), 0) / radarLen)
     : 0;
   const estimatedScore = avgScore > 0 ? Math.min(Math.round(avgScore * 6.9), 699) : 0;
 
@@ -91,7 +99,7 @@ export default function DashboardPage() {
 
           <DashboardHeader
             fullName={profile.full_name}
-            streak={profile.streak_count}
+            streak={profile.streak_count || 0}
             xpToday={xp_today}
             xpGoal={50}
             level={profile.current_level || 'A1'}
@@ -120,7 +128,7 @@ export default function DashboardPage() {
               <section className="space-y-6">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
-                    <Badge className="rounded-full bg-indigo-600 px-3 py-1 border-none text-[10px]">IA Coach</Badge>
+                    <Badge variant="default" className="rounded-full bg-indigo-600 px-3 py-1 border-none text-[10px] text-white">IA Coach</Badge>
                     <span className="text-zinc-300">•</span>
                     Recommandations personnalisées
                   </h2>
@@ -152,7 +160,7 @@ export default function DashboardPage() {
               <section className="space-y-6">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
-                    <Badge className="rounded-full bg-violet-600 px-3 py-1 border-none text-[10px]">Feedbacks</Badge>
+                    <Badge variant="default" className="rounded-full bg-violet-600 px-3 py-1 border-none text-[10px] text-white">Feedbacks</Badge>
                     <span className="text-zinc-300">•</span>
                     Dernières corrections
                   </h2>
@@ -214,7 +222,7 @@ export default function DashboardPage() {
                  <div className="relative space-y-6">
                    <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
-                         <Loader2 size={20} />
+                         <Activity size={20} />
                       </div>
                       <h3 className="text-sm font-black uppercase tracking-widest">Révisez vos notions</h3>
                    </div>

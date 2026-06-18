@@ -18,7 +18,7 @@ interface ChatCoachProps {
 export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVocal, setIsVocal] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // @ts-ignore
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput, append } = useChat({
@@ -32,17 +32,14 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
   });
 
   useEffect(() => {
-    if (initialMessage && isOpen && messages.length === 0) {
+    if (initialMessage && isOpen && (messages?.length || 0) === 0) {
       append({ role: 'user', content: initialMessage });
     }
-  }, [initialMessage, isOpen, messages.length, append]);
+  }, [initialMessage, isOpen, (messages?.length || 0), append]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isLoading]);
 
@@ -73,7 +70,6 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
 
   const chatContent = (
     <div className={`flex flex-col h-full bg-white shadow-2xl ${mode === 'popup' ? 'w-[420px] max-h-[650px] rounded-2xl border overflow-hidden' : 'w-full rounded-3xl border-none'}`}>
-      {/* Header */}
       <div className="p-4 border-b bg-indigo-600 text-white flex justify-between items-center shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
@@ -94,10 +90,9 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
         )}
       </div>
 
-      {/* Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 p-4 bg-zinc-50/50">
+      <ScrollArea className="flex-1 p-4 bg-zinc-50/50">
         <div className="space-y-6 pb-4">
-          {messages.length === 0 && (
+          {(messages?.length || 0) === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
                <div className="w-16 h-16 rounded-3xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-2">
                   <Bot className="w-8 h-8" />
@@ -109,7 +104,7 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
             </div>
           )}
 
-          {messages.map((m: any) => (
+          {(messages || []).map((m: any) => (
             <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${m.role === 'user' ? 'bg-indigo-600' : 'bg-white border'}`}>
@@ -118,10 +113,8 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
                 <div className="space-y-2">
                   <div className={`p-4 rounded-2xl text-sm shadow-sm ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-zinc-800 border rounded-tl-none'}`}>
                     <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-strong:text-indigo-400">
-                    <ReactMarkdown>
-                      {m.content}
-                    </ReactMarkdown>
-                  </div>
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    </div>
                   </div>
                   {m.tool_calls && m.tool_calls.map((tc: any) => (
                     <div key={tc.id} className="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex items-center justify-between gap-3">
@@ -138,7 +131,7 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
               </div>
             </div>
           ))}
-          {isLoading && !messages.some((m: any) => m.role === 'assistant' && m.content) && (
+          {isLoading && !(messages || []).some((m: any) => m.role === 'assistant' && m.content) && (
             <div className="flex justify-start">
                <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-white border flex items-center justify-center shrink-0">
@@ -151,12 +144,12 @@ export const ChatCoach = ({ mode = 'popup', initialMessage }: ChatCoachProps) =>
                </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
-      {/* Footer / Input */}
       <div className="p-4 border-t bg-white shrink-0 space-y-4">
-        {messages.length < 5 && (
+        {(messages?.length || 0) < 5 && (
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {suggestions.map((s, i) => (
               <button
