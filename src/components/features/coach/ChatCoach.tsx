@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
-  X, Send, Bot, Sparkles, Loader2, MessageCircle
+  X, Send, Bot, Sparkles, Loader2, MessageCircle, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
     setIsMounted(true);
   }, []);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = useChat({
     api: '/api/coach/chat',
     initialMessages: [
       {
@@ -78,19 +78,31 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                   ? 'bg-indigo-600 text-white rounded-tr-none'
                   : 'bg-indigo-50 text-indigo-950 border border-indigo-100 rounded-tl-none font-medium'
               }`}>
-                <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:text-indigo-900">
+                <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:text-indigo-900 prose-strong:text-indigo-700">
                   <ReactMarkdown>{m.content || ''}</ReactMarkdown>
                 </div>
               </div>
             </motion.div>
           ))}
-          {isLoading && (
+
+          {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
               <div className="bg-indigo-50 p-3 rounded-2xl rounded-tl-none border border-indigo-100">
                 <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
               </div>
             </div>
           )}
+
+          {error && (
+            <div className="flex flex-col items-center gap-2 p-4 bg-red-50 rounded-xl border border-red-100 text-red-600 text-xs">
+              <AlertCircle className="w-5 h-5" />
+              <p className="text-center font-medium">Une erreur est survenue lors de la connexion au Coach.</p>
+              <Button variant="outline" size="sm" onClick={() => reload()} className="mt-2 text-xs h-8 border-red-200 hover:bg-red-100 text-red-700">
+                Réessayer
+              </Button>
+            </div>
+          )}
+
           <div ref={messagesEndRef} className="h-2" />
         </div>
       </ScrollArea>
@@ -102,6 +114,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             onChange={handleInputChange}
             placeholder="Posez votre question..."
             className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 px-3"
+            disabled={isLoading}
           />
           <Button
             type="submit"

@@ -6,7 +6,7 @@ import { z } from "npm:zod"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-vercel-ai-data-stream',
 }
 
 serve(async (req) => {
@@ -15,7 +15,9 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')!
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('Missing Authorization header')
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -27,10 +29,10 @@ serve(async (req) => {
 
     const { messages, sessionId } = await req.json()
 
-    // 1. Fetch Rich Context
+    // 1. Fetch User Context
     const [profileRes, errorsRes, progressRes] = await Promise.all([
       supabaseClient.from('profiles').select('*').eq('id', user.id).single(),
-      supabaseClient.from('user_errors').select('*').eq('user_id', user.id).order('last_seen_at', { ascending: false }).limit(10),
+      supabaseClient.from('user_errors').select('*').eq('user_id', user.id).order('last_seen_at', { ascending: false }).limit(5),
       supabaseClient.from('user_parcours_progress').select('*, parcours(title)').eq('user_id', user.id)
     ])
 
@@ -41,84 +43,57 @@ serve(async (req) => {
     // Credit Check
     if ((profile?.ai_credits || 0) <= 0) {
       return new Response(JSON.stringify({
-        error: "Désolé, vous n'avez plus de crédits IA. Veuillez passer au forfait Premium pour continuer à discuter avec moi !"
+        error: "Crédits épuisés.",
+        message: "Désolé, vous n'avez plus de crédits IA. Veuillez passer au forfait Premium pour continuer."
       }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // 2. RAG
+    // 2. RAG (Simplified search)
     let knowledgeContext = ""
     const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop()?.content || ""
 
-    if (lastUserMessage) {
-      const embResp = await fetch("https://api.openai.com/v1/embeddings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get('OPENAI_API_KEY')}`
-        },
-        body: JSON.stringify({
-          model: "text-embedding-3-small",
-          input: lastUserMessage
-        })
-      })
-      const embData = await embResp.json()
-      if (embData.data && embData.data[0]) {
-        const embedding = embData.data[0].embedding
+    if (lastUserMessage && lastUserMessage.length > 10) {
+      try {
         const { data: knowledge } = await supabaseClient.rpc('match_knowledge_for_coach', {
-          query_embedding: embedding,
           query_text: lastUserMessage,
-          match_threshold: 0.4,
-          match_count: 3
+          match_threshold: 0.3,
+          match_count: 2
         })
         knowledgeContext = knowledge?.map((k: any) => k.content).join('\n---\n') || ""
+      } catch (e) {
+        console.error("RAG Error:", e)
       }
     }
 
     // 3. System Prompt
-    const systemPrompt = `
-Tu es le Coach Maitris, un coach pédagogique expert du TEF IRN. Ton ton est extrêmement bienveillant, encourageant, patient et structuré.
-
-OBJECTIF: Aider l'élève à réussir son examen TEF IRN (A2/B1).
-
-INFOS ÉLÈVE:
-- Nom: ${profile?.full_name || 'Étudiant'}
-- Niveau actuel: ${profile?.current_level || 'A2'}
-- Cible: ${profile?.goal_level || 'B1'}
-- Erreurs récurrentes: ${recentErrors?.map((e: any) => `${e.category}`).join(', ') || 'Aucune identifiée'}
-- Progrès: ${parcoursProgress?.map((p: any) => `${p.parcours.title} (${p.progress_percentage}%)`).join(', ') || 'Débutant'}
-
-CONNAISSANCES TEF:
-${knowledgeContext}
+    const systemPrompt = `Tu es le Coach Maitris, expert TEF IRN.
+Utilisateur: ${profile?.full_name || 'Étudiant'} (Niveau: ${profile?.current_level || 'A2'}).
+Erreurs à surveiller: ${recentErrors?.map((e: any) => e.category).join(', ') || 'n/a'}.
+Context TEF: ${knowledgeContext}
 
 CONSIGNES:
-- Parle en français clair et adapté au niveau de l'élève (A2/B1).
-- Sois bref et efficace.
-- Si l'élève fait une faute dans sa question, corrige-la gentiment en expliquant pourquoi.
-- Utilise le Markdown (gras, listes) pour rendre tes réponses lisibles.
-- Ne donne pas de réponses trop longues.
-- Si l'élève demande un exercice, utilise l'outil generate_exercise.
-`;
+- Français clair, bienveillant.
+- Max 3-4 phrases par réponse.
+- Si l'élève fait une faute, corrige-la subtilement.
+- Utilise le Markdown.`;
 
-    // 4. Persistence: Handle Session ID
+    // 4. Persistence
     let currentSessionId = sessionId
     if (!currentSessionId) {
       const { data: newSession } = await supabaseClient
         .from('chat_sessions')
-        .insert({ user_id: user.id, title: lastUserMessage.substring(0, 40) || "Discussion Coach" })
+        .insert({ user_id: user.id, title: lastUserMessage.substring(0, 50) || "Nouveau chat" })
         .select()
         .single()
       currentSessionId = newSession?.id
     }
 
-    // 5. Initialize OpenAI Provider
-    const openai = createOpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    })
+    const openai = createOpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY') })
 
-    // 6. Stream Text with AI SDK
+    // 5. Data Stream Response
     return createDataStreamResponse({
       execute: (dataStream) => {
         const result = streamText({
@@ -127,17 +102,11 @@ CONSIGNES:
           messages,
           tools: {
             generate_exercise: tool({
-              description: 'Génère un exercice interactif (QCM, trous, etc.).',
+              description: 'Génère un exercice.',
               parameters: z.object({
-                type: z.enum(['qcm', 'trous', 'reformulage']),
+                type: z.enum(['qcm', 'trous']),
                 title: z.string(),
-                instructions: z.string(),
-                questions: z.array(z.object({
-                  question: z.string(),
-                  options: z.array(z.string()).optional(),
-                  answer: z.string(),
-                  explanation: z.string()
-                }))
+                questions: z.array(z.any())
               }),
               execute: async (args) => {
                 await supabaseClient.from('coach_generated_exercises').insert({
@@ -146,45 +115,31 @@ CONSIGNES:
                   type: args.type,
                   content: args
                 })
-                return { status: 'Exercise created and saved to user profile.' }
-              }
-            }),
-            correct_text: tool({
-              description: 'Analyse et corrige une production écrite.',
-              parameters: z.object({
-                text: z.string(),
-              }),
-              execute: async ({ text }) => {
-                 return { message: "Correction en cours..." }
+                return { result: "Exercice créé !" }
               }
             })
           },
-          onFinish: async ({ text, toolCalls }) => {
-            // Save Assistant Message
-            if (text) {
+          onFinish: async ({ text }) => {
+            if (text && currentSessionId) {
               await supabaseClient.from('chat_messages').insert({
                 session_id: currentSessionId,
                 role: 'assistant',
                 content: text
               })
+              await supabaseClient.rpc('decrement_ai_credits', { user_id: user.id, amount: 1 })
             }
-
-            // Deduct credits
-            const cost = toolCalls && toolCalls.length > 0 ? 3 : 1
-            await supabaseClient.rpc('decrement_ai_credits', { user_id: user.id, amount: cost })
           }
         })
-
         result.mergeIntoDataStream(dataStream)
       },
       onError: (error) => {
-        console.error('Stream Error:', error)
-        return 'Une erreur est survenue.'
-      }
+        console.error('Stream error:', error)
+        return 'Erreur de connexion avec le Coach.'
+      },
     })
 
   } catch (error: any) {
-    console.error('Edge Function Error:', error)
+    console.error('Global error:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

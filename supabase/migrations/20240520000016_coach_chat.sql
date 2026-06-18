@@ -115,3 +115,64 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- 6. Indexes pour la performance
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id);
+
+-- 7. Fonction pour décrémenter les crédits IA
+CREATE OR REPLACE FUNCTION decrement_ai_credits(user_id UUID, amount INTEGER DEFAULT 1)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE profiles
+    SET ai_credits = GREATEST(0, ai_credits - amount)
+    WHERE id = user_id;
+END;
+$$;
+
+-- 8. RLS pour coach_generated_exercises (complément)
+DO $$ BEGIN
+    CREATE POLICY "Users can view their own exercises"
+        ON coach_generated_exercises FOR SELECT
+        USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Users can insert their own exercises"
+        ON coach_generated_exercises FOR INSERT
+        WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Update match_knowledge_for_coach to handle null embeddings
+CREATE OR REPLACE FUNCTION match_knowledge_for_coach (
+  query_text TEXT,
+  query_embedding VECTOR(1536) DEFAULT NULL,
+  match_threshold FLOAT DEFAULT 0.3,
+  match_count INTEGER DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  content TEXT,
+  metadata JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    tef_knowledge.id,
+    tef_knowledge.content,
+    tef_knowledge.metadata,
+    CASE
+      WHEN query_embedding IS NOT NULL THEN 1 - (tef_knowledge.embedding <=> query_embedding)
+      ELSE 0
+    END AS similarity
+  FROM tef_knowledge
+  WHERE
+    (query_embedding IS NOT NULL AND 1 - (tef_knowledge.embedding <=> query_embedding) > match_threshold)
+    OR
+    (tef_knowledge.content ILIKE '%' || query_text || '%')
+  ORDER BY similarity DESC
+  LIMIT match_count;
+END;
+$$;
