@@ -24,19 +24,26 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return NextResponse.json(error, { status: response.status });
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        return NextResponse.json(errorJson, { status: response.status });
+      } catch {
+        return new Response(errorText, { status: response.status });
+      }
     }
 
+    // Forward the stream with appropriate headers for Vercel AI SDK
     return new Response(response.body, {
       headers: {
-        'Content-Type': 'text/event-stream',
+        'Content-Type': response.headers.get('Content-Type') || 'text/plain; charset=utf-8',
+        'x-vercel-ai-data-stream': 'v1',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       },
     });
   } catch (error: any) {
-    console.error('Coach API Error:', error);
+    console.error('Coach API Proxy Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
