@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   getParcoursById,
@@ -22,77 +22,151 @@ import {
   ArrowLeft,
   BookText,
   Clock,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import LessonCard from "./components/LessonCard";
 import ExerciseCard from "./components/ExerciseCard";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 export default function ParcoursDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { refreshProgress } = useParcours();
+
   const [parcours, setParcours] = useState<ParcoursType | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [progress, setProgress] = useState<any>(null);
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
   const [guideSlug, setGuideSlug] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showUpdateToast, setShowUpdateToast] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!id) return;
+  const fetchData = useCallback(async (isInitial = true) => {
+    if (!id) return;
 
+    if (isInitial) setIsLoading(true);
+    else setIsRefreshing(true);
+
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        router.push("/login");
+        if (isInitial) router.push("/login");
         return;
       }
 
-      const parcoursData = await getParcoursById(id as string);
+      console.log(`[Parcours] Refreshing data: initial=${isInitial}`);
+
+      const parcoursData = await getParcoursById(id as string, supabase);
       if (!parcoursData) {
-        setIsLoading(false);
+        if (isInitial) setIsLoading(false);
         return;
       }
-
       setParcours(parcoursData);
 
       const [lessonsData, progressData, exercisesData] = await Promise.all([
-        getLessonsForParcours(parcoursData.level, parcoursData.category),
-        getParcoursProgress(user.id, parcoursData.level, parcoursData.category),
-        getRecommendedExercises(user.id, parcoursData.level, parcoursData.category)
+        getLessonsForParcours(parcoursData.level, parcoursData.category, supabase),
+        getParcoursProgress(user.id, parcoursData.level, parcoursData.category, supabase),
+        getRecommendedExercises(user.id, parcoursData.level, parcoursData.category, supabase)
       ]);
 
       setAllLessons(lessonsData);
       setProgress(progressData);
       setRecommendedExercises(exercisesData);
 
-      // Fetch associated guide
+      try {
+        refreshProgress();
+      } catch (e) {
+        console.warn("Context refresh not available");
+      }
+
       const { data: guideData } = await supabase
         .from('guides')
         .select('slug')
         .eq('parcours_id', id)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
-      if (guideData) {
-        setGuideSlug(guideData.slug);
+      if (guideData) setGuideSlug(guideData.slug);
+
+      if (!isInitial) {
+        setShowUpdateToast(true);
+        setTimeout(() => setShowUpdateToast(false), 4000);
       }
-
+    } catch (error) {
+      console.error("[Parcours] Fetch error:", error);
+    } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  }, [id, router, supabase, refreshProgress]);
 
+  useEffect(() => {
     fetchData();
-  }, [id, router]);
+  }, [fetchData]);
+
+  useEffect(() => {
+    let activeChannel: any = null;
+
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channelName = `parcours_live_${id}_${user.id.substring(0, 8)}`;
+
+      activeChannel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'exercise_attempts',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload: any) => {
+            console.log("Realtime INSERT", payload);
+            // Delay for SRS/reco engine
+            setTimeout(() => fetchData(false), 1500);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_parcours_progress',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload: any) => {
+            console.log("Realtime Progress", payload);
+            fetchData(false);
+          }
+        )
+        .subscribe();
+    };
+
+    setupSubscription();
+
+    return () => {
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+      }
+    };
+  }, [supabase, fetchData, id]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Chargement du parcours...</p>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Chargement...</p>
         </div>
       </div>
     );
@@ -102,7 +176,7 @@ export default function ParcoursDetailPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <h1 className="text-2xl font-bold mb-4">Parcours non trouvé</h1>
-        <Button onClick={() => router.push("/dashboard")}>Retour au tableau de bord</Button>
+        <Button onClick={() => router.push("/dashboard")}>Retour au cockpit</Button>
       </div>
     );
   }
@@ -116,17 +190,48 @@ export default function ParcoursDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] pb-24">
-      {/* Hero Header */}
+      <AnimatePresence>
+        {showUpdateToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 20, x: "-50%" }}
+            className="fixed bottom-10 left-1/2 z-50 bg-zinc-900 text-white px-8 py-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 border border-zinc-800"
+          >
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <CheckCircle2 size={20} className="text-white" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-black uppercase tracking-tight">Progression synchronisée</span>
+              <span className="text-[10px] text-zinc-400 font-bold">Vos résultats ont été mis à jour en direct.</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="bg-white border-b border-slate-100 pt-24 pb-20 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-24 opacity-5 rotate-12 pointer-events-none">
             <Target size={300} />
         </div>
 
         <div className="max-w-6xl mx-auto px-6">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm mb-10 transition-colors group">
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            RETOUR AU COCKPIT
-          </Link>
+          <div className="flex justify-between items-center mb-10">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors group">
+              <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+              RETOUR AU COCKPIT
+            </Link>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchData(false)}
+              disabled={isRefreshing}
+              className="text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2"
+            >
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? "Actualisation..." : "Actualiser"}
+            </Button>
+          </div>
 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
             <div className="space-y-6">
@@ -161,14 +266,20 @@ export default function ParcoursDetailPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 mt-16">
-        {/* Progression Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           <Card className="md:col-span-2 rounded-[3rem] border-none bg-white p-10 shadow-xl shadow-slate-200/40 border border-slate-50">
             <div className="space-y-8">
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
                   <span className="text-xs font-black uppercase tracking-widest text-slate-400">Votre Progression</span>
-                  <div className="text-5xl font-black text-indigo-600 tracking-tighter">{progress?.percent}%</div>
+                  <motion.div
+                    key={progress?.percent}
+                    initial={{ opacity: 0.5, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-5xl font-black text-indigo-600 tracking-tighter"
+                  >
+                    {progress?.percent}%
+                  </motion.div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-slate-900 uppercase tracking-tight">
@@ -178,9 +289,11 @@ export default function ParcoursDetailPage() {
                 </div>
               </div>
               <div className="h-6 w-full overflow-hidden rounded-full bg-slate-100 p-1">
-                <div
-                  className="h-full bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all duration-1000 ease-out"
-                  style={{ width: `${progress?.percent}%` }}
+                <motion.div
+                  className="h-full bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress?.percent}%` }}
+                  transition={{ duration: 1.2, ease: "circOut" }}
                 />
               </div>
             </div>
@@ -204,7 +317,6 @@ export default function ParcoursDetailPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-20">
-          {/* Lessons List */}
           <section className="space-y-10">
             <div className="flex items-center justify-between px-4">
               <div className="space-y-1">
@@ -232,7 +344,6 @@ export default function ParcoursDetailPage() {
             </div>
           </section>
 
-          {/* Recommended Exercises Section */}
           <section className="space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
               <div className="space-y-2">
@@ -253,7 +364,7 @@ export default function ParcoursDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {recommendedExercises.length > 0 ? (
                 recommendedExercises.map((exercise) => (
-                  <ExerciseCard key={exercise.id} exercise={exercise} />
+                  <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcours.id} />
                 ))
               ) : (
                 <div className="col-span-full bg-white rounded-[3.5rem] p-20 text-center space-y-6 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
@@ -271,7 +382,6 @@ export default function ParcoursDetailPage() {
             </div>
           </section>
 
-          {/* Help/Guide Footer */}
           <section>
             <Card className="rounded-[4rem] border-none bg-zinc-900 p-12 md:p-24 text-white overflow-hidden relative group">
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">

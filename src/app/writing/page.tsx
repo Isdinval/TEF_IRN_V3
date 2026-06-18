@@ -9,11 +9,13 @@ import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Loader2,
+  ChevronLeft
 } from "lucide-react";
 import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
 import { WritingTimer } from "./components/WritingTimer";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 const fallbackExercise: WritingExercise = {
   instructions: "Rédigez un court message pour expliquer pourquoi vous souhaitez apprendre le français et vivre en France. (Section A)",
@@ -33,6 +35,7 @@ function WritingCoachContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { activeParcours } = useParcours();
 
   useEffect(() => {
     async function fetchData() {
@@ -96,7 +99,7 @@ function WritingCoachContent() {
       // Save to database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await fetch("/api/exercise-complete", {
+        const completeRes = await fetch("/api/exercise-complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -109,13 +112,17 @@ function WritingCoachContent() {
             }
           })
         });
+
+        if (completeRes.ok) {
+          router.refresh(); // Ensure the parcours page will see fresh data if navigating back
+        }
       }
     } catch (error) {
       console.error("Correction error:", error);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, exercise, supabase]);
+  }, [text, exercise, supabase, router]);
 
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;
@@ -156,7 +163,19 @@ function WritingCoachContent() {
         >
           <header className="p-4 border-b bg-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 p-2 rounded-lg text-white">
+              <button
+                onClick={() => {
+                  if (activeParcours) {
+                    router.push(`/parcours/${activeParcours.id}`);
+                  } else {
+                    router.back();
+                  }
+                }}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-900 mr-1"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <div className="bg-indigo-600 p-2 rounded-lg text-white hidden sm:block">
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>

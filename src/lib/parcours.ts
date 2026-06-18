@@ -151,7 +151,7 @@ export async function getRecommendedExercises(userId: string, level: string, cat
 
     return {
       ...ex,
-      success_rate: successRate,
+      success_rate: completedAttempts.length > 0 ? successRate : undefined,
       attempts_count: exAttempts.length,
       is_completed: completedAttempts.length > 0
     };

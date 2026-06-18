@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +56,7 @@ const LEVELS = ['A1', 'A2', 'B1', 'B2'];
 
 function PracticeContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const supabase = createClient();
   const { activeParcours, nextLesson } = useParcours();
 
@@ -69,10 +70,15 @@ function PracticeContent() {
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Filters state
-  const [selectedLevels, setSelectedLevels] = useState<string[]>(['A2', 'B1']);
-  const [selectedCategory, setSelectedCategory] = useState<string>("Toutes");
+  const id = searchParams.get('id');
+  const lessonId = searchParams.get('lessonId');
+  const topic = searchParams.get('topic');
+  const level = searchParams.get('level');
+  const isReviewMode = searchParams.get('mode') === 'review';
 
   // --- Initialization ---
   useEffect(() => {
@@ -82,10 +88,12 @@ function PracticeContent() {
     const isReviewMode = searchParams.get('mode') === 'review';
 
     const init = async () => {
-      if (lessonId && !topic) {
-        await fetchFromLesson(lessonId);
+      if (id) {
+        await fetchExerciseById(id);
+      } else if (lessonId && !topic) {
+        await fetchExercise(lessonId);
       } else if (topic) {
-        await autoStart(topic, level || undefined);
+        await autoStart(lessonId || undefined, topic, level || undefined);
       } else if (isReviewMode) {
         await fetchReviewExercises();
       } else {
@@ -93,20 +101,21 @@ function PracticeContent() {
       }
     };
     init();
-  }, [searchParams]);
+  }, [id, lessonId, topic, isReviewMode]);
 
-  // --- Data Fetching ---
-  const mapExerciseToQuestions = (ex: ExerciseDB): Question[] => {
-    return ex.content.questions.map((q: string, i: number) => ({
-      id: `${ex.id}-${i}`,
-      text: q,
-      options: ex.content.options[i],
-      correctAnswer: ex.content.correct_answers[i],
-      level: ex.level,
-      category: ex.category,
-      instructions: ex.instructions,
-      explanation: ex.content.explanations?.[i]
-    }));
+  const fetchExerciseById = async (exId: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('id', exId)
+      .single();
+
+    if (data) {
+      setExercise(data as Exercise);
+      setMode("practice");
+    }
+    setIsLoading(false);
   };
 
   const fetchFromLesson = async (lid: string) => {
@@ -147,17 +156,25 @@ function PracticeContent() {
       const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
       setQuestions(allQs.slice(0, 10));
       setMode("practice");
+    } else if (t) {
+       const { data: searchData } = await supabase
+         .from('exercises')
+         .select('*')
+         .eq('type', 'qcm')
+         .filter('instructions', 'ilike', `%${t}%`)
+         .limit(1)
+         .single();
+
+       if (searchData) {
+         setExercise(searchData as Exercise);
+         setMode("practice");
+       }
     }
     setIsLoading(false);
   };
 
   const fetchReviewExercises = async () => {
     setIsLoading(true);
-    setScore(0);
-    setCurrentIdx(0);
-    setSelected(null);
-    setIsChecked(false);
-
     const { data } = await supabase
       .from('exercises')
       .select('*')
@@ -215,23 +232,48 @@ function PracticeContent() {
       setSelected(null);
       setIsChecked(false);
     } else {
-      setMode("finished");
+      setIsSaving(true);
+      await saveResult();
+      setIsFinished(true);
+      setIsSaving(false);
+      router.refresh(); // Clear client-side cache for server data
     }
   };
 
-  const toggleLevel = (lvl: string) => {
-    setSelectedLevels((prev: string[]) =>
-      prev.includes(lvl) ? prev.filter((l: string) => l !== lvl) : [...prev, lvl]
-    );
+  const saveResult = async () => {
+    const total = exercise?.content.questions.length || 1;
+    const finalScore = Math.round((score / total) * 100);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && exercise) {
+      try {
+        const response = await fetch('/api/exercise-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exerciseId: exercise.id,
+            score: finalScore,
+            answers: {
+              correct: score,
+              total: total
+            }
+          })
+        });
+        if (!response.ok) throw new Error("Failed to save");
+        console.log("Result saved successfully");
+      } catch (err) {
+        console.error("Error saving result:", err);
+      }
+    }
   };
 
-  // --- Renders ---
-
-  if (isLoading) {
+  if (isLoading || isSaving) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50">
-        <Loader2 className="animate-spin text-rose-600 mb-4" size={48} />
-        <p className="text-zinc-400 font-black uppercase tracking-widest text-xs">Chargement des exercices...</p>
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
+        <Loader2 className="h-12 w-12 animate-spin text-rose-600" />
+        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+          {isSaving ? "Enregistrement de vos progrès..." : "Chargement de l'exercice..."}
+        </p>
       </div>
     );
   }
@@ -331,33 +373,18 @@ function PracticeContent() {
                 <Sparkles className="absolute -bottom-4 -right-4 w-24 h-24 text-zinc-50 rotate-12 group-hover:text-rose-50 transition-colors" />
               </Card>
 
-              {/* Parcours Card */}
-              {activeParcours && (
-                <Card
-                  className="group p-8 rounded-[2.5rem] border-none shadow-xl shadow-rose-100 bg-zinc-900 text-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all"
-                  onClick={() => nextLesson()}
-                >
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-4 opacity-70">
-                      <GraduationCap size={18} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Votre Parcours</span>
-                    </div>
-                    <h3 className="text-xl font-black mb-2 uppercase tracking-tight">Reprendre la leçon</h3>
-                    <div className="h-12 bg-white text-zinc-900 rounded-xl flex items-center justify-center gap-2 font-black text-xs uppercase tracking-widest hover:bg-rose-50 transition-colors">
-                      Continuer <ArrowRight size={16} />
-                    </div>
-                  </div>
-                  <Sparkles className="absolute -bottom-4 -right-4 w-24 h-24 opacity-5 rotate-12" />
-                </Card>
-              )}
-
-              <div className="flex items-center gap-4 px-4 text-zinc-400">
-                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <GraduationCap size={16} /> TEF IRN
-                 </div>
-                 <div className="w-1 h-1 bg-zinc-300 rounded-full" />
-                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <Calendar size={16} /> Quotidien
+            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
+              <div className="flex items-center gap-3 mb-4">
+                <Calendar className="text-zinc-400" size={20} />
+                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide Rapide</h4>
+              </div>
+              <div className="space-y-4">
+                 <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
+                   Un exercice est composé de plusieurs questions. Lisez attentivement et choisissez la bonne option.
+                 </p>
+                 <div className="h-px bg-zinc-200 w-full" />
+                 <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
+                    <Target size={14} className="text-rose-600" /> Objectif : 80% de réussite
                  </div>
               </div>
             </div>
@@ -624,6 +651,19 @@ function PracticeContent() {
                   CONTINUER MON PARCOURS <GraduationCap size={28} />
                 </Button>
               )}
+              <Button
+                variant={activeParcours ? "ghost" : "default"}
+                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-rose-600' : 'h-20 bg-zinc-900 hover:bg-zinc-800 text-white'} font-black rounded-3xl text-lg transition-all`}
+                onClick={() => {
+                  if (activeParcours) {
+                    router.push(`/parcours/${activeParcours.id}`);
+                  } else {
+                    setMode("selection");
+                  }
+                }}
+              >
+                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
+              </Button>
             </div>
 
             <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
@@ -633,7 +673,115 @@ function PracticeContent() {
     );
   }
 
-  return null;
+  const currentQuestionText = exercise?.content?.questions[currentQuestionIndex];
+  const currentOptions = exercise?.content?.options[currentQuestionIndex];
+  const totalQuestions = exercise?.content?.questions.length || 5;
+
+  return (
+    <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
+      <header className="mb-12 flex justify-between items-end">
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              if (activeParcours) {
+                router.push(`/parcours/${activeParcours.id}`);
+              } else {
+                setMode("selection");
+              }
+            }}
+            className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors font-bold text-sm mb-4"
+          >
+            <ChevronLeft size={16} /> Quitter
+          </button>
+          <div className="flex items-center gap-3">
+            <Badge className="bg-rose-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none">
+              {exercise?.level} • {isReviewMode ? "Révision" : exercise?.category}
+            </Badge>
+            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">QCM Voltaire</span>
+          </div>
+          <h2 className="text-3xl font-black text-zinc-900 tracking-tighter uppercase leading-none">
+            {exercise?.instructions.replace('.', '')}
+          </h2>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+            <div className="text-xs font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200">
+              Question {currentQuestionIndex + 1} / {totalQuestions}
+            </div>
+            <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-rose-600"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+                />
+            </div>
+        </div>
+      </header>
+
+      <div className="flex-1 flex flex-col justify-center mb-12">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestionIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-12"
+          >
+            <div className="p-12 bg-white border-2 border-zinc-100 shadow-2xl shadow-zinc-100 rounded-[4rem] text-4xl text-center font-black text-zinc-900 leading-tight tracking-tight relative">
+               <Target className="absolute -top-6 left-1/2 -translate-x-1/2 text-rose-600 bg-white w-12 h-12 p-2 rounded-2xl shadow-lg border-2 border-zinc-100" />
+              {currentQuestionText}
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <p className="text-center text-xs font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Choisissez la bonne réponse :</p>
+              {currentOptions?.map((option, i) => (
+                <button
+                  key={i}
+                  disabled={isChecked}
+                  onClick={() => setSelected(i)}
+                  className={`
+                    w-full p-8 rounded-3xl border-2 text-left transition-all flex justify-between items-center font-black text-xl
+                    ${selected === i ? 'border-rose-600 bg-rose-50 text-rose-900 shadow-lg' : 'border-zinc-50 bg-white text-zinc-500 hover:border-zinc-200 shadow-sm'}
+                    ${isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-none' : ''}
+                    ${isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-none' : ''}
+                  `}
+                >
+                  <span>{option}</span>
+                  {isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" size={28} />}
+                  {isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" size={28} />}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <footer className="flex justify-between items-center p-6 bg-white border border-zinc-100 rounded-[2.5rem] shadow-xl shadow-zinc-100 mb-8">
+        <div className="flex gap-4">
+           <div className="flex flex-col">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</span>
+              <span className="text-xl font-black text-zinc-900">{score} / {totalQuestions}</span>
+           </div>
+        </div>
+
+        {!isChecked ? (
+          <Button
+            disabled={selected === null}
+            onClick={handleCheck}
+            className="h-16 px-12 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl shadow-xl shadow-zinc-200 text-lg transition-all active:scale-95"
+          >
+            Vérifier la réponse
+          </Button>
+        ) : (
+          <Button
+            onClick={handleNext}
+            className="h-16 px-12 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl shadow-xl shadow-rose-100 flex gap-2 text-lg transition-all active:scale-95"
+          >
+            {currentQuestionIndex < totalQuestions - 1 ? "Question suivante" : "Terminer l'exercice"} <ArrowRight size={24} />
+          </Button>
+        )}
+      </footer>
+    </div>
+  );
 }
 
 export default function Practice() {

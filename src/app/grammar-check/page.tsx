@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
 import { useParcours } from "@/contexts/ParcoursContext";
 
 interface GrammarQuestion {
@@ -23,6 +22,10 @@ interface GrammarQuestion {
 
 function GrammarCheckContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const supabase = createClient();
+  const { activeParcours, nextLesson } = useParcours();
+
   const [isStarted, setIsStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Grammaire");
@@ -32,12 +35,9 @@ function GrammarCheckContent() {
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
-
-  const router = useRouter();
-  const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
 
   useEffect(() => {
     const exerciseId = searchParams.get('id');
@@ -90,7 +90,7 @@ function GrammarCheckContent() {
         .eq("type", "trous")
         .eq("level", targetLevel);
 
-      if (targetCategory && targetCategory && targetCategory !== "Toutes") {
+      if (targetCategory && targetCategory !== "Toutes") {
         const { data: catMatch } = await supabase
           .from("exercises")
           .select("*")
@@ -117,7 +117,6 @@ function GrammarCheckContent() {
       }
 
       const { data, error } = await query.limit(5);
-
       if (error) throw error;
 
       if (data && data.length > 0) {
@@ -153,20 +152,54 @@ function GrammarCheckContent() {
     }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setInputValue("");
       setStatus("typing");
     } else {
+      setIsSaving(true);
+      await saveResults();
       setFinished(true);
+      setIsSaving(false);
+      router.refresh();
     }
   };
 
-  if (loading) {
+  const saveResults = async () => {
+    const finalScore = Math.round((score / questions.length) * 100);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user && questions.length > 0) {
+      try {
+        const response = await fetch('/api/exercise-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exerciseId: questions[0].id,
+            score: finalScore,
+            answers: {
+              correct: score,
+              total: questions.length
+            }
+          })
+        });
+        if (!response.ok) throw new Error("Failed to save");
+      } catch (err) {
+        console.error("Error saving result:", err);
+      }
+    }
+  };
+
+  if (loading || isSaving) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      <div className="flex items-center justify-center min-h-screen bg-zinc-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-indigo-600" size={48} />
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+            {isSaving ? "Enregistrement..." : "Chargement..."}
+          </p>
+        </div>
       </div>
     );
   }
@@ -202,18 +235,22 @@ function GrammarCheckContent() {
                 </Button>
               )}
               <Button
-                variant="ghost"
-                className="w-full h-12 text-zinc-400 font-black hover:text-indigo-600"
+                variant={activeParcours ? "ghost" : "default"}
+                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-indigo-600' : 'h-16 bg-zinc-900 text-white'} font-black rounded-2xl text-lg transition-all`}
                 onClick={() => {
-                  setFinished(false);
-                  setIsStarted(false);
-                  setCurrentIdx(0);
-                  setScore(0);
-                  setInputValue("");
-                  setStatus("typing");
+                  if (activeParcours) {
+                    router.push(`/parcours/${activeParcours.id}`);
+                  } else {
+                    setFinished(false);
+                    setIsStarted(false);
+                    setCurrentIdx(0);
+                    setScore(0);
+                    setInputValue("");
+                    setStatus("typing");
+                  }
                 }}
               >
-                Refaire un exercice
+                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
               </Button>
             </div>
           </Card>
@@ -318,7 +355,13 @@ function GrammarCheckContent() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
             <button
-              onClick={() => setIsStarted(false)}
+              onClick={() => {
+                if (activeParcours) {
+                  router.push(`/parcours/${activeParcours.id}`);
+                } else {
+                  setIsStarted(false);
+                }
+              }}
               className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-900 transition-colors"
             >
               <ArrowRight className="rotate-180" size={20} />
