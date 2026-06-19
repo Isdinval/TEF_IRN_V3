@@ -1,18 +1,28 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { ParcoursTopBar } from "./ParcoursTopBar";
+import React, { Suspense, useEffect, useState } from "react";
+
+// Client-only component for the Coach
+const ChatCoach = dynamic(() => import("@/components/features/coach/ChatCoach").then(mod => mod.ChatCoach), {
+  ssr: false,
+});
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
-  // Routes publiques sans Sidebar
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Public routes check
   const publicRoutes = ["/", "/login", "/guides", "/pricing", "/exercice-gratuit", "/placement-test", "/onboarding"];
-  const isPublic = publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"));
-
-  // Masquer la sidebar pendant l'examen pour immersion totale
+  const isPublic = pathname ? publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/")) : true;
   const isExam = pathname === "/exam";
 
   if (isPublic || isExam) {
@@ -27,6 +37,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto">
           {children}
         </main>
+        {/* Only mount Coach on client side and if not on /coach page */}
+        {mounted && pathname !== "/coach" && (
+           <div className="hidden md:block">
+             <Suspense fallback={null}>
+               <ChatCoach mode="popup" />
+             </Suspense>
+           </div>
+        )}
         <BottomNav />
       </div>
     </div>

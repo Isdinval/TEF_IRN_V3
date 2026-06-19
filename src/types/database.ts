@@ -46,3 +46,31 @@ export interface Recommendation {
   status: 'pending' | 'completed' | 'dismissed';
   created_at: string;
 }
+
+export interface ChatSession {
+  id: string;
+  user_id: string;
+  title: string | null;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  content: string;
+  metadata: any;
+  created_at: string;
+}
+
+export interface CoachGeneratedExercise {
+  id: string;
+  user_id: string;
+  session_id: string | null;
+  message_id: string | null;
+  content: any;
+  type: string;
+  created_at: string;
+}
