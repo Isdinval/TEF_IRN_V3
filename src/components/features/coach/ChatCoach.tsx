@@ -116,7 +116,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                   ? 'bg-indigo-600 text-white rounded-tr-none'
                   : 'bg-white text-zinc-800 border border-zinc-200 rounded-tl-none font-medium'
               }`}>
-                <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:text-indigo-900 prose-strong:text-indigo-700">
+                <div className={`prose prose-sm max-w-none prose-p:leading-relaxed ${m.role === 'user' ? 'prose-invert text-white' : 'text-zinc-800 prose-headings:text-indigo-900 prose-strong:text-indigo-700'}`}>
                   <ReactMarkdown>{m.content || ''}</ReactMarkdown>
                 </div>
 
