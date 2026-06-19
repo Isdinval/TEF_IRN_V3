@@ -15,6 +15,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const edgeFunctionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/coach-chat`;
 
+    console.log('Proxying to Edge Function with body:', JSON.stringify(body).slice(0, 200) + '...');
+
     const response = await fetch(edgeFunctionUrl, {
       method: 'POST',
       headers: {
@@ -25,35 +27,32 @@ export async function POST(req: Request) {
       body: JSON.stringify(body),
     });
 
-    // Forward the response
+    let responseData;
     const responseText = await response.text();
-    
-    if (!response.ok) {
-      console.error('Edge Function Error:', response.status, responseText);
-      return new Response(responseText, { 
-        status: response.status,
-        headers: { 'Content-Type': 'application/json' }
-      });
+
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      responseData = { content: responseText };
     }
 
-    // Si c'est du JSON (notre cas actuel)
-    try {
-      const jsonData = JSON.parse(responseText);
-      return NextResponse.json(jsonData);
-    } catch (e) {
-      // Si c'est du stream
-      return new Response(responseText, {
-        status: 200,
-        headers: {
-          'Content-Type': response.headers.get('Content-Type') || 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
+    if (!response.ok) {
+      console.error('Edge Error:', response.status, responseData);
+      return NextResponse.json({ error: responseData.error || 'Erreur Coach' }, { status: response.status });
     }
+
+    // Format attendu par le frontend (très important)
+    return NextResponse.json({
+      content: responseData.content || responseData.message || "Réponse reçue",
+      role: "assistant",
+      id: Date.now().toString()
+    });
 
   } catch (error: any) {
-    console.error('Proxy Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Proxy Exception:', error);
+    return NextResponse.json({ 
+      error: 'Erreur de connexion au Coach',
+      message: error.message 
+    }, { status: 500 });
   }
 }
