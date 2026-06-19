@@ -3,25 +3,51 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
-  X, Send, Bot, Sparkles, Loader2, MessageCircle, AlertCircle
+  X, Send, Bot, Sparkles, Loader2, MessageCircle, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
+
+const SUGGESTIONS_BY_PATH: Record<string, { label: string; prompt: string; icon: any }[]> = {
+  '/dashboard': [
+    { label: "Comment réviser aujourd'hui ?", prompt: "Quelles sont les meilleures révisions à faire aujourd'hui selon mon profil ?", icon: Sparkles },
+    { label: "Mes points faibles", prompt: "Quelles sont mes erreurs les plus fréquentes et comment les corriger ?", icon: AlertCircle }
+  ],
+  '/lessons': [
+    { label: "Explique-moi cette leçon", prompt: "Peux-tu m'expliquer les points clés de cette leçon de manière simple ?", icon: BookOpen },
+    { label: "Donne-moi un exemple", prompt: "Donne-moi 3 exemples concrets d'utilisation de ce point de grammaire.", icon: GraduationCap }
+  ],
+  '/writing': [
+    { label: "Conseils de rédaction", prompt: "Donne-moi des conseils pour améliorer la structure de mes textes au TEF IRN.", icon: PenTool },
+    { label: "Vocabulaire utile", prompt: "Quel vocabulaire formel devrais-je utiliser pour la section B de l'expression écrite ?", icon: BookOpen }
+  ]
+};
+
+const DEFAULT_SUGGESTIONS = [
+  { label: "C'est quoi le TEF IRN ?", prompt: "Peux-tu m'expliquer le format de l'examen TEF IRN ?", icon: GraduationCap },
+  { label: "Génère un exercice", prompt: "Génère-moi un petit exercice de grammaire rapide pour m'entraîner.", icon: Sparkles }
+];
 
 export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' | 'full', initialMessage?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = useChat({
+  const chat = useChat({
     api: '/api/coach/chat',
+    body: {
+        pageContext: pathname
+    },
     initialMessages: [
       {
         id: 'welcome',
@@ -30,6 +56,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       }
     ]
   });
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = chat as any;
 
   useEffect(() => {
     if (isMounted && initialMessage && isOpen && messages.length <= 1) {
@@ -45,49 +73,86 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
   if (!isMounted) return null;
 
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const currentSuggestions = SUGGESTIONS_BY_PATH[Object.keys(SUGGESTIONS_BY_PATH).find(p => pathname?.startsWith(p)) || ''] || DEFAULT_SUGGESTIONS;
+
   const chatContent = (
-    <div className={`flex flex-col h-full bg-white shadow-2xl ${mode === 'popup' ? 'w-[420px] max-h-[650px] rounded-2xl border border-zinc-200 overflow-hidden' : 'w-full rounded-3xl border-none'}`}>
+    <div className={`flex flex-col h-full bg-white shadow-2xl ${mode === 'popup' ? 'w-[420px] max-h-[700px] rounded-2xl border border-zinc-200 overflow-hidden' : 'w-full rounded-3xl border-none'}`}>
       <div className="p-4 border-b bg-indigo-600 text-white flex justify-between items-center shrink-0">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-1.5 rounded-lg">
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-sm leading-tight">Coach Maitris</h3>
+            <h3 className="font-bold text-sm leading-tight text-white">Coach Maitris</h3>
             <p className="text-[10px] text-indigo-100 uppercase tracking-wider font-medium">Assistant Pédagogique</p>
           </div>
         </div>
-        {mode === 'popup' && (
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-white hover:bg-white/10 rounded-full">
-            <X className="w-5 h-5" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {mode === 'popup' && (
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-white hover:bg-white/10 rounded-full h-8 w-8">
+              <X className="w-5 h-5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <ScrollArea className="flex-1 bg-zinc-50/30">
         <div className="p-4 space-y-6 min-h-full">
-          {messages.map((m) => (
+          {messages.map((m: any, idx: number) => (
             <motion.div
               key={m.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <div className={`max-w-[85%] p-4 rounded-2xl text-sm shadow-sm ${
+              <div className={`max-w-[85%] p-4 rounded-2xl text-sm shadow-sm relative group ${
                 m.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-tr-none'
-                  : 'bg-indigo-50 text-indigo-950 border border-indigo-100 rounded-tl-none font-medium'
+                  : 'bg-white text-zinc-800 border border-zinc-200 rounded-tl-none font-medium'
               }`}>
                 <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:text-indigo-900 prose-strong:text-indigo-700">
                   <ReactMarkdown>{m.content || ''}</ReactMarkdown>
                 </div>
+
+                {m.role === 'assistant' && m.id !== 'welcome' && (
+                  <div className="absolute -bottom-8 left-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={() => copyToClipboard(m.content, m.id)}
+                        className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-indigo-600 transition-colors"
+                        title="Copier"
+                    >
+                      {copiedId === m.id ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                    <button className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-green-600 transition-colors" title="Utile">
+                      <ThumbsUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-red-600 transition-colors" title="Pas utile">
+                      <ThumbsDown className="w-3.5 h-3.5" />
+                    </button>
+                    {idx === messages.length - 1 && !isLoading && (
+                      <button
+                        onClick={() => reload()}
+                        className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-indigo-600 transition-colors"
+                        title="Régénérer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
 
           {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
-              <div className="bg-indigo-50 p-3 rounded-2xl rounded-tl-none border border-indigo-100">
+              <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm">
                 <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
               </div>
             </div>
@@ -103,12 +168,35 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             </div>
           )}
 
-          <div ref={messagesEndRef} className="h-2" />
+          {messages.length === 1 && !isLoading && (
+            <div className="pt-2 space-y-2">
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest pl-1">Suggestions</p>
+                <div className="grid grid-cols-1 gap-2">
+                    {currentSuggestions.map((s, i) => (
+                        <button
+                            key={i}
+                            onClick={() => append({ role: 'user', content: s.prompt })}
+                            className="flex items-center gap-3 p-3 bg-white border border-zinc-200 rounded-xl text-left hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group"
+                        >
+                            <div className="p-1.5 bg-zinc-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                                <s.icon className="w-4 h-4 text-zinc-500 group-hover:text-indigo-600" />
+                            </div>
+                            <span className="text-xs font-medium text-zinc-700 group-hover:text-indigo-900">{s.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} className="h-6" />
         </div>
       </ScrollArea>
 
       <div className="p-4 border-t bg-white shrink-0">
-        <form onSubmit={handleSubmit} className="flex gap-2 items-center bg-zinc-100 p-1.5 rounded-2xl border border-zinc-200">
+        <form onSubmit={(e: any) => {
+            e.preventDefault();
+            handleSubmit(e);
+        }} className="flex gap-2 items-center bg-zinc-100 p-1.5 rounded-2xl border border-zinc-200">
           <Input
             value={input}
             onChange={handleInputChange}
@@ -121,7 +209,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             disabled={isLoading || !input.trim()}
             className="rounded-xl bg-indigo-600 hover:bg-indigo-700 h-10 w-10 p-0 shrink-0 shadow-lg shadow-indigo-100"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4 text-white" />
           </Button>
         </form>
         <p className="text-[10px] text-zinc-400 text-center mt-2">Le Coach peut faire des erreurs. Vérifie les infos importantes.</p>

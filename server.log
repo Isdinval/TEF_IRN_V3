@@ -1,30 +1,14 @@
 
-> maitris-tef-irn@0.1.0 dev
-> next dev
+> maitris-tef-irn@0.1.0 start
+> next start
 
-   ▲ Next.js 15.1.11
-   - Local:        http://localhost:3000
-   - Network:      http://192.168.0.2:3000
-
- ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
- ✓ Ready in 1934ms
- ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 1979ms (194 modules)
- ○ Compiling /lessons ...
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled /lessons in 12.3s (1723 modules)
- GET /lessons 200 in 13420ms
- GET /lessons 200 in 75ms
- ✓ Compiled in 1079ms (1705 modules)
- ✓ Compiled in 481ms (1705 modules)
- ✓ Compiled in 571ms (1705 modules)
- ✓ Compiled in 945ms (1013 modules)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (101kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (231kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled in 849ms (1705 modules)
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
+    at new Promise (<anonymous>) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
