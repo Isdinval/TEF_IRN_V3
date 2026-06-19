@@ -13,7 +13,9 @@ import {
   Loader2,
   Sparkles,
   Trophy,
-  Brain
+  Brain,
+  Target,
+  Zap
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -194,92 +196,110 @@ function VocabCoachContent() {
 
   if (mode === "selection") {
     return (
-      <div className="max-w-6xl mx-auto p-6 lg:p-12 pt-16">
-        <ParcoursBreadcrumb className="mb-8" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-12">
-            <header>
-              <Badge className="mb-4 rounded-full border-none bg-emerald-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-100">
-                Coach Vocabulaire
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6">
-                VOTRE <span className="text-emerald-600">LEXIQUE</span> <br />IMMÉDIAT.
-              </h1>
-              <p className="text-xl font-medium text-slate-500 leading-relaxed max-w-xl">
-                Maîtrisez les mots essentiels du TEF IRN grâce à notre méthode de mémorisation active en 3 étapes.
-              </p>
-            </header>
+      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
+        <div className="max-w-6xl mx-auto">
+          <ParcoursBreadcrumb className="mb-8" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-12">
+              <header>
+                <Badge className="mb-4 rounded-full border-none bg-emerald-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-100">
+                  Coach Vocabulaire
+                </Badge>
+                <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
+                  VOTRE <span className="text-emerald-600">LEXIQUE</span> <br />IMMÉDIAT.
+                </h1>
+                <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed italic">
+                  Maîtrisez les mots essentiels du TEF IRN grâce à notre méthode de mémorisation active en 3 étapes.
+                </p>
+              </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Niveau</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {levels.map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setFilters({ ...filters, level: l })}
-                      className={`h-14 rounded-2xl font-black text-lg transition-all ${filters.level === l ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
+              <Card className="p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-6">
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <Target size={16} /> Niveau
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {levels.map((l) => (
+                      <button
+                        key={l}
+                        onClick={() => setFilters({ ...filters, level: l })}
+                        className={`h-12 rounded-xl font-black text-sm transition-all ${filters.level === l ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Thématique</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {categories.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setFilters({ ...filters, category: c })}
-                      className={`h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <Sparkles size={16} /> Thématique
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {categories.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setFilters({ ...filters, category: c })}
+                        className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${filters.category === c ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </Card>
             </div>
 
-            <Button
-              onClick={() => startTraining()}
-              disabled={loading}
-              className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black text-2xl rounded-3xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 flex gap-4"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : "Commencer la session"} <ArrowRight size={28} />
-            </Button>
-          </div>
-
-          <div className="space-y-8">
-            <Card className="border-none shadow-2xl shadow-emerald-100 rounded-[3rem] p-8 bg-emerald-600 text-white relative overflow-hidden group">
-               <div className="relative z-10">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm group-hover:scale-110 transition-transform">
-                    <Brain size={32} />
+            <div className="space-y-6">
+              <Card className="p-8 rounded-[2.5rem] border-none bg-emerald-600 text-white shadow-xl shadow-emerald-200/50 flex flex-col justify-center relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4 opacity-80">
+                    <Zap size={20} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Mode Classique</span>
                   </div>
-                  <h3 className="text-2xl font-black mb-2 tracking-tight">SRS Intelligent</h3>
-                  <p className="text-emerald-50 text-sm font-medium mb-8 leading-relaxed">
-                    Révisez uniquement les mots que vous êtes sur le point d'oublier.
+                  <h3 className="text-2xl font-black mb-2 uppercase">Prêt à mémoriser ?</h3>
+                  <p className="text-sm font-medium opacity-80 mb-6 italic">
+                    Une session de 10 mots basée sur vos critères pour un entraînement rapide.
                   </p>
                   <Button
-                    onClick={() => startTraining(true)}
-                    className="w-full h-14 bg-white text-emerald-600 hover:bg-emerald-50 font-black rounded-xl shadow-xl border-none"
+                    onClick={() => startTraining()}
+                    disabled={loading}
+                    className="w-full h-14 bg-white text-emerald-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg"
                   >
-                    Réviser mon Vocab
+                    {loading ? <Loader2 className="animate-spin" /> : "COMMENCER LA SESSION"}
                   </Button>
-               </div>
-               <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
-            </Card>
+                </div>
+                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12" />
+              </Card>
 
-            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
-              <div className="flex items-center gap-3 mb-4">
-                <Trophy className="text-zinc-400" size={20} />
-                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Récompenses</h4>
-              </div>
-              <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                Chaque mot maîtrisé vous rapporte +15 XP. Complétez une session de 10 mots pour un bonus !
-              </p>
-            </Card>
+              <Card className="border-none shadow-xl shadow-zinc-200/50 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
+                 <div className="relative z-10">
+                    <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                      <Brain size={28} />
+                    </div>
+                    <h3 className="text-xl font-black text-zinc-900 mb-2 uppercase tracking-tight leading-none">SRS Intelligent</h3>
+                    <p className="text-zinc-500 text-xs font-medium leading-relaxed italic mb-6">
+                      Révisez uniquement les mots que vous êtes sur le point d'oublier.
+                    </p>
+                    <Button
+                      onClick={() => startTraining(true)}
+                      className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-xl shadow-lg"
+                    >
+                      Réviser mon Vocab
+                    </Button>
+                 </div>
+              </Card>
+
+              <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <Trophy className="text-zinc-400" size={20} />
+                  <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Récompenses</h4>
+                </div>
+                <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
+                  Chaque mot maîtrisé vous rapporte +15 XP. Complétez une session de 10 mots pour un bonus !
+                </p>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
