@@ -115,7 +115,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {/* Scrollable Area */}
       <ScrollArea className="flex-1 bg-zinc-50/50 h-0">
         <div className="p-4 space-y-6">
-          {messages.map((m: any, idx: number) => (
+          {messages.filter((m: any) => m.content || m.role === 'user').map((m: any, idx: number) => (
             <motion.div
               key={m.id}
               initial={{ opacity: 0, y: 10 }}

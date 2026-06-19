@@ -81,6 +81,7 @@ LOGIQUE DE RESSOURCES:
 CONTRAINTES TECHNIQUES:
 - Uniquement du TEXTE et du MARKDOWN. Pas de pièces jointes.
 - Liens internes uniquement au format: [Titre](URL).
+- IMPORTANT: Si tu utilises un outil (tool), tu DOIS toujours accompagner le résultat d'un message explicatif ou d'un conseil. Ne laisse jamais une réponse vide.
 
 Page actuelle: ${pageContext || 'Dashboard'}`;
 
@@ -90,6 +91,7 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
       model: openai('gpt-4o-mini'),
       system: systemPrompt,
       messages,
+      maxSteps: 5,
       tools: {
         get_resources: tool({
           description: 'Recherche des leçons ou exercices adaptés au niveau de l\'utilisateur dans la base du site.',
@@ -98,6 +100,7 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
             type: z.enum(['lesson', 'exercise', 'any']).optional()
           }),
           execute: async ({ keywords, type }) => {
+            console.log('Tool get_resources called:', { keywords, type });
             const results: any[] = [];
             if (type !== 'exercise') {
                 const { data } = await supabase.from('lessons').select('id, title').overlaps('tags', keywords).eq('level', userLevel).limit(2);
@@ -114,6 +117,7 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
             description: 'Donne un lien vers un exercice aléatoire de niveau adapté.',
             parameters: z.object({}),
             execute: async () => {
+                console.log('Tool get_random_exercise called');
                 const { data } = await supabase.from('exercises').select('id, instructions').eq('level', userLevel).limit(20);
                 if (!data || data.length === 0) return { error: "Désolé, je n'ai pas trouvé d'exercice pour le moment." };
                 const random = data[Math.floor(Math.random() * data.length)];
@@ -170,9 +174,13 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
       }
     } as any);
 
-    const response = result.toDataStreamResponse();
-    response.headers.set('x-vercel-ai-data-stream', 'v1');
-    return response;
+    return result.toDataStreamResponse({
+      init: {
+        headers: {
+          'x-vercel-ai-data-stream': 'v1',
+        }
+      }
+    });
 
   } catch (error: any) {
     console.error('FATAL:', error);
