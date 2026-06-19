@@ -38,6 +38,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [interactionCount, setInteractionCount] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,15 +47,19 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const chat = useChat({
     api: '/api/coach/chat',
     body: {
-        pageContext: pathname
+        pageContext: pathname,
+        interactionCount: interactionCount
     },
     initialMessages: [
       {
         id: 'welcome',
         role: 'assistant',
-        content: 'Bonjour ! Je suis ton Coach IA Maitris. Je suis là pour t\'aider à préparer ton TEF IRN. Comment puis-je t\'aider aujourd\'hui ?'
+        content: 'Bonjour ! Je suis ton **Coach TEF**, ton professeur particulier de français. Je suis là pour t\'aider à préparer ton examen TEF IRN avec bienveillance et pédagogie.'
       }
-    ]
+    ],
+    onFinish: () => {
+        setInteractionCount(prev => prev + 1);
+    }
   });
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = chat as any;
@@ -82,28 +87,34 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const currentSuggestions = SUGGESTIONS_BY_PATH[Object.keys(SUGGESTIONS_BY_PATH).find(p => pathname?.startsWith(p)) || ''] || DEFAULT_SUGGESTIONS;
 
   const chatContent = (
-    <div className={`flex flex-col h-full bg-white shadow-2xl ${mode === 'popup' ? 'w-[420px] max-h-[700px] rounded-2xl border border-zinc-200 overflow-hidden' : 'w-full rounded-3xl border-none'}`}>
-      <div className="p-4 border-b bg-indigo-600 text-white flex justify-between items-center shrink-0">
+    <div className={`flex flex-col bg-white shadow-2xl overflow-hidden ${
+      mode === 'popup'
+        ? 'fixed bottom-6 right-6 w-[92vw] md:w-[420px] h-[85vh] max-h-[700px] rounded-2xl border border-zinc-200 z-[100]'
+        : 'w-full h-full rounded-3xl border-none'
+    }`}>
+      {/* Fixed Header */}
+      <div className="p-4 bg-indigo-600 text-white flex justify-between items-center shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-white/20 p-1.5 rounded-lg">
+          <div className="bg-white/20 p-2 rounded-xl">
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-sm leading-tight text-white">Coach Maitris</h3>
-            <p className="text-[10px] text-indigo-100 uppercase tracking-wider font-medium">Assistant Pédagogique</p>
+            <h3 className="font-bold text-sm leading-tight text-white">Coach TEF</h3>
+            <p className="text-[10px] text-indigo-100 uppercase tracking-widest font-bold">Assistant Pédagogique</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
           {mode === 'popup' && (
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-white hover:bg-white/10 rounded-full h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-white hover:bg-white/10 rounded-full h-9 w-9">
               <X className="w-5 h-5" />
             </Button>
           )}
         </div>
       </div>
 
-      <ScrollArea className="flex-1 bg-zinc-50/30">
-        <div className="p-4 space-y-6 min-h-full">
+      {/* Scrollable Area */}
+      <ScrollArea className="flex-1 bg-zinc-50/50 h-0">
+        <div className="p-4 space-y-6">
           {messages.map((m: any, idx: number) => (
             <motion.div
               key={m.id}
@@ -111,34 +122,35 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
               animate={{ opacity: 1, y: 0 }}
               className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <div className={`max-w-[85%] p-4 rounded-2xl text-sm shadow-sm relative group ${
+              <div className={`max-w-[88%] p-4 rounded-2xl text-sm shadow-sm relative group ${
                 m.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-tr-none'
                   : 'bg-white text-zinc-800 border border-zinc-200 rounded-tl-none font-medium'
               }`}>
-                <div className={`prose prose-sm max-w-none prose-p:leading-relaxed ${m.role === 'user' ? 'prose-invert text-white' : 'text-zinc-800 prose-headings:text-indigo-900 prose-strong:text-indigo-700'}`}>
+                <div className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
+                  m.role === 'user'
+                    ? 'prose-invert text-white'
+                    : 'text-zinc-800 prose-headings:text-indigo-900 prose-strong:text-indigo-700'
+                }`}>
                   <ReactMarkdown>{m.content || ''}</ReactMarkdown>
                 </div>
 
                 {m.role === 'assistant' && m.id !== 'welcome' && (
-                  <div className="absolute -bottom-8 left-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => copyToClipboard(m.content, m.id)}
-                        className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-indigo-600 transition-colors"
+                        className="p-1 hover:bg-zinc-100 rounded text-zinc-400 hover:text-indigo-600 transition-colors"
                         title="Copier"
                     >
                       {copiedId === m.id ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    <button className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-green-600 transition-colors" title="Utile">
+                    <button className="p-1 hover:bg-zinc-100 rounded text-zinc-400 hover:text-green-600 transition-colors">
                       <ThumbsUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-red-600 transition-colors" title="Pas utile">
-                      <ThumbsDown className="w-3.5 h-3.5" />
                     </button>
                     {idx === messages.length - 1 && !isLoading && (
                       <button
                         onClick={() => reload()}
-                        className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-400 hover:text-indigo-600 transition-colors"
+                        className="p-1 hover:bg-zinc-100 rounded text-zinc-400 hover:text-indigo-600 transition-colors"
                         title="Régénérer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
@@ -176,22 +188,23 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                         <button
                             key={i}
                             onClick={() => append({ role: 'user', content: s.prompt })}
-                            className="flex items-center gap-3 p-3 bg-white border border-zinc-200 rounded-xl text-left hover:border-indigo-400 hover:bg-indigo-50/30 transition-all group"
+                            className="flex items-center gap-3 p-3 bg-white border border-zinc-200 rounded-xl text-left hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group"
                         >
-                            <div className="p-1.5 bg-zinc-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                            <div className="p-2 bg-zinc-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
                                 <s.icon className="w-4 h-4 text-zinc-500 group-hover:text-indigo-600" />
                             </div>
-                            <span className="text-xs font-medium text-zinc-700 group-hover:text-indigo-900">{s.label}</span>
+                            <span className="text-xs font-semibold text-zinc-700 group-hover:text-indigo-900">{s.label}</span>
                         </button>
                     ))}
                 </div>
             </div>
           )}
 
-          <div ref={messagesEndRef} className="h-6" />
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </ScrollArea>
 
+      {/* Fixed Footer */}
       <div className="p-4 border-t bg-white shrink-0">
         <form onSubmit={(e: any) => {
             e.preventDefault();
@@ -200,7 +213,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
           <Input
             value={input}
             onChange={handleInputChange}
-            placeholder="Posez votre question..."
+            placeholder="Posez votre question au coach..."
             className="flex-1 bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 px-3"
             disabled={isLoading}
           />
@@ -212,7 +225,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             <Send className="w-4 h-4 text-white" />
           </Button>
         </form>
-        <p className="text-[10px] text-zinc-400 text-center mt-2">Le Coach peut faire des erreurs. Vérifie les infos importantes.</p>
+        <p className="text-[10px] text-zinc-400 text-center mt-2 font-medium">Coach TEF peut faire des erreurs. Vérifie les infos.</p>
       </div>
     </div>
   );
@@ -224,40 +237,41 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
         animate={{ scale: 1, opacity: 1 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-3"
+        className="fixed bottom-6 right-6 z-[100] flex items-center gap-3"
       >
-        <div className="bg-white px-4 py-2 rounded-2xl shadow-xl border border-zinc-100 text-indigo-600 font-bold text-sm hidden md:block">
+        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-2xl border border-zinc-100 text-indigo-600 font-extrabold text-sm hidden md:block">
           Besoin d'aide ?
         </div>
         <Button
           onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 shadow-2xl bg-indigo-600 hover:bg-indigo-700 relative overflow-hidden group"
+          className="rounded-full w-14 h-14 shadow-2xl bg-indigo-600 hover:bg-indigo-700 relative overflow-hidden group border-4 border-white"
         >
           <motion.div
             animate={{
-              scale: [1, 1.1, 1],
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3]
             }}
             transition={{
-              duration: 2,
+              duration: 3,
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors"
+            className="absolute inset-0 bg-white/30 rounded-full"
           />
-          <MessageCircle className="w-6 h-6 text-white relative z-10" />
+          <MessageCircle className="w-7 h-7 text-white relative z-10" />
         </Button>
       </motion.div>
     );
   }
 
   return (
-    <div className={mode === 'popup' ? "fixed bottom-24 right-6 z-50" : "h-full"}>
+    <div className={mode === 'popup' ? "" : "h-full"}>
        <AnimatePresence>
          {(isOpen || mode === 'full') && (
            <motion.div
-             initial={mode === 'popup' ? { opacity: 0, y: 20, scale: 0.95, transformOrigin: 'bottom right' } : {}}
+             initial={mode === 'popup' ? { opacity: 0, y: 40, scale: 0.95 } : {}}
              animate={mode === 'popup' ? { opacity: 1, y: 0, scale: 1 } : {}}
-             exit={mode === 'popup' ? { opacity: 0, y: 20, scale: 0.95 } : {}}
+             exit={mode === 'popup' ? { opacity: 0, y: 40, scale: 0.95 } : {}}
              className="h-full"
            >
              {chatContent}
