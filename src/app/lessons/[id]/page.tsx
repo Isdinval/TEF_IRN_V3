@@ -33,6 +33,38 @@ function parseMnemoLetters(text: string): string[] {
   return text.trim().split(/[\s·]+/).filter(Boolean);
 }
 
+// ─── objective component ────────────────────────────────────────────────────
+
+const ObjectiveContent = ({ children }: { children: any }) => {
+  const content = children?.toString() || "";
+  
+  // Détecter si l'objectif contient des puces (• ou -)
+  if (content.includes("•") || content.includes("- ")) {
+    const lines = content.split("\n").filter(Boolean);
+    return (
+      <div className="space-y-2">
+        {lines.map((line, index) => {
+          const cleanLine = line.replace(/^[•\-]\s*/, "");
+          // Si la ligne commence par une puce
+          if (line.match(/^[•\-]\s*/)) {
+            return (
+              <div key={index} className="flex items-start gap-3 text-slate-700 font-medium">
+                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                <span>{cleanLine}</span>
+              </div>
+            );
+          }
+          // Sinon, c'est une ligne de texte normale (comme la phrase d'intro)
+          return <p key={index} className="text-slate-700 font-medium">{cleanLine}</p>;
+        })}
+      </div>
+    );
+  }
+  
+  // Si pas de puces, afficher comme un paragraphe simple
+  return <p className="text-slate-700 font-bold text-lg">{children}</p>;
+};
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function LessonDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -365,15 +397,15 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                   </h1>
 
                   {lesson.objective && (
-                    <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] flex gap-5 items-center shadow-sm">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                    <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] flex gap-5 items-start shadow-sm">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 mt-1">
                         <Target size={24} />
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-indigo-400 tracking-widest mb-1">
                           Objectif de la leçon
                         </p>
-                        <p className="text-slate-700 font-bold text-lg">{lesson.objective}</p>
+                        <ObjectiveContent>{lesson.objective}</ObjectiveContent>
                       </div>
                     </div>
                   )}
