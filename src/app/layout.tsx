@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/shared/AppLayout";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { createClient } from "@/lib/supabase-server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,11 +22,14 @@ export const metadata: Metadata = {
   description: "Réussissez votre TEF IRN avec un coach personnel alimenté par l'IA.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="fr" className="h-full" suppressHydrationWarning>
       <body className={`${inter.variable} ${montserrat.variable} font-sans h-full bg-slate-50/30`}>
@@ -37,7 +41,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <ParcoursWrapper>
-              <AppLayout>{children}</AppLayout>
+              <AppLayout initialUser={user}>{children}</AppLayout>
             </ParcoursWrapper>
           </QueryProvider>
         </ThemeProvider>

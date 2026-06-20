@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
   const url = "https://api.openai.com/v1/realtime/sessions";
   const response = await fetch(url, {
     method: "POST",

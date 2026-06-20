@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getOpenAIClient } from '@/lib/openai';
+import { createClient } from '@/lib/supabase-server';
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { text, subject, targetLevel } = body;
     const openai = getOpenAIClient();
