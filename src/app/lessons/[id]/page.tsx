@@ -33,6 +33,21 @@ function parseMnemoLetters(text: string): string[] {
   return text.trim().split(/[\s·]+/).filter(Boolean);
 }
 
+/**
+ * Split title into main title and subtitle
+ * Supports: "Main Title | Subtitle" or "Main Title — Subtitle" or "Main Title : Subtitle"
+ */
+function splitTitle(title: string): { main: string; subtitle: string | null } {
+  const separators = [' | ', ' — ', ' : ', ' - '];
+  for (const sep of separators) {
+    if (title.includes(sep)) {
+      const parts = title.split(sep);
+      return { main: parts[0].trim(), subtitle: parts.slice(1).join(sep).trim() };
+    }
+  }
+  return { main: title, subtitle: null };
+}
+
 // ─── objective component ────────────────────────────────────────────────────
 
 const ObjectiveContent = ({ children }: { children: any }) => {
@@ -162,6 +177,9 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
     </div>
   );
   if (!lesson) return <div className="p-8 text-center text-slate-500 font-bold">Leçon non trouvée.</div>;
+
+  // ── split title ──
+  const { main: mainTitle, subtitle } = splitTitle(lesson.title || "");
 
   // ── markdown state ──
   let dialogueLineIndex = 0;
@@ -392,9 +410,16 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                     </Button>
                   </div>
 
-                  <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
-                    {lesson.title}
-                  </h1>
+                  <div className="space-y-2">
+                    <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">
+                      {mainTitle}
+                    </h1>
+                    {subtitle && (
+                      <p className="text-lg font-medium text-indigo-500 leading-tight">
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
 
                   {lesson.objective && (
                     <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] flex gap-5 items-start shadow-sm">
@@ -442,7 +467,7 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
                 <div className="flex justify-between items-center bg-white px-8 py-6 rounded-[2rem] border border-zinc-100 shadow-sm">
                   <div>
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Entraînement</p>
-                    <h2 className="text-xl font-black text-slate-800">{lesson.title}</h2>
+                    <h2 className="text-xl font-black text-slate-800">{mainTitle}</h2>
                   </div>
                   <div className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-black">
                     {currentQ + 1} / {exercise.content.questions.length}
