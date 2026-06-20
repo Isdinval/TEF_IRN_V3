@@ -29,15 +29,17 @@ export function AppLayout({ children, initialUser }: { children: React.ReactNode
   const publicRoutes = ["/", "/login", "/guides", "/pricing", "/exercice-gratuit", "/placement-test", "/onboarding"];
   const isPublic = pathname ? publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/")) : true;
   const isExam = pathname === "/exam";
-  const isLesson = pathname?.startsWith('/lessons');
 
-  // Case 1: Pure public routes or Exam
+  // Public content (Lessons & Parcours hub)
+  const isPublicContent = pathname?.startsWith('/lessons') || pathname?.startsWith('/parcours');
+
+  // Case 1: Pure public landing/auth routes or Exam
   if (isPublic || isExam) {
     return <main className="h-full">{children}</main>;
   }
 
-  // Case 2: Anonymous visitor on a lesson page
-  if (isLesson && !user) {
+  // Case 2: Anonymous visitor on public content (Lessons, Parcours hub)
+  if (isPublicContent && !user) {
     return (
       <div className="flex flex-col h-full bg-slate-50/30">
         <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
