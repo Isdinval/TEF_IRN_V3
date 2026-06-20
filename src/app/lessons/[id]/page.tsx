@@ -80,6 +80,38 @@ const ObjectiveContent = ({ children }: { children: any }) => {
   return <p className="text-slate-700 font-bold text-lg">{children}</p>;
 };
 
+// ─── dialogue component ─────────────────────────────────────────────────────
+
+// Composant pour rendre le contenu d'un dialogue avec du texte enrichi
+const DialogueContent = ({ text, isMe }: { text: string; isMe: boolean }) => {
+  // On traite le texte comme du Markdown simple pour permettre le strong
+  // Mais on ne rend pas les dialogues récursivement
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  
+  return (
+    <div className={`flex my-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-base font-semibold not-italic leading-snug ${
+        isMe
+          ? 'bg-indigo-600 text-white rounded-tr-sm'
+          : 'bg-slate-100 text-slate-700 rounded-tl-sm'
+      }`}>
+        {parts.map((part, index) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            // C'est du texte en gras
+            const clean = part.slice(2, -2);
+            return (
+              <strong key={index} className={isMe ? 'text-white font-black' : 'text-indigo-900 font-black'}>
+                {clean}
+              </strong>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function LessonDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -269,22 +301,30 @@ export default function LessonDetail({ params }: { params: Promise<{ id: string 
       );
     },
 
-    em: ({ children }: any) => {
-      const text = children?.toString() || "";
+    em: ({ children, node }: any) => {
+      // Récupérer le texte complet en extrayant les enfants
+      let text = "";
+      if (node?.children) {
+        for (const child of node.children) {
+          if (child.type === 'text') {
+            text += child.value;
+          } else if (child.type === 'strong' && child.children) {
+            // Si c'est du strong, on ajoute le texte avec les ** pour le traitement ultérieur
+            const strongText = child.children.map((c: any) => c.value || "").join("");
+            text += `**${strongText}**`;
+          } else if (child.children) {
+            text += child.children.map((c: any) => c.value || "").join("");
+          }
+        }
+      } else {
+        text = children?.toString() || "";
+      }
+      
       if (text.startsWith("— ")) {
         const idx = dialogueLineIndex++;
         const isMe = idx % 2 === 0;
-        return (
-          <div className={`flex my-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-base font-semibold not-italic leading-snug ${
-              isMe
-                ? 'bg-indigo-600 text-white rounded-tr-sm'
-                : 'bg-slate-100 text-slate-700 rounded-tl-sm'
-            }`}>
-              {text.replace(/^— /, '')}
-            </div>
-          </div>
-        );
+        const cleanText = text.replace(/^— /, '');
+        return <DialogueContent text={cleanText} isMe={isMe} />;
       }
       return <em className="italic text-slate-600">{children}</em>;
     },
