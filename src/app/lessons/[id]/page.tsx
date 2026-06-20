@@ -43,7 +43,7 @@ const ObjectiveContent = ({ children }: { children: any }) => {
     const lines = content.split("\n").filter(Boolean);
     return (
       <div className="space-y-2">
-        {lines.map((line, index) => {
+        {lines.map((line: string, index: number) => {
           const cleanLine = line.replace(/^[•\-]\s*/, "");
           // Si la ligne commence par une puce
           if (line.match(/^[•\-]\s*/)) {
