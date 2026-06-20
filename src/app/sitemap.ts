@@ -16,6 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, created_at, updated_at')
     .eq('is_published', true);
 
+  // Fetch all parcours
+  const { data: parcours } = await supabase
+    .from('parcours')
+    .select('id, created_at');
+
   const lessonUrls = (lessons || []).map((lesson: any) => ({
     url: `${baseUrl}/lessons/${lesson.id}`,
     lastModified: new Date(lesson.updated_at || lesson.created_at),
@@ -26,6 +31,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guideUrls = (guides || []).map((guide: any) => ({
     url: `${baseUrl}/guides/${guide.slug}`,
     lastModified: new Date(guide.updated_at || guide.created_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  const parcoursUrls = (parcours || []).map((p: any) => ({
+    url: `${baseUrl}/parcours/${p.id}`,
+    lastModified: new Date(p.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
   }));
@@ -49,7 +61,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/parcours`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
   ];
 
-  return [...staticUrls, ...lessonUrls, ...guideUrls];
+  return [...staticUrls, ...lessonUrls, ...guideUrls, ...parcoursUrls];
 }

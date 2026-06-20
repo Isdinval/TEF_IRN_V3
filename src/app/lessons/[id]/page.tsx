@@ -30,10 +30,28 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <LessonInteractive
-      lesson={lesson}
-      exercise={exercise}
-      initialUser={user}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Course',
+            name: lesson.title,
+            description: lesson.objective,
+            educationalLevel: lesson.level,
+            provider: {
+              '@type': 'Organization',
+              name: 'Maitris',
+            },
+          }),
+        }}
+      />
+      <LessonInteractive
+        lesson={lesson}
+        exercise={exercise}
+        initialUser={user}
+      />
+    </>
   );
 }

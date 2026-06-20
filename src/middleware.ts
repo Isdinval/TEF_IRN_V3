@@ -41,8 +41,20 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protéger les routes dashboard, practice, writing
-  const protectedRoutes = ['/dashboard', '/practice', '/writing', '/grammar-check', '/vocab', '/oral', '/coach', '/parcours', '/correction']
+  // Routes protégées : dashboard, practice, writing, etc.
+  // /parcours est désormais public (hub SEO)
+  const protectedRoutes = [
+    '/dashboard',
+    '/practice',
+    '/writing',
+    '/grammar-check',
+    '/vocab',
+    '/oral',
+    '/coach',
+    '/correction',
+    '/settings',
+    '/profile'
+  ]
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   if (isProtectedRoute && !user) {
