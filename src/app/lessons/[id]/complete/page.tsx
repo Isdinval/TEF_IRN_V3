@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { getParcours } from "@/lib/parcours";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface PathLesson {
 
 export default function LessonComplete({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [parcoursId, setParcoursId] = useState<string | null>(null);
   const [lesson, setLesson] = useState<any>(null);
@@ -40,7 +42,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
     async function fetchData() {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
-      if (!user) return;
+      if (!user) { router.replace(`/lessons/${id}`); return; }
 
       const { data: currentLesson } = await supabase
         .from('lessons')
