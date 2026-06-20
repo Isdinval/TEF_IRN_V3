@@ -70,14 +70,31 @@ function PracticeContent() {
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Selection state
+  const [selectedLevels, setSelectedLevels] = useState<string[]>(['A2', 'B1']);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Toutes");
 
   const id = searchParams.get('id');
   const lessonId = searchParams.get('lessonId');
   const topic = searchParams.get('topic');
   const level = searchParams.get('level');
   const isReviewMode = searchParams.get('mode') === 'review';
+
+  const mapExerciseToQuestions = (ex: ExerciseDB): Question[] => {
+    if (!ex?.content?.questions) return [];
+    return ex.content.questions.map((q, idx) => ({
+      id: `${ex.id}-${idx}`,
+      text: q,
+      options: ex.content.options?.[idx] || [],
+      correctAnswer: ex.content.correct_answers?.[idx] ?? 0,
+      level: ex.level,
+      category: ex.category,
+      instructions: ex.instructions,
+      explanation: ex.content.explanations?.[idx],
+    }));
+  };
 
   // --- Initialization ---
   useEffect(() => {
@@ -90,7 +107,7 @@ function PracticeContent() {
       if (id) {
         await fetchExerciseById(id);
       } else if (lessonId && !topic) {
-        await fetchExercise(lessonId);
+        await fetchFromLesson(lessonId);
       } else if (topic) {
         await autoStart(lessonId || undefined, topic, level || undefined);
       } else if (isReviewMode) {
@@ -104,14 +121,14 @@ function PracticeContent() {
 
   const fetchExerciseById = async (exId: string) => {
     setIsLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('exercises')
       .select('*')
       .eq('id', exId)
       .single();
 
     if (data) {
-      setExercise(data as Exercise);
+      setQuestions(mapExerciseToQuestions(data as ExerciseDB));
       setMode("practice");
     }
     setIsLoading(false);
@@ -139,7 +156,7 @@ function PracticeContent() {
     setIsLoading(false);
   };
 
-  const autoStart = async (t: string, lvl?: string) => {
+  const autoStart = async (lid?: string, t?: string, lvl?: string) => {
     setIsLoading(true);
     setScore(0);
     setCurrentIdx(0);
@@ -165,7 +182,7 @@ function PracticeContent() {
          .single();
 
        if (searchData) {
-         setExercise(searchData as Exercise);
+         setQuestions(mapExerciseToQuestions(searchData as ExerciseDB));
          setMode("practice");
        }
     }
@@ -217,6 +234,10 @@ function PracticeContent() {
   };
 
   // --- Actions ---
+  const toggleLevel = (lvl: string) => {
+    setSelectedLevels(prev => prev.includes(lvl) ? prev.filter(l => l !== lvl) : [...prev, lvl]);
+  };
+
   const handleCheck = () => {
     if (selected === null) return;
     setIsChecked(true);
@@ -225,7 +246,7 @@ function PracticeContent() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setSelected(null);
@@ -240,17 +261,20 @@ function PracticeContent() {
   };
 
   const saveResult = async () => {
-    const total = exercise?.content.questions.length || 1;
+    const total = questions.length || 1;
     const finalScore = Math.round((score / total) * 100);
     const { data: { user } } = await supabase.auth.getUser();
+    // L'id de question est `${exerciseId}-${idx}` : on retrouve l'exerciseId d'origine.
+    const firstId = questions[0]?.id;
+    const exerciseId = firstId ? firstId.substring(0, firstId.lastIndexOf('-')) : undefined;
 
-    if (user && exercise) {
+    if (user) {
       try {
         const response = await fetch('/api/exercise-complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            exerciseId: exercise.id,
+            exerciseId,
             score: finalScore,
             answers: {
               correct: score,
@@ -388,9 +412,10 @@ function PracticeContent() {
                     <Target size={14} className="text-rose-600" /> Objectif : 80% de réussite
                  </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -674,115 +699,7 @@ function PracticeContent() {
     );
   }
 
-  const currentQuestionText = exercise?.content?.questions[currentQuestionIndex];
-  const currentOptions = exercise?.content?.options[currentQuestionIndex];
-  const totalQuestions = exercise?.content?.questions.length || 5;
-
-  return (
-    <div className="max-w-3xl mx-auto p-8 pt-16 min-h-screen flex flex-col">
-      <header className="mb-12 flex justify-between items-end">
-        <div className="space-y-2">
-          <button
-            onClick={() => {
-              if (activeParcours) {
-                router.push(`/parcours/${activeParcours.id}`);
-              } else {
-                setMode("selection");
-              }
-            }}
-            className="flex items-center gap-2 text-zinc-400 hover:text-zinc-900 transition-colors font-bold text-sm mb-4"
-          >
-            <ChevronLeft size={16} /> Quitter
-          </button>
-          <div className="flex items-center gap-3">
-            <Badge className="bg-rose-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 border-none">
-              {exercise?.level} • {isReviewMode ? "Révision" : exercise?.category}
-            </Badge>
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">QCM Voltaire</span>
-          </div>
-          <h2 className="text-3xl font-black text-zinc-900 tracking-tighter uppercase leading-none">
-            {exercise?.instructions.replace('.', '')}
-          </h2>
-        </div>
-        <div className="flex flex-col items-end gap-3">
-            <div className="text-xs font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200">
-              Question {currentQuestionIndex + 1} / {totalQuestions}
-            </div>
-            <div className="h-1.5 w-32 bg-zinc-100 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-rose-600"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
-                />
-            </div>
-        </div>
-      </header>
-
-      <div className="flex-1 flex flex-col justify-center mb-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQuestionIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-12"
-          >
-            <div className="p-12 bg-white border-2 border-zinc-100 shadow-2xl shadow-zinc-100 rounded-[4rem] text-4xl text-center font-black text-zinc-900 leading-tight tracking-tight relative">
-               <Target className="absolute -top-6 left-1/2 -translate-x-1/2 text-rose-600 bg-white w-12 h-12 p-2 rounded-2xl shadow-lg border-2 border-zinc-100" />
-              {currentQuestionText}
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <p className="text-center text-xs font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Choisissez la bonne réponse :</p>
-              {currentOptions?.map((option, i) => (
-                <button
-                  key={i}
-                  disabled={isChecked}
-                  onClick={() => setSelected(i)}
-                  className={`
-                    w-full p-8 rounded-3xl border-2 text-left transition-all flex justify-between items-center font-black text-xl
-                    ${selected === i ? 'border-rose-600 bg-rose-50 text-rose-900 shadow-lg' : 'border-zinc-50 bg-white text-zinc-500 hover:border-zinc-200 shadow-sm'}
-                    ${isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] ? 'border-emerald-500 bg-emerald-50 text-emerald-900 shadow-none' : ''}
-                    ${isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-none' : ''}
-                  `}
-                >
-                  <span>{option}</span>
-                  {isChecked && i === exercise?.content.correct_answers[currentQuestionIndex] && <CheckCircle2 className="text-emerald-500" size={28} />}
-                  {isChecked && selected === i && i !== exercise?.content.correct_answers[currentQuestionIndex] && <XCircle className="text-rose-500" size={28} />}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      <footer className="flex justify-between items-center p-6 bg-white border border-zinc-100 rounded-[2.5rem] shadow-xl shadow-zinc-100 mb-8">
-        <div className="flex gap-4">
-           <div className="flex flex-col">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</span>
-              <span className="text-xl font-black text-zinc-900">{score} / {totalQuestions}</span>
-           </div>
-        </div>
-
-        {!isChecked ? (
-          <Button
-            disabled={selected === null}
-            onClick={handleCheck}
-            className="h-16 px-12 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl shadow-xl shadow-zinc-200 text-lg transition-all active:scale-95"
-          >
-            Vérifier la réponse
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNext}
-            className="h-16 px-12 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl shadow-xl shadow-rose-100 flex gap-2 text-lg transition-all active:scale-95"
-          >
-            {currentQuestionIndex < totalQuestions - 1 ? "Question suivante" : "Terminer l'exercice"} <ArrowRight size={24} />
-          </Button>
-        )}
-      </footer>
-    </div>
-  );
+  return null;
 }
 
 export default function Practice() {
