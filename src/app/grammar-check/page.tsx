@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +20,8 @@ interface GrammarQuestion {
   level: string;
 }
 
-function GrammarCheckContent() {
+export function GrammarCheckContent() {
+  const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
@@ -40,7 +41,7 @@ function GrammarCheckContent() {
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const exerciseId = searchParams.get('id');
+    const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
     const level = searchParams.get('level');
@@ -52,7 +53,7 @@ function GrammarCheckContent() {
       if (level) setSelectedLevel(level);
       startExercise(level || undefined, topic || undefined);
     }
-  }, [searchParams]);
+  }, [params?.id, searchParams]);
 
   const startSpecificExercise = async (id: string) => {
     setLoading(true);

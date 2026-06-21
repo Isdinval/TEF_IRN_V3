@@ -120,11 +120,14 @@ export default function CorrectionHistoryPage() {
     const level = (attempt.answers.feedback as any)?.level || "B1";
 
     const params = new URLSearchParams();
-    if (exerciseId) params.append("id", exerciseId);
     if (subject) params.append("subject", subject);
     if (level) params.append("level", level);
 
-    router.push(`/writing?${params.toString()}`);
+    if (exerciseId) {
+      router.push(`/writing/${exerciseId}?${params.toString()}`);
+    } else {
+      router.push(`/writing?${params.toString()}`);
+    }
   };
 
   const handleExport = async (attempt: ExerciseAttempt) => {
