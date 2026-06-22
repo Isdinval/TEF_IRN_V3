@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase";
 
+import { splitTitle, parseObjective } from "@/lib/lessons";
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function stripEmoji(text: string) {
@@ -29,41 +30,32 @@ function parseMnemoLetters(text: string): string[] {
   return text.trim().split(/[\s·]+/).filter(Boolean);
 }
 
-function splitTitle(title: string): { main: string; subtitle: string | null } {
-  const separators = [' | ', ' — ', ' : ', ' - '];
-  for (const sep of separators) {
-    if (title.includes(sep)) {
-      const parts = title.split(sep);
-      return { main: parts[0].trim(), subtitle: parts.slice(1).join(sep).trim() };
-    }
-  }
-  return { main: title, subtitle: null };
-}
+
 
 // ─── components ─────────────────────────────────────────────────────────────
 
 const ObjectiveContent = ({ children }: { children: any }) => {
   const content = children?.toString() || "";
-  if (content.includes("•") || content.includes("- ")) {
-    const lines = content.split("\n").filter(Boolean);
+  const { description, skills } = parseObjective(content);
+
+  if (skills.length > 0) {
     return (
-      <div className="space-y-2">
-        {lines.map((line: string, index: number) => {
-          const cleanLine = line.replace(/^[•\-]\s*/, "");
-          if (line.match(/^[•\-]\s*/)) {
-            return (
-              <div key={index} className="flex items-start gap-3 text-slate-700 font-medium">
-                <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                <span>{cleanLine}</span>
-              </div>
-            );
-          }
-          return <p key={index} className="text-slate-700 font-medium">{cleanLine}</p>;
-        })}
+      <div className="space-y-4">
+        <p className="text-slate-700 font-medium">{description}</p>
+        <div className="space-y-2">
+          <p className="text-xs font-black uppercase text-indigo-400 tracking-widest">À la fin, vous serez capable de :</p>
+          {skills.map((skill: string, index: number) => (
+            <div key={index} className="flex items-start gap-3 text-slate-700 font-medium">
+              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+              <span>{skill}</span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
-  return <p className="text-slate-700 font-bold text-lg">{children}</p>;
+
+  return <p className="text-slate-700 font-bold text-lg">{description}</p>;
 };
 
 const DialogueContent = ({ text, isMe }: { text: string; isMe: boolean }) => {

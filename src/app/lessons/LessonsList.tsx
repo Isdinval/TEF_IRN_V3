@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Sparkles, Target } from "lucide-react";
 import Link from "next/link";
+import { splitTitle, parseObjective } from "@/lib/lessons";
 
 interface Lesson {
   id: string;
   title: string;
+  objective: string;
   level: string;
   category: string;
   order_index: number;
@@ -161,6 +163,8 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
         {filteredLessons.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredLessons.map((lesson) => {
+              const { main: mainTitle } = splitTitle(lesson.title);
+              const { description } = parseObjective(lesson.objective);
               const isCompleted = completedLessonIds.has(lesson.id);
               return (
                 <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
@@ -169,7 +173,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
-                            {lesson.title}
+                            {mainTitle}
                           </CardTitle>
                           {isCompleted && (
                             <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] h-5 px-2 rounded-full border-none font-bold uppercase tracking-wider">
@@ -180,6 +184,11 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
                         <CardDescription className="capitalize font-bold text-zinc-400">
                           {lesson.category}
                         </CardDescription>
+                        {description && (
+                          <p className="text-xs font-medium text-zinc-500 line-clamp-2 leading-relaxed">
+                            {description}
+                          </p>
+                        )}
                       </div>
                       <div className={`p-3 rounded-2xl transition-colors ${isCompleted ? "bg-emerald-50" : "bg-violet-50"} group-hover:bg-violet-600`}>
                         <BookOpen size={18} className={`transition-colors group-hover:text-white ${isCompleted ? "text-emerald-600" : "text-violet-600"}`} />
