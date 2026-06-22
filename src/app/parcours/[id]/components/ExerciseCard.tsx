@@ -46,7 +46,6 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
 
   const getExerciseUrl = () => {
     const params = new URLSearchParams({
-      id: exercise.id,
       topic: exercise.category,
       level: exercise.level
     });
@@ -59,13 +58,13 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
       case 'qcm':
       case 'association':
       case 'qcm_centre_entrainement':
-        return `/practice?${params.toString()}`;
+        return `/practice/${exercise.id}?${params.toString()}`;
       case 'trous':
-        return `/grammar-check?${params.toString()}`;
+        return `/grammar-check/${exercise.id}?${params.toString()}`;
       case 'ecrit':
-        return `/writing?${params.toString()}`;
+        return `/writing/${exercise.id}?${params.toString()}`;
       default:
-        return `/practice?${params.toString()}`;
+        return `/practice/${exercise.id}?${params.toString()}`;
     }
   };
 

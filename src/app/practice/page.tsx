@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,8 @@ interface ExerciseDB {
 const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
 const LEVELS = ['A1', 'A2', 'B1', 'B2'];
 
-function PracticeContent() {
+export function PracticeContent() {
+  const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
@@ -76,7 +77,7 @@ function PracticeContent() {
   const [selectedLevels, setSelectedLevels] = useState<string[]>(['A2', 'B1']);
   const [selectedCategory, setSelectedCategory] = useState<string>("Toutes");
 
-  const id = searchParams.get('id');
+  const exerciseIdFromParams = (params?.id as string | undefined) || searchParams.get('id');
   const lessonId = searchParams.get('lessonId');
   const topic = searchParams.get('topic');
   const level = searchParams.get('level');
@@ -104,8 +105,8 @@ function PracticeContent() {
     const isReviewMode = searchParams.get('mode') === 'review';
 
     const init = async () => {
-      if (id) {
-        await fetchExerciseById(id);
+      if (exerciseIdFromParams) {
+        await fetchExerciseById(exerciseIdFromParams);
       } else if (lessonId && !topic) {
         await fetchFromLesson(lessonId);
       } else if (topic) {
@@ -117,7 +118,7 @@ function PracticeContent() {
       }
     };
     init();
-  }, [id, lessonId, topic, isReviewMode]);
+  }, [exerciseIdFromParams, lessonId, topic, isReviewMode]);
 
   const fetchExerciseById = async (exId: string) => {
     setIsLoading(true);

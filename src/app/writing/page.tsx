@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useEffect, useState, useCallback, Suspense, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -23,7 +23,8 @@ const fallbackExercise: WritingExercise = {
   content: { min_words: 100 },
 };
 
-function WritingCoachContent() {
+export function WritingCoachContent() {
+  const params = useParams();
   const [text, setText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
@@ -39,7 +40,7 @@ function WritingCoachContent() {
 
   useEffect(() => {
     async function fetchData() {
-      const exerciseId = searchParams.get('id');
+      const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
       const subjectParam = searchParams.get('subject');
       const levelParam = searchParams.get('level');
 
@@ -78,7 +79,7 @@ function WritingCoachContent() {
       setLoading(false);
     }
     fetchData();
-  }, [searchParams, supabase]);
+  }, [params?.id, searchParams, supabase]);
 
   const handleCorrection = useCallback(async () => {
     if (!text.trim()) return;

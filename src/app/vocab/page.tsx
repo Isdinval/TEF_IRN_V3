@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,7 +34,8 @@ interface Flashcard {
 
 type Step = "presentation" | "quiz" | "type";
 
-function VocabCoachContent() {
+export function VocabCoachContent() {
+  const params = useParams();
   const searchParams = useSearchParams();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [index, setIndex] = useState(0);
@@ -60,12 +61,16 @@ function VocabCoachContent() {
   const supabase = createClient();
   const { activeParcours, nextLesson } = useParcours();
 
-  useEffect(() => {
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
 
-    if (lessonId && topic) {
+  useEffect(() => {
+    const cardId = (params?.id as string | undefined) || searchParams.get("id");
+    const lessonId = searchParams.get("lessonId");
+    const topic = searchParams.get("topic");
+    const level = searchParams.get("level");
+
+    if (cardId) {
+      startSpecificCard(cardId);
+    } else if (lessonId && topic) {
       setFilters(prev => ({
         ...prev,
         category: topic,
@@ -77,10 +82,31 @@ function VocabCoachContent() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [params?.id, searchParams]);
+
 
   const categories = ["Administration", "Santé", "Travail", "Logement"];
   const levels = ["A1", "A2", "B1", "B2"];
+
+
+  const startSpecificCard = async (id: string) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("vocabulary")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (data) {
+      setCards([data as Flashcard]);
+      setMode("training");
+      setIndex(0);
+      setStep("presentation");
+      setFinished(false);
+      setSessionMasteredCount(0);
+    }
+    setLoading(false);
+  };
 
   const startTraining = async (review: boolean = false, lvl?: string, cat?: string) => {
     setLoading(true);
