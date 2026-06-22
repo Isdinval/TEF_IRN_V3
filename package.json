@@ -36,7 +36,7 @@
     "stripe": "^22.2.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.4.3"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@base-ui/react": "^1.5.0",
