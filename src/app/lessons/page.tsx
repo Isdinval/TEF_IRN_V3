@@ -28,7 +28,7 @@ export default async function LessonsPage() {
   // 2. Fetch all lessons
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('id, title, level, category, order_index')
+    .select('id, title, level, category, order_index, objective')
     .order('level', { ascending: true })
     .order('order_index', { ascending: true });
 
