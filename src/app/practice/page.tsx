@@ -26,6 +26,9 @@ import { useParcours } from '@/contexts/ParcoursContext';
 
 // --- Types ---
 interface Question {
+  difficulty?: string;
+  tags?: string[];
+  is_ai_generated?: boolean;
   id: string;
   text: string;
   options: string[];
@@ -37,6 +40,9 @@ interface Question {
 }
 
 interface ExerciseDB {
+  difficulty?: string;
+  tags?: string[];
+  is_ai_generated?: boolean;
   id: string;
   instructions: string;
   type: string;
@@ -442,8 +448,7 @@ export function PracticeContent() {
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <Badge className="bg-rose-600 rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none text-white shadow-lg shadow-rose-100">
-                    {currentQuestion?.level}
-                  </Badge>
+                    {currentQuestion?.level}</Badge> {currentQuestion?.difficulty && <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-zinc-200 text-zinc-500 bg-white ml-2">{currentQuestion.difficulty}</Badge>}
                   <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic">
                     {currentQuestion?.category}
                   </span>

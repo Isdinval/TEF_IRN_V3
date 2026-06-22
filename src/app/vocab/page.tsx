@@ -43,6 +43,8 @@ export function VocabCoachContent() {
   const [flipped, setFlipped] = useState(false);
   const [finished, setFinished] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [catalogue, setCatalogue] = useState<any[]>([]);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [filters, setFilters] = useState({ level: "A2", category: "Administration" });
   const [isReviewMode, setIsReviewMode] = useState(false);
@@ -83,9 +85,52 @@ export function VocabCoachContent() {
       return () => clearTimeout(timer);
     }
   }, [params?.id, searchParams]);
+  const fetchCatalogue = async () => {
+    setLoadingCatalogue(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let query = supabase
+        .from("vocabulary")
+        .select("*")
+        .eq("level", filters.level);
+
+      if (filters.category !== "Toutes") {
+        query = query.ilike("category", `%${filters.category}%`);
+      }
+
+      const { data: items } = await query.limit(20);
+
+      if (items && user) {
+        const { data: reviews } = await supabase
+          .from("user_vocabulary_reviews")
+          .select("vocab_id")
+          .eq("user_id", user.id)
+          .in("vocab_id", items.map((i: any) => i.id));
+
+        const mapped = items.map((item: any) => ({
+          ...item,
+          is_completed: reviews?.some((r: any) => r.vocab_id === item.id)
+        }));
+        setCatalogue(mapped);
+      } else {
+        setCatalogue(items || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCatalogue(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mode === "selection") {
+      fetchCatalogue();
+    }
+  }, [filters, mode]);
 
 
-  const categories = ["Administration", "Santé", "Travail", "Logement"];
+  const categories = ["Toutes", "Administration", "Santé", "Travail", "Logement"];
   const levels = ["A1", "A2", "B1", "B2"];
 
 
@@ -119,13 +164,13 @@ export function VocabCoachContent() {
       setIsReviewMode(true);
       const { data: reviews } = await supabase
         .from('user_vocabulary_reviews')
-        .select('vocabulary_id')
+        .select('vocab_id')
         .eq('user_id', user.id)
         .lte('next_review_at', new Date().toISOString())
         .limit(10);
 
       if (reviews && reviews.length > 0) {
-        query = query.in('id', reviews.map((r: any) => r.vocabulary_id));
+        query = query.in('id', reviews.map((r: any) => r.vocab_id));
       } else {
         query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
       }

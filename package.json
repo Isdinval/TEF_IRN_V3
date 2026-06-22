@@ -35,7 +35,8 @@
     "remark-gfm": "^4.0.1",
     "stripe": "^22.2.0",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@base-ui/react": "^1.5.0",

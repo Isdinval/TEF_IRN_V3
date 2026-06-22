@@ -11,6 +11,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 
 interface GrammarQuestion {
+  difficulty?: string;
+  tags?: string[];
+  is_ai_generated?: boolean;
   id: string;
   sentence: string;
   error_fragment: string;
@@ -370,8 +373,7 @@ export function GrammarCheckContent() {
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
-                  {current?.level}
-                </Badge>
+                  {current?.level}</Badge> {current?.difficulty && <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-zinc-200 text-zinc-500 bg-white ml-2">{current.difficulty}</Badge>}
                 <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">
                   {current?.category}
                 </span>
