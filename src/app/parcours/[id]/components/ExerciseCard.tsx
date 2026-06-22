@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones } from "lucide-react";
+import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Exercise } from "@/lib/parcours";
+import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
 
 interface ExerciseCardProps {
-  exercise: Exercise & { is_completed?: boolean };
+  exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean };
   parcoursId?: string;
 }
 
@@ -43,6 +44,7 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
+  const isCompleted = exercise.is_completed;
 
   const getExerciseUrl = () => {
     const params = new URLSearchParams({
@@ -74,24 +76,41 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
       whileHover={{ y: -6, scale: 1.02 }}
       className="h-full"
     >
-      <Card className="group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2rem] bg-white flex flex-col">
+      <Card className={`group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2rem] flex flex-col ${completionCardStyles(!!isCompleted)}`}>
         <CardContent className="p-8 flex flex-col h-full gap-5">
           <div className="flex justify-between items-start">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-indigo-200 group-hover:shadow-lg">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-lg ${isCompleted ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-emerald-200' : 'bg-zinc-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-200'}`}>
               <Icon size={28} />
             </div>
-            <Badge variant="outline" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border ${difficultyColor}`}>
-              {difficulty}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border ${difficultyColor}`}>
+                {difficulty}
+              </Badge>
+              {isCompleted && <CompletionBadge />}
+            </div>
           </div>
 
           <div className="space-y-3 flex-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70">
-              {typeLabels[exercise.type] || exercise.type}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70">
+                {typeLabels[exercise.type] || exercise.type}
+              </span>
+              {exercise.is_ai_generated && (
+                <Badge className="bg-amber-50 text-amber-600 border-none text-[8px] font-black px-1.5 h-4 uppercase">AI</Badge>
+              )}
+            </div>
             <h4 className="text-lg font-black text-slate-900 leading-tight">
               {exercise.instructions}
             </h4>
+            {exercise.tags && exercise.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {exercise.tags.map(tag => (
+                  <span key={tag} className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md capitalize">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between mt-2 pt-5 border-t border-slate-50">
@@ -153,8 +172,8 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
           </div>
 
           <Link href={getExerciseUrl()} className="w-full">
-            <Button className="w-full h-14 rounded-2xl bg-zinc-900 text-white font-black hover:bg-indigo-600 shadow-xl shadow-zinc-100 transition-all active:scale-95 group-hover:shadow-indigo-100">
-              COMMENCER
+            <Button className={`w-full h-14 rounded-2xl text-white font-black transition-all active:scale-95 shadow-xl ${isCompleted ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 group-hover:shadow-emerald-200' : 'bg-zinc-900 hover:bg-indigo-600 shadow-zinc-100 group-hover:shadow-indigo-100'}`}>
+              {isCompleted ? 'REVOIR' : 'COMMENCER'}
               <Play size={18} className="ml-2" fill="currentColor" />
             </Button>
           </Link>

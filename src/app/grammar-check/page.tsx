@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import ExerciseCard from "@/app/parcours/[id]/components/ExerciseCard";
+import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, Calendar } from "lucide-react";
@@ -11,6 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 
 interface GrammarQuestion {
+  difficulty?: string;
+  tags?: string[];
+  is_ai_generated?: boolean;
   id: string;
   sentence: string;
   error_fragment: string;
@@ -36,26 +41,63 @@ export function GrammarCheckContent() {
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
   const [loading, setLoading] = useState(false);
+  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  useEffect(() => {
-    const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
+  const fetchCatalogue = useCallback(async () => {
+    setLoadingCatalogue(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (exerciseId) {
-      startSpecificExercise(exerciseId);
-    } else if (lessonId && topic) {
-      if (topic) setSelectedCategory(topic);
-      if (level) setSelectedLevel(level);
-      startExercise(level || undefined, topic || undefined);
+      let query = supabase
+        .from("exercises")
+        .select("*")
+        .eq("type", "trous")
+        .eq("level", selectedLevel);
+
+      if (selectedCategory !== "Toutes") {
+        query = query.ilike("category", `%${selectedCategory}%`);
+      }
+
+      const { data: exercises } = await query.limit(20);
+
+      if (exercises && user) {
+        const { data: attempts } = await supabase
+          .from("exercise_attempts")
+          .select("exercise_id, is_completed, score")
+          .eq("user_id", user.id)
+          .in("exercise_id", exercises.map((e: any) => e.id));
+
+        const mapped = exercises.map((ex: any) => {
+          const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
+          return {
+            ...ex,
+            is_completed: exAttempts.some((a: any) => a.is_completed),
+            attempts_count: exAttempts.length,
+            success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
+          };
+        });
+        setCatalogue(mapped);
+      } else {
+        setCatalogue(exercises || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCatalogue(false);
     }
-  }, [params?.id, searchParams]);
+  }, [selectedLevel, selectedCategory, supabase]);
 
-  const startSpecificExercise = async (id: string) => {
+  useEffect(() => {
+    if (!isStarted) {
+      fetchCatalogue();
+    }
+  }, [fetchCatalogue, isStarted]);
+
+  const startSpecificExercise = useCallback(async (id: string) => {
     setLoading(true);
     const { data: d } = await supabase
       .from("exercises")
@@ -65,7 +107,7 @@ export function GrammarCheckContent() {
 
     if (d) {
       const formatted = [{
-        id: d.id,
+        id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
         sentence: d.content.sentence || d.instructions,
         error_fragment: d.content.error_fragment || "...",
         correction: d.content.correct_answer || d.content.correct_answers?.[0],
@@ -77,9 +119,9 @@ export function GrammarCheckContent() {
       setIsStarted(true);
     }
     setLoading(false);
-  };
+  }, [supabase]);
 
-  const startExercise = async (lvl?: string, cat?: string) => {
+  const startExercise = useCallback(async (lvl?: string, cat?: string) => {
     setLoading(true);
     const targetLevel = lvl || selectedLevel;
     const targetCategory = cat || selectedCategory;
@@ -102,7 +144,7 @@ export function GrammarCheckContent() {
 
         if (catMatch && catMatch.length > 0) {
           const formatted = catMatch.map((d: any) => ({
-            id: d.id,
+            id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
             sentence: d.content.sentence || d.instructions,
             error_fragment: d.content.error_fragment || "...",
             correction: d.content.correct_answer || d.content.correct_answers?.[0],
@@ -122,7 +164,7 @@ export function GrammarCheckContent() {
 
       if (data && data.length > 0) {
         const formatted = data.map((d: any) => ({
-          id: d.id,
+          id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
           sentence: d.content.sentence || d.instructions,
           error_fragment: d.content.error_fragment || "...",
           correction: d.content.correct_answer || d.content.correct_answers?.[0],
@@ -138,7 +180,22 @@ export function GrammarCheckContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedLevel, selectedCategory, supabase]);
+
+  useEffect(() => {
+    const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
+    const lessonId = searchParams.get('lessonId');
+    const topic = searchParams.get('topic');
+    const level = searchParams.get('level');
+
+    if (exerciseId) {
+      startSpecificExercise(exerciseId);
+    } else if (lessonId && topic) {
+      if (topic) setSelectedCategory(topic);
+      if (level) setSelectedLevel(level);
+      startExercise(level || undefined, topic || undefined);
+    }
+  }, [params?.id, searchParams, startSpecificExercise, startExercise]);
 
   const checkCorrection = () => {
     if (status !== "typing") return;
@@ -242,12 +299,10 @@ export function GrammarCheckContent() {
                   if (activeParcours) {
                     router.push(`/parcours/${activeParcours.id}`);
                   } else {
-                    setFinished(false);
                     setIsStarted(false);
-                    setCurrentIdx(0);
+                    setFinished(false);
                     setScore(0);
-                    setInputValue("");
-                    setStatus("typing");
+                    setCurrentIdx(0);
                   }
                 }}
               >
@@ -267,7 +322,7 @@ export function GrammarCheckContent() {
           <Badge className="bg-indigo-600 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-indigo-100 border-none">
             Module de Correction
           </Badge>
-          <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6 uppercase">
+          <h1 className="text-[clamp(1.875rem,4vw+1rem,3rem)] font-black text-slate-900 tracking-tighter mb-6 uppercase">
             CHASSE AUX <span className="text-indigo-600">ERREURS</span>
           </h1>
           <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed mb-12 italic">
@@ -343,6 +398,39 @@ export function GrammarCheckContent() {
               </div>
             </div>
           </div>
+
+          {/* Catalogue Section */}
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevel}</Badge>
+                <span className="text-zinc-400">•</span>
+                <span className="capitalize text-zinc-500">{selectedCategory}</span>
+              </h2>
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+              </div>
+            </div>
+
+            {loadingCatalogue ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i: number) => (
+                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                ))}
+              </div>
+            ) : catalogue.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {catalogue.map((ex: Exercise) => (
+                  <ExerciseCard key={ex.id} exercise={ex} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
+                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
+              </Card>
+            )}
+          </section>
         </div>
       </div>
     );
@@ -371,7 +459,7 @@ export function GrammarCheckContent() {
               <div className="flex items-center gap-2 mb-0.5">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
                   {current?.level}
-                </Badge>
+                </Badge> {current?.difficulty && <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-zinc-200 text-zinc-500 bg-white ml-2">{current.difficulty}</Badge>}
                 <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">
                   {current?.category}
                 </span>
@@ -409,7 +497,7 @@ export function GrammarCheckContent() {
             >
               <div className="bg-white p-12 lg:p-20 rounded-[4rem] shadow-2xl shadow-zinc-200/50 text-center space-y-12 border border-zinc-50 relative overflow-hidden">
                 <div className="relative z-10">
-                   <h3 className="text-4xl lg:text-5xl font-black text-zinc-900 leading-tight tracking-tight mb-8">
+                   <h3 className="text-[clamp(1.5rem,3vw+1rem,2.25rem)] font-black text-zinc-900 leading-tight tracking-tight mb-8">
                     {current?.sentence}
                   </h3>
                   <div className="inline-flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl font-black text-lg uppercase tracking-widest">
@@ -428,7 +516,7 @@ export function GrammarCheckContent() {
                     onChange={(e) => setInputValue(e.target.value)}
                     disabled={status !== "typing"}
                     placeholder="Tapez votre correction ici..."
-                    className={`w-full h-24 bg-white border-4 rounded-3xl px-8 text-2xl font-black transition-all outline-none text-center shadow-xl
+                    className={`w-full h-24 bg-white border-4 rounded-3xl px-8 text-[clamp(1.125rem,2vw+0.75rem,1.5rem)] font-black transition-all outline-none text-center shadow-xl
                       ${status === "typing" ? "border-zinc-100 focus:border-indigo-600 group-hover:border-zinc-200" :
                         status === "correct" ? "border-emerald-500 text-emerald-600 bg-emerald-50" : "border-rose-500 text-rose-600 bg-rose-50"}`}
                     onKeyPress={(e) => e.key === "Enter" && status === "typing" && checkCorrection()}
