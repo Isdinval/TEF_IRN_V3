@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Lesson } from "@/lib/parcours";
+import { splitTitle, parseObjective } from "@/lib/lessons";
 
 interface LessonCardProps {
   lesson: Lesson & { isCompleted?: boolean };
@@ -34,6 +35,8 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function LessonCard({ lesson, index, isNext, category, parcoursId }: LessonCardProps) {
+  const { main: mainTitle } = splitTitle(lesson.title);
+  const { description } = parseObjective(lesson.objective || "");
   const Icon = categoryIcons[category.toLowerCase()] || BookOpen;
   const lessonUrl = `/lessons/${lesson.id}?parcoursId=${parcoursId}`;
   const difficulty = lesson.difficulty || "facile";
@@ -84,12 +87,12 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
               </div>
 
               <h3 className={`text-2xl md:text-3xl font-black tracking-tight ${lesson.isCompleted ? 'text-slate-600' : 'text-slate-900'}`}>
-                {lesson.title}
+                {mainTitle}
               </h3>
 
-              {lesson.objective && (
-                <p className="text-base font-medium text-slate-500 max-w-xl italic">
-                  {lesson.objective}
+              {description && (
+                <p className="text-base font-medium text-slate-500 max-w-xl italic line-clamp-2">
+                  {description}
                 </p>
               )}
             </div>
