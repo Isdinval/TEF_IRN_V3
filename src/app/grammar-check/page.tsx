@@ -12,386 +12,190 @@ import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, Grad
 import { motion, AnimatePresence } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 
-interface GrammarQuestion {
-  difficulty?: string;
-  tags?: string[];
-  is_ai_generated?: boolean;
-  id: string;
-  sentence: string;
-  error_fragment: string;
-  correction: string;
-  explanation: string;
-  category: string;
-  level: string;
-}
-
 export function GrammarCheckContent() {
-  const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const exerciseId = params?.id as string;
+  const { activeParcours } = useParcours();
 
-  const [isStarted, setIsStarted] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("A2");
-  const [selectedCategory, setSelectedCategory] = useState("Grammaire");
-
-  const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
-  const [loading, setLoading] = useState(false);
-  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
-  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [score, setScore] = useState(0);
-  const [finished, setFinished] = useState(false);
+  const [isStarted, setIsStarted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState("A2");
+  const [selectedCategory, setSelectedCategory] = useState("Grammaire");
 
-  const fetchCatalogue = useCallback(async () => {
-    setLoadingCatalogue(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      let query = supabase
-        .from("exercises")
-        .select("*")
-        .eq("type", "trous")
-        .eq("level", selectedLevel);
-
-      if (selectedCategory !== "Toutes") {
-        query = query.ilike("category", `%${selectedCategory}%`);
-      }
-
-      const { data: exercises } = await query.limit(20);
-
-      if (exercises && user) {
-        const { data: attempts } = await supabase
-          .from("exercise_attempts")
-          .select("exercise_id, is_completed, score")
-          .eq("user_id", user.id)
-          .in("exercise_id", exercises.map((e: any) => e.id));
-
-        const mapped = exercises.map((ex: any) => {
-          const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
-          return {
-            ...ex,
-            is_completed: exAttempts.some((a: any) => a.is_completed),
-            attempts_count: exAttempts.length,
-            success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
-          };
-        });
-        setCatalogue(mapped);
-      } else {
-        setCatalogue(exercises || []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingCatalogue(false);
-    }
-  }, [selectedLevel, selectedCategory, supabase]);
+  const supabase = createClient();
 
   useEffect(() => {
-    if (!isStarted) {
-      fetchCatalogue();
-    }
-  }, [fetchCatalogue, isStarted]);
+    const fetchExercises = async () => {
+      setLoadingCatalogue(true);
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*, exercise_attempts(success_rate)')
+        .eq('type', 'trous')
+        .eq('level', selectedLevel)
+        .eq('category', selectedCategory);
 
-  const startSpecificExercise = useCallback(async (id: string) => {
+      if (!error && data) {
+        const formatted = data.map((ex: any) => ({
+          ...ex,
+          is_completed: ex.exercise_attempts?.some((a: any) => a.success_rate >= 80)
+        }));
+        setCatalogue(formatted);
+      }
+      setLoadingCatalogue(false);
+    };
+
+    fetchExercises();
+  }, [selectedLevel, selectedCategory]);
+
+  useEffect(() => {
+    if (exerciseId) {
+      startExercise(exerciseId);
+    }
+  }, [exerciseId]);
+
+  const startExercise = async (id: string) => {
     setLoading(true);
-    const { data: d } = await supabase
-      .from("exercises")
-      .select("*")
-      .eq("id", id)
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('content')
+      .eq('id', id)
       .single();
 
-    if (d) {
-      const formatted = [{
-        id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-        sentence: d.content.sentence || d.instructions,
-        error_fragment: d.content.error_fragment || "...",
-        correction: d.content.correct_answer || d.content.correct_answers?.[0],
-        explanation: d.content.explanation || "Règle de grammaire standard.",
-        category: d.category,
-        level: d.level
-      }];
-      setQuestions(formatted);
+    if (!error && data?.content?.questions) {
+      setQuestions(data.content.questions);
       setIsStarted(true);
+      setCurrentIdx(0);
+      setScore(0);
+      setStatus("typing");
     }
     setLoading(false);
-  }, [supabase]);
-
-  const startExercise = useCallback(async (lvl?: string, cat?: string) => {
-    setLoading(true);
-    const targetLevel = lvl || selectedLevel;
-    const targetCategory = cat || selectedCategory;
-    const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
-    try {
-      let query = supabase
-        .from("exercises")
-        .select("*")
-        .eq("type", "trous")
-        .eq("level", targetLevel);
-
-      if (targetCategory && targetCategory !== "Toutes") {
-        const { data: catMatch } = await supabase
-          .from("exercises")
-          .select("*")
-          .eq("type", "trous")
-          .eq("level", targetLevel)
-          .eq("category", normalizedCategory)
-          .limit(5);
-
-        if (catMatch && catMatch.length > 0) {
-          const formatted = catMatch.map((d: any) => ({
-            id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-            sentence: d.content.sentence || d.instructions,
-            error_fragment: d.content.error_fragment || "...",
-            correction: d.content.correct_answer || d.content.correct_answers?.[0],
-            explanation: d.content.explanation || "Règle de grammaire standard.",
-            category: d.category || targetCategory,
-            level: d.level || targetLevel
-          }));
-          setQuestions(formatted);
-          setIsStarted(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      const { data, error } = await query.limit(5);
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const formatted = data.map((d: any) => ({
-          id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-          sentence: d.content.sentence || d.instructions,
-          error_fragment: d.content.error_fragment || "...",
-          correction: d.content.correct_answer || d.content.correct_answers?.[0],
-          explanation: d.content.explanation || "Règle de grammaire standard.",
-          category: d.category || targetCategory,
-          level: d.level || targetLevel
-        }));
-        setQuestions(formatted);
-        setIsStarted(true);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedLevel, selectedCategory, supabase]);
-
-  useEffect(() => {
-    const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
-
-    if (exerciseId) {
-      startSpecificExercise(exerciseId);
-    } else if (lessonId && topic) {
-      if (topic) setSelectedCategory(topic);
-      if (level) setSelectedLevel(level);
-      startExercise(level || undefined, topic || undefined);
-    }
-  }, [params?.id, searchParams, startSpecificExercise, startExercise]);
+  };
 
   const checkCorrection = () => {
-    if (status !== "typing") return;
     const current = questions[currentIdx];
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
       setStatus("correct");
-      setScore(score + 1);
+      setScore(s => s + 1);
     } else {
       setStatus("wrong");
     }
   };
 
-  const nextQuestion = async () => {
+  const nextQuestion = () => {
     if (currentIdx < questions.length - 1) {
-      setCurrentIdx(currentIdx + 1);
+      setCurrentIdx(i => i + 1);
       setInputValue("");
       setStatus("typing");
     } else {
-      setIsSaving(true);
-      await saveResults();
-      setFinished(true);
-      setIsSaving(false);
-      router.refresh();
-    }
-  };
-
-  const saveResults = async () => {
-    const finalScore = Math.round((score / questions.length) * 100);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user && questions.length > 0) {
-      try {
-        const response = await fetch('/api/exercise-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            exerciseId: questions[0].id,
-            score: finalScore,
-            answers: {
-              correct: score,
-              total: questions.length
-            }
-          })
-        });
-        if (!response.ok) throw new Error("Failed to save");
-      } catch (err) {
-        console.error("Error saving result:", err);
+      // End of exercise logic (redirect or summary)
+      if (activeParcours) {
+        router.push(`/parcours/${activeParcours.id}/complete?type=grammar-check&score=${score}`);
+      } else {
+        setIsStarted(false);
       }
     }
   };
 
-  if (loading || isSaving) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-indigo-600" size={48} />
-          <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
-            {isSaving ? "Enregistrement..." : "Chargement..."}
-          </p>
+  if (!isStarted) {
+    const àDécouvrir = catalogue.filter((ex: any) => !ex.is_completed);
+    const terminées = catalogue.filter((ex: any) => ex.is_completed);
+
+    const renderExerciseGrid = (title: string, exercises: Exercise[], badgeColor: string) => (
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-6">
+          <Badge className={`${badgeColor} text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg`}>
+            {title}
+          </Badge>
+          <div className="h-px bg-zinc-100 flex-1" />
+          <span className="text-xs font-black text-zinc-300 uppercase tracking-widest">{exercises.length} exercice{exercises.length > 1 ? 's' : ''}</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {exercises.map((ex: Exercise) => (
+            <ExerciseCard key={ex.id} exercise={ex} />
+          ))}
         </div>
       </div>
     );
-  }
 
-  if (finished) {
-    const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
-        >
-          <Card className="p-12 text-center rounded-[3rem] shadow-2xl border-none bg-white">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
-              <CheckCircle2 className="text-indigo-600" size={40} />
-            </div>
-            <h2 className="text-3xl font-black mb-2">Entraînement Terminé !</h2>
-            <p className="text-zinc-500 font-bold mb-8 italic">Excellent travail, continuez ainsi !</p>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto p-8 pt-16">
+          <header className="mb-12">
+            <Badge className="bg-indigo-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-indigo-100 text-white">
+              Catalogue Grammaire
+            </Badge>
+            <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
+              TEXTES À <span className="text-indigo-600">TROUS</span>
+            </h1>
+            <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+              Pratiquez votre grammaire et votre syntaxe en complétant des textes adaptés à votre niveau TEF IRN.
+            </p>
+          </header>
 
-            <div className="bg-zinc-50 rounded-3xl p-8 mb-10">
-              <div className="text-6xl font-black text-indigo-600 mb-2">{percentage}%</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Taux de réussite</div>
-            </div>
-
-            <div className="space-y-4">
-              {activeParcours && (
-                <Button
-                  className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-lg shadow-xl shadow-indigo-100"
-                  onClick={() => nextLesson()}
-                >
-                  Continuer le parcours
-                </Button>
-              )}
-              <Button
-                variant={activeParcours ? "ghost" : "default"}
-                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-indigo-600' : 'h-16 bg-zinc-900 text-white'} font-black rounded-2xl text-lg transition-all`}
-                onClick={() => {
-                  if (activeParcours) {
-                    router.push(`/parcours/${activeParcours.id}`);
-                  } else {
-                    setIsStarted(false);
-                    setFinished(false);
-                    setScore(0);
-                    setCurrentIdx(0);
-                  }
-                }}
-              >
-                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!isStarted) {
-    return (
-      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
-        <div className="max-w-4xl mx-auto">
-          <Badge className="bg-indigo-600 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-indigo-100 border-none">
-            Module de Correction
-          </Badge>
-          <h1 className="text-[clamp(1.875rem,4vw+1rem,3rem)] font-black text-slate-900 tracking-tighter mb-6 uppercase">
-            CHASSE AUX <span className="text-indigo-600">ERREURS</span>
-          </h1>
-          <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed mb-12 italic">
-            Améliorez votre précision en identifiant et corrigeant les fautes de grammaire, d'orthographe et de conjugaison.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <Card className="p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-6">
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Target size={16} /> Niveau visé
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {["A1", "A2", "B1", "B2"].map((l) => (
-                    <button
-                      key={l}
-                      onClick={() => setSelectedLevel(l)}
-                      className={`h-12 rounded-xl font-black text-sm transition-all ${selectedLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Sparkles size={16} /> Thématique
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedCategory(c)}
-                      className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+            <Card className="md:col-span-3 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-zinc-50/50">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <GraduationCap className="text-indigo-600" size={20} />
+                      <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Niveau</h3>
+                    </div>
+                    <div className="flex gap-2">
+                      {['A2', 'B1'].map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setSelectedLevel(level)}
+                          className={`px-6 py-3 rounded-2xl font-black transition-all ${selectedLevel === level ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-400 hover:bg-zinc-100'}`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Zap className="text-indigo-600" size={20} />
+                      <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Catégorie</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {['Grammaire', 'Conjugaison', 'Syntaxe'].map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`px-6 py-3 rounded-2xl font-black transition-all ${selectedCategory === cat ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-400 hover:bg-zinc-100'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+               </div>
             </Card>
 
-            <div className="space-y-6">
-              <Card className="p-8 rounded-[2.5rem] border-none bg-indigo-600 text-white shadow-xl shadow-indigo-200/50 flex flex-col justify-center relative overflow-hidden">
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-4 opacity-80">
-                    <Zap size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Mode Classique</span>
-                  </div>
-                  <h3 className="text-2xl font-black mb-2 uppercase">Prêt à corriger ?</h3>
-                  <p className="text-sm font-medium opacity-80 mb-6 italic">
-                    5 questions aléatoires basées sur vos critères pour un entraînement rapide.
-                  </p>
-                  <Button
-                    onClick={() => startExercise()}
-                    className="w-full h-14 bg-white text-indigo-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg"
-                  >
-                    LANCER L'EXERCICE
-                  </Button>
-                </div>
-                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12" />
-              </Card>
-
-              <div className="flex items-center gap-4 px-4 text-zinc-400">
-                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <GraduationCap size={16} /> TEF IRN
+            <div className="flex flex-col gap-6">
+              <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group">
+                 <div className="relative z-10">
+                    <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Objectif</div>
+                    <div className="text-3xl font-black mb-4 tracking-tighter">80% +</div>
+                    <p className="text-xs font-medium opacity-80 leading-relaxed italic">
+                      Visez un score minimum de 80% pour valider une leçon dans votre parcours.
+                    </p>
                  </div>
-                 <div className="w-1 h-1 bg-zinc-300 rounded-full" />
+                 <Target className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="bg-zinc-100 p-8 rounded-[2.5rem] border border-zinc-200/50">
                  <div className="flex items-center gap-2 text-[10px] font-black uppercase">
                     <Calendar size={16} /> Entraînement Quotidien
                  </div>
@@ -401,29 +205,17 @@ export function GrammarCheckContent() {
 
           {/* Catalogue Section */}
           <section className="mt-12">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevel}</Badge>
-                <span className="text-zinc-400">•</span>
-                <span className="capitalize text-zinc-500">{selectedCategory}</span>
-              </h2>
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
-              </div>
-            </div>
-
             {loadingCatalogue ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i: number) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i: number) => (
                   <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                 ))}
               </div>
             ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((ex: Exercise) => (
-                  <ExerciseCard key={ex.id} exercise={ex} />
-                ))}
-              </div>
+              <>
+                {renderExerciseGrid("À découvrir", àDécouvrir, "bg-indigo-600")}
+                {renderExerciseGrid("Terminées", terminées, "bg-emerald-500")}
+              </>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
                 <Target className="mx-auto mb-4 text-zinc-300" size={40} />

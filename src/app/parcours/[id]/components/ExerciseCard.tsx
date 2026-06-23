@@ -88,11 +88,7 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
       <Card className={`group h-full border-none shadow-md ${theme.hoverShadow} transition-all duration-300 rounded-[2.5rem] flex flex-col bg-white border-t-4 ${theme.border}`}>
         <CardContent className="p-8 flex flex-col h-full gap-5">
           <div className="flex justify-between items-start">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm ${
-              isCompleted
-                ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500'
-                : `${theme.bg} ${theme.text} ${theme.hoverIconBg}`
-            }`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm ${theme.bg} ${theme.text} ${theme.hoverIconBg}`}>
               <Icon size={28} className="group-hover:text-white transition-colors" />
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -115,9 +111,6 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
               <span className={`text-[10px] font-black uppercase tracking-widest ${theme.text}`}>
                 {typeLabels[exercise.type] || exercise.type}
               </span>
-              {exercise.is_ai_generated && (
-                <Badge className="bg-amber-50 text-amber-600 border-none text-[8px] font-black px-1.5 h-4 uppercase">AI</Badge>
-              )}
             </div>
             <h4 className={`text-lg font-black text-slate-900 leading-tight ${theme.hoverText} transition-colors`}>
               {exercise.instructions}

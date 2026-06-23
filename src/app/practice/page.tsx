@@ -1,522 +1,206 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from 'react';
-import { useSearchParams, useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, Suspense, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
 import ExerciseCard from "@/app/parcours/[id]/components/ExerciseCard";
 import { Exercise } from "@/lib/parcours";
-import { Badge } from '@/components/ui/badge';
-import {
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  ChevronLeft,
-  ArrowRight,
-  BookOpen,
-  Target,
-  Sparkles,
-  Zap,
-  Calendar,
-  GraduationCap,
-  Trophy,
-  RotateCcw
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useParcours } from '@/contexts/ParcoursContext';
-
-// --- Types ---
-interface Question {
-  difficulty?: string;
-  tags?: string[];
-  is_ai_generated?: boolean;
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswer: number;
-  level: string;
-  category: string;
-  instructions: string;
-  explanation?: string;
-}
-
-interface ExerciseDB {
-  difficulty?: string;
-  tags?: string[];
-  is_ai_generated?: boolean;
-  id: string;
-  instructions: string;
-  type: string;
-  category: string;
-  level: string;
-  content: {
-    explanations?: string[];
-    questions: string[];
-    options: string[][];
-    correct_answers: number[];
-  };
-}
-
-const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
-const LEVELS = ["A1", "A2", "B1", "B2"];
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, GraduationCap, LayoutGrid } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 export function PracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const params = useParams();
-  const exerciseIdFromParams = params?.id as string | undefined;
-  const supabase = createClient();
   const { activeParcours } = useParcours();
 
-  const [mode, setMode] = useState<"selection" | "practice" | "result">("selection");
-  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [mode, setMode] = useState<"selection" | "practice" | "summary">("selection");
+  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
-  const [score, setScore] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
-  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
 
-  const fetchCatalogue = useCallback(async () => {
-    setLoadingCatalogue(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+  const supabase = createClient();
 
+  useEffect(() => {
+    const fetchExercises = async () => {
+      setLoadingCatalogue(true);
       let query = supabase
-        .from("exercises")
-        .select("*")
-        .in("type", ["qcm", "association", "qcm_centre_entrainement"])
-        .in("level", selectedLevels.length > 0 ? selectedLevels : ["A1", "A2", "B1", "B2"]);
+        .from('exercises')
+        .select('*, exercise_attempts(success_rate)')
+        .eq('type', 'qcm')
+        .eq('level', selectedLevel);
 
       if (selectedCategory !== "Toutes") {
-        query = query.ilike("category", `%${selectedCategory}%`);
+        query = query.eq('category', selectedCategory);
       }
 
-      const { data: exercises } = await query.limit(20);
+      const { data, error } = await query;
 
-      if (exercises && user) {
-        const { data: attempts } = await supabase
-          .from("exercise_attempts")
-          .select("exercise_id, is_completed, score")
-          .eq("user_id", user.id)
-          .in("exercise_id", exercises.map((e: any) => e.id));
-
-        const mapped = exercises.map((ex: any) => {
-          const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
-          return {
-            ...ex,
-            is_completed: exAttempts.some((a: any) => a.is_completed),
-            attempts_count: exAttempts.length,
-            success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
-          };
-        });
-        setCatalogue(mapped);
-      } else {
-        setCatalogue(exercises || []);
+      if (!error && data) {
+        const formatted = data.map((ex: any) => ({
+          ...ex,
+          is_completed: ex.exercise_attempts?.some((a: any) => a.success_rate >= 80)
+        }));
+        setCatalogue(formatted);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
       setLoadingCatalogue(false);
-    }
-  }, [selectedLevels, selectedCategory, supabase]);
-
-  useEffect(() => {
-    if (mode === "selection") {
-      fetchCatalogue();
-    }
-  }, [fetchCatalogue, mode]);
-
-  const mapExerciseToQuestions = (ex: ExerciseDB): Question[] => {
-    if (!ex?.content?.questions) return [];
-    return ex.content.questions.map((q, idx) => ({
-      id: `${ex.id}-${idx}`,
-      difficulty: ex.difficulty,
-      tags: ex.tags,
-      is_ai_generated: ex.is_ai_generated,
-      text: q,
-      options: ex.content.options?.[idx] || [],
-      correctAnswer: ex.content.correct_answers?.[idx] ?? 0,
-      level: ex.level,
-      category: ex.category,
-      instructions: ex.instructions,
-      explanation: ex.content.explanations?.[idx],
-    }));
-  };
-
-  const fetchExerciseById = useCallback(async (exId: string) => {
-    setIsLoading(true);
-    const { data } = await supabase
-      .from('exercises')
-      .select('*')
-      .eq('id', exId)
-      .single();
-
-    if (data) {
-      setQuestions(mapExerciseToQuestions(data as ExerciseDB));
-      setMode("practice");
-    }
-    setIsLoading(false);
-  }, [supabase]);
-
-  const fetchFromLesson = useCallback(async (lid: string) => {
-    setIsLoading(true);
-    setScore(0);
-    setCurrentIdx(0);
-    setSelected(null);
-    setIsChecked(false);
-
-    const { data } = await supabase
-      .from('exercises')
-      .select('*')
-      .eq('lesson_id', lid)
-      .eq('type', 'qcm')
-      .limit(1)
-      .single();
-
-    if (data) {
-      setQuestions(mapExerciseToQuestions(data as ExerciseDB));
-      setMode("practice");
-    }
-    setIsLoading(false);
-  }, [supabase]);
-
-  const fetchReviewExercises = useCallback(async () => {
-    setIsLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: attempts } = await supabase
-      .from('exercise_attempts')
-      .select('exercise_id')
-      .eq('user_id', user.id)
-      .lt('score', 70)
-      .limit(5);
-
-    if (attempts && attempts.length > 0) {
-      const ids = attempts.map((a: any) => a.exercise_id);
-      const { data: exercises } = await supabase
-        .from('exercises')
-        .select('*')
-        .in('id', ids);
-
-      if (exercises) {
-        setQuestions((exercises as ExerciseDB[]).flatMap(mapExerciseToQuestions));
-        setMode("practice");
-      }
-    } else {
-      setMode("selection");
-    }
-    setIsLoading(false);
-  }, [supabase]);
-
-  const autoStart = useCallback(async (lid?: string, t?: string, lvl?: string) => {
-    setIsLoading(true);
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm');
-    if (t) query = query.ilike('category', `%${t}%`);
-    if (lvl) query = query.eq('level', lvl);
-
-    const { data } = await query.limit(5);
-    if (data && data.length > 0) {
-      const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
-      setQuestions(allQs.slice(0, 10));
-      setMode("practice");
-    } else if (t) {
-       const { data: searchData } = await supabase
-         .from('exercises')
-         .select('*')
-         .eq('type', 'qcm')
-         .filter('instructions', 'ilike', `%${t}%`)
-         .limit(1)
-         .single();
-
-       if (searchData) {
-         setQuestions(mapExerciseToQuestions(searchData as ExerciseDB));
-         setMode("practice");
-       }
-    }
-    setIsLoading(false);
-  }, [supabase]);
-
-  useEffect(() => {
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
-    const isReviewMode = searchParams.get('mode') === 'review';
-
-    const init = async () => {
-      if (exerciseIdFromParams) {
-        await fetchExerciseById(exerciseIdFromParams);
-      } else if (lessonId && !topic) {
-        await fetchFromLesson(lessonId);
-      } else if (topic) {
-        await autoStart(lessonId || undefined, topic, level || undefined);
-      } else if (isReviewMode) {
-        await fetchReviewExercises();
-      } else {
-        setMode("selection");
-      }
     };
-    init();
-  }, [exerciseIdFromParams, searchParams, fetchExerciseById, fetchFromLesson, autoStart, fetchReviewExercises]);
 
-  const toggleLevel = (lvl: string) => {
-    setSelectedLevels(prev =>
-      prev.includes(lvl) ? prev.filter(l => l !== lvl) : [...prev, lvl]
-    );
-  };
+    fetchExercises();
+  }, [selectedLevel, selectedCategory]);
 
-  const startTraining = async () => {
-    setIsLoading(true);
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm');
+  const startExercise = async (ex: Exercise) => {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('content')
+      .eq('id', ex.id)
+      .single();
 
-    if (selectedLevels.length > 0) {
-      query = query.in('level', selectedLevels);
-    }
-
-    if (selectedCategory !== "Toutes") {
-      query = query.ilike('category', `%${selectedCategory}%`);
-    }
-
-    const { data } = await query.limit(10);
-    if (data && data.length > 0) {
-      const allQs = (data as ExerciseDB[])
-        .flatMap(mapExerciseToQuestions)
-        .sort(() => Math.random() - 0.5);
-      setQuestions(allQs.slice(0, 10));
+    if (!error && data?.content?.questions) {
+      setQuestions(data.content.questions);
       setMode("practice");
+      setCurrentIdx(0);
+      setScore(0);
+      setSelected(null);
+      setIsChecked(false);
     }
-    setIsLoading(false);
   };
 
   const handleSelect = (idx: number) => {
-    if (isChecked) return;
-    setSelected(idx);
+    if (!isChecked) setSelected(idx);
   };
 
   const handleCheck = () => {
-    if (selected === null || isChecked) return;
+    if (selected === null) return;
     setIsChecked(true);
     if (selected === questions[currentIdx].correctAnswer) {
       setScore(s => s + 1);
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (currentIdx < questions.length - 1) {
-      setCurrentIdx(currentIdx + 1);
+      setCurrentIdx(i => i + 1);
       setSelected(null);
       setIsChecked(false);
     } else {
-      await saveScore();
-      setMode("result");
+      setMode("summary");
     }
   };
 
-  const saveScore = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const finalScore = Math.round((score / questions.length) * 100);
-    const exerciseId = questions[0].id.split('-')[0];
-
-    await fetch('/api/exercise-complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        exerciseId,
-        score: finalScore,
-        answers: { correct: score, total: questions.length }
-      })
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 gap-6">
-        <div className="relative">
-          <Loader2 className="animate-spin text-rose-600" size={64} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 bg-rose-600 rounded-full animate-ping" />
-          </div>
-        </div>
-        <div className="text-center space-y-2">
-          <p className="text-lg font-black text-zinc-900 uppercase tracking-tighter">Préparation du centre</p>
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest animate-pulse italic">Configuration des algorithmes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // SCREEN: RESULT
-  if (mode === "result") {
-    const percentage = Math.round((score / questions.length) * 100);
-    return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
-        >
-          <Card className="p-12 text-center rounded-[4rem] shadow-2xl shadow-rose-100 border-none bg-white">
-            <div className="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-8">
-              <Trophy className="text-rose-600" size={48} />
-            </div>
-            <h2 className="text-4xl font-black mb-2 tracking-tighter uppercase">Félicitations !</h2>
-            <p className="text-zinc-500 font-bold mb-10 italic">Vous progressez vers votre objectif.</p>
-
-            <div className="bg-zinc-50 rounded-[2.5rem] p-10 mb-10 border border-zinc-100">
-               <div className="text-7xl font-black text-rose-600 mb-2 tracking-tighter">{percentage}%</div>
-               <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Score de Précision</div>
-            </div>
-
-            <div className="space-y-4">
-              <Button
-                className="w-full h-16 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl text-lg shadow-xl shadow-rose-200 transition-all active:scale-95"
-                onClick={() => {
-                   setMode("selection");
-                   setScore(0);
-                   setCurrentIdx(0);
-                }}
-              >
-                NOUVEL EXERCICE
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full h-12 text-zinc-400 hover:text-rose-600 font-black rounded-2xl transition-all"
-                onClick={() => router.push('/dashboard')}
-              >
-                RETOUR AU TABLEAU DE BORD
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // SCREEN: SELECTION
   if (mode === "selection") {
+    const àDécouvrir = catalogue.filter((ex: any) => !ex.is_completed);
+    const terminées = catalogue.filter((ex: any) => ex.is_completed);
+
+    const renderExerciseGrid = (title: string, exercises: Exercise[], badgeColor: string) => (
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-6">
+          <Badge className={`${badgeColor} text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg`}>
+            {title}
+          </Badge>
+          <div className="h-px bg-zinc-100 flex-1" />
+          <span className="text-xs font-black text-zinc-300 uppercase tracking-widest">{exercises.length} exercice{exercises.length > 1 ? 's' : ''}</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {exercises.map((ex: Exercise) => (
+            <div key={ex.id} onClick={() => startExercise(ex)} className="cursor-pointer">
+              <ExerciseCard exercise={ex} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+
     return (
-      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
-        <div className="max-w-6xl mx-auto w-full">
-          <header className="mb-12">
-            <Badge className="bg-rose-600 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-rose-100 border-none">
-              Module QCM
-            </Badge>
-            <h1 className="text-[clamp(1.875rem,4vw+1rem,3rem)] font-black text-slate-900 tracking-tighter mb-6 uppercase">
-              CENTRE <span className="text-rose-600">D'ENTRAÎNEMENT</span>
-            </h1>
-            <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed italic">
-              Pratiquez la grammaire, la conjugaison et le vocabulaire du TEF IRN.
-            </p>
-          </header>
+      <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto p-8 pt-16">
+        <header className="mb-12">
+          <Badge className="bg-rose-600 mb-4 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-rose-100 text-white">
+            Centre d'entraînement
+          </Badge>
+          <h1 className="text-5xl font-black text-zinc-900 tracking-tighter mb-4">
+            ENTRAÎNEMENT <span className="text-rose-600">QCM</span>
+          </h1>
+          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+            Validez vos acquis avec nos questionnaires à choix multiples conçus pour l'examen TEF IRN.
+          </p>
+        </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Design identique à grammar-check */}
-            <Card className="lg:col-span-2 p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-8">
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Target size={16} /> Niveau CECRL
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {LEVELS.map((l: string) => (
-                    <button
-                      key={l}
-                      onClick={() => toggleLevel(l)}
-                      className={`h-12 rounded-xl font-black text-sm transition-all ${selectedLevels.includes(l) ? 'bg-rose-600 text-white shadow-lg shadow-rose-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Sparkles size={16} /> Thématique
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                  {CATEGORIES.map((c: string) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedCategory(c)}
-                      className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-rose-600 text-white shadow-lg shadow-rose-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            <div className="space-y-6">
-              <Card className="p-8 rounded-[2.5rem] border-none bg-rose-600 text-white shadow-xl shadow-rose-200/50 flex flex-col justify-center relative overflow-hidden group cursor-pointer" onClick={startTraining}>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-4 opacity-80">
-                    <Zap size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Session Aléatoire</span>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+          <Card className="md:col-span-3 border-none shadow-2xl shadow-zinc-200/50 rounded-[3rem] p-10 bg-zinc-50/50">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <section>
+                  <div className="flex items-center gap-3 mb-4">
+                    <GraduationCap className="text-rose-600" size={20} />
+                    <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Niveau</h3>
                   </div>
-                  <h3 className="text-3xl font-black mb-2 uppercase leading-none">PRÊT ?</h3>
-                  <p className="text-xs font-medium opacity-80 mb-6 italic">
-                    Génère une session de 10 questions basées sur vos filtres.
-                  </p>
-                  <Button
-                    className="w-full h-14 bg-white text-rose-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg border-none group-active:scale-95 transition-transform"
-                  >
-                    LANCER L'EXERCICE
-                  </Button>
-                </div>
-                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12 group-hover:scale-110 transition-transform" />
-              </Card>
+                  <div className="flex gap-2">
+                    {['A1', 'A2', 'B1', 'B2'].map(level => (
+                      <button
+                        key={level}
+                        onClick={() => setSelectedLevel(level)}
+                        className={`px-6 py-3 rounded-2xl font-black transition-all ${selectedLevel === level ? 'bg-rose-600 text-white shadow-lg' : 'bg-white text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+                <section>
+                  <div className="flex items-center gap-3 mb-4">
+                    <LayoutGrid className="text-rose-600" size={20} />
+                    <h3 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Catégorie</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['Toutes', 'Grammaire', 'Conjugaison', 'Syntaxe', 'Vocabulaire'].map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${selectedCategory === cat ? 'bg-rose-600 text-white shadow-md' : 'bg-white text-zinc-400 hover:bg-zinc-100'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+             </div>
+          </Card>
 
-            <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] p-8 bg-zinc-50 border border-zinc-100">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="text-zinc-400" size={20} />
-                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide Rapide</h4>
-              </div>
-              <div className="space-y-4">
-                 <p className="text-xs text-zinc-500 font-medium leading-relaxed italic">
-                   Un exercice est composé de plusieurs questions. Lisez attentivement et choisissez la bonne option.
-                 </p>
-                 <div className="h-px bg-zinc-200 w-full" />
-                 <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase">
-                    <Target size={14} className="text-rose-600" /> Objectif : 80% de réussite
-                 </div>
-              </div>
-            </Card>
+          <div className="flex flex-col gap-6">
+            <div className="bg-gradient-to-br from-rose-600 to-orange-500 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group">
+               <div className="relative z-10">
+                  <div className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Statistiques</div>
+                  <div className="text-3xl font-black mb-4 tracking-tighter">{catalogue.length}</div>
+                  <p className="text-xs font-medium opacity-80 leading-relaxed italic">
+                    Exercices disponibles pour votre sélection actuelle.
+                  </p>
+               </div>
+               <Target className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12 group-hover:scale-110 transition-transform" />
+            </div>
           </div>
         </div>
 
-        {/* Catalogue Section */}
         <section className="mt-12">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-              <Badge className="bg-rose-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevels.join(', ') || 'Tous'}</Badge>
-              <span className="text-zinc-400">•</span>
-              <span className="capitalize text-zinc-500">{selectedCategory}</span>
-            </h2>
-            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-              {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
-            </div>
-          </div>
-
           {loadingCatalogue ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i: number) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i: number) => (
                 <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
               ))}
             </div>
           ) : catalogue.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {catalogue.map((ex: Exercise) => (
-                <ExerciseCard key={ex.id} exercise={ex} />
-              ))}
-            </div>
+            <>
+              {renderExerciseGrid("À découvrir", àDécouvrir, "bg-rose-600")}
+              {renderExerciseGrid("Terminées", terminées, "bg-emerald-500")}
+            </>
           ) : (
             <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
               <Target className="mx-auto mb-4 text-zinc-300" size={40} />
