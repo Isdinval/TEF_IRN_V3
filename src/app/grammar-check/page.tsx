@@ -413,13 +413,13 @@ export function GrammarCheckContent() {
             </div>
 
             {loadingCatalogue ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i: number) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i: number) => (
                   <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                 ))}
               </div>
             ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {catalogue.map((ex: Exercise) => (
                   <ExerciseCard key={ex.id} exercise={ex} />
                 ))}

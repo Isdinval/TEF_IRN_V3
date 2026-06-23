@@ -2,11 +2,20 @@
 
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Book, ArrowRight } from "lucide-react";
+import { Book, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
+
+function getCategoryColor(category: string): { border: string; bg: string; text: string; icon: string } {
+  // For vocab, always return amber as requested
+  return {
+    border: 'border-l-amber-500',
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    icon: 'bg-amber-50 text-amber-600'
+  };
+}
 
 interface VocabCardProps {
   item: {
@@ -22,21 +31,22 @@ interface VocabCardProps {
 
 export default function VocabCard({ item }: VocabCardProps) {
   const isCompleted = item.is_completed;
+  const colors = getCategoryColor(item.category);
 
   return (
     <motion.div
       layout
-      whileHover={{ y: -6, scale: 1.02 }}
+      whileHover={{ y: -3 }}
       className="h-full"
     >
-      <Card className={`group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2rem] flex flex-col ${completionCardStyles(!!isCompleted)}`}>
-        <CardContent className="p-8 flex flex-col h-full gap-5">
+      <Card className={`group h-full border-none border-l-4 border-l-amber-400 shadow-sm hover:shadow-2xl transition-all duration-300 rounded-2xl flex flex-col ${completionCardStyles(!!isCompleted)}`}>
+        <CardContent className="p-5 flex flex-col h-full gap-5">
           <div className="flex justify-between items-start">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-lg ${isCompleted ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-emerald-200' : 'bg-zinc-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-emerald-200'}`}>
-              <Book size={28} />
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-lg ${colors.icon}`}>
+              <Book size={20} />
             </div>
             <div className="flex flex-col items-end gap-2">
-               <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border border-emerald-100 bg-emerald-50 text-emerald-600">
+               <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border border-amber-100 bg-amber-50 text-amber-600">
                 {item.level}
               </Badge>
               {isCompleted && <CompletionBadge />}
@@ -44,10 +54,10 @@ export default function VocabCard({ item }: VocabCardProps) {
           </div>
 
           <div className="space-y-2 flex-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600/70">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">
               Vocabulaire • {item.category}
             </span>
-            <h4 className="text-xl font-black text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">
+            <h4 className="text-xl font-black text-slate-900 leading-tight group-hover:text-amber-700 transition-colors">
               {item.word}
             </h4>
             <p className="text-sm text-slate-500 font-medium line-clamp-2">
@@ -64,10 +74,10 @@ export default function VocabCard({ item }: VocabCardProps) {
           )}
 
           <Link href={`/vocab/${item.id}`} className="w-full mt-auto">
-            <Button className={`w-full h-14 rounded-2xl text-white font-black transition-all active:scale-95 shadow-xl ${isCompleted ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 group-hover:shadow-emerald-200' : 'bg-zinc-900 hover:bg-emerald-600 shadow-zinc-100 group-hover:shadow-emerald-100'}`}>
-              {isCompleted ? 'REVOIR' : 'APPRENDRE'}
-              <ArrowRight size={18} className="ml-2" />
-            </Button>
+            <div className="flex items-center justify-between text-sm font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+              <span>{isCompleted ? 'Revoir' : 'Apprendre'}</span>
+              <ChevronRight size={16} />
+            </div>
           </Link>
         </CardContent>
       </Card>

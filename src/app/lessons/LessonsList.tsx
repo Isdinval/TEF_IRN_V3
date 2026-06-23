@@ -1,35 +1,59 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
+import { Lesson } from "@/lib/parcours";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Sparkles, Target } from "lucide-react";
+import {
+  BookOpen,
+  ChevronRight,
+  GraduationCap,
+  LayoutGrid,
+  Brain,
+  Sparkles,
+  Calendar,
+  Target,
+  CheckCircle2
+} from "lucide-react";
 import Link from "next/link";
-import { splitTitle, parseObjective } from "@/lib/lessons";
 
-interface Lesson {
-  id: string;
-  title: string;
-  objective: string;
-  level: string;
-  category: string;
-  order_index: number;
+function getCategoryColor(category: string): { border: string; bg: string; text: string; icon: string } {
+  const cat = category?.toLowerCase();
+  if (cat?.includes('conjugaison')) return { border: 'border-l-indigo-500', bg: 'bg-indigo-50', text: 'text-indigo-700', icon: 'bg-indigo-50 text-indigo-600' };
+  if (cat?.includes('syntaxe')) return { border: 'border-l-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', icon: 'bg-violet-50 text-violet-600' };
+  if (cat?.includes('vocabulaire') || cat?.includes('vocab')) return { border: 'border-l-amber-500', bg: 'bg-amber-50', text: 'text-amber-700', icon: 'bg-amber-50 text-amber-600' };
+  if (cat?.includes('grammaire')) return { border: 'border-l-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'bg-emerald-50 text-emerald-600' };
+  return { border: 'border-l-zinc-300', bg: 'bg-zinc-50', text: 'text-zinc-600', icon: 'bg-zinc-50 text-zinc-500' };
 }
 
-export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
+interface LessonsListProps {
+  lessons: Lesson[];
+  completedLessonIds: Set<string>;
+}
+
+export default function LessonsList({ lessons, completedLessonIds }: LessonsListProps) {
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
 
-  const levels = useMemo(() => {
-    const uniqueLevels = Array.from(new Set(lessons.map((lesson) => lesson.level))).filter(Boolean);
-    return uniqueLevels.length > 0 ? (uniqueLevels as string[]).sort() : ["A1", "A2", "B1", "B2"];
+  const levels = ["A2", "B1", "B2"];
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(lessons.map((l) => l.category)));
+    return ["Toutes", ...cats];
   }, [lessons]);
 
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(lessons.map((lesson) => lesson.category))).filter(Boolean);
-    return ["Toutes", ...uniqueCategories];
-  }, [lessons]);
+  const splitTitle = (title: string) => {
+    const parts = title.split(":");
+    if (parts.length > 1) {
+      return { main: parts[1].trim(), category: parts[0].trim() };
+    }
+    return { main: title, category: "" };
+  };
+
+  const parseObjective = (objective?: string) => {
+    if (!objective) return { description: "" };
+    return { description: objective };
+  };
 
   const filteredLessons = lessons.filter((lesson) => {
     const matchesLevel = lesson.level === selectedLevel;
@@ -161,18 +185,22 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
         </div>
 
         {filteredLessons.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredLessons.map((lesson) => {
               const { main: mainTitle } = splitTitle(lesson.title);
               const { description } = parseObjective(lesson.objective);
               const isCompleted = completedLessonIds.has(lesson.id);
+              const colors = getCategoryColor(lesson.category);
+              const borderClass = isCompleted ? "border-l-emerald-500" : colors.border;
+
               return (
                 <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
-                  <Card className={`border-none shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden ${isCompleted ? "bg-gradient-to-br from-violet-50 to-white" : "bg-white"}`}>
+                  <Card className={`relative border-none border-l-4 ${borderClass} shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-2xl overflow-hidden bg-white`}>
+                    <span className="absolute top-3 right-4 text-5xl font-black opacity-[0.06] text-zinc-900 select-none pointer-events-none leading-none">{String(lesson.order_index).padStart(2,'0')}</span>
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 p-7">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
+                          <CardTitle className="text-base font-black group-hover:text-violet-600 transition-colors">
                             {mainTitle}
                           </CardTitle>
                           {isCompleted && (
@@ -181,21 +209,21 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
                             </Badge>
                           )}
                         </div>
-                        <CardDescription className="capitalize font-bold text-zinc-400">
+                        <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${colors.bg} ${colors.text}`}>
                           {lesson.category}
-                        </CardDescription>
+                        </div>
                         {description && (
                           <p className="text-xs font-medium text-zinc-500 line-clamp-2 leading-relaxed">
                             {description}
                           </p>
                         )}
                       </div>
-                      <div className={`p-3 rounded-2xl transition-colors ${isCompleted ? "bg-emerald-50" : "bg-violet-50"} group-hover:bg-violet-600`}>
-                        <BookOpen size={18} className={`transition-colors group-hover:text-white ${isCompleted ? "text-emerald-600" : "text-violet-600"}`} />
+                      <div className={`p-2.5 rounded-xl transition-colors ${colors.icon} group-hover:bg-violet-600 group-hover:text-white`}>
+                        <BookOpen size={18} />
                       </div>
                     </CardHeader>
                     <CardContent className="px-7 pb-7">
-                      <div className="flex items-center justify-between text-sm font-black text-violet-600 group-hover:translate-x-1 transition-transform">
+                      <div className={`flex items-center justify-between text-sm font-black ${colors.text} group-hover:translate-x-1 transition-transform`}>
                         {isCompleted ? "Revoir la leçon" : "Commencer la leçon"} <ChevronRight size={16} />
                       </div>
                     </CardContent>
@@ -205,7 +233,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
             })}
           </div>
         ) : (
-          <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-10 text-center bg-zinc-50">
+          <Card className="border-dashed border-2 border-zinc-200 rounded-2xl p-10 text-center bg-zinc-50">
             <CheckCircle2 className="mx-auto mb-4 text-zinc-300" size={40} />
             <p className="font-bold text-zinc-500">Aucune leçon ne correspond encore à cette sélection.</p>
           </Card>
