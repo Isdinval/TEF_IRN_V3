@@ -22,4 +22,6 @@ export interface UserParcoursProgress {
   current_lesson_id: string | null;
   last_activity_at: string;
   progress_percent: number;
+  status?: 'not_started' | 'in_progress' | 'completed';
+  started_at?: string | null;
 }

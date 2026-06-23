@@ -17,12 +17,12 @@ interface Lesson {
   order_index: number;
 }
 
-const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string }> = {
-  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", hoverText: "group-hover:text-blue-600", hoverIconBg: "group-hover:bg-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
-  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", hoverText: "group-hover:text-violet-600", hoverIconBg: "group-hover:bg-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
-  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", hoverText: "group-hover:text-amber-600", hoverIconBg: "group-hover:bg-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
-  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", hoverText: "group-hover:text-emerald-600", hoverIconBg: "group-hover:bg-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
+const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string, cardShadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", hoverText: "group-hover:text-blue-600", hoverIconBg: "group-hover:bg-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100", cardShadow: "shadow-blue-500/20" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", hoverText: "group-hover:text-violet-600", hoverIconBg: "group-hover:bg-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100", cardShadow: "shadow-violet-500/20" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", hoverText: "group-hover:text-amber-600", hoverIconBg: "group-hover:bg-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100", cardShadow: "shadow-amber-500/20" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", hoverText: "group-hover:text-emerald-600", hoverIconBg: "group-hover:bg-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100", cardShadow: "shadow-emerald-500/20" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100", cardShadow: "shadow-zinc-500/20" },
 };
 
 export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
@@ -47,8 +47,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
 
   const terminées = filteredLessons.filter(l => completedLessonIds.has(l.id));
   const àDécouvrir = filteredLessons.filter(l => !completedLessonIds.has(l.id));
-
-  const nextLesson = àDécouvrir[0] || filteredLessons[0];
+  const nextLesson = àDécouvrir[0];
 
   const renderLessonCard = (lesson: Lesson) => {
     const { main: mainTitle } = splitTitle(lesson.title);
@@ -58,7 +57,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
 
     return (
       <Link href={`/lessons/${lesson.id}`} key={lesson.id} className="h-full">
-        <Card className={`relative border-none shadow-xl shadow-zinc-100/70 hover:-translate-y-1 hover:shadow-violet-200 transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden flex flex-col bg-white border-t-4 ${colors.border}`}>
+        <Card className={`relative border-none shadow-lg ${colors.cardShadow} hover:-translate-y-1 hover:shadow-xl transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden flex flex-col bg-white border-t-4 ${colors.border}`}>
           <div className="absolute top-0 right-4 text-8xl font-black text-zinc-100/40 pointer-events-none z-0 select-none">
             {lesson.order_index}
           </div>

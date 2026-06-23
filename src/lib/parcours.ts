@@ -8,6 +8,8 @@ export interface Parcours {
   level: string;
   category: string;
   objective: string;
+  nom_parcours?: string | null;
+  justification_reference_au_referentiel?: string | null;
 }
 
 export interface ParcoursProgress {
@@ -15,6 +17,8 @@ export interface ParcoursProgress {
   completed: number;
   percent: number;
   isCompleted: boolean;
+  status?: 'not_started' | 'in_progress' | 'completed';
+  started_at?: string | null;
 }
 
 export interface Lesson {
@@ -43,7 +47,7 @@ export interface Exercise {
 export async function getParcours(supabase: SupabaseClient = defaultSupabase): Promise<Parcours[]> {
   const { data, error } = await supabase
     .from('parcours')
-    .select('*')
+    .select('id, level, category, objective, nom_parcours, justification_reference_au_referentiel')
     .order('level', { ascending: true })
     .order('category', { ascending: true });
 
@@ -55,7 +59,26 @@ export async function getParcours(supabase: SupabaseClient = defaultSupabase): P
   return data || [];
 }
 
-export async function getParcoursProgress(userId: string, level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<ParcoursProgress> {
+export async function getParcoursProgress(
+  userId: string,
+  level: string,
+  category: string,
+  parcoursId?: string,
+  supabase: SupabaseClient = defaultSupabase
+): Promise<ParcoursProgress> {
+  // 1. Fetch user progress from user_parcours_progress
+  let userProgress = null;
+  if (parcoursId) {
+    const { data } = await supabase
+      .from('user_parcours_progress')
+      .select('status, started_at')
+      .eq('user_id', userId)
+      .eq('parcours_id', parcoursId)
+      .single();
+    userProgress = data;
+  }
+
+  // 2. Calculate lesson-based progress
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('id')
@@ -63,11 +86,25 @@ export async function getParcoursProgress(userId: string, level: string, categor
     .eq('category', category);
 
   if (lessonsError || !lessons) {
-    return { total: 0, completed: 0, percent: 0, isCompleted: false };
+    return {
+      total: 0,
+      completed: 0,
+      percent: 0,
+      isCompleted: false,
+      status: userProgress?.status,
+      started_at: userProgress?.started_at
+    };
   }
 
   const total = lessons.length;
-  if (total === 0) return { total: 0, completed: 0, percent: 0, isCompleted: false };
+  if (total === 0) return {
+    total: 0,
+    completed: 0,
+    percent: 0,
+    isCompleted: false,
+    status: userProgress?.status,
+    started_at: userProgress?.started_at
+  };
 
   const lessonIds = lessons.map((l: { id: string }) => l.id);
 
@@ -78,20 +115,34 @@ export async function getParcoursProgress(userId: string, level: string, categor
     .in('lesson_id', lessonIds);
 
   if (progressError) {
-    return { total, completed: 0, percent: 0, isCompleted: false };
+    return {
+      total,
+      completed: 0,
+      percent: 0,
+      isCompleted: false,
+      status: userProgress?.status,
+      started_at: userProgress?.started_at
+    };
   }
 
   const completed = progress?.length || 0;
   const percent = Math.round((completed / total) * 100);
   const isCompleted = completed === total && total > 0;
 
-  return { total, completed, percent, isCompleted };
+  return {
+    total,
+    completed,
+    percent,
+    isCompleted,
+    status: userProgress?.status,
+    started_at: userProgress?.started_at
+  };
 }
 
 export async function getParcoursById(id: string, supabase: SupabaseClient = defaultSupabase): Promise<Parcours | null> {
   const { data, error } = await supabase
     .from('parcours')
-    .select('*')
+    .select('id, level, category, objective, nom_parcours, justification_reference_au_referentiel')
     .eq('id', id)
     .single();
 

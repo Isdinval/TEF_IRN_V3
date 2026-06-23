@@ -1,13 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Parcours, ParcoursProgress } from "@/lib/parcours";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, BookOpen, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { PageTransition } from "@/components/shared/Animations";
+import { BookOpen, ChevronRight, Trophy, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Parcours, ParcoursProgress } from "@/lib/parcours";
 import { User } from "@supabase/supabase-js";
+import { PageTransition } from "@/components/shared/Animations";
 
 interface ParcoursWithProgress extends Parcours {
   progress?: ParcoursProgress;
@@ -90,6 +90,10 @@ export default function ParcoursList({
             const theme = CATEGORY_THEMES[p.category?.toLowerCase()] || CATEGORY_THEMES.default;
             const isCompleted = p.progress?.percent === 100;
 
+            // TASK 2 Logic
+            const isInProgress = p.progress?.status === 'in_progress' || (p.progress?.started_at != null);
+            const buttonLabel = isCompleted ? "Complété" : (isInProgress ? "Continuer" : "Commencer");
+
             return (
               <motion.div
                 key={p.id}
@@ -104,7 +108,7 @@ export default function ParcoursList({
 
                   <CardContent className="p-8 flex flex-col h-full relative z-10">
                     <div className="mb-6 flex items-start justify-between">
-                      <div className="space-y-3">
+                      <div className="space-y-3 flex-1 mr-4">
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-sm ${theme.border}`}>
                             {p.level}
@@ -113,9 +117,16 @@ export default function ParcoursList({
                             {p.category}
                           </Badge>
                         </div>
-                        <h3 className="text-2xl font-black text-zinc-900 capitalize leading-tight">
-                          {p.category} {p.level}
-                        </h3>
+                        <div>
+                          <h3 className="text-2xl font-black text-zinc-900 capitalize leading-tight mb-1">
+                            {p.nom_parcours || `${p.category} ${p.level}`}
+                          </h3>
+                          {p.justification_reference_au_referentiel && p.justification_reference_au_referentiel.trim() !== "" && (
+                            <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400 leading-snug mb-3">
+                              {p.justification_reference_au_referentiel}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       {showProgress && p.progress ? (
@@ -150,7 +161,7 @@ export default function ParcoursList({
                       </div>
 
                       <div className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-lg ${isCompleted ? "bg-emerald-500 text-white shadow-emerald-100" : `${theme.button} text-white ${theme.shadow}`}`}>
-                        <span>{isCompleted ? "Complété" : "Continuer"}</span>
+                        <span>{buttonLabel}</span>
                         <ChevronRight size={16} />
                       </div>
                     </div>
