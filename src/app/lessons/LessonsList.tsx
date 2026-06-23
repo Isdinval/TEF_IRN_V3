@@ -17,12 +17,12 @@ interface Lesson {
   order_index: number;
 }
 
-const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, button: string, shadow: string }> = {
-  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
-  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
-  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
-  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
+const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", hoverText: "group-hover:text-blue-600", hoverIconBg: "group-hover:bg-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", hoverText: "group-hover:text-violet-600", hoverIconBg: "group-hover:bg-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", hoverText: "group-hover:text-amber-600", hoverIconBg: "group-hover:bg-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", hoverText: "group-hover:text-emerald-600", hoverIconBg: "group-hover:bg-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
 export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
@@ -75,13 +75,13 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
                   </Badge>
                 )}
               </div>
-              <CardTitle className="text-xl font-black group-hover:text-violet-600 transition-colors leading-tight">
+              <CardTitle className={`text-xl font-black ${colors.hoverText} transition-colors leading-tight`}>
                 {mainTitle}
               </CardTitle>
             </div>
-            <div className={`p-3 rounded-2xl transition-colors shrink-0 ${isCompleted ? "bg-emerald-100" : "bg-zinc-50"} group-hover:bg-violet-600 relative z-10`}>
+            <div className={`p-3 rounded-2xl transition-colors shrink-0 bg-zinc-50 ${colors.hoverIconBg} relative z-10`}>
               {isCompleted ? (
-                <CheckCircle2 size={20} className="text-emerald-600 group-hover:text-white" />
+                <CheckCircle2 size={20} className={`${colors.text} group-hover:text-white`} />
               ) : (
                 <BookOpen size={20} className="text-zinc-400 group-hover:text-white" />
               )}
@@ -97,7 +97,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
           </CardContent>
 
           <div className="mt-auto p-4 pt-0 relative z-10">
-            <Button className={`w-full h-12 rounded-xl font-black text-sm gap-2 transition-all shadow-lg ${isCompleted ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100" : `${colors.button} ${colors.shadow}`}`}>
+            <Button className={`w-full h-12 rounded-xl font-black text-sm gap-2 transition-all shadow-lg ${colors.button} ${colors.shadow}`}>
               {isCompleted ? "Revoir la leçon" : "Commencer la leçon"}
               <ChevronRight size={18} />
             </Button>

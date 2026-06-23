@@ -17,12 +17,12 @@ interface LessonCardProps {
   parcoursId: string;
 }
 
-const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, button: string, shadow: string }> = {
-  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
-  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
-  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
-  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
+const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", hoverText: "group-hover:text-blue-600", hoverIconBg: "group-hover:bg-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", hoverText: "group-hover:text-violet-600", hoverIconBg: "group-hover:bg-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", hoverText: "group-hover:text-amber-600", hoverIconBg: "group-hover:bg-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", hoverText: "group-hover:text-emerald-600", hoverIconBg: "group-hover:bg-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
 const categoryIcons: Record<string, any> = {
@@ -69,9 +69,9 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
               <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center text-3xl transition-transform duration-500 group-hover:rotate-6 ${
                 lesson.isCompleted
                 ? 'bg-emerald-100 text-emerald-600'
-                : isNext ? `${theme.button} text-white shadow-2xl ${theme.shadow}` : 'bg-zinc-50 text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600'
+                : isNext ? `${theme.button} text-white shadow-2xl ${theme.shadow}` : `bg-zinc-50 text-zinc-400 group-hover:bg-opacity-80 ${theme.hoverIconBg}`
               }`}>
-                {lesson.isCompleted ? <CheckCircle2 size={40} /> : <Icon size={40} />}
+                {lesson.isCompleted ? <CheckCircle2 size={40} className="group-hover:text-white" /> : <Icon size={40} className="group-hover:text-white" />}
               </div>
             </div>
 
@@ -90,7 +90,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
                 </div>
               </div>
 
-              <h3 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+              <h3 className={`text-2xl md:text-3xl font-black tracking-tight text-slate-900 ${theme.hoverText} transition-colors`}>
                 {mainTitle}
               </h3>
 
@@ -103,7 +103,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
 
             {/* Action */}
             <div className="shrink-0 w-full md:w-auto">
-              <Button className={`w-full md:w-48 h-14 rounded-2xl font-black text-sm gap-2 transition-all shadow-xl ${lesson.isCompleted ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : `${theme.button} ${theme.shadow}`}`}>
+              <Button className={`w-full md:w-48 h-14 rounded-2xl font-black text-sm gap-2 transition-all shadow-xl ${theme.button} ${theme.shadow}`}>
                 {lesson.isCompleted ? 'REVOIR' : 'COMMENCER'}
                 <ChevronRight size={20} />
               </Button>
