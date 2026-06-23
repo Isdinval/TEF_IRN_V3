@@ -28,7 +28,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
 
   if (user) {
     const [progressData, exercisesData] = await Promise.all([
-      getParcoursProgress(user.id, parcours.level, parcours.category, supabase),
+      getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
       getRecommendedExercises(user.id, parcours.level, parcours.category, supabase)
     ]);
     progress = progressData;

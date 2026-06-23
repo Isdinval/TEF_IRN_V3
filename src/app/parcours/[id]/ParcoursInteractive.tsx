@@ -52,7 +52,7 @@ export default function ParcoursInteractive({
     setIsRefreshing(true);
     try {
       const [progressData, exercisesData] = await Promise.all([
-        getParcoursProgress(user.id, parcours.level, parcours.category, supabase),
+        getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
         getRecommendedExercises(user.id, parcours.level, parcours.category, supabase)
       ]);
       setProgress(progressData);

@@ -19,7 +19,8 @@ export default async function ParcoursPage() {
 
   if (user) {
     const progressPromises = allParcours.map(async (p) => {
-      const prog = await getParcoursProgress(user.id, p.level, p.category, supabase);
+      // Pass p.id to getParcoursProgress to fetch status and started_at
+      const prog = await getParcoursProgress(user.id, p.level, p.category, p.id, supabase);
       return { ...p, progress: prog };
     });
     parcoursWithProgress = await Promise.all(progressPromises);
