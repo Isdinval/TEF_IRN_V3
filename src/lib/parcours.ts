@@ -17,6 +17,7 @@ export interface ParcoursProgress {
   completed: number;
   percent: number;
   isCompleted: boolean;
+  completedLessons: string[];
   status?: 'not_started' | 'in_progress' | 'completed';
   started_at?: string | null;
 }
@@ -91,6 +92,7 @@ export async function getParcoursProgress(
       completed: 0,
       percent: 0,
       isCompleted: false,
+      completedLessons: [],
       status: userProgress?.status,
       started_at: userProgress?.started_at
     };
@@ -102,6 +104,7 @@ export async function getParcoursProgress(
     completed: 0,
     percent: 0,
     isCompleted: false,
+    completedLessons: [],
     status: userProgress?.status,
     started_at: userProgress?.started_at
   };
@@ -120,12 +123,14 @@ export async function getParcoursProgress(
       completed: 0,
       percent: 0,
       isCompleted: false,
+      completedLessons: [],
       status: userProgress?.status,
       started_at: userProgress?.started_at
     };
   }
 
-  const completed = progress?.length || 0;
+  const completedLessonIds = progress?.map((p: { lesson_id: string }) => p.lesson_id) || [];
+  const completed = completedLessonIds.length;
   const percent = Math.round((completed / total) * 100);
   const isCompleted = completed === total && total > 0;
 
@@ -134,6 +139,7 @@ export async function getParcoursProgress(
     completed,
     percent,
     isCompleted,
+    completedLessons: completedLessonIds,
     status: userProgress?.status,
     started_at: userProgress?.started_at
   };

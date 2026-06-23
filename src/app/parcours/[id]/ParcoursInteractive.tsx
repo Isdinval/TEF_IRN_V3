@@ -66,7 +66,7 @@ export default function ParcoursInteractive({
     }
   };
 
-  const getLessonStatus = (lessonId: string, index: number) => {
+  const getLessonStatus = (lessonId: string, index: number) : 'completed' | 'next' | 'locked' | 'open' => {
     if (!user || !progress) return 'open';
     const isCompleted = progress.completedLessons?.includes(lessonId) || false;
     if (isCompleted) return 'completed';
