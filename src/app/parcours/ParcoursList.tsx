@@ -13,6 +13,52 @@ interface ParcoursWithProgress extends Parcours {
   progress?: ParcoursProgress;
 }
 
+const CATEGORY_THEMES: Record<string, { color: string, bg: string, text: string, gradient: string, border: string }> = {
+  conjugaison: { color: "text-indigo-600", bg: "bg-indigo-50", text: "text-indigo-600", gradient: "from-indigo-500/10", border: "border-indigo-100" },
+  syntaxe: { color: "text-violet-600", bg: "bg-violet-50", text: "text-violet-600", gradient: "from-violet-500/10", border: "border-violet-100" },
+  vocabulaire: { color: "text-amber-600", bg: "bg-amber-50", text: "text-amber-600", gradient: "from-amber-500/10", border: "border-amber-100" },
+  grammaire: { color: "text-emerald-600", bg: "bg-emerald-50", text: "text-emerald-600", gradient: "from-emerald-500/10", border: "border-emerald-100" },
+  default: { color: "text-zinc-600", bg: "bg-zinc-50", text: "text-zinc-600", gradient: "from-zinc-500/10", border: "border-zinc-100" },
+};
+
+function CircularProgress({ percent, colorClass }: { percent: number, colorClass: string }) {
+  const radius = 28;
+  const strokeWidth = 4;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percent / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center w-16 h-16 shrink-0">
+      <svg className="w-full h-full -rotate-90">
+        <circle
+          cx="32"
+          cy="32"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          className="text-zinc-100"
+        />
+        <motion.circle
+          cx="32"
+          cy="32"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className={colorClass}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="absolute text-[11px] font-black text-zinc-900">{Math.round(percent)}%</span>
+    </div>
+  );
+}
+
 export default function ParcoursList({
   allParcours,
   user
@@ -33,88 +79,86 @@ export default function ParcoursList({
       <section className="mb-16">
         <div className="flex items-center gap-4 mb-8 px-1">
           <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-            <Badge className={`${badgeColor} rounded-full px-4 py-1`}>{title}</Badge>
+            <Badge className={`${badgeColor} rounded-full px-4 py-1 border-none shadow-lg shadow-zinc-100`}>{title}</Badge>
             <span className="text-zinc-300">•</span>
             {items.length} parcours
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((p) => (
-            <motion.div
-              key={p.id}
-              whileHover={{ y: -5 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card
-                className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 hover:shadow-2xl transition-all h-full"
-                onClick={() => router.push(`/parcours/${p.id}`)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {items.map((p) => {
+            const theme = CATEGORY_THEMES[p.category?.toLowerCase()] || CATEGORY_THEMES.default;
+            const isCompleted = p.progress?.percent === 100;
+
+            return (
+              <motion.div
+                key={p.id}
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.2 }}
               >
-                <CardContent className="p-8 flex flex-col h-full">
-                  <div className="mb-6 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-zinc-200">
-                          {p.level}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-zinc-200 capitalize">
-                          {p.category}
-                        </Badge>
-                      </div>
-                      <h3 className="text-xl font-black text-zinc-900 capitalize leading-tight">
-                        {p.category} {p.level}
-                      </h3>
-                    </div>
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0
-                      ${p.progress?.percent === 100 ? 'bg-emerald-50 text-emerald-600' :
-                        p.progress?.percent && p.progress.percent > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-zinc-50 text-zinc-400'}`}>
-                      {p.progress?.percent === 100 ? <Trophy size={24} /> : <BookOpen size={24} />}
-                    </div>
-                  </div>
+                <Card
+                  className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 hover:shadow-2xl transition-all h-full relative"
+                  onClick={() => router.push(`/parcours/${p.id}`)}
+                >
+                  <div className={`absolute top-0 left-0 w-full h-24 bg-gradient-to-b ${theme.gradient} to-transparent opacity-50`} />
 
-                  <p className="text-sm text-zinc-500 font-medium mb-8 flex-1 line-clamp-2 italic">
-                    {p.objective}
-                  </p>
-
-                  {showProgress && p.progress ? (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          <span>Progression</span>
-                          <span>{p.progress.percent}%</span>
+                  <CardContent className="p-8 flex flex-col h-full relative z-10">
+                    <div className="mb-6 flex items-start justify-between">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={`text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-sm ${theme.border}`}>
+                            {p.level}
+                          </Badge>
+                          <Badge variant="outline" className={`text-[10px] font-black uppercase tracking-widest capitalize bg-white/80 backdrop-blur-sm ${theme.border}`}>
+                            {p.category}
+                          </Badge>
                         </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${p.progress.percent}%` }}
-                            className={`h-full ${p.progress.percent === 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`}
-                          />
-                        </div>
+                        <h3 className="text-2xl font-black text-zinc-900 capitalize leading-tight">
+                          {p.category} {p.level}
+                        </h3>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2">
-                        <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">
-                          {p.progress.completed}/{p.progress.total} leçons
+                      {showProgress && p.progress ? (
+                        <CircularProgress percent={p.progress.percent} colorClass={isCompleted ? "text-emerald-500" : theme.color} />
+                      ) : (
+                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${theme.bg} ${theme.text}`}>
+                          <BookOpen size={28} />
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-sm text-zinc-500 font-medium mb-8 flex-1 line-clamp-3 italic leading-relaxed">
+                      {p.objective}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-zinc-50 mt-auto">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">
+                          {showProgress && p.progress ? "Progression" : "Nouveau programme"}
                         </span>
-                        <div className="text-indigo-600 group-hover:translate-x-1 transition-transform">
-                          <ChevronRight size={20} />
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-zinc-900 uppercase">
+                            {showProgress && p.progress ? `${p.progress.completed}/${p.progress.total} leçons` : "Prêt à commencer"}
+                          </span>
+                          {isCompleted && (
+                            <div className="relative flex items-center justify-center">
+                              <Trophy size={16} className="text-amber-500 animate-pulse" />
+                              <div className="absolute inset-0 bg-amber-400 blur-md opacity-20 animate-pulse" />
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-50">
-                      <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">
-                        Découvrir le programme
-                      </span>
-                      <div className="text-indigo-600 group-hover:translate-x-1 transition-transform">
-                        <ChevronRight size={20} />
+
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all ${isCompleted ? "bg-emerald-500 text-white" : `${theme.bg} ${theme.text} group-hover:px-6`}`}>
+                        <span>{isCompleted ? "Complété" : "Continuer"}</span>
+                        <ChevronRight size={16} />
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
     );
