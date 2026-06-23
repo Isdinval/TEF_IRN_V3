@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Clock, ArrowRight, BookOpen, PenTool, Pen, Mic, MessageSquare, BookText } from "lucide-react";
+import { CheckCircle2, Clock, ArrowRight, BookOpen, PenTool, Pen, Mic, MessageSquare, BookText, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Lesson } from "@/lib/parcours";
 import { splitTitle, parseObjective } from "@/lib/lessons";
@@ -15,6 +16,14 @@ interface LessonCardProps {
   category: string;
   parcoursId: string;
 }
+
+const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, button: string, shadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
+};
 
 const categoryIcons: Record<string, any> = {
   conjugaison: BookText,
@@ -41,6 +50,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
   const lessonUrl = `/lessons/${lesson.id}?parcoursId=${parcoursId}`;
   const difficulty = lesson.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
+  const theme = CATEGORY_THEMES[category.toLowerCase()] || CATEGORY_THEMES.default;
 
   return (
     <motion.div
@@ -48,35 +58,29 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
       <Link href={lessonUrl}>
-        <Card className={`group relative overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-[2.5rem] ${
-          lesson.isCompleted ? 'bg-emerald-50/40' : isNext ? 'bg-white ring-2 ring-indigo-600 ring-offset-4' : 'bg-white'
-        }`}>
-          {isNext && (
-            <div className="absolute top-0 right-0">
-              <div className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-bl-3xl">
-                À SUIVRE
-              </div>
-            </div>
-          )}
+        <Card className={`group relative overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2.5rem] bg-white border-t-4 ${theme.border} ${isNext ? 'ring-2 ring-indigo-600 ring-offset-4' : ''}`}>
+          <div className="absolute top-0 right-8 text-9xl font-black text-zinc-100/40 pointer-events-none z-0 select-none">
+            {index + 1}
+          </div>
 
-          <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-10">
-            {/* Number and Icon */}
-            <div className="relative shrink-0">
+          <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 md:gap-10 relative z-10">
+            {/* Icon */}
+            <div className="shrink-0">
               <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center text-3xl transition-transform duration-500 group-hover:rotate-6 ${
                 lesson.isCompleted
                 ? 'bg-emerald-100 text-emerald-600'
-                : isNext ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-200' : 'bg-zinc-100 text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600'
+                : isNext ? `${theme.button} text-white shadow-2xl ${theme.shadow}` : 'bg-zinc-50 text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600'
               }`}>
-                <Icon size={40} />
-              </div>
-              <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-sm font-black text-slate-400 border border-slate-50">
-                {index + 1}
+                {lesson.isCompleted ? <CheckCircle2 size={40} /> : <Icon size={40} />}
               </div>
             </div>
 
             {/* Info */}
             <div className="flex-1 text-center md:text-left space-y-4">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                <Badge className={`${theme.bg} ${theme.text} rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border-none`}>
+                  {category}
+                </Badge>
                 <Badge variant="secondary" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
                   {difficulty}
                 </Badge>
@@ -86,7 +90,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
                 </div>
               </div>
 
-              <h3 className={`text-2xl md:text-3xl font-black tracking-tight ${lesson.isCompleted ? 'text-slate-600' : 'text-slate-900'}`}>
+              <h3 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
                 {mainTitle}
               </h3>
 
@@ -97,22 +101,12 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
               )}
             </div>
 
-            {/* Status / Action */}
-            <div className="shrink-0 flex items-center gap-6">
-              {lesson.isCompleted ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
-                    <CheckCircle2 size={32} />
-                  </div>
-                  <span className="text-xs font-black uppercase tracking-widest text-emerald-600">Complété</span>
-                </div>
-              ) : (
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                  isNext ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-zinc-50 text-zinc-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:shadow-indigo-50'
-                }`}>
-                  <ArrowRight size={32} className={`transition-transform duration-300 ${isNext ? 'group-hover:translate-x-2' : ''}`} />
-                </div>
-              )}
+            {/* Action */}
+            <div className="shrink-0 w-full md:w-auto">
+              <Button className={`w-full md:w-48 h-14 rounded-2xl font-black text-sm gap-2 transition-all shadow-xl ${lesson.isCompleted ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : `${theme.button} ${theme.shadow}`}`}>
+                {lesson.isCompleted ? 'REVOIR' : 'COMMENCER'}
+                <ChevronRight size={20} />
+              </Button>
             </div>
           </CardContent>
         </Card>

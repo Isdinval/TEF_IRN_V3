@@ -13,12 +13,12 @@ interface ParcoursWithProgress extends Parcours {
   progress?: ParcoursProgress;
 }
 
-const CATEGORY_THEMES: Record<string, { color: string, bg: string, text: string, gradient: string, border: string }> = {
-  conjugaison: { color: "text-indigo-600", bg: "bg-indigo-50", text: "text-indigo-600", gradient: "from-indigo-500/10", border: "border-indigo-100" },
-  syntaxe: { color: "text-violet-600", bg: "bg-violet-50", text: "text-violet-600", gradient: "from-violet-500/10", border: "border-violet-100" },
-  vocabulaire: { color: "text-amber-600", bg: "bg-amber-50", text: "text-amber-600", gradient: "from-amber-500/10", border: "border-amber-100" },
-  grammaire: { color: "text-emerald-600", bg: "bg-emerald-50", text: "text-emerald-600", gradient: "from-emerald-500/10", border: "border-emerald-100" },
-  default: { color: "text-zinc-600", bg: "bg-zinc-50", text: "text-zinc-600", gradient: "from-zinc-500/10", border: "border-zinc-100" },
+const CATEGORY_THEMES: Record<string, { color: string, bg: string, text: string, gradient: string, border: string, accentBorder: string, button: string, shadow: string }> = {
+  conjugaison: { color: "text-blue-600", bg: "bg-blue-50", text: "text-blue-600", gradient: "from-blue-500/20", border: "border-blue-100", accentBorder: "border-blue-500", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { color: "text-violet-600", bg: "bg-violet-50", text: "text-violet-600", gradient: "from-violet-500/20", border: "border-violet-100", accentBorder: "border-violet-500", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { color: "text-amber-600", bg: "bg-amber-50", text: "text-amber-600", gradient: "from-amber-500/20", border: "border-amber-100", accentBorder: "border-amber-500", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { color: "text-emerald-600", bg: "bg-emerald-50", text: "text-emerald-600", gradient: "from-emerald-500/20", border: "border-emerald-100", accentBorder: "border-emerald-500", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { color: "text-zinc-600", bg: "bg-zinc-50", text: "text-zinc-600", gradient: "from-zinc-500/20", border: "border-zinc-100", accentBorder: "border-zinc-500", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
 function CircularProgress({ percent, colorClass }: { percent: number, colorClass: string }) {
@@ -97,10 +97,10 @@ export default function ParcoursList({
                 transition={{ duration: 0.2 }}
               >
                 <Card
-                  className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 hover:shadow-2xl transition-all h-full relative"
+                  className={`group cursor-pointer overflow-hidden rounded-[2.5rem] bg-white shadow-xl shadow-zinc-200/50 hover:shadow-2xl transition-all h-full relative border-none border-t-4 ${theme.accentBorder}`}
                   onClick={() => router.push(`/parcours/${p.id}`)}
                 >
-                  <div className={`absolute top-0 left-0 w-full h-24 bg-gradient-to-b ${theme.gradient} to-transparent opacity-50`} />
+                  <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b ${theme.gradient} to-transparent opacity-60`} />
 
                   <CardContent className="p-8 flex flex-col h-full relative z-10">
                     <div className="mb-6 flex items-start justify-between">
@@ -149,7 +149,7 @@ export default function ParcoursList({
                         </div>
                       </div>
 
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all ${isCompleted ? "bg-emerald-500 text-white" : `${theme.bg} ${theme.text} group-hover:px-6`}`}>
+                      <div className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-lg ${isCompleted ? "bg-emerald-500 text-white shadow-emerald-100" : `${theme.button} text-white ${theme.shadow}`}`}>
                         <span>{isCompleted ? "Complété" : "Continuer"}</span>
                         <ChevronRight size={16} />
                       </div>
