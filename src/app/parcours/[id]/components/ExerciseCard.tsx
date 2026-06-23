@@ -4,10 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, Sparkles } from "lucide-react";
+import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Exercise } from "@/lib/parcours";
-import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
 
 interface ExerciseCardProps {
   exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean };
@@ -35,9 +34,17 @@ const typeLabels: Record<string, string> = {
 };
 
 const difficultyColors: Record<string, string> = {
-  facile: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  moyen: "bg-amber-50 text-amber-600 border-amber-100",
-  difficile: "bg-rose-50 text-rose-600 border-rose-100",
+  facile: "bg-emerald-100 text-emerald-700",
+  moyen: "bg-amber-100 text-amber-700",
+  difficile: "bg-rose-100 text-rose-700",
+};
+
+const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, button: string, shadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
 export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps) {
@@ -45,6 +52,7 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
   const isCompleted = exercise.is_completed;
+  const theme = CATEGORY_THEMES[exercise.category?.toLowerCase()] || CATEGORY_THEMES.default;
 
   const getExerciseUrl = () => {
     const params = new URLSearchParams({
@@ -76,30 +84,34 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
       whileHover={{ y: -6, scale: 1.02 }}
       className="h-full"
     >
-      <Card className={`group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2rem] flex flex-col ${completionCardStyles(!!isCompleted)}`}>
+      <Card className={`group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2.5rem] flex flex-col bg-white border-t-4 ${theme.border}`}>
         <CardContent className="p-8 flex flex-col h-full gap-5">
           <div className="flex justify-between items-start">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-lg ${isCompleted ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-emerald-200' : 'bg-zinc-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-indigo-200'}`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-lg ${isCompleted ? 'bg-emerald-50 text-emerald-600' : `${theme.bg} ${theme.text}`}`}>
               <Icon size={28} />
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Badge variant="outline" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border ${difficultyColor}`}>
+              <Badge variant="outline" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
                 {difficulty}
               </Badge>
-              {isCompleted && <CompletionBadge />}
+              {isCompleted && (
+                <Badge className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider">
+                  Complété
+                </Badge>
+              )}
             </div>
           </div>
 
           <div className="space-y-3 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70">
+              <span className={`text-[10px] font-black uppercase tracking-widest ${theme.text}`}>
                 {typeLabels[exercise.type] || exercise.type}
               </span>
               {exercise.is_ai_generated && (
                 <Badge className="bg-amber-50 text-amber-600 border-none text-[8px] font-black px-1.5 h-4 uppercase">AI</Badge>
               )}
             </div>
-            <h4 className="text-lg font-black text-slate-900 leading-tight">
+            <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">
               {exercise.instructions}
             </h4>
             {exercise.tags && exercise.tags.length > 0 && (
@@ -120,32 +132,17 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
                 <div className="flex items-center gap-1">
                    <div className="flex items-center">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <motion.div
+                      <Star
                         key={s}
-                        initial={false}
-                        animate={{
-                          scale: (exercise.success_rate! / 20) >= s ? [1, 1.3, 1] : 1,
-                        }}
-                      >
-                        <Star
-                          size={10}
-                          fill={(exercise.success_rate! / 20) >= s ? "#f59e0b" : "transparent"}
-                          className={(exercise.success_rate! / 20) >= s ? "text-amber-500" : "text-zinc-200"}
-                        />
-                      </motion.div>
+                        size={10}
+                        fill={(exercise.success_rate! / 20) >= s ? "#f59e0b" : "transparent"}
+                        className={(exercise.success_rate! / 20) >= s ? "text-amber-500" : "text-zinc-200"}
+                      />
                     ))}
                   </div>
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={exercise.success_rate}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="text-xs font-black text-slate-600 ml-1"
-                    >
-                      {exercise.success_rate}%
-                    </motion.span>
-                  </AnimatePresence>
+                  <span className="text-xs font-black text-slate-600 ml-1">
+                    {exercise.success_rate}%
+                  </span>
                 </div>
               </div>
             ) : (
@@ -157,24 +154,16 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
 
             <div className="flex flex-col items-end gap-1.5">
                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tentatives</span>
-               <AnimatePresence mode="wait">
-                <motion.span
-                  key={exercise.attempts_count}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.2 }}
-                  className="text-xs font-black text-slate-600"
-                >
-                  {exercise.attempts_count || 0}
-                </motion.span>
-               </AnimatePresence>
+               <span className="text-xs font-black text-slate-600">
+                {exercise.attempts_count || 0}
+               </span>
             </div>
           </div>
 
           <Link href={getExerciseUrl()} className="w-full">
-            <Button className={`w-full h-14 rounded-2xl text-white font-black transition-all active:scale-95 shadow-xl ${isCompleted ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 group-hover:shadow-emerald-200' : 'bg-zinc-900 hover:bg-indigo-600 shadow-zinc-100 group-hover:shadow-indigo-100'}`}>
+            <Button className={`w-full h-14 rounded-2xl font-black transition-all active:scale-95 shadow-xl ${isCompleted ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100' : `${theme.button} ${theme.shadow}`}`}>
               {isCompleted ? 'REVOIR' : 'COMMENCER'}
-              <Play size={18} className="ml-2" fill="currentColor" />
+              <ChevronRight size={18} className="ml-2" />
             </Button>
           </Link>
         </CardContent>

@@ -17,6 +17,14 @@ interface Lesson {
   order_index: number;
 }
 
+const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, button: string, shadow: string }> = {
+  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
+  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
+  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
+  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
+  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
+};
+
 export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
@@ -37,7 +45,85 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
     return matchesLevel && matchesCategory;
   });
 
-  const nextLesson = filteredLessons.find(lesson => !completedLessonIds.has(lesson.id)) || filteredLessons[0];
+  const terminées = filteredLessons.filter(l => completedLessonIds.has(l.id));
+  const àDécouvrir = filteredLessons.filter(l => !completedLessonIds.has(l.id));
+
+  const nextLesson = àDécouvrir[0] || filteredLessons[0];
+
+  const renderLessonCard = (lesson: Lesson) => {
+    const { main: mainTitle } = splitTitle(lesson.title);
+    const { description } = parseObjective(lesson.objective);
+    const isCompleted = completedLessonIds.has(lesson.id);
+    const colors = CATEGORY_COLORS[lesson.category.toLowerCase()] || CATEGORY_COLORS.default;
+
+    return (
+      <Link href={`/lessons/${lesson.id}`} key={lesson.id} className="h-full">
+        <Card className={`relative border-none shadow-xl shadow-zinc-100/70 hover:-translate-y-1 hover:shadow-violet-200 transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden flex flex-col bg-white border-t-4 ${colors.border}`}>
+          <div className="absolute top-0 right-4 text-8xl font-black text-zinc-100/40 pointer-events-none z-0 select-none">
+            {lesson.order_index}
+          </div>
+
+          <CardHeader className="relative z-10 flex flex-row items-start justify-between space-y-0 p-7 pb-4">
+            <div className="space-y-3 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className={`${colors.bg} ${colors.text} hover:bg-opacity-80 text-[10px] px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider`}>
+                  {lesson.category}
+                </Badge>
+                {isCompleted && (
+                  <Badge className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider">
+                    Terminé
+                  </Badge>
+                )}
+              </div>
+              <CardTitle className="text-xl font-black group-hover:text-violet-600 transition-colors leading-tight">
+                {mainTitle}
+              </CardTitle>
+            </div>
+            <div className={`p-3 rounded-2xl transition-colors shrink-0 ${isCompleted ? "bg-emerald-100" : "bg-zinc-50"} group-hover:bg-violet-600 relative z-10`}>
+              {isCompleted ? (
+                <CheckCircle2 size={20} className="text-emerald-600 group-hover:text-white" />
+              ) : (
+                <BookOpen size={20} className="text-zinc-400 group-hover:text-white" />
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="relative z-10 px-7 pb-6 flex-1">
+            {description && (
+              <p className="text-sm font-medium text-zinc-500 line-clamp-3 leading-relaxed italic">
+                {description}
+              </p>
+            )}
+          </CardContent>
+
+          <div className="mt-auto p-4 pt-0 relative z-10">
+            <Button className={`w-full h-12 rounded-xl font-black text-sm gap-2 transition-all shadow-lg ${isCompleted ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-100" : `${colors.button} ${colors.shadow}`}`}>
+              {isCompleted ? "Revoir la leçon" : "Commencer la leçon"}
+              <ChevronRight size={18} />
+            </Button>
+          </div>
+        </Card>
+      </Link>
+    );
+  };
+
+  const renderSection = (title: string, items: Lesson[], badgeBg: string) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-6">
+          <Badge className={`${badgeBg} text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-zinc-100`}>
+            {title}
+          </Badge>
+          <div className="h-px bg-zinc-100 flex-1" />
+          <span className="text-xs font-black text-zinc-300 uppercase tracking-widest">{items.length} leçon{items.length > 1 ? "s" : ""}</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map(renderLessonCard)}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-5xl mx-auto p-8 pt-16 min-h-screen">
@@ -149,7 +235,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
       </div>
 
       <section>
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
           <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
             <Badge className="bg-violet-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevel}</Badge>
             <span className="text-zinc-400">•</span>
@@ -161,49 +247,10 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
         </div>
 
         {filteredLessons.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredLessons.map((lesson) => {
-              const { main: mainTitle } = splitTitle(lesson.title);
-              const { description } = parseObjective(lesson.objective);
-              const isCompleted = completedLessonIds.has(lesson.id);
-              return (
-                <Link href={`/lessons/${lesson.id}`} key={lesson.id}>
-                  <Card className={`border-none shadow-xl shadow-zinc-100/70 hover:shadow-violet-100 transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden ${isCompleted ? "bg-gradient-to-br from-violet-50 to-white" : "bg-white"}`}>
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 p-7">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg font-black group-hover:text-violet-600 transition-colors">
-                            {mainTitle}
-                          </CardTitle>
-                          {isCompleted && (
-                            <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] h-5 px-2 rounded-full border-none font-bold uppercase tracking-wider">
-                              Terminé
-                            </Badge>
-                          )}
-                        </div>
-                        <CardDescription className="capitalize font-bold text-zinc-400">
-                          {lesson.category}
-                        </CardDescription>
-                        {description && (
-                          <p className="text-xs font-medium text-zinc-500 line-clamp-2 leading-relaxed">
-                            {description}
-                          </p>
-                        )}
-                      </div>
-                      <div className={`p-3 rounded-2xl transition-colors ${isCompleted ? "bg-emerald-50" : "bg-violet-50"} group-hover:bg-violet-600`}>
-                        <BookOpen size={18} className={`transition-colors group-hover:text-white ${isCompleted ? "text-emerald-600" : "text-violet-600"}`} />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-7 pb-7">
-                      <div className="flex items-center justify-between text-sm font-black text-violet-600 group-hover:translate-x-1 transition-transform">
-                        {isCompleted ? "Revoir la leçon" : "Commencer la leçon"} <ChevronRight size={16} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
+          <>
+            {renderSection("À découvrir", àDécouvrir, "bg-indigo-600")}
+            {renderSection("Terminées", terminées, "bg-emerald-500")}
+          </>
         ) : (
           <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-10 text-center bg-zinc-50">
             <CheckCircle2 className="mx-auto mb-4 text-zinc-300" size={40} />
