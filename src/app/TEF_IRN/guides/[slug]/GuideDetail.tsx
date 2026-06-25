@@ -53,7 +53,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
             >
               <Share2 size={18} />
             </button>
-            <Link href="/login">
+            <Link href="/TEF_IRN/login">
               <Button size="sm" className="bg-blue-600 font-black rounded-xl shadow-lg shadow-blue-100 px-6">
                 S'entraîner
               </Button>
@@ -94,7 +94,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
                   M
                 </div>
                 <div>
-                   <p className="text-xs font-black text-zinc-900 uppercase tracking-widest">Par Maitris</p>
+                   <p className="text-xs font-black text-zinc-900 uppercase tracking-widest">Par LlamaKusi</p>
                    <p className="text-xs text-slate-400 font-medium">Expert TEF IRN</p>
                 </div>
              </div>
@@ -132,7 +132,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
               Ce guide vous a donné les bases. Notre IA vous donne l'expérience nécessaire pour réussir le jour J.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/login" className="w-full sm:w-auto">
+              <Link href="/TEF_IRN/login" className="w-full sm:w-auto">
                 <Button size="lg" className="h-16 px-10 bg-white text-blue-600 hover:bg-blue-50 font-black text-xl rounded-2xl shadow-xl w-full">
                   Démarrer l'entraînement
                 </Button>
@@ -151,7 +151,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
            <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-100">M</div>
               <div>
-                <p className="font-black text-zinc-900 tracking-tight">Maitris</p>
+                <p className="font-black text-zinc-900 tracking-tight">LlamaKusi</p>
                 <p className="text-xs text-slate-400 font-medium">Le coach IA pour votre réussite au TEF IRN.</p>
               </div>
            </div>

@@ -23,7 +23,7 @@ const testimonials = [
   {
     name: "Elena",
     location: "Bordeaux",
-    text: "Maitris est 10 fois plus moderne que ce qu'on trouve ailleurs. La correction écrite instantanée change tout pour la confiance.",
+    text: "LlamaKusi est 10 fois plus moderne que ce qu'on trouve ailleurs. La correction écrite instantanée change tout pour la confiance.",
     score: "Niveau B2",
     avatar: "E"
   }

@@ -80,9 +80,9 @@ export default function FreeExercisePage() {
       <div className="max-w-2xl w-full">
         {/* Header */}
         <header className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 font-black text-2xl text-indigo-600 mb-6 group">
+          <Link href="/TEF_IRN" className="inline-flex items-center gap-2 font-black text-2xl text-indigo-600 mb-6 group">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">M</div>
-            Maitris
+            LlamaKusi
           </Link>
           <h1 className="text-4xl font-black tracking-tight text-zinc-900">Mini-Test TEF IRN</h1>
           {!isFinished && (

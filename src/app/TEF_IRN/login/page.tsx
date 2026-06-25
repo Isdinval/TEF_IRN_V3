@@ -235,9 +235,9 @@ export default function AuthPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/3" />
 
-        <Link href="/" className="relative z-10 flex items-center gap-3 text-white">
+        <Link href="/TEF_IRN" className="relative z-10 flex items-center gap-3 text-white">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black">M</div>
-          <span className="font-bold text-xl tracking-tighter">Maitris</span>
+          <span className="font-bold text-xl tracking-tighter">LlamaKusi</span>
         </Link>
 
         <div className="relative z-10 flex flex-col items-center">
@@ -258,7 +258,7 @@ export default function AuthPage() {
               {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
             </div>
             <p className="text-white text-xl font-bold leading-relaxed mb-6 italic">
-              "Maitris a été la clé de mon succès. L'expression orale m'inquiétait, mais l'IA m'a coaché jusqu'au niveau B2 en quelques semaines seulement."
+              "LlamaKusi a été la clé de mon succès. L'expression orale m'inquiétait, mais l'IA m'a coaché jusqu'au niveau B2 en quelques semaines seulement."
             </p>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-lg">JD</div>
@@ -279,9 +279,9 @@ export default function AuthPage() {
 
         {/* Mobile Logo */}
         <div className="mt-12 lg:hidden">
-          <Link href="/" className="flex items-center gap-2 text-zinc-300 font-bold opacity-50 grayscale hover:opacity-100 transition-opacity">
+          <Link href="/TEF_IRN" className="flex items-center gap-2 text-zinc-300 font-bold opacity-50 grayscale hover:opacity-100 transition-opacity">
             <div className="w-6 h-6 bg-zinc-200 rounded-md flex items-center justify-center text-zinc-900 text-[10px]">M</div>
-            <span className="text-sm">Maitris</span>
+            <span className="text-sm">LlamaKusi</span>
           </Link>
         </div>
       </div>

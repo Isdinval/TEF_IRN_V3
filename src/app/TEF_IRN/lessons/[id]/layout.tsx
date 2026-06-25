@@ -11,11 +11,11 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
     .single();
 
   if (!lesson) {
-    return { title: 'Leçon non trouvée - Maitris' };
+    return { title: 'Leçon non trouvée - LlamaKusi' };
   }
 
   return {
-    title: `${lesson.title} - Maitris TEF IRN`,
+    title: `${lesson.title} - LlamaKusi TEF IRN`,
     description: lesson.objective?.slice(0, 160),
     openGraph: {
       title: lesson.title,

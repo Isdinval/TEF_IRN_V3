@@ -1,4 +1,4 @@
--- Seed Data pour Maitris
+-- Seed Data pour LlamaKusi
 
 -- 1. LESSONS
 INSERT INTO lessons (id, title, content, level, category, order_index) VALUES

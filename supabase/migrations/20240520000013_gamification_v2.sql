@@ -1,4 +1,4 @@
--- Système de Ligues pour Maitris
+-- Système de Ligues pour LlamaKusi
 
 CREATE TABLE leagues (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

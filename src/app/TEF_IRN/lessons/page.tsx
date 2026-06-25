@@ -3,7 +3,7 @@ import LessonsList from './LessonsList';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Catalogue des Leçons TEF IRN - Maitris',
+  title: 'Catalogue des Leçons TEF IRN - LlamaKusi',
   description: 'Découvrez toutes nos leçons interactives pour réussir votre examen TEF IRN : compréhension, expression, grammaire et vocabulaire.',
 };
 

@@ -1,6 +1,6 @@
-# Fonctionnalités Produit - Maitris
+# Fonctionnalités Produit - LlamaKusi
 
-Maitris propose un écosystème complet pour préparer le TEF IRN, articulé autour de modules pédagogiques interactifs.
+LlamaKusi propose un écosystème complet pour préparer le TEF IRN, articulé autour de modules pédagogiques interactifs.
 
 ## 1. Expression Écrite (Written Coach)
 L'outil phare pour maîtriser l'écriture.
@@ -39,4 +39,4 @@ Pour rester motivé sur la durée.
 - **Profil Personnalisé** : Historique complet des corrections et progression globale.
 
 ---
-© 2025 Maitris AI
+© 2025 LlamaKusi AI

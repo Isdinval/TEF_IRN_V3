@@ -1,6 +1,6 @@
-# Base de Données & SRS - Maitris
+# Base de Données & SRS - LlamaKusi
 
-Maitris utilise Supabase pour la persistance des données et implémente un système de répétition espacée (SRS) pour optimiser l'apprentissage.
+LlamaKusi utilise Supabase pour la persistance des données et implémente un système de répétition espacée (SRS) pour optimiser l'apprentissage.
 
 ## 1. Schéma de la Base de Données
 
@@ -16,7 +16,7 @@ Le schéma est structuré pour supporter la progression utilisateur et le conten
 
 ## 2. Spaced Repetition System (SRS)
 
-Maitris implémente une variante de l'algorithme **SM-2** pour déterminer la date idéale de révision.
+LlamaKusi implémente une variante de l'algorithme **SM-2** pour déterminer la date idéale de révision.
 
 ### Paramètres SRS
 - **Ease Factor (Facilité)** : Un multiplicateur (défaut: 2.5) qui ajuste l'intervalle selon la difficulté ressentie.
@@ -35,4 +35,4 @@ Le code source de cette logique se trouve dans `src/lib/srs-engine.ts`.
 Le système analyse les 5 derniers échecs de l'utilisateur pour identifier la catégorie la plus problématique. Il recherche ensuite dans la table `lessons` une ressource non encore complétée pour cette catégorie et l'ajoute à la table `recommendations`.
 
 ---
-© 2025 Maitris AI
+© 2025 LlamaKusi AI

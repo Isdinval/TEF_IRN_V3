@@ -1,11 +1,11 @@
-# Maitris — Coach IA pour le TEF IRN 🇫🇷
+# LlamaKusi — Coach IA pour le TEF IRN 🇫🇷
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase)](https://supabase.com/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai)](https://openai.com/)
 
-**Maitris** est une plateforme SaaS de pointe conçue pour accompagner les candidats à la réussite du **TEF IRN** (Test d'Évaluation de Français pour l'Intégration, la Résidence et la Nationalité). Alliant intelligence artificielle et pédagogie moderne, Maitris offre une expérience d'apprentissage immersive et personnalisée.
+**LlamaKusi** est une plateforme SaaS de pointe conçue pour accompagner les candidats à la réussite du **TEF IRN** (Test d'Évaluation de Français pour l'Intégration, la Résidence et la Nationalité). Alliant intelligence artificielle et pédagogie moderne, LlamaKusi offre une expérience d'apprentissage immersive et personnalisée.
 
 ---
 
@@ -66,4 +66,4 @@ Pour plus de détails, explorez notre dossier `docs/` :
 
 ## ⚖️ Licence
 
-Projet privé — tous droits réservés © 2025 Maitris AI.
+Projet privé — tous droits réservés © 2025 LlamaKusi AI.

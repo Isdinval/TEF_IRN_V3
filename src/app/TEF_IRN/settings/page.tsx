@@ -141,7 +141,7 @@ function SettingsContent() {
     <div className="max-w-6xl mx-auto p-4 md:p-10 space-y-8 selection:bg-indigo-100 min-h-screen">
       {/* Breadcrumb Section */}
       <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-        <Link href="/dashboard" className="hover:text-indigo-600 transition-colors flex items-center gap-1">
+        <Link href="/TEF_IRN/dashboard" className="hover:text-indigo-600 transition-colors flex items-center gap-1">
           <Home size={12} />
         </Link>
         <ChevronRight size={12} />
@@ -784,7 +784,7 @@ function SecuritySection({ supabase, showToast }: any) {
             className="bg-red-50 text-red-600 hover:bg-red-100 font-black h-16 px-10 rounded-[1.5rem] w-full md:w-auto text-lg transition-all"
             onClick={() => setDeleteConfirmOpen(true)}
           >
-            Supprimer mon compte Maitris définitivement
+            Supprimer mon compte LlamaKusi définitivement
           </Button>
         </CardFooter>
       </Card>

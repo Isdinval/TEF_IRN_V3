@@ -35,7 +35,7 @@ export function ParcoursTopBar() {
               </h4>
             </div>
 
-            <Link href={`/parcours/${activeParcours.id}`}>
+            <Link href={`/TEF_IRN/parcours/${activeParcours.id}`}>
               <Button variant="ghost" size="sm" className="h-8 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                 <ArrowLeft size={14} className="mr-1" /> Retour
               </Button>

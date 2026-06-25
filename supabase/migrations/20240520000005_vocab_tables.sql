@@ -1,4 +1,4 @@
--- Table Vocabulaire pour Maitris
+-- Table Vocabulaire pour LlamaKusi
 CREATE TABLE vocabulary (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     word TEXT NOT NULL,

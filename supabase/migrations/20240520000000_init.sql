@@ -1,4 +1,4 @@
--- Schema Database pour Maitris (TEF IRN AI Coach)
+-- Schema Database pour LlamaKusi (TEF IRN AI Coach)
 
 -- Extension pour la recherche vectorielle (RAG future)
 CREATE EXTENSION IF NOT EXISTS pgvector;

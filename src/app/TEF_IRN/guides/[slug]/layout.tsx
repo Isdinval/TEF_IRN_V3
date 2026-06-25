@@ -12,12 +12,12 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
   if (!guide) {
     return {
-      title: 'Guide non trouvé - Maitris',
+      title: 'Guide non trouvé - LlamaKusi',
     };
   }
 
   return {
-    title: `${guide.title} | Guide TEF IRN - Maitris`,
+    title: `${guide.title} | Guide TEF IRN - LlamaKusi`,
     description: guide.description,
     openGraph: {
       title: guide.title,

@@ -26,12 +26,12 @@ export function AppLayout({ children, initialUser }: { children: React.ReactNode
   }, []);
 
   // Public routes check
-  const publicRoutes = ["/", "/login", "/guides", "/pricing", "/exercice-gratuit", "/placement-test", "/onboarding"];
+  const publicRoutes = ["/TEF_IRN", "/TEF_IRN/login", "/TEF_IRN/guides", "/TEF_IRN/pricing", "/TEF_IRN/exercice-gratuit", "/TEF_IRN/placement-test", "/TEF_IRN/onboarding"];
   const isPublic = pathname ? publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/")) : true;
-  const isExam = pathname === "/exam";
+  const isExam = pathname === "/TEF_IRN/exam";
 
   // Public content (Lessons & Parcours hub)
-  const isPublicContent = pathname?.startsWith('/lessons') || pathname?.startsWith('/parcours');
+  const isPublicContent = pathname?.startsWith('/TEF_IRN/lessons') || pathname?.startsWith('/TEF_IRN/parcours');
 
   // Case 1: Pure public landing/auth routes or Exam
   if (isPublic || isExam) {
@@ -45,10 +45,10 @@ export function AppLayout({ children, initialUser }: { children: React.ReactNode
         <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
           <Logo />
           <div className="flex items-center gap-4">
-            <Link href="/login">
+            <Link href="/TEF_IRN/login">
               <Button variant="ghost" className="font-bold">Connexion</Button>
             </Link>
-            <Link href="/login?mode=signup">
+            <Link href="/TEF_IRN/login?mode=signup">
               <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
                 Essai Gratuit
               </Button>
@@ -72,7 +72,7 @@ export function AppLayout({ children, initialUser }: { children: React.ReactNode
           {children}
         </main>
         {/* Only mount Coach on client side, if not on /coach page AND if user is logged in */}
-        {mounted && user && pathname !== "/coach" && (
+        {mounted && user && pathname !== "/TEF_IRN/coach" && (
            <div className="hidden md:block">
              <Suspense fallback={null}>
                <ChatCoach mode="popup" />

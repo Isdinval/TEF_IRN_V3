@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(0, 38, 84); // French blue
-    doc.text('MAITRIS - COACH IA TEF IRN', margin, y);
+    doc.text('LLAMAKUSI - COACH IA TEF IRN', margin, y);
     y += 10;
 
     doc.setFontSize(14);

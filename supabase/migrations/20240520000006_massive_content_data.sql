@@ -1,4 +1,4 @@
--- Expansion Massive du Contenu - Maitris TEF IRN
+-- Expansion Massive du Contenu - LlamaKusi TEF IRN
 
 -- 1. LEÇONS COMPLÈTES (Markdown)
 INSERT INTO lessons (title, content, level, category, order_index) VALUES

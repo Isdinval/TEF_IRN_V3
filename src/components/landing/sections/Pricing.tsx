@@ -150,7 +150,7 @@ export function Pricing() {
         >
            <p className="flex items-center justify-center gap-2">
              <Sparkles size={16} className="text-brand-gold" />
-             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/login" className="text-brand-blue underline">Connectez-vous ici</Link>.
+             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/TEF_IRN/login" className="text-brand-blue underline">Connectez-vous ici</Link>.
            </p>
         </motion.div>
       </div>

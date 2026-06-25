@@ -9,12 +9,12 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
 
   if (!parcours) {
     return {
-      title: 'Parcours non trouvé - Maitris',
+      title: 'Parcours non trouvé - LlamaKusi',
     };
   }
 
   return {
-    title: `${parcours.category} ${parcours.level} - Maitris TEF IRN`,
+    title: `${parcours.category} ${parcours.level} - LlamaKusi TEF IRN`,
     description: parcours.objective,
   };
 }

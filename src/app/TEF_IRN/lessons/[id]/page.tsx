@@ -42,7 +42,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
             educationalLevel: lesson.level,
             provider: {
               '@type': 'Organization',
-              name: 'Maitris',
+              name: 'LlamaKusi',
             },
           }),
         }}

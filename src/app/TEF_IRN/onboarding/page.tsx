@@ -36,7 +36,7 @@ export default function Onboarding() {
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2 font-black text-3xl text-indigo-600">
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">M</div>
-            Maitris
+            LlamaKusi
           </div>
         </div>
 

@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     question: "Puis-je l'utiliser sur mon téléphone ?",
-    answer: "Oui, Maitris est 'Mobile-First'. Bien que ce ne soit pas une application à télécharger sur l'App Store, le site est optimisé pour fonctionner parfaitement sur tous les navigateurs mobiles (iOS et Android)."
+    answer: "Oui, LlamaKusi est 'Mobile-First'. Bien que ce ne soit pas une application à télécharger sur l'App Store, le site est optimisé pour fonctionner parfaitement sur tous les navigateurs mobiles (iOS et Android)."
   }
 ];
 

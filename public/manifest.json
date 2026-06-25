@@ -1,6 +1,6 @@
 {
-  "name": "Maitris - TEF IRN AI Coach",
-  "short_name": "Maitris",
+  "name": "LlamaKusi - TEF IRN AI Coach",
+  "short_name": "LlamaKusi",
   "description": "Préparez votre TEF IRN avec l'IA.",
   "start_url": "/dashboard",
   "display": "standalone",

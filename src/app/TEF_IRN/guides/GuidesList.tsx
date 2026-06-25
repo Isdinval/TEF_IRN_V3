@@ -234,7 +234,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {initialGuides.slice(0, 4).map(guide => (
-              <Link href={`/guides/${guide.slug}`} key={guide.id} className="group">
+              <Link href={`/TEF_IRN/guides/${guide.slug}`} key={guide.id} className="group">
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 hover:border-blue-600 transition-all group-hover:shadow-lg group-hover:shadow-blue-50">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -268,10 +268,10 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
               Passez de la théorie <br />à la <span className="text-blue-500">pratique</span>.
             </h2>
             <p className="text-zinc-400 text-xl font-medium leading-relaxed">
-              Les guides vous donnent la carte, Maitris vous donne les jambes. Entraînez-vous avec notre coach IA et obtenez votre certificat TEF IRN.
+              Les guides vous donnent la carte, LlamaKusi vous donne les jambes. Entraînez-vous avec notre coach IA et obtenez votre certificat TEF IRN.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-6 pt-4">
-              <Link href="/login">
+              <Link href="/TEF_IRN/login">
                 <Button size="lg" className="h-16 px-12 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl rounded-2xl shadow-xl shadow-blue-600/20 transition-all active:scale-95">
                   S'entraîner maintenant
                 </Button>

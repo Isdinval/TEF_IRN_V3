@@ -1,6 +1,6 @@
-# Guide de Contribution - Maitris
+# Guide de Contribution - LlamaKusi
 
-Ce document définit les standards et procédures pour contribuer au projet Maitris.
+Ce document définit les standards et procédures pour contribuer au projet LlamaKusi.
 
 ## 1. Environnement de Développement
 
@@ -44,4 +44,4 @@ Si vous modifiez le schéma :
 3. Testez votre SQL localement avant de le commiter.
 
 ---
-Merci de contribuer à Maitris ! 🚀
+Merci de contribuer à LlamaKusi ! 🚀

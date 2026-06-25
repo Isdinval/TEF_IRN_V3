@@ -146,7 +146,7 @@ export default function ParcoursInteractive({
               </div>
             ) : (
               <div className="shrink-0">
-                <Link href="/login">
+                <Link href="/TEF_IRN/login">
                   <Button
                     size="lg"
                     className="h-20 px-10 rounded-[2rem] bg-brand-blue text-white font-black text-xl hover:bg-brand-blue/90 shadow-2xl shadow-brand-blue/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -202,7 +202,7 @@ export default function ParcoursInteractive({
                   <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Suivez votre progression</h3>
                   <p className="text-slate-500 font-medium max-w-sm">Connectez-vous pour enregistrer votre avancée et accéder aux exercices personnalisés.</p>
                 </div>
-                <Link href="/login">
+                <Link href="/TEF_IRN/login">
                   <Button className="rounded-full px-8 bg-indigo-600 hover:bg-indigo-700 font-bold">
                     Se connecter
                   </Button>
