@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { createClient } from "@/lib/supabase-server";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default async function RootLayout({
             </ParcoursWrapper>
           </QueryProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
