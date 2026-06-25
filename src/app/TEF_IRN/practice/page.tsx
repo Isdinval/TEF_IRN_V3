@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import ExerciseCard from "@/app/parcours/[id]/components/ExerciseCard";
+import ExerciseCard from "@/app/TEF_IRN/parcours/[id]/components/ExerciseCard";
 import { Exercise } from "@/lib/parcours";
 import { Badge } from '@/components/ui/badge';
 import {

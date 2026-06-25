@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import ExerciseCard from "@/app/parcours/[id]/components/ExerciseCard";
+import ExerciseCard from "@/app/TEF_IRN/parcours/[id]/components/ExerciseCard";
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
