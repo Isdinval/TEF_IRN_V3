@@ -3,20 +3,17 @@ import { createClient } from '@/lib/supabase-server';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
-  const baseUrl = 'https://tef-irn-v3.vercel.app';
+  const baseUrl = 'https://tef-irn-v3.vercel.app/TEF_IRN';
 
-  // Fetch all lessons
   const { data: lessons } = await supabase
     .from('lessons')
     .select('id, created_at, updated_at');
 
-  // Fetch all published guides
   const { data: guides } = await supabase
     .from('guides')
     .select('slug, created_at, updated_at')
     .eq('is_published', true);
 
-  // Fetch all parcours
   const { data: parcours } = await supabase
     .from('parcours')
     .select('id, created_at');

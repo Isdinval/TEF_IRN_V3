@@ -12,7 +12,7 @@ export function VocabProgress({ stats }: { stats: any }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center px-1">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
-          <BookMarked size={14} className="text-indigo-500" /> Maîtrise Vocabulaire
+          <BookMarked size={14} className="text-indigo-500" /> LlamaKusie Vocabulaire
         </h3>
         <div
           onClick={() => router.push('/vocab')}

@@ -317,7 +317,7 @@ export function VocabCoachContent() {
                   VOTRE <span className="text-emerald-600">LEXIQUE</span> <br />IMMÉDIAT.
                 </h1>
                 <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed italic">
-                  Maîtrisez les mots essentiels du TEF IRN grâce à notre méthode de mémorisation active en 3 étapes.
+                  LlamaKusiez les mots essentiels du TEF IRN grâce à notre méthode de mémorisation active en 3 étapes.
                 </p>
               </header>
 
@@ -469,7 +469,7 @@ export function VocabCoachContent() {
 
           <div className="hidden md:flex items-center gap-4">
              <div className="text-right">
-                <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest italic">Maitrise</div>
+                <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest italic">LlamaKusie</div>
                 <div className="text-lg font-black text-zinc-900">{sessionMasteredCount} / {cards.length}</div>
              </div>
              <div className="h-10 w-px bg-zinc-200 mx-2" />
@@ -667,7 +667,7 @@ export function VocabCoachContent() {
                       onClick={() => handleStepComplete(validationResult?.isValid || false)}
                       className={`w-full h-16 text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-red-500'}`}
                     >
-                      {validationResult?.isValid ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" />
+                      {validationResult?.isValid ? "LlamaKusié !" : "Reprendre du début"} <ArrowRight className="ml-2" />
                     </Button>
                   </div>
                 )}

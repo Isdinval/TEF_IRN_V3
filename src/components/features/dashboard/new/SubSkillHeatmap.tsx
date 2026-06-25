@@ -18,7 +18,7 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
       <CardContent className="p-8">
         <div className="mb-8 space-y-1">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500 flex items-center gap-2">
-            <Layers size={14} /> Maîtrise par thématique
+            <Layers size={14} /> LlamaKusie par thématique
           </h3>
           <p className="text-xl font-black text-zinc-900 tracking-tight">Analyse des sous-compétences</p>
         </div>

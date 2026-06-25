@@ -219,7 +219,7 @@ export default function ParcoursInteractive({
               </div>
               <div className="text-6xl font-black tracking-tighter mb-2">{parcours.level}</div>
               <p className="text-sm font-bold opacity-70 leading-tight">
-                Maîtrisez les concepts essentiels du {parcours.category}
+                LlamaKusiez les concepts essentiels du {parcours.category}
               </p>
             </div>
             <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-700">

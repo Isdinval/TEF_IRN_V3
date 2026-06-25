@@ -18,7 +18,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Maîtris - Coach IA TEF IRN",
+  title: "LlamaKusi - Coach IA TEF IRN / Examens de français",
   description: "Réussissez votre TEF IRN avec un coach personnel alimenté par l'IA.",
 };
 

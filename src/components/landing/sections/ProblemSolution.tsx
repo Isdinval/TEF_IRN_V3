@@ -73,7 +73,7 @@ export function ProblemSolution() {
 
              <div className="w-1/2 h-full p-8 md:p-16 flex flex-col justify-center gap-8 bg-gradient-to-br from-brand-blue to-brand-purple text-white">
                 <div className="space-y-4">
-                   <h3 className="text-3xl font-black">L&apos;Expérience Maîtris</h3>
+                   <h3 className="text-3xl font-black">L&apos;Expérience LlamaKusi</h3>
                    <p className="text-brand-blue-100 font-medium italic text-indigo-100">&quot;L&apos;IA vous corrige en temps réel, comme un prof.&quot;</p>
                 </div>
                 <div className="space-y-6">
