@@ -5,8 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { Guide } from '@/types/guides';
-import Checklist from './Checklist';
-import QuickQuiz from './QuickQuiz';
 
 interface GuideContentProps {
   guide: Guide;
@@ -88,38 +86,6 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
           <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
             {guide.content || ''}
           </ReactMarkdown>
-
-          {/* Interactive components at the end for demonstration if requested */}
-          <div className="mt-16 pt-16 border-t border-slate-100 space-y-12">
-            <Checklist
-              title="Ma Checklist de préparation"
-              items={[
-                "J'ai vérifié ma date d'examen",
-                "J'ai préparé ma pièce d'identité",
-                "J'ai pratiqué au moins 30min d'expression orale",
-                "J'ai revu le vocabulaire de la vie quotidienne"
-              ]}
-              guideId={guide.id}
-            />
-
-            <QuickQuiz
-              title="Testez vos connaissances"
-              questions={[
-                {
-                  question: "Quelle est la durée de l'épreuve de compréhension écrite ?",
-                  options: ["15 minutes", "30 minutes", "45 minutes", "1 heure"],
-                  correctAnswer: 1,
-                  explanation: "L'épreuve de compréhension écrite dure 30 minutes et comporte 20 questions."
-                },
-                {
-                  question: "Quel niveau est requis pour la demande de naturalisation ?",
-                  options: ["A1", "A2", "B1", "B2"],
-                  correctAnswer: 2,
-                  explanation: "Le niveau B1 est obligatoire pour la demande de naturalisation française."
-                }
-              ]}
-            />
-          </div>
         </motion.article>
       </div>
     </div>
