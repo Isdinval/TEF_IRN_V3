@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/TEF_IRN/lessons', '/TEF_IRN/guides', '/TEF_IRN/parcours'],
+        allow: ['/TEF_IRN/lessons', '/TEF_IRN/guides', '/TEF_IRN/TEF_IRN/parcours'],
         disallow: [
           '/TEF_IRN/dashboard',
           '/TEF_IRN/practice',
@@ -13,13 +13,13 @@ export default function robots(): MetadataRoute.Robots {
           '/TEF_IRN/grammar-check',
           '/TEF_IRN/vocab',
           '/TEF_IRN/oral',
-          '/TEF_IRN/coach',
+          '/TEF_IRN/TEF_IRN/coach',
           '/TEF_IRN/correction',
           '/api',
           '/admin',
-          '/TEF_IRN/login',
-          '/TEF_IRN/onboarding',
-          '/TEF_IRN/settings',
+          '/TEF_IRN/TEF_IRN/login',
+          '/TEF_IRN/TEF_IRN/onboarding',
+          '/TEF_IRN/TEF_IRN/settings',
           '/TEF_IRN/profile',
           '/TEF_IRN/lessons/*/complete',
         ],

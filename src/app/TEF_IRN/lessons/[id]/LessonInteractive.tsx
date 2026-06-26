@@ -107,7 +107,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await saveResults();
-      router.push(`/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`);
     }
   };
 
@@ -122,7 +122,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await awardXpOnly();
-      router.push(`/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`);
     }
   };
 
@@ -292,7 +292,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                 <header className="space-y-8">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <Link href="/lessons">
+                      <Link href="/TEF_IRN/lessons">
                         <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white shadow-sm border border-transparent hover:border-zinc-100 transition-all">
                           <ArrowLeft size={20} />
                         </Button>
@@ -364,7 +364,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                       </p>
                    </div>
                    <div className="flex flex-col gap-4 max-w-xs mx-auto pt-6">
-                      <Link href={`/login?redirect=/lessons/${lesson.id}`}>
+                      <Link href={`/TEF_IRN/login?redirect=/TEF_IRN/lessons/${lesson.id}`}>
                         <Button size="lg" className="w-full h-16 text-lg font-black rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100">
                           Se connecter
                         </Button>
@@ -457,7 +457,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                   <p className="text-4xl font-black text-amber-500">+100 XP</p>
                 </div>
               </div>
-              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/lessons/${lesson.id}/complete`)}>
+              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`)}>
                 Retour au Dashboard
               </Button>
             </motion.div>

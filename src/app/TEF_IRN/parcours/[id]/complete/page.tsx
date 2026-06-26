@@ -127,7 +127,7 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ id:
           className="space-y-6"
         >
           <Button
-            onClick={() => router.push("/parcours")}
+            onClick={() => router.push("/TEF_IRN/parcours")}
             size="lg"
             className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
           >
@@ -136,7 +136,7 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ id:
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/TEF_IRN/dashboard")}
               variant="outline"
               size="lg"
               className="flex-1 h-16 rounded-2xl border-2 border-zinc-200 font-black uppercase text-xs tracking-widest hover:bg-zinc-100 transition-all"

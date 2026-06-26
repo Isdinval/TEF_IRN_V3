@@ -69,7 +69,7 @@ export default function FreeExercisePage() {
     // Simulation of lead capture
     setTimeout(() => {
       setLoading(false);
-      window.location.href = `/login?email=${encodeURIComponent(email)}&from=test_gratuit`;
+      window.location.href = `/TEF_IRN/login?email=${encodeURIComponent(email)}&from=test_gratuit`;
     }, 1500);
   };
 

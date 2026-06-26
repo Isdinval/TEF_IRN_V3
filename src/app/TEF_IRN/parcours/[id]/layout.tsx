@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
-import { getParcoursById } from '@/lib/parcours';
+import { getParcoursById } from '@/lib/TEF_IRN/parcours';
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await props.params;

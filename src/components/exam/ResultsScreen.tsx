@@ -155,7 +155,7 @@ export function ResultsScreen() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/TEF_IRN/dashboard'}
             className="flex-1 h-16 rounded-2xl border-2 border-[#002654] text-[#002654] hover:bg-slate-50 text-lg font-black"
           >
             <Home className="mr-2" size={20} /> Retour au tableau de bord

@@ -8,11 +8,11 @@ export function QuickAccess() {
   const router = useRouter();
 
   const links = [
-    { label: "Parcours", icon: GraduationCap, href: "/parcours", color: "bg-indigo-50 text-indigo-600", hover: "hover:shadow-indigo-100" },
-    { label: "Practice", icon: Dumbbell, href: "/practice", color: "bg-orange-50 text-orange-600", hover: "hover:shadow-orange-100" },
-    { label: "Correction IA", icon: Highlighter, href: "/correction", color: "bg-violet-50 text-violet-600", hover: "hover:shadow-violet-100" },
-    { label: "Vocabulaire", icon: Languages, href: "/vocab", color: "bg-emerald-50 text-emerald-600", hover: "hover:shadow-emerald-100" },
-    { label: "Examens Blancs", icon: BookOpen, href: "/exam", color: "bg-rose-50 text-rose-600", hover: "hover:shadow-rose-100" },
+    { label: "Parcours", icon: GraduationCap, href: "/TEF_IRN/parcours", color: "bg-indigo-50 text-indigo-600", hover: "hover:shadow-indigo-100" },
+    { label: "Practice", icon: Dumbbell, href: "/TEF_IRN/practice", color: "bg-orange-50 text-orange-600", hover: "hover:shadow-orange-100" },
+    { label: "Correction IA", icon: Highlighter, href: "/TEF_IRN/correction", color: "bg-violet-50 text-violet-600", hover: "hover:shadow-violet-100" },
+    { label: "Vocabulaire", icon: Languages, href: "/TEF_IRN/vocab", color: "bg-emerald-50 text-emerald-600", hover: "hover:shadow-emerald-100" },
+    { label: "Examens Blancs", icon: BookOpen, href: "/TEF_IRN/exam", color: "bg-rose-50 text-rose-600", hover: "hover:shadow-rose-100" },
   ];
 
   return (

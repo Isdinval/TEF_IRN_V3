@@ -276,7 +276,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                   S'entraîner maintenant
                 </Button>
               </Link>
-              <Link href="/pricing">
+              <Link href="/TEF_IRN/pricing">
                 <Button size="lg" variant="outline" className="h-16 px-12 border-white/20 hover:bg-white/5 text-white font-bold text-lg rounded-2xl">
                   Découvrir le Premium
                 </Button>

@@ -63,7 +63,7 @@ export default function VocabCard({ item }: VocabCardProps) {
             </div>
           )}
 
-          <Link href={`/vocab/${item.id}`} className="w-full mt-auto">
+          <Link href={`/TEF_IRN/vocab/${item.id}`} className="w-full mt-auto">
             <Button className={`w-full h-14 rounded-2xl text-white font-black transition-all active:scale-95 shadow-xl ${isCompleted ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 group-hover:shadow-emerald-200' : 'bg-zinc-900 hover:bg-emerald-600 shadow-zinc-100 group-hover:shadow-emerald-100'}`}>
               {isCompleted ? 'REVOIR' : 'APPRENDRE'}
               <ArrowRight size={18} className="ml-2" />

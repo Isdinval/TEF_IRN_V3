@@ -33,7 +33,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
       {/* Navigation Sticky Bar */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-50 px-6 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/guides" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition-colors">
+          <Link href="/TEF_IRN/guides" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition-colors">
             <ArrowLeft size={18} />
             <span className="text-sm">Ressources</span>
           </Link>
@@ -137,7 +137,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
                   Démarrer l'entraînement
                 </Button>
               </Link>
-              <Link href="/practice" className="w-full sm:w-auto">
+              <Link href="/TEF_IRN/practice" className="w-full sm:w-auto">
                 <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
                   Voir les exercices <ExternalLink size={18} className="ml-2" />
                 </Button>
@@ -155,7 +155,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
                 <p className="text-xs text-slate-400 font-medium">Le coach IA pour votre réussite au TEF IRN.</p>
               </div>
            </div>
-           <Link href="/guides" className="text-blue-600 font-black flex items-center gap-2 hover:translate-x-1 transition-transform">
+           <Link href="/TEF_IRN/guides" className="text-blue-600 font-black flex items-center gap-2 hover:translate-x-1 transition-transform">
              Voir tous les guides <ChevronRight size={18} />
            </Link>
         </div>

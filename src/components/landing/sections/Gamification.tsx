@@ -66,7 +66,7 @@ export function Gamification() {
 
                  <div className="space-y-4">
                     <div className="flex justify-between font-black text-sm uppercase tracking-widest">
-                       <span>LlamaKusie Vocabulaire</span>
+                       <span>Maîtrise Vocabulaire</span>
                        <span className="text-brand-gold">450 / 1500 mots</span>
                     </div>
                     <div className="flex flex-wrap gap-3">

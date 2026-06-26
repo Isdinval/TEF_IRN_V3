@@ -37,7 +37,7 @@ export default function CorrectionHistoryPage() {
   const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      router.push("/login");
+      router.push("/TEF_IRN/login");
       return;
     }
     setUser(user);
@@ -124,9 +124,9 @@ export default function CorrectionHistoryPage() {
     if (level) params.append("level", level);
 
     if (exerciseId) {
-      router.push(`/writing/${exerciseId}?${params.toString()}`);
+      router.push(`/TEF_IRN/writing/${exerciseId}?${params.toString()}`);
     } else {
-      router.push(`/writing?${params.toString()}`);
+      router.push(`/TEF_IRN/writing?${params.toString()}`);
     }
   };
 
@@ -191,7 +191,7 @@ export default function CorrectionHistoryPage() {
                     Analysez vos performances, identifiez vos erreurs récurrentes et progressez vers votre certification TEF IRN.
                   </p>
                 </div>
-                <Link href="/writing">
+                <Link href="/TEF_IRN/writing">
                   <Button className="h-16 rounded-[2rem] bg-zinc-900 px-8 font-black text-white shadow-2xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
                     Nouvelle rédaction
                     <Sparkles className="ml-3 group-hover:rotate-12 transition-transform" size={20} />

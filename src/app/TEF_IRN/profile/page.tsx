@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function ProfileRedirect() {
-  redirect("/settings?section=profile");
+  redirect("/TEF_IRN/settings?section=profile");
 }

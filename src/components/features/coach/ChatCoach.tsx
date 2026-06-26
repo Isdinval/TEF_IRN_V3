@@ -13,11 +13,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
 const SUGGESTIONS_BY_PATH: Record<string, { label: string; prompt: string; icon: any }[]> = {
-  '/dashboard': [
+  '/TEF_IRN/dashboard': [
     { label: "Comment réviser aujourd'hui ?", prompt: "Quelles sont les meilleures révisions à faire aujourd'hui selon mon profil ?", icon: Sparkles },
     { label: "Mes points faibles", prompt: "Quelles sont mes erreurs les plus fréquentes et comment les corriger ?", icon: AlertCircle }
   ],
-  '/lessons': [
+  '/TEF_IRN/lessons': [
     { label: "Explique-moi cette leçon", prompt: "Peux-tu m'expliquer les points clés de cette leçon de manière simple ?", icon: BookOpen },
     { label: "Donne-moi un exemple", prompt: "Donne-moi 3 exemples concrets d'utilisation de ce point de grammaire.", icon: GraduationCap }
   ],

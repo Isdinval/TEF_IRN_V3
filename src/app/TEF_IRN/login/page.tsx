@@ -91,7 +91,7 @@ function AuthForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push("/dashboard");
+        router.push("/TEF_IRN/dashboard");
       }
     } catch (error: any) {
       alert(error.message);

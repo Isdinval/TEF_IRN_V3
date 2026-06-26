@@ -51,7 +51,7 @@ export const CorrectionList = ({
         <p className="text-zinc-500 max-w-sm mb-8 font-medium">
           Vous n'avez pas encore de corrections correspondant à vos critères de recherche.
         </p>
-        <Link href="/writing">
+        <Link href="/TEF_IRN/writing">
           <Button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-white shadow-xl shadow-indigo-100">
             Commencer une rédaction
           </Button>

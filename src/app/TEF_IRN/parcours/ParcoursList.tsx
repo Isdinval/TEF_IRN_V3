@@ -102,7 +102,7 @@ export default function ParcoursList({
               >
                 <Card
                   className={`group cursor-pointer overflow-hidden rounded-[2.5rem] bg-white shadow-xl shadow-zinc-200/50 hover:shadow-2xl transition-all h-full relative border-none border-t-4 ${theme.accentBorder}`}
-                  onClick={() => router.push(`/parcours/${p.id}`)}
+                  onClick={() => router.push(`/TEF_IRN/parcours/${p.id}`)}
                 >
                   <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b ${theme.gradient} to-transparent opacity-60`} />
 

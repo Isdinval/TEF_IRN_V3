@@ -15,10 +15,10 @@ export function RecommendationCard({ type, reason, referenceId }: Recommendation
 
   const getTargetUrl = () => {
     switch (type) {
-      case 'lesson': return `/lessons/${referenceId}`;
-      case 'exercise': return '/practice';
-      case 'review': return '/practice';
-      default: return '/practice';
+      case 'lesson': return `/TEF_IRN/TEF_IRN/lessons/${referenceId}`;
+      case 'exercise': return '/TEF_IRN/practice';
+      case 'review': return '/TEF_IRN/practice';
+      default: return '/TEF_IRN/practice';
     }
   };
 
@@ -30,7 +30,7 @@ export function RecommendationCard({ type, reason, referenceId }: Recommendation
         </div>
         <div className="space-y-4">
           <h3 className="text-lg font-black leading-tight text-zinc-900">
-            {type === 'lesson' ? 'LlamaKusier une nouvelle leçon' : 'Renforcer vos acquis'}
+            {type === 'lesson' ? 'Maîtriser une nouvelle leçon' : 'Renforcer vos acquis'}
           </h3>
           <p className="text-sm font-medium italic leading-relaxed text-zinc-500">
             {reason}

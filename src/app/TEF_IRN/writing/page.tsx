@@ -85,7 +85,7 @@ export function WritingCoachContent() {
     if (!text.trim()) return;
     setIsAnalyzing(true);
     try {
-      const response = await fetch("/api/writing/correct", {
+      const response = await fetch("/api/TEF_IRN/writing/correct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -167,7 +167,7 @@ export function WritingCoachContent() {
               <button
                 onClick={() => {
                   if (activeParcours) {
-                    router.push(`/parcours/${activeParcours.id}`);
+                    router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
                   } else {
                     router.back();
                   }

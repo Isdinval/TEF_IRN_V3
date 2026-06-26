@@ -68,13 +68,13 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
       case 'qcm':
       case 'association':
       case 'qcm_centre_entrainement':
-        return `/practice/${exercise.id}?${params.toString()}`;
+        return `/TEF_IRN/practice/${exercise.id}?${params.toString()}`;
       case 'trous':
-        return `/grammar-check/${exercise.id}?${params.toString()}`;
+        return `/TEF_IRN/grammar-check/${exercise.id}?${params.toString()}`;
       case 'ecrit':
-        return `/writing/${exercise.id}?${params.toString()}`;
+        return `/TEF_IRN/writing/${exercise.id}?${params.toString()}`;
       default:
-        return `/practice/${exercise.id}?${params.toString()}`;
+        return `/TEF_IRN/practice/${exercise.id}?${params.toString()}`;
     }
   };
 

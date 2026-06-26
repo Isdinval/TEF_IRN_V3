@@ -42,7 +42,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
     async function fetchData() {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
-      if (!user) { router.replace(`/lessons/${id}`); return; }
+      if (!user) { router.replace(`/TEF_IRN/TEF_IRN/lessons/${id}`); return; }
 
       const { data: currentLesson } = await supabase
         .from('lessons')
@@ -160,7 +160,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
           <div>
             {nextLesson ? (
-              <Link href={`/lessons/${nextLesson.id}`}>
+              <Link href={`/TEF_IRN/TEF_IRN/lessons/${nextLesson.id}`}>
                 <Button
                   size="lg"
                   className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"

@@ -80,7 +80,7 @@ export default function ParcoursInteractive({
     status: getLessonStatus(lesson.id, index)
   }));
 
-  const getLessonUrl = (lessonId: string) => `/lessons/${lessonId}?parcoursId=${parcours.id}`;
+  const getLessonUrl = (lessonId: string) => `/TEF_IRN/TEF_IRN/lessons/${lessonId}?parcoursId=${parcours.id}`;
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
@@ -219,7 +219,7 @@ export default function ParcoursInteractive({
               </div>
               <div className="text-6xl font-black tracking-tighter mb-2">{parcours.level}</div>
               <p className="text-sm font-bold opacity-70 leading-tight">
-                LlamaKusiez les concepts essentiels du {parcours.category}
+                Maîtrisez les concepts essentiels du {parcours.category}
               </p>
             </div>
             <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
@@ -312,7 +312,7 @@ export default function ParcoursInteractive({
                       Accédez à notre guide complet sur la <span className="text-white underline decoration-indigo-500 underline-offset-4 capitalize">{parcours.category} {parcours.level}</span> pour maîtriser toutes les subtilités de l'examen.
                     </p>
                   </div>
-                  <Link href={initialGuideSlug ? `/guides/${initialGuideSlug}` : "/guides"} className="block w-fit">
+                  <Link href={initialGuideSlug ? `/TEF_IRN/guides/${initialGuideSlug}` : "/TEF_IRN/guides"} className="block w-fit">
                     <Button variant="outline" className="h-20 px-12 border-zinc-700 text-white hover:bg-white hover:text-black rounded-[2rem] font-black text-lg transition-all group shadow-2xl">
                       {initialGuideSlug ? "VOIR LE GUIDE COMPLET" : "PARCOURIR LES GUIDES"}
                       <ArrowRight className="ml-3 transition-transform group-hover:translate-x-2" size={24} />

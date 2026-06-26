@@ -19,8 +19,8 @@ export async function POST(req: Request) {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/TEF_IRN/TEF_IRN/dashboard?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/TEF_IRN/TEF_IRN/dashboard?canceled=true`,
       customer_email: user.email,
       metadata: { userId: user.id },
     });

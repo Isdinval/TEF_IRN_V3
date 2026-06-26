@@ -52,7 +52,7 @@ export const FeedbackIA = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/TEF_IRN/dashboard")}
             className="rounded-xl text-[10px] font-black uppercase tracking-widest text-white/50 hover:bg-white/10 hover:text-white transition-all"
           >
             Quitter <ArrowRight size={14} className="ml-2" />

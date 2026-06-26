@@ -78,7 +78,7 @@ function SettingsContent() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/TEF_IRN/login");
   };
 
   const showToast = (msg: string) => {

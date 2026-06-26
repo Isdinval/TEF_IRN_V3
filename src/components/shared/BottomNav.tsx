@@ -9,11 +9,11 @@ export function BottomNav() {
   const pathname = usePathname();
 
   const items = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Parcours", icon: GraduationCap, href: "/parcours" },
-    { label: "Practice", icon: Dumbbell, href: "/practice" },
-    { label: "Vocab", icon: Languages, href: "/vocab" },
-    { label: "Rédaction", icon: PenTool, href: "/writing" },
+    { label: "Dashboard", icon: LayoutDashboard, href: "/TEF_IRN/dashboard" },
+    { label: "Parcours", icon: GraduationCap, href: "/TEF_IRN/parcours" },
+    { label: "Practice", icon: Dumbbell, href: "/TEF_IRN/practice" },
+    { label: "Vocab", icon: Languages, href: "/TEF_IRN/vocab" },
+    { label: "Rédaction", icon: PenTool, href: "/TEF_IRN/writing" },
   ];
 
   const isActive = (href: string) => pathname === href;

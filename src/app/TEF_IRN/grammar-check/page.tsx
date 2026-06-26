@@ -297,7 +297,7 @@ export function GrammarCheckContent() {
                 className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-indigo-600' : 'h-16 bg-zinc-900 text-white'} font-black rounded-2xl text-lg transition-all`}
                 onClick={() => {
                   if (activeParcours) {
-                    router.push(`/parcours/${activeParcours.id}`);
+                    router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
                   } else {
                     setIsStarted(false);
                     setFinished(false);
@@ -446,7 +446,7 @@ export function GrammarCheckContent() {
             <button
               onClick={() => {
                 if (activeParcours) {
-                  router.push(`/parcours/${activeParcours.id}`);
+                  router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
                 } else {
                   setIsStarted(false);
                 }

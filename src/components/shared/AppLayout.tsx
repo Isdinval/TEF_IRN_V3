@@ -26,8 +26,9 @@ export function AppLayout({ children, initialUser }: { children: React.ReactNode
   }, []);
 
   // Public routes check
-  const publicRoutes = ["/TEF_IRN", "/TEF_IRN/login", "/TEF_IRN/guides", "/TEF_IRN/pricing", "/TEF_IRN/exercice-gratuit", "/TEF_IRN/placement-test", "/TEF_IRN/onboarding"];
-  const isPublic = pathname ? publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/")) : true;
+  const publicRoutes = [ "/TEF_IRN/login", "/TEF_IRN/guides", "/TEF_IRN/pricing", "/TEF_IRN/exercice-gratuit", "/TEF_IRN/placement-test", "/TEF_IRN/onboarding"];
+  const isLandingPage = pathname === "/TEF_IRN" || pathname === "/TEF_IRN/";
+  const isPublic = pathname ? (isLandingPage || publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) : true;
   const isExam = pathname === "/TEF_IRN/exam";
 
   // Public content (Lessons & Parcours hub)

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const vocabWords = [
   { word: "La Citoyenneté", translation: "Citizenship", definition: "Qualité de citoyen d'un État, avec ses droits et devoirs.", example: "Obtenir la citoyenneté française est mon objectif.", srs: "4 jours" },
   { word: "La Laïcité", translation: "Secularism", definition: "Principe de séparation de la société civile et de la société religieuse.", example: "La laïcité est un pilier de la République.", srs: "Demain" },
-  { word: "L'Égalité", translation: "Equality", definition: "Fait d'être égal devant la loi, sans distinction.", example: "Liberté, Égalité, Fraternité.", srs: "LlamaKusié" }
+  { word: "L'Égalité", translation: "Equality", definition: "Fait d'être égal devant la loi, sans distinction.", example: "Liberté, Égalité, Fraternité.", srs: "Maîtrisé" }
 ];
 
 export function Vocabulary() {
