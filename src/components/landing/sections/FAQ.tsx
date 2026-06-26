@@ -15,7 +15,7 @@ const faqs = [
     answer: "Cela dépend de votre niveau initial. En moyenne, nos utilisateurs atteignent le niveau B1 en 6 semaines avec une pratique de 20 minutes par jour. Le mode 'Express' permet de se préparer intensivement en 2 semaines."
   },
   {
-    question: "Est-ce que Maîtris couvre les 4 épreuves du TEF IRN ?",
+    question: "Est-ce que LlamaKusi couvre les 4 épreuves du TEF IRN ?",
     answer: "Absolument. Nous couvrons la Compréhension Orale, la Compréhension Écrite, l'Expression Orale (avec feedback audio) et l'Expression Écrite (avec correction détaillée). C'est la seule plateforme complète du marché."
   },
   {
@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     question: "Puis-je l'utiliser sur mon téléphone ?",
-    answer: "Oui, Maitris est 'Mobile-First'. Bien que ce ne soit pas une application à télécharger sur l'App Store, le site est optimisé pour fonctionner parfaitement sur tous les navigateurs mobiles (iOS et Android)."
+    answer: "Oui, LlamaKusi est 'Mobile-First'. Bien que ce ne soit pas une application à télécharger sur l'App Store, le site est optimisé pour fonctionner parfaitement sur tous les navigateurs mobiles (iOS et Android)."
   }
 ];
 

@@ -1,4 +1,4 @@
-# Guide du Coach IA - Maitris TEF IRN
+# Guide du Coach IA - LlamaKusi TEF IRN
 
 Le Coach IA est un chatbot pédagogique conçu pour aider les élèves à préparer le TEF IRN.
 

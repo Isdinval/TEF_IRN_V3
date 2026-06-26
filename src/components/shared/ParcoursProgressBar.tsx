@@ -17,11 +17,11 @@ export function ParcoursProgressBar({ percent, className, showLabel = false }: P
   let barColor = "bg-indigo-600";
   if (percent === 100) {
     barColor = "bg-emerald-500";
-  } else if (pathname.includes("/practice")) {
+  } else if (pathname.includes("/TEF_IRN/practice")) {
     barColor = "bg-rose-600 shadow-[0_0_10px_rgba(225,29,72,0.3)]";
-  } else if (pathname.includes("/grammar-check")) {
+  } else if (pathname.includes("/TEF_IRN/grammar-check")) {
     barColor = "bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]";
-  } else if (pathname.includes("/vocab")) {
+  } else if (pathname.includes("/TEF_IRN/vocab")) {
     barColor = "bg-emerald-600 shadow-[0_0_10px_rgba(5,150,105,0.3)]";
   } else {
     barColor = "bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.3)]";

@@ -46,7 +46,7 @@ export function VideoModal({ isOpen, onClose }: VideoModalProps) {
                      </div>
                      <h3 className="text-3xl font-black mb-4 text-slate-900 dark:text-white">Démo de l'IA Coach</h3>
                      <p className="text-slate-500 dark:text-slate-400 font-bold max-w-md">
-                        Découvrez comment Maîtris analyse votre expression orale et écrite en quelques secondes.
+                        Découvrez comment LlamaKusi analyse votre expression orale et écrite en quelques secondes.
                      </p>
                      <p className="mt-8 text-xs font-black uppercase tracking-[0.3em] text-brand-gold animate-pulse">
                         Vidéo en cours de production

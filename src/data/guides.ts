@@ -42,7 +42,7 @@ Selon votre objectif, le niveau de français attendu n'est pas le même :
 
 En 2025, l'accent est mis sur la **communication réelle**. Les examinateurs ne cherchent plus seulement à savoir si vous connaissez la grammaire, mais si vous pouvez vous débrouiller dans la vie quotidienne : aller à la mairie, répondre à un mail de voisin, ou discuter avec un collègue.
 
-> **Conseil de Maitris** : Ne révisez pas seulement avec des livres. Pratiquez la production réelle. Notre coach IA est calibré sur ces nouvelles exigences de 2025.
+> **Conseil de LlamaKusi** : Ne révisez pas seulement avec des livres. Pratiquez la production réelle. Notre coach IA est calibré sur ces nouvelles exigences de 2025.
     `
   },
   {
@@ -67,7 +67,7 @@ Vous avez une annonce sous les yeux. Vous disposez de **1 minute de préparation
 2.  **Soyez poli (Vouvoiement)** : C'est un test d'intégration. Le respect des codes sociaux français est noté.
 3.  **Réagissez aux réponses** : Si l'examinateur vous dit que le loyer est de 800€, ne passez pas immédiatement à la question suivante. Dites "D'accord, c'est dans mon budget" ou "C'est un peu cher, est-ce que les charges sont incluses ?".
 
-## Comment Maitris vous aide ?
+## Comment LlamaKusi vous aide ?
 
 Pratiquer seul devant un miroir n'est pas efficace. Notre **Coach IA Oral** joue le rôle de l'examinateur. Il vous répond, vous relance si vous bloquez, et vous donne une correction immédiate sur votre syntaxe et votre prononciation.
 
@@ -100,7 +100,7 @@ Depuis 2020, pour la naturalisation, le niveau **B1** est obligatoire à l'écri
 
 Après l'examen de français, vous serez convoqué pour un entretien. On vous posera des questions sur les symboles de la République (La Marseillaise, la devise, etc.).
 
-> **Le saviez-vous ?** Maitris propose des exercices spécifiques sur la culture française et les questions types de l'entretien de naturalisation dans son plan Premium.
+> **Le saviez-vous ?** LlamaKusi propose des exercices spécifiques sur la culture française et les questions types de l'entretien de naturalisation dans son plan Premium.
 
 [Découvrir les plans Premium](/pricing)
     `
@@ -119,11 +119,11 @@ Préparer le TEF IRN coûte cher : entre l'inscription à l'examen (environ 150-
 
 ## 1. La disponibilité (24h/24)
 
-Un professeur est disponible 1h ou 2h par semaine. Le TEF demande de la régularité. Avec Maitris, vous pouvez pratiquer l'expression orale à 23h ou dans le bus pendant 5 minutes. C'est l'immersion totale à la demande.
+Un professeur est disponible 1h ou 2h par semaine. Le TEF demande de la régularité. Avec LlamaKusi, vous pouvez pratiquer l'expression orale à 23h ou dans le bus pendant 5 minutes. C'est l'immersion totale à la demande.
 
 ## 2. Le coût (Divisé par 10)
 
-Une heure de cours particulier coûte entre 30€ et 50€. Pour le même prix, Maitris vous offre **un mois entier de coaching illimité**, avec des centaines d'exercices et des corrections instantanées.
+Une heure de cours particulier coûte entre 30€ et 50€. Pour le même prix, LlamaKusi vous offre **un mois entier de coaching illimité**, avec des centaines d'exercices et des corrections instantanées.
 
 ## 3. L'absence de jugement
 

@@ -3,26 +3,23 @@ import { createClient } from '@/lib/supabase-server';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
-  const baseUrl = 'https://tef-irn-v3.vercel.app';
+  const baseUrl = 'https://tef-irn-v3.vercel.app/TEF_IRN';
 
-  // Fetch all lessons
   const { data: lessons } = await supabase
     .from('lessons')
     .select('id, created_at, updated_at');
 
-  // Fetch all published guides
   const { data: guides } = await supabase
     .from('guides')
     .select('slug, created_at, updated_at')
     .eq('is_published', true);
 
-  // Fetch all parcours
   const { data: parcours } = await supabase
     .from('parcours')
     .select('id, created_at');
 
   const lessonUrls = (lessons || []).map((lesson: any) => ({
-    url: `${baseUrl}/lessons/${lesson.id}`,
+    url: `${baseUrl}/TEF_IRN/lessons/${lesson.id}`,
     lastModified: new Date(lesson.updated_at || lesson.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -36,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const parcoursUrls = (parcours || []).map((p: any) => ({
-    url: `${baseUrl}/parcours/${p.id}`,
+    url: `${baseUrl}/TEF_IRN/parcours/${p.id}`,
     lastModified: new Date(p.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.8,

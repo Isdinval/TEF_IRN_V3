@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import {
@@ -51,7 +52,7 @@ function SidebarContent() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.push("/login");
+      router.push("/TEF_IRN/login");
     } catch (e) { console.error(e); }
   };
 
@@ -61,15 +62,15 @@ function SidebarContent() {
   };
 
   const menuItems = [
-    { label: "Tableau de bord", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Leçons", icon: BookOpen, href: "/lessons" },
-    { label: "Mes Parcours", icon: Flag, href: "/parcours" },
-    { label: "Orthographe", icon: Zap, href: "/grammar-check" },
-    { label: "Vocabulaire", icon: RotateCcw, href: "/vocab" },
-    { label: "QCM Grammaire/Vocab", icon: Target, href: "/practice" },
-    { label: "Rédaction", icon: PenTool, href: "/writing" },
-    { label: "Expression Orale", icon: Mic, href: "/oral" },
-    { label: "Corrections", icon: History, href: "/correction" },
+    { label: "Tableau de bord", icon: LayoutDashboard, href: "/TEF_IRN/dashboard" },
+    { label: "Leçons", icon: BookOpen, href: "/TEF_IRN/lessons" },
+    { label: "Mes Parcours", icon: Flag, href: "/TEF_IRN/parcours" },
+    { label: "Orthographe", icon: Zap, href: "/TEF_IRN/grammar-check" },
+    { label: "Vocabulaire", icon: RotateCcw, href: "/TEF_IRN/vocab" },
+    { label: "QCM Grammaire/Vocab", icon: Target, href: "/TEF_IRN/practice" },
+    { label: "Rédaction", icon: PenTool, href: "/TEF_IRN/writing" },
+    { label: "Expression Orale", icon: Mic, href: "/TEF_IRN/oral" },
+    { label: "Corrections", icon: History, href: "/TEF_IRN/correction" },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -77,9 +78,16 @@ function SidebarContent() {
   return (
     <div className="w-64 border-r border-zinc-100 bg-white h-screen sticky top-0 flex flex-col selection:bg-indigo-100 shrink-0">
       <div className="p-8">
-        <Link href={getHrefWithContext("/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
-          <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center text-white shadow-xl">M</div>
-          <span>Maitris</span>
+        <Link href={getHrefWithContext("/TEF_IRN/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
+          <div className="relative w-9 h-9 overflow-hidden rounded-xl shadow-xl">
+            <Image
+              src="/logo.png"
+              alt="LlamaKusi Logo"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <span>LlamaKusi</span>
         </Link>
       </div>
 
@@ -100,7 +108,7 @@ function SidebarContent() {
           <div className="flex items-center gap-2 text-indigo-600 uppercase text-[10px] font-black tracking-widest"><Shield size={14} /> {profile?.subscription_tier === 'premium' ? 'Pro' : 'Free'}</div>
         </div>
         <div className="flex flex-col gap-1">
-          <Link href={getHrefWithContext("/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
+          <Link href={getHrefWithContext("/TEF_IRN/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/TEF_IRN/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
           <button onClick={handleSignOut} className="flex items-center gap-3 w-full px-4 py-2 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-all"><LogOut size={16} />Déconnexion</button>
         </div>
       </div>

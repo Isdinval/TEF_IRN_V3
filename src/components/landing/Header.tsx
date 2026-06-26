@@ -48,10 +48,10 @@ export function Header() {
             </Link>
           ))}
           <ThemeToggle />
-          <Link href="/login">
+          <Link href="/TEF_IRN/login">
             <Button variant="ghost" className="font-bold">Connexion</Button>
           </Link>
-          <Link href="/login?mode=signup">
+          <Link href="/TEF_IRN/login?mode=signup">
             <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
               Essai Gratuit
             </Button>
@@ -60,7 +60,7 @@ export function Header() {
 
         {/* Mobile Toggle */}
         <div className="flex md:hidden items-center gap-4">
-          <Link href="/login?mode=signup">
+          <Link href="/TEF_IRN/login?mode=signup">
             <Button size="sm" className="bg-brand-blue text-white font-black rounded-lg text-xs h-9 px-3">
               Essai Gratuit
             </Button>
@@ -94,10 +94,10 @@ export function Header() {
               </Link>
             ))}
             <div className="mt-auto flex flex-col gap-4">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/TEF_IRN/login" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full h-14 rounded-2xl font-black text-lg">Connexion</Button>
               </Link>
-              <Link href="/login?mode=signup" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/TEF_IRN/login?mode=signup" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full h-14 bg-brand-blue text-white rounded-2xl font-black text-lg shadow-xl shadow-brand-blue/20">
                   Commencer gratuitement <ChevronRight className="ml-2" />
                 </Button>

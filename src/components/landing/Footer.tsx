@@ -13,16 +13,16 @@ export function Footer() {
         { name: "Fonctionnalités", href: "#features" },
         { name: "Vocabulaire", href: "#vocab" },
         { name: "Tarifs", href: "#pricing" },
-        { name: "Simulateur TEF", href: "/exam" },
+        { name: "Simulateur TEF", href: "/TEF_IRN/exam" },
       ]
     },
     {
       title: "Ressources",
       links: [
-        { name: "Guides TEF IRN", href: "/guides" },
+        { name: "Guides TEF IRN", href: "/TEF_IRN/guides" },
         { name: "Blog FLE", href: "#" },
         { name: "Centre d'aide", href: "#" },
-        { name: "Test gratuit", href: "/exercice-gratuit" },
+        { name: "Test gratuit", href: "/TEF_IRN/exercice-gratuit" },
       ]
     },
     {
@@ -82,7 +82,7 @@ export function Footer() {
 
         <div className="pt-12 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-slate-400 text-sm font-bold">
-            © {currentYear} SpeakFrance 2026 • Maitris AI. Tous droits réservés.
+            © {currentYear} SpeakFrance 2026 • LlamaKusi AI. Tous droits réservés.
           </div>
           <div className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-[0.2em]">
             <span>Fait avec</span>

@@ -1,4 +1,4 @@
--- Expansion du Seed Data pour Maitris
+-- Expansion du Seed Data pour LlamaKusi
 
 -- 1. NOUVELLES LEÇONS
 INSERT INTO lessons (id, title, content, level, category, order_index) VALUES

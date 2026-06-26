@@ -48,7 +48,7 @@ export function Features() {
               </h2>
            </div>
            <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md font-medium leading-relaxed">
-             Plus qu&apos;une plateforme, Maitris est votre coach personnel qui vous accompagne jusqu&apos;au jour de l&apos;examen.
+             Plus qu&apos;une plateforme, LlamaKusi est votre coach personnel qui vous accompagne jusqu&apos;au jour de l&apos;examen.
            </p>
         </div>
 

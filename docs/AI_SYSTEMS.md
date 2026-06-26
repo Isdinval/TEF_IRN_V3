@@ -1,6 +1,6 @@
-# Systèmes d'Intelligence Artificielle - Maitris
+# Systèmes d'Intelligence Artificielle - LlamaKusi
 
-Maitris intègre l'IA au cœur de l'expérience utilisateur pour transformer l'apprentissage passif en coaching actif.
+LlamaKusi intègre l'IA au cœur de l'expérience utilisateur pour transformer l'apprentissage passif en coaching actif.
 
 ## 1. Correction de l'Expression Écrite
 Le système utilise le modèle `gpt-4o-mini` pour fournir des analyses pédagogiques détaillées.
@@ -15,7 +15,7 @@ Le système utilise le modèle `gpt-4o-mini` pour fournir des analyses pédagogi
 Le prompt système est conçu pour être exigeant mais réaliste par rapport aux niveaux A2/B1/B2, évitant de corriger des nuances de style trop complexes (C1/C2) qui pourraient décourager l'apprenant.
 
 ## 2. Coach Oral (OpenAI Realtime)
-Maitris utilise les capacités multimodales d'OpenAI pour simuler des interactions vocales humaines.
+LlamaKusi utilise les capacités multimodales d'OpenAI pour simuler des interactions vocales humaines.
 
 ### Architecture
 - **WebRTC** : Utilisé pour la communication bidirectionnelle à faible latence entre le navigateur et OpenAI.
@@ -32,4 +32,4 @@ Un moteur intelligent analyse les échecs récents pour guider l'utilisateur.
 - **Optimisation des Tokens** : Utilisation de modèles "mini" pour les tâches de classification et d'analyse textuelle afin de garantir un service réactif et économiquement viable.
 
 ---
-© 2025 Maitris AI
+© 2025 LlamaKusi AI

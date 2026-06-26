@@ -1,4 +1,4 @@
--- Boost de contenu pour Maitris - TEF IRN
+-- Boost de contenu pour LlamaKusi - TEF IRN
 
 -- 1. LEÇONS FONDAMENTALES (A1-B2)
 INSERT INTO lessons (title, content, level, category, order_index) VALUES

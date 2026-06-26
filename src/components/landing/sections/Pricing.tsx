@@ -124,7 +124,7 @@ export function Pricing() {
                    ))}
                 </ul>
 
-                <Link href={plan.name === "Pack Groupe" ? "#contact" : "/login?mode=signup"}>
+                <Link href={plan.name === "Pack Groupe" ? "#contact" : "/TEF_IRN/login?mode=signup"}>
                    <Button
                      className={`w-full h-14 rounded-2xl font-black text-lg transition-all ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100' : 'bg-brand-blue text-white hover:bg-brand-blue/90'}`}
                    >
@@ -150,7 +150,7 @@ export function Pricing() {
         >
            <p className="flex items-center justify-center gap-2">
              <Sparkles size={16} className="text-brand-gold" />
-             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/login" className="text-brand-blue underline">Connectez-vous ici</Link>.
+             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/TEF_IRN/login" className="text-brand-blue underline">Connectez-vous ici</Link>.
            </p>
         </motion.div>
       </div>

@@ -169,9 +169,9 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (next) {
-      router.push(`/lessons/${next.id}?parcoursId=${activeParcours.id}`);
+      router.push(`/TEF_IRN/lessons/${next.id}?parcoursId=${activeParcours.id}`);
     } else {
-      router.push(`/parcours/${activeParcours.id}/complete`);
+      router.push(`/TEF_IRN/parcours/${activeParcours.id}/complete`);
     }
   };
 

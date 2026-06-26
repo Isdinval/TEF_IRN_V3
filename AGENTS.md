@@ -17,7 +17,7 @@
 
 ---
 
-## Projet : Maitris — Coach IA TEF IRN
+## Projet : LlamaKusi — Coach IA TEF IRN
 
 Plateforme SaaS de préparation au **TEF IRN** (Test d'Évaluation de Français pour l'immigration et la nationalité française). L'application propose des exercices oraux et écrits adaptatifs, un coach IA conversationnel, et un suivi de progression.
 

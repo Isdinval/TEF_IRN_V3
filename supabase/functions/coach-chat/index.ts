@@ -69,7 +69,7 @@ serve(async (req) => {
     }
 
     // 3. System Prompt
-    const systemPrompt = `Tu es le Coach Maitris, expert TEF IRN.
+    const systemPrompt = `Tu es le Coach LlamaKusi, expert TEF IRN.
 Utilisateur: ${profile?.full_name || 'Étudiant'} (Niveau: ${profile?.current_level || 'A2'}).
 Erreurs à surveiller: ${recentErrors?.map((e: any) => e.category).join(', ') || 'n/a'}.
 Context TEF: ${knowledgeContext}

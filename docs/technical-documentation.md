@@ -1,6 +1,6 @@
-# Documentation Technique - Maitris
+# Documentation Technique - LlamaKusi
 
-Ce document détaille l'architecture technique et les choix technologiques du projet Maitris.
+Ce document détaille l'architecture technique et les choix technologiques du projet LlamaKusi.
 
 ## 1. Architecture Globale
 Le projet est une application web moderne basée sur **Next.js 15** utilisant l'**App Router**. Il suit une architecture orientée composants, avec une séparation claire entre la logique métier, les services (IA/DB) et l'interface utilisateur.
@@ -29,7 +29,7 @@ src/
 ```
 
 ## 4. Gestion de l'État
-Maitris utilise une approche hybride pour la gestion de l'état :
+LlamaKusi utilise une approche hybride pour la gestion de l'état :
 - **Server State** : Géré par les Server Components de Next.js et Supabase. Les données sont récupérées directement au niveau de la route pour minimiser le JavaScript côté client.
 - **Client Contexts** : Utilisés pour les états complexes et interactifs (ex: `ExamContext` pour la simulation d'examen, `ParcoursContext` pour le suivi du chemin d'apprentissage).
 - **LocalStorage** : Persistance légère pour les sessions d'examen en cours et les préférences utilisateur.

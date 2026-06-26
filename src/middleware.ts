@@ -44,21 +44,21 @@ export async function middleware(request: NextRequest) {
   // Routes protégées : dashboard, practice, writing, etc.
   // /parcours est désormais public (hub SEO)
   const protectedRoutes = [
-    '/dashboard',
-    '/practice',
-    '/writing',
-    '/grammar-check',
-    '/vocab',
-    '/oral',
-    '/coach',
-    '/correction',
-    '/settings',
-    '/profile'
+    '/TEF_IRN/dashboard',
+    '/TEF_IRN/practice',
+    '/TEF_IRN/writing',
+    '/TEF_IRN/grammar-check',
+    '/TEF_IRN/vocab',
+    '/TEF_IRN/oral',
+    '/TEF_IRN/coach',
+    '/TEF_IRN/correction',
+    '/TEF_IRN/settings',
+    '/TEF_IRN/profile'
   ]
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/TEF_IRN/login', request.url))
   }
 
   return response
