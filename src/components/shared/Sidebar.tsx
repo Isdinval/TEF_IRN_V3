@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { useAuth } from "@/components/providers/AuthProvider";
 import {
   BookOpen,
   PenTool,
@@ -29,30 +30,29 @@ function SidebarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const { user } = useAuth();
 
   const parcoursId = searchParams ? searchParams.get("parcoursId") : null;
 
   useEffect(() => {
     async function fetchProfile() {
+      if (!user) return;
       try {
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('full_name, streak_count, subscription_tier')
-            .eq('id', authData.user.id)
-            .single();
-          if (data) setProfile(data);
-        }
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, streak_count, subscription_tier')
+          .eq('id', user.id)
+          .single();
+        if (data) setProfile(data);
       } catch (e) { console.error(e); }
     }
     fetchProfile();
-  }, [supabase]);
+  }, [supabase, user]);
 
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.push("/TEF_IRN/login");
+      router.refresh(); router.push("/TEF_IRN/login");
     } catch (e) { console.error(e); }
   };
 
