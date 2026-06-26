@@ -21,7 +21,7 @@
 
 Plateforme SaaS de préparation au **TEF IRN** (Test d'Évaluation de Français pour l'immigration et la nationalité française). L'application propose des exercices oraux et écrits adaptatifs, un coach IA conversationnel, et un suivi de progression.
 
-**URL de production** : https://tef-irn-v3.vercel.app
+**URL de production** : https://llamakusi.com
 
 ---
 
