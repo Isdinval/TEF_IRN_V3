@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
+import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 
 interface GrammarQuestion {
   difficulty?: string;
@@ -31,10 +33,9 @@ export function GrammarCheckContent() {
   const router = useRouter();
   const supabase = createClient();
   const { activeParcours, nextLesson } = useParcours();
+  const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [isStarted, setIsStarted] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("A2");
-  const [selectedCategory, setSelectedCategory] = useState("Grammaire");
 
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -43,7 +44,6 @@ export function GrammarCheckContent() {
   const [loading, setLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
@@ -56,10 +56,10 @@ export function GrammarCheckContent() {
         .from("exercises")
         .select("*")
         .eq("type", "trous")
-        .eq("level", selectedLevel);
+        .eq("level", filters.level);
 
-      if (selectedCategory !== "Toutes") {
-        query = query.ilike("category", `%${selectedCategory}%`);
+      if (filters.category !== "Toutes") {
+        query = query.ilike("category", `%${filters.category}%`);
       }
 
       const { data: exercises } = await query.limit(20);
@@ -89,7 +89,7 @@ export function GrammarCheckContent() {
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [selectedLevel, selectedCategory, supabase]);
+  }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
     if (!isStarted) {
@@ -99,217 +99,108 @@ export function GrammarCheckContent() {
 
   const startSpecificExercise = useCallback(async (id: string) => {
     setLoading(true);
-    const { data: d } = await supabase
-      .from("exercises")
-      .select("*")
-      .eq("id", id)
+    const { data } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('id', id)
       .single();
 
-    if (d) {
-      const formatted = [{
-        id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-        sentence: d.content.sentence || d.instructions,
-        error_fragment: d.content.error_fragment || "...",
-        correction: d.content.correct_answer || d.content.correct_answers?.[0],
-        explanation: d.content.explanation || "Règle de grammaire standard.",
-        category: d.category,
-        level: d.level
-      }];
-      setQuestions(formatted);
+    if (data && data.content?.questions) {
+      const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
+        id: `${data.id}-${i}`,
+        sentence: q,
+        error_fragment: data.content.error_fragments[i],
+        correction: data.content.corrections[i],
+        explanation: data.content.explanations[i],
+        category: data.category,
+        level: data.level,
+        difficulty: data.difficulty
+      }));
+      setQuestions(qs);
       setIsStarted(true);
+      setCurrentIdx(0);
+      setScore(0);
+      setFinished(false);
+      setStatus("typing");
+      setInputValue("");
     }
     setLoading(false);
   }, [supabase]);
 
-  const startExercise = useCallback(async (lvl?: string, cat?: string) => {
-    setLoading(true);
-    const targetLevel = lvl || selectedLevel;
-    const targetCategory = cat || selectedCategory;
-    const normalizedCategory = targetCategory ? (targetCategory.charAt(0).toUpperCase() + targetCategory.slice(1).toLowerCase()) : targetCategory;
-    try {
-      let query = supabase
-        .from("exercises")
-        .select("*")
-        .eq("type", "trous")
-        .eq("level", targetLevel);
-
-      if (targetCategory && targetCategory !== "Toutes") {
-        const { data: catMatch } = await supabase
-          .from("exercises")
-          .select("*")
-          .eq("type", "trous")
-          .eq("level", targetLevel)
-          .eq("category", normalizedCategory)
-          .limit(5);
-
-        if (catMatch && catMatch.length > 0) {
-          const formatted = catMatch.map((d: any) => ({
-            id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-            sentence: d.content.sentence || d.instructions,
-            error_fragment: d.content.error_fragment || "...",
-            correction: d.content.correct_answer || d.content.correct_answers?.[0],
-            explanation: d.content.explanation || "Règle de grammaire standard.",
-            category: d.category || targetCategory,
-            level: d.level || targetLevel
-          }));
-          setQuestions(formatted);
-          setIsStarted(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      const { data, error } = await query.limit(5);
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const formatted = data.map((d: any) => ({
-          id: d.id, difficulty: d.difficulty, tags: d.tags, is_ai_generated: d.is_ai_generated,
-          sentence: d.content.sentence || d.instructions,
-          error_fragment: d.content.error_fragment || "...",
-          correction: d.content.correct_answer || d.content.correct_answers?.[0],
-          explanation: d.content.explanation || "Règle de grammaire standard.",
-          category: d.category || targetCategory,
-          level: d.level || targetLevel
-        }));
-        setQuestions(formatted);
-        setIsStarted(true);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedLevel, selectedCategory, supabase]);
-
   useEffect(() => {
-    const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
-    const lessonId = searchParams.get('lessonId');
-    const topic = searchParams.get('topic');
-    const level = searchParams.get('level');
-
-    if (exerciseId) {
-      startSpecificExercise(exerciseId);
-    } else if (lessonId && topic) {
-      if (topic) setSelectedCategory(topic);
-      if (level) setSelectedLevel(level);
-      startExercise(level || undefined, topic || undefined);
+    const exId = searchParams.get("id") || (params?.id as string);
+    if (exId) {
+      startSpecificExercise(exId);
     }
-  }, [params?.id, searchParams, startSpecificExercise, startExercise]);
+  }, [params?.id, searchParams, startSpecificExercise]);
 
   const checkCorrection = () => {
-    if (status !== "typing") return;
     const current = questions[currentIdx];
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
       setStatus("correct");
-      setScore(score + 1);
+      setScore(s => s + 1);
     } else {
       setStatus("wrong");
     }
   };
 
-  const nextQuestion = async () => {
+  const handleNextAction = async () => {
     if (currentIdx < questions.length - 1) {
-      setCurrentIdx(currentIdx + 1);
+      setCurrentIdx(c => c + 1);
       setInputValue("");
       setStatus("typing");
     } else {
-      setIsSaving(true);
-      await saveResults();
       setFinished(true);
-      setIsSaving(false);
-      router.refresh();
-    }
-  };
-
-  const saveResults = async () => {
-    const finalScore = Math.round((score / questions.length) * 100);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user && questions.length > 0) {
-      try {
-        const response = await fetch('/api/exercise-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            exerciseId: questions[0].id,
-            score: finalScore,
-            answers: {
-              correct: score,
-              total: questions.length
-            }
-          })
+      // Log attempt
+      const finalScore = Math.round((score / questions.length) * 100);
+      const exId = searchParams.get("id") || (params?.id as string);
+      if (exId) {
+        await supabase.from("exercise_attempts").insert({
+          exercise_id: exId,
+          score: finalScore,
+          is_completed: true,
+          user_id: (await supabase.auth.getUser()).data.user?.id
         });
-        if (!response.ok) throw new Error("Failed to save");
-      } catch (err) {
-        console.error("Error saving result:", err);
       }
     }
   };
 
-  if (loading || isSaving) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-indigo-600" size={48} />
-          <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
-            {isSaving ? "Enregistrement..." : "Chargement..."}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <Loader2 className="animate-spin text-indigo-600" size={48} />
+    </div>
+  );
 
   if (finished) {
-    const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
-        >
-          <Card className="p-12 text-center rounded-[3rem] shadow-2xl border-none bg-white">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
-              <CheckCircle2 className="text-indigo-600" size={40} />
-            </div>
-            <h2 className="text-3xl font-black mb-2">Entraînement Terminé !</h2>
-            <p className="text-zinc-500 font-bold mb-8 italic">Excellent travail, continuez ainsi !</p>
-
-            <div className="bg-zinc-50 rounded-3xl p-8 mb-10">
-              <div className="text-6xl font-black text-indigo-600 mb-2">{percentage}%</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Taux de réussite</div>
-            </div>
-
-            <div className="space-y-4">
-              {activeParcours && (
-                <Button
-                  className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-lg shadow-xl shadow-indigo-100"
-                  onClick={() => nextLesson()}
-                >
-                  Continuer le parcours
-                </Button>
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
+           <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+              <Zap size={48} />
+           </div>
+           <div className="space-y-2">
+              <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+              <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
+           </div>
+           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+              <div className="text-center">
+                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+                 <div className="text-3xl font-black text-zinc-900">{Math.round((score / questions.length) * 100)}%</div>
+              </div>
+              <div className="w-px h-12 bg-zinc-100" />
+              <div className="text-center">
+                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+                 <div className="text-3xl font-black text-emerald-600">{score} / {questions.length}</div>
+              </div>
+           </div>
+           <div className="flex flex-col gap-3">
+              <Button onClick={() => setIsStarted(false)} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
+              {nextLesson && (
+                <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
               )}
-              <Button
-                variant={activeParcours ? "ghost" : "default"}
-                className={`w-full ${activeParcours ? 'h-12 text-zinc-400 hover:text-indigo-600' : 'h-16 bg-zinc-900 text-white'} font-black rounded-2xl text-lg transition-all`}
-                onClick={() => {
-                  if (activeParcours) {
-                    router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
-                  } else {
-                    setIsStarted(false);
-                    setFinished(false);
-                    setScore(0);
-                    setCurrentIdx(0);
-                  }
-                }}
-              >
-                {activeParcours ? "Retour au parcours" : "Refaire un exercice"}
-              </Button>
-            </div>
-          </Card>
+           </div>
         </motion.div>
       </div>
     );
@@ -317,120 +208,95 @@ export function GrammarCheckContent() {
 
   if (!isStarted) {
     return (
-      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
-        <div className="max-w-4xl mx-auto">
-          <Badge className="bg-indigo-600 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-indigo-100 border-none">
-            Module de Correction
-          </Badge>
-          <h1 className="text-[clamp(1.875rem,4vw+1rem,3rem)] font-black text-slate-900 tracking-tighter mb-6 uppercase">
-            CHASSE AUX <span className="text-indigo-600">ERREURS</span>
-          </h1>
-          <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed mb-12 italic">
-            Améliorez votre précision en identifiant et corrigeant les fautes de grammaire, d'orthographe et de conjugaison.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <Card className="p-8 rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 space-y-6">
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Target size={16} /> Niveau visé
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {["A1", "A2", "B1", "B2"].map((l) => (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
+          <ExerciseLayout
+            title="CHASSE AUX ERREURS"
+            badge="Coach Exercice à Trous"
+            badgeColor="indigo"
+            description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
+          >
+            {/* Quick Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
+                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <Target size={14} className="text-indigo-600" /> Choisir votre niveau
+                </div>
+                <div className="flex gap-2">
+                  {["A1", "A2", "B1", "B2"].map((lvl) => (
                     <button
-                      key={l}
-                      onClick={() => setSelectedLevel(l)}
-                      className={`h-12 rounded-xl font-black text-sm transition-all ${selectedLevel === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      key={lvl}
+                      onClick={() => setLevel(lvl)}
+                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
                     >
-                      {l}
+                      {lvl}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <Sparkles size={16} /> Thématique
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((c) => (
+              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2">
+                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <GraduationCap size={14} className="text-indigo-600" /> Thématiques
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((cat) => (
                     <button
-                      key={c}
-                      onClick={() => setSelectedCategory(c)}
-                      className={`h-12 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedCategory === c ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                      key={cat}
+                      onClick={() => setCategory(cat)}
+                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
                     >
-                      {c}
+                      {cat}
                     </button>
                   ))}
                 </div>
               </div>
-            </Card>
 
-            <div className="space-y-6">
-              <Card className="p-8 rounded-[2.5rem] border-none bg-indigo-600 text-white shadow-xl shadow-indigo-200/50 flex flex-col justify-center relative overflow-hidden">
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-4 opacity-80">
-                    <Zap size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Mode Classique</span>
-                  </div>
-                  <h3 className="text-2xl font-black mb-2 uppercase">Prêt à corriger ?</h3>
-                  <p className="text-sm font-medium opacity-80 mb-6 italic">
-                    5 questions aléatoires basées sur vos critères pour un entraînement rapide.
-                  </p>
-                  <Button
-                    onClick={() => startExercise()}
-                    className="w-full h-14 bg-white text-indigo-600 hover:bg-zinc-100 font-black rounded-xl shadow-lg"
-                  >
-                    LANCER L'EXERCICE
-                  </Button>
+              <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                   <Zap size={14} /> Flash entraînement
                 </div>
-                <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10 rotate-12" />
-              </Card>
-
-              <div className="flex items-center gap-4 px-4 text-zinc-400">
-                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <GraduationCap size={16} /> TEF IRN
-                 </div>
-                 <div className="w-1 h-1 bg-zinc-300 rounded-full" />
-                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase">
                     <Calendar size={16} /> Entraînement Quotidien
                  </div>
               </div>
             </div>
-          </div>
 
-          {/* Catalogue Section */}
-          <section className="mt-12">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {selectedLevel}</Badge>
-                <span className="text-zinc-400">•</span>
-                <span className="capitalize text-zinc-500">{selectedCategory}</span>
-              </h2>
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+            {/* Catalogue Section */}
+            <section className="mt-12">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                  <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
+                  <span className="text-zinc-400">•</span>
+                  <span className="capitalize text-zinc-500">{filters.category}</span>
+                </h2>
+                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                  {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+                </div>
               </div>
-            </div>
 
-            {loadingCatalogue ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i: number) => (
-                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
-                ))}
-              </div>
-            ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((ex: Exercise) => (
-                  <ExerciseCard key={ex.id} exercise={ex} />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
-                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
-                <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
-              </Card>
-            )}
-          </section>
+              {loadingCatalogue ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((i: number) => (
+                    <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                  ))}
+                </div>
+              ) : catalogue.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {catalogue.map((ex: Exercise) => (
+                    <ExerciseCard key={ex.id} exercise={ex} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
+                  <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                  <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
+                </Card>
+              )}
+            </section>
+          </ExerciseLayout>
         </div>
       </div>
     );
@@ -440,34 +306,19 @@ export function GrammarCheckContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col">
-      <header className="bg-white border-b border-zinc-100 px-6 py-6 lg:px-12">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => {
-                if (activeParcours) {
-                  router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
-                } else {
-                  setIsStarted(false);
-                }
-              }}
-              className="w-10 h-10 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-zinc-900 transition-colors"
-            >
-              <ArrowRight className="rotate-180" size={20} />
-            </button>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <Badge className="bg-indigo-600 rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
-                  {current?.level}
-                </Badge> {current?.difficulty && <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-zinc-200 text-zinc-500 bg-white ml-2">{current.difficulty}</Badge>}
-                <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">
-                  {current?.category}
-                </span>
-              </div>
-              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Question {currentIdx + 1} / {questions.length}</h2>
-            </div>
-          </div>
-
+      <ExerciseLayout
+        variant="compact"
+        title="CHASSE AUX ERREURS"
+        badge="Coach Exercice à Trous"
+        badgeColor="indigo"
+        onBack={() => {
+          if (activeParcours) {
+            router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
+          } else {
+            setIsStarted(false);
+          }
+        }}
+        rightElement={
           <div className="hidden md:flex items-center gap-4">
             <div className="text-right">
               <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</div>
@@ -482,8 +333,8 @@ export function GrammarCheckContent() {
                />
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="max-w-4xl w-full">
@@ -562,7 +413,7 @@ export function GrammarCheckContent() {
                        </div>
                     </Card>
                     <Button
-                      onClick={nextQuestion}
+                      onClick={handleNextAction}
                       className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {currentIdx < questions.length - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
