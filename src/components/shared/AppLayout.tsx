@@ -7,7 +7,7 @@ import { BottomNav } from "./BottomNav";
 import { ParcoursTopBar } from "./ParcoursTopBar";
 import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { User } from "@supabase/supabase-js";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { Logo } from "@/components/landing/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -16,10 +16,10 @@ const ChatCoach = dynamic(() => import("@/components/features/coach/ChatCoach").
   ssr: false,
 });
 
-export function AppLayout({ children, initialUser }: { children: React.ReactNode, initialUser?: User | null }) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const user = initialUser;
+  const { user } = useAuth();
 
   useEffect(() => {
     setMounted(true);

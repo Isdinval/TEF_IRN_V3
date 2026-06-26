@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/shared/AppLayout";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { createClient } from "@/lib/supabase-server";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -41,9 +42,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <ParcoursWrapper>
-              <AppLayout initialUser={user}>{children}</AppLayout>
-            </ParcoursWrapper>
+            <AuthProvider initialUser={user}>
+              <ParcoursWrapper>
+                <AppLayout>{children}</AppLayout>
+              </ParcoursWrapper>
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
         <Analytics />
