@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
-import { validateVocabResponse } from "@/lib/TEF_IRN/vocab/utils";
+import { validateVocabResponse } from "@/lib/vocab/utils";
 import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
 import { useParcours } from "@/contexts/ParcoursContext";
 

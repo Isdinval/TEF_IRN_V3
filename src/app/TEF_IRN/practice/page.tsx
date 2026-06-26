@@ -388,7 +388,7 @@ export function PracticeContent() {
               <Button
                 variant="ghost"
                 className="w-full h-12 text-zinc-400 hover:text-rose-600 font-black rounded-2xl transition-all"
-                onClick={() => router.push('/TEF_IRN/dashboard')}
+                onClick={() => router.push('/dashboard')}
               >
                 RETOUR AU TABLEAU DE BORD
               </Button>

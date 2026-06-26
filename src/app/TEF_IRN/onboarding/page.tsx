@@ -25,7 +25,7 @@ export default function Onboarding() {
         current_level: level,
         goal_level: goal,
       }).eq('id', user.id);
-      router.push('/TEF_IRN/dashboard');
+      router.push('/dashboard');
     }
     setLoading(false);
   };

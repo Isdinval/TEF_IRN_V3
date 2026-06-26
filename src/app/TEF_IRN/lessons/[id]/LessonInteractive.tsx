@@ -107,7 +107,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await saveResults();
-      router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/lessons/${lesson.id}/complete`);
     }
   };
 
@@ -122,7 +122,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await awardXpOnly();
-      router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/lessons/${lesson.id}/complete`);
     }
   };
 
@@ -457,7 +457,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                   <p className="text-4xl font-black text-amber-500">+100 XP</p>
                 </div>
               </div>
-              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/TEF_IRN/TEF_IRN/lessons/${lesson.id}/complete`)}>
+              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/TEF_IRN/lessons/${lesson.id}/complete`)}>
                 Retour au Dashboard
               </Button>
             </motion.div>

@@ -15,7 +15,7 @@ export function RecommendationCard({ type, reason, referenceId }: Recommendation
 
   const getTargetUrl = () => {
     switch (type) {
-      case 'lesson': return `/TEF_IRN/TEF_IRN/lessons/${referenceId}`;
+      case 'lesson': return `/TEF_IRN/lessons/${referenceId}`;
       case 'exercise': return '/TEF_IRN/practice';
       case 'review': return '/TEF_IRN/practice';
       default: return '/TEF_IRN/practice';

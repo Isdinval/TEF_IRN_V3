@@ -96,7 +96,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
           .eq('id', user.id)
           .single();
 
-        if (profile?.last_active_parcours_id && !pathname.includes('/TEF_IRN/parcours') && !pathname.includes('/TEF_IRN/login') && !pathname.includes('/TEF_IRN/onboarding')) {
+        if (profile?.last_active_parcours_id && !pathname.includes('/parcours') && !pathname.includes('/login') && !pathname.includes('/onboarding')) {
           const currentParams = new URLSearchParams(searchParams.toString());
           currentParams.set("parcoursId", profile.last_active_parcours_id);
           router.replace(`${pathname}?${currentParams.toString()}`);
@@ -169,7 +169,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (next) {
-      router.push(`/TEF_IRN/TEF_IRN/lessons/${next.id}?parcoursId=${activeParcours.id}`);
+      router.push(`/TEF_IRN/lessons/${next.id}?parcoursId=${activeParcours.id}`);
     } else {
       router.push(`/TEF_IRN/parcours/${activeParcours.id}/complete`);
     }

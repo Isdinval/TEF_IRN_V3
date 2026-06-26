@@ -80,7 +80,7 @@ export default function ParcoursInteractive({
     status: getLessonStatus(lesson.id, index)
   }));
 
-  const getLessonUrl = (lessonId: string) => `/TEF_IRN/TEF_IRN/lessons/${lessonId}?parcoursId=${parcours.id}`;
+  const getLessonUrl = (lessonId: string) => `/TEF_IRN/lessons/${lessonId}?parcoursId=${parcours.id}`;
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">

@@ -50,15 +50,15 @@ export async function middleware(request: NextRequest) {
     '/TEF_IRN/grammar-check',
     '/TEF_IRN/vocab',
     '/TEF_IRN/oral',
-    '/TEF_IRN/TEF_IRN/coach',
+    '/TEF_IRN/coach',
     '/TEF_IRN/correction',
-    '/TEF_IRN/TEF_IRN/settings',
+    '/TEF_IRN/settings',
     '/TEF_IRN/profile'
   ]
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
   if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/TEF_IRN/TEF_IRN/login', request.url))
+    return NextResponse.redirect(new URL('/TEF_IRN/login', request.url))
   }
 
   return response

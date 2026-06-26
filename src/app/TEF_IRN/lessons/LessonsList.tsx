@@ -56,7 +56,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
     const colors = CATEGORY_COLORS[lesson.category.toLowerCase()] || CATEGORY_COLORS.default;
 
     return (
-      <Link href={`/TEF_IRN/TEF_IRN/lessons/${lesson.id}`} key={lesson.id} className="h-full">
+      <Link href={`/TEF_IRN/lessons/${lesson.id}`} key={lesson.id} className="h-full">
         <Card className={`relative border-none shadow-lg ${colors.cardShadow} hover:-translate-y-1 hover:shadow-xl transition-all group cursor-pointer h-full rounded-[2rem] overflow-hidden flex flex-col bg-white border-t-4 ${colors.border}`}>
           <div className="absolute top-0 right-4 text-8xl font-black text-zinc-100/40 pointer-events-none z-0 select-none">
             {lesson.order_index}
@@ -201,7 +201,7 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
                 Commencez par la première leçon disponible pour ce filtre, puis enchaînez progressivement.
               </p>
               {nextLesson ? (
-                <Link href={`/TEF_IRN/TEF_IRN/lessons/${nextLesson.id}`} className="block">
+                <Link href={`/TEF_IRN/lessons/${nextLesson.id}`} className="block">
                   <Button className="w-full h-14 bg-white text-violet-600 hover:bg-violet-50 font-black rounded-xl shadow-xl border-none">
                     Continuer
                   </Button>

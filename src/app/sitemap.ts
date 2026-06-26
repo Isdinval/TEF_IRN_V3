@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('id, created_at');
 
   const lessonUrls = (lessons || []).map((lesson: any) => ({
-    url: `${baseUrl}/lessons/${lesson.id}`,
+    url: `${baseUrl}/TEF_IRN/lessons/${lesson.id}`,
     lastModified: new Date(lesson.updated_at || lesson.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const parcoursUrls = (parcours || []).map((p: any) => ({
-    url: `${baseUrl}/parcours/${p.id}`,
+    url: `${baseUrl}/TEF_IRN/parcours/${p.id}`,
     lastModified: new Date(p.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.8,

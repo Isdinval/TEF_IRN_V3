@@ -90,7 +90,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
           </div>
 
           <Button
-            onClick={() => router.push('/TEF_IRN/TEF_IRN/parcours')}
+            onClick={() => router.push('/TEF_IRN/parcours')}
             className="h-16 w-full rounded-[2rem] bg-indigo-600 px-8 text-base font-black text-white shadow-xl shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:shadow-indigo-600/40 md:w-auto"
           >
             Commencer une session <Play size={18} fill="currentColor" className="ml-2" />
