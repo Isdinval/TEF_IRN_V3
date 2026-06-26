@@ -7,7 +7,7 @@ export function Logo() {
     <Link href="/TEF_IRN" className="flex items-center gap-2">
       <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-lg">
         <Image
-          src="/logo.png"
+          src="/images/logo/logo.png"
           alt="LlamaKusi Logo"
           fill
           className="object-cover"

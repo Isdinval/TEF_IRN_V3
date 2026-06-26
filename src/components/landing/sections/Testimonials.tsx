@@ -2,47 +2,47 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const testimonials = [
   {
-    name: "Fatima",
-    location: "Lyon",
-    text: "J'avais déjà raté le TEF IRN... L'expression orale m'inquiétait. Grâce à l'IA, j'ai obtenu mon B2. Naturalisation obtenue en 2 mois.",
-    score: "Niveau B2",
-    avatar: "F"
-  },
-  {
-    name: "Sami",
-    location: "Paris",
-    text: "Le système de répétition espacée est magique pour le vocabulaire. Je révisais dans le métro, 15 min par jour. Résultat : 580/600.",
+    name: "Maria",
+    location: "Marseille",
+    text: "Le stress de l'oral me paralysait. M'entraîner avec LlamaKuzy à 23h après le travail a tout changé. J'ai obtenu mon B1 haut la main !",
     score: "Niveau B1+",
-    avatar: "S"
+    avatar: "M"
   },
   {
-    name: "Elena",
-    location: "Bordeaux",
-    text: "LlamaKusi est 10 fois plus moderne que ce qu'on trouve ailleurs. La correction écrite instantanée change tout pour la confiance.",
+    name: "Ahmed",
+    location: "Lille",
+    text: "En tant que salarié, je n'avais pas le temps pour des cours classiques. LlamaKusi m'a permis de réviser mon expression écrite dans le bus. Résultat : Naturalisé !",
     score: "Niveau B2",
-    avatar: "E"
+    avatar: "A"
+  },
+  {
+    name: "Li",
+    location: "Paris",
+    text: "La correction instantanée est incroyable. On comprend ses erreurs tout de suite. Les 50 000 candidats annuels devraient tous l'utiliser.",
+    score: "Niveau B2",
+    avatar: "L"
   }
 ];
 
 export function Testimonials() {
   return (
-    <section className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
+    <section id="social-proof" className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center mb-24">
            <div className="flex gap-1 text-brand-gold mb-6">
               {[1,2,3,4,5].map(i => <Star key={i} size={20} fill="currentColor" />)}
            </div>
            <h2 className="text-4xl md:text-6xl font-black mb-8 text-slate-900 dark:text-white">
-             Ils ont franchi le pas <br />
-             <span className="text-brand-blue">vers leur nouvelle vie.</span>
+             Ils ont réussi leur <br />
+             <span className="text-brand-blue">intégration avec nous.</span>
            </h2>
-           <p className="text-xl text-slate-500 dark:text-slate-400 font-medium">
-             Plus de 15 000 candidats nous ont fait confiance. Rejoignez-les.
+           <p className="text-xl text-slate-500 dark:text-slate-400 font-medium max-w-2xl">
+             Rejoignez la communauté de ceux qui ont transformé leur peur de l'examen en une réussite éclatante.
            </p>
         </div>
 
@@ -70,7 +70,9 @@ export function Testimonials() {
                       </div>
                       <div>
                          <div className="font-black text-slate-900 dark:text-white">{t.name}, {t.location}</div>
-                         <div className="text-xs font-black text-brand-purple uppercase tracking-widest">{t.score}</div>
+                         <div className="flex items-center gap-1 text-xs font-black text-brand-purple uppercase tracking-widest">
+                            <CheckCircle size={12} className="text-emerald-500" /> {t.score}
+                         </div>
                       </div>
                    </div>
                 </Card>
@@ -78,12 +80,12 @@ export function Testimonials() {
            ))}
         </div>
 
-        <div className="mt-24 flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-           {/* Placeholder for partner logos */}
-           <div className="text-2xl font-black text-slate-900 dark:text-white">TRUSTPILOT</div>
-           <div className="text-2xl font-black text-slate-900 dark:text-white">GOOGLE REVIEWS</div>
-           <div className="text-2xl font-black text-slate-900 dark:text-white">FLE-CERTIFIED</div>
-           <div className="text-2xl font-black text-slate-900 dark:text-white">CAMPUS FRANCE</div>
+        <div className="mt-24 flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+           <div className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="text-3xl">50k</span> CANDIDATS / AN
+           </div>
+           <div className="text-xl font-black text-slate-900 dark:text-white">CONFORME QUALIOPI</div>
+           <div className="text-xl font-black text-slate-900 dark:text-white">NATURALISATION FR</div>
         </div>
       </div>
     </section>

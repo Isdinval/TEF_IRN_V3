@@ -2,10 +2,10 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/sections/Hero";
 import { ProblemSolution } from "@/components/landing/sections/ProblemSolution";
 import { Features } from "@/components/landing/sections/Features";
-import { Vocabulary } from "@/components/landing/sections/Vocabulary";
-import { Gamification } from "@/components/landing/sections/Gamification";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
 import { Pricing } from "@/components/landing/sections/Pricing";
+import { Merchandising } from "@/components/landing/sections/Merchandising";
+import { Team } from "@/components/landing/sections/Team";
 import { FAQ } from "@/components/landing/sections/FAQ";
 import { FinalCTA } from "@/components/landing/sections/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
@@ -18,10 +18,10 @@ export default function LandingPage() {
         <Hero />
         <ProblemSolution />
         <Features />
-        <Vocabulary />
-        <Gamification />
         <Testimonials />
         <Pricing />
+        <Merchandising />
+        <Team />
         <FAQ />
         <FinalCTA />
       </main>

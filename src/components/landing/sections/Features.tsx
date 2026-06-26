@@ -2,31 +2,31 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { PenTool, Mic2, BrainCircuit, Sparkles, LayoutPanelLeft, LineChart, Zap } from "lucide-react";
+import { BrainCircuit, MessageSquareText, Mic2, Sparkles, LayoutPanelLeft, LineChart, Zap, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const features = [
   {
     title: "Correction Écrite IA",
-    desc: "Analyse ultra-précise de votre grammaire, syntaxe et vocabulaire. Recevez une note estimée et des conseils de reformulation en 3 secondes.",
-    icon: <PenTool size={32} />,
-    color: "bg-blue-500",
+    desc: "Ne vous demandez plus si vous avez fait des fautes. Notre IA analyse votre texte en temps réel, corrige la grammaire et suggère un vocabulaire plus riche pour viser le niveau B2.",
+    icon: <MessageSquareText size={32} />,
+    color: "bg-brand-blue",
     delay: 0.1,
     mockup: "Writing"
   },
   {
-    title: "Coaching Oral 24/7",
-    desc: "Pratiquez l'expression orale sans stress. Notre IA analyse votre prononciation et votre fluidité sur tous les thèmes de l'examen.",
+    title: "Coach Oral Realtime",
+    desc: "Pratiquez l'oral 24h/24 sans peur du jugement. Dialoguez naturellement avec LlamaKuzy qui analyse votre prononciation et votre fluidité en temps réel pour l'examen.",
     icon: <Mic2 size={32} />,
-    color: "bg-purple-500",
+    color: "bg-brand-purple",
     delay: 0.2,
     mockup: "Oral"
   },
   {
-    title: "Exercices Adaptatifs",
-    desc: "QCM intelligents de niveau A1 à B2. La difficulté s'ajuste à votre progression réelle pour optimiser votre temps de travail.",
+    title: "Parcours Adaptatif",
+    desc: "Fini les révisions inutiles. LlamaKusi identifie vos points faibles (SRS) et génère des exercices sur mesure pour combler vos lacunes avant le jour J.",
     icon: <BrainCircuit size={32} />,
-    color: "bg-amber-500",
+    color: "bg-brand-gold",
     delay: 0.3,
     mockup: "Practice"
   }
@@ -39,16 +39,16 @@ export function Features() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-24">
            <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue dark:text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
-                <Sparkles size={12} />
-                <span>Propulsé par GPT-4o</span>
+                <Target size={12} />
+                <span>Spécialiste TEF IRN</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black leading-tight text-slate-900 dark:text-white">
-                La technologie au service <br />
-                <span className="text-slate-400">de votre réussite.</span>
+                La seule plateforme conçue <br />
+                <span className="text-slate-400">pour votre naturalisation.</span>
               </h2>
            </div>
            <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md font-medium leading-relaxed">
-             Plus qu&apos;une plateforme, LlamaKusi est votre coach personnel qui vous accompagne jusqu&apos;au jour de l&apos;examen.
+             Nous avons combiné les meilleures IA du marché (GPT-4o) avec une expertise FLE pour garantir votre succès au TEF IRN.
            </p>
         </div>
 
@@ -80,15 +80,11 @@ export function Features() {
                          <div className="space-y-2">
                             <div className="h-2 w-full bg-slate-50 dark:bg-white/5 rounded-full" />
                             <div className="h-2 w-full bg-slate-50 dark:bg-white/5 rounded-full" />
-                            <div className="h-2 w-2/3 bg-slate-50 dark:bg-white/5 rounded-full" />
                          </div>
                          <div className="mt-4 flex justify-between items-center">
                             <div className="h-6 w-16 bg-brand-blue/10 dark:bg-brand-gold/10 rounded-full" />
-                            <div className="w-6 h-6 rounded-md bg-slate-50 dark:bg-white/5" />
                          </div>
                       </div>
-
-                      <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-gradient-to-br from-white/0 to-white/40 dark:to-white/5 rounded-full blur-2xl group-hover:blur-3xl transition-all" />
                    </div>
                 </Card>
              </motion.div>
@@ -107,7 +103,7 @@ export function Features() {
               </div>
               <div>
                  <div className="text-3xl font-black">40+ Leçons</div>
-                 <div className="text-brand-blue-100 opacity-70">Contenu exclusif TEF IRN</div>
+                 <div className="text-brand-blue-100 opacity-70">Grammaire, Vocab, Syntaxe</div>
               </div>
            </div>
 
@@ -118,8 +114,8 @@ export function Features() {
                  <LineChart size={32} />
               </div>
               <div>
-                 <div className="text-3xl font-black">Progression IA</div>
-                 <div className="text-brand-blue-100 opacity-70">Analyse de vos points faibles</div>
+                 <div className="text-3xl font-black">Progression SRS</div>
+                 <div className="text-brand-blue-100 opacity-70">Mémorisation optimisée</div>
               </div>
            </div>
 
@@ -130,8 +126,8 @@ export function Features() {
                  <Zap size={32} />
               </div>
               <div>
-                 <div className="text-3xl font-black">Zéro Attente</div>
-                 <div className="text-brand-blue-100 opacity-70">Correction instantanée</div>
+                 <div className="text-3xl font-black">100% Examen</div>
+                 <div className="text-brand-blue-100 opacity-70">Simulation conditions réelles</div>
               </div>
            </div>
         </motion.div>
