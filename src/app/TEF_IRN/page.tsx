@@ -7,6 +7,7 @@ import { Gamification } from "@/components/landing/sections/Gamification";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
 import { Pricing } from "@/components/landing/sections/Pricing";
 import { FAQ } from "@/components/landing/sections/FAQ";
+import { Merchandising } from "@/components/landing/sections/Merchandising";
 import { FinalCTA } from "@/components/landing/sections/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
 
@@ -23,6 +24,7 @@ export default function LandingPage() {
         <Testimonials />
         <Pricing />
         <FAQ />
+        <Merchandising />
         <FinalCTA />
       </main>
       <Footer />

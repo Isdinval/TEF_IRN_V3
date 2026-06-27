@@ -3,25 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Star, CheckCircle2, Globe, Users } from "lucide-react";
+import { ChevronRight, Play, CheckCircle2, Globe, Users, Euro, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoModal } from "../VideoModal";
 
 export function Hero() {
   const [videoOpen, setVideoOpen] = useState(false);
-  const [studentCount, setStudentCount] = useState(15420);
-  const [activeUsers, setActiveUsers] = useState(124);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveUsers(prev => {
-        const change = Math.floor(Math.random() * 5) - 2;
-        const newValue = prev + change;
-        return newValue < 80 ? 80 : newValue > 250 ? 250 : newValue;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const typingWords = ["votre succès", "votre avenir", "votre naturalisation", "votre résidence"];
   const [wordIndex, setWordIndex] = useState(0);
@@ -117,22 +104,16 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-16 flex flex-col items-center gap-4"
+            className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
           >
-             <div className="flex items-center gap-1 text-brand-gold">
-                {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
-                <span className="ml-2 text-slate-900 dark:text-white font-black">4,8/5</span>
+             <div className="flex items-center gap-2">
+                <Users size={16} className="text-brand-blue" />
+                <span>50 000+ candidats TEF IRN / an en France</span>
              </div>
-             <div className="flex items-center gap-6 text-sm font-bold text-slate-400">
-                <div className="flex items-center gap-2">
-                   <Users size={16} className="text-brand-blue" />
-                   <span>+{studentCount.toLocaleString()} apprenants</span>
-                </div>
-                <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                   <span>{activeUsers} s'entraînent en ce moment</span>
-                </div>
+             <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
+             <div className="flex items-center gap-2">
+                <Euro size={16} className="text-brand-blue" />
+                <span>55€/mois vs 300–800€ en formation traditionnelle</span>
              </div>
           </motion.div>
         </div>

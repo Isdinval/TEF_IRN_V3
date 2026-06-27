@@ -7,24 +7,28 @@ import { Button } from "@/components/ui/button";
 
 const faqs = [
   {
+    question: "Pourquoi 55€/mois alors que d'autres apps sont moins chères ?",
+    answer: "Parce qu'aucune autre app ne propose de coach IA générative sur l'Expression Écrite et l'Expression Orale — les deux épreuves les plus discriminantes du TEF IRN. Une formation traditionnelle coûte 300 à 800 €+ pour une préparation complète : LlamaKusi offre un entraînement illimité 24/7 pour 5 à 14 fois moins cher."
+  },
+  {
+    question: "Je travaille en journée, est-ce que ça marche pour moi ?",
+    answer: "C'est exactement pour ça que LlamaKusi existe. Le coach IA est disponible 24h/24 — vous pouvez vous entraîner à 21h30 après le travail, ou le week-end, en sessions de 15 à 40 minutes. Aucun horaire fixe, aucun cours à rattraper."
+  },
+  {
+    question: "Mon niveau est encore faible (A1/A2), c'est pour moi ?",
+    answer: "Oui. Le parcours adaptatif couvre A1 à B2 et s'ajuste à votre niveau réel sur chaque compétence. Beaucoup de candidats sont hétérogènes (oral fluide, écrit faible, ou l'inverse) — LlamaKusi cible précisément vos lacunes plutôt que de vous faire repasser un programme générique."
+  },
+  {
     question: "L'IA est-elle vraiment fiable pour corriger le TEF ?",
-    answer: "Oui, notre modèle est spécifiquement entraîné sur les grilles d'évaluation officielles de la CCI. Il détecte non seulement les erreurs de grammaire, mais évalue aussi la richesse lexicale et la pertinence argumentative, exactement comme un correcteur humain."
+    answer: "Le Coach Écrit utilise GPT-4o avec des prompts spécialisés sur les critères CECRL et les grilles d'évaluation du TEF IRN : grammaire, vocabulaire, structure et cohérence. Le Coach Oral utilise l'API Realtime d'OpenAI pour évaluer prononciation et fluidité en conversation réelle."
   },
   {
-    question: "Combien de temps faut-il pour se préparer ?",
-    answer: "Cela dépend de votre niveau initial. En moyenne, nos utilisateurs atteignent le niveau B1 en 6 semaines avec une pratique de 20 minutes par jour. Le mode 'Express' permet de se préparer intensivement en 2 semaines."
+    question: "Le TEF IRN est-il éligible au CPF avec LlamaKusi ?",
+    answer: "Le TEF IRN est éligible au CPF depuis octobre 2024. LlamaKusi est en cours de certification Qualiopi pour pouvoir être financé via vos droits CPF — en attendant, l'abonnement reste 5 à 14 fois moins cher qu'une formation traditionnelle."
   },
   {
-    question: "Est-ce que LlamaKusi couvre les 4 épreuves du TEF IRN ?",
-    answer: "Absolument. Nous couvrons la Compréhension Orale, la Compréhension Écrite, l'Expression Orale (avec feedback audio) et l'Expression Écrite (avec correction détaillée). C'est la seule plateforme complète du marché."
-  },
-  {
-    question: "Puis-je annuler mon abonnement Premium à tout moment ?",
-    answer: "Bien sûr. L'abonnement est sans engagement pour le forfait mensuel. Vous pouvez annuler en un clic depuis vos paramètres. Vous garderez l'accès Premium jusqu'à la fin de la période en cours."
-  },
-  {
-    question: "Puis-je l'utiliser sur mon téléphone ?",
-    answer: "Oui, LlamaKusi est 'Mobile-First'. Bien que ce ne soit pas une application à télécharger sur l'App Store, le site est optimisé pour fonctionner parfaitement sur tous les navigateurs mobiles (iOS et Android)."
+    question: "Puis-je annuler à tout moment ?",
+    answer: "Oui. L'essai de 7 jours est gratuit, et l'abonnement est sans engagement : vous pouvez annuler en un clic depuis vos paramètres et gardez l'accès jusqu'à la fin de la période en cours."
   }
 ];
 
