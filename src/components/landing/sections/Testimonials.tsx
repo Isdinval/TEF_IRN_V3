@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Quote, FileText, Mic, Clock, Wallet } from "lucide-react";
+import { Quote, FileText, Mic, Clock, Wallet, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const personas = [
@@ -69,9 +69,7 @@ export function Testimonials() {
                    </p>
 
                    <div className="mt-auto flex items-center gap-4 relative z-10">
-                      <div className="w-14 h-14 rounded-full bg-brand-blue flex items-center justify-center text-2xl">
-                         {p.flag}
-                      </div>
+                      <span className="text-4xl leading-none">{p.flag}</span>
                       <div>
                          <div className="font-black text-slate-900 dark:text-white">{p.name}</div>
                          <div className="text-xs font-bold text-slate-400">{p.role}</div>
@@ -86,12 +84,26 @@ export function Testimonials() {
            ))}
         </div>
 
-        <div className="mt-20 text-center">
-           <p className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-2 px-6 py-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold text-sm max-w-2xl mx-auto">
-             Construit par Olivier (Data Scientist & AI Engineer) et Grecia, ingénieure civile elle-même en cours de naturalisation —
-             une vision technique et une expérience vécue de l&apos;intégration en France.
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-20 max-w-4xl mx-auto p-10 md:p-14 rounded-[2.5rem] bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-none"
+        >
+           <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-3xl">🇫🇷</div>
+              <Heart size={20} className="text-rose-500" fill="currentColor" />
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-3xl">🇵🇪</div>
+           </div>
+           <p className="text-lg md:text-xl font-bold text-center leading-relaxed text-slate-700 dark:text-slate-200 mb-4">
+             LlamaKusi est né dans un couple franco-péruvien.
            </p>
-        </div>
+           <p className="text-base md:text-lg text-center leading-relaxed text-slate-500 dark:text-slate-400 font-medium">
+             <span className="font-black text-slate-900 dark:text-white">Olivier</span>, Data Scientist & AI Engineer, a construit toute l&apos;architecture IA de correction écrite et de coaching oral.
+             <span className="font-black text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation — elle a vécu de l&apos;intérieur la difficulté de travailler l&apos;expression écrite et orale en plus d&apos;un emploi à temps plein.
+             Le béret français et le bonnet péruvien de LlamaKuzi, notre mascotte, racontent cette histoire à deux pays.
+           </p>
+        </motion.div>
       </div>
     </section>
   );

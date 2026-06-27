@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, Gift } from "lucide-react";
+import { Heart, Gift, Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const products = [
@@ -29,6 +29,27 @@ const products = [
 ];
 
 export function Merchandising() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  async function handleWishlistSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, product: "merchandising" })
+      });
+      if (!res.ok) throw new Error("request failed");
+      setStatus("success");
+      setEmail("");
+    } catch {
+      setStatus("error");
+    }
+  }
+
   return (
     <section className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -98,6 +119,48 @@ export function Merchandising() {
                  J&apos;en profite
               </Button>
            </Link>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-xl mx-auto mt-10 text-center"
+        >
+           <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4">
+             Pas encore prêt à vous abonner ? Laissez votre email pour être prévenu·e dès l&apos;ouverture de la boutique LlamaKuzi.
+           </p>
+
+           {status === "success" ? (
+             <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                <CheckCircle2 size={16} />
+                Merci ! Vous serez prévenu·e en avant-première.
+             </div>
+           ) : (
+             <form onSubmit={handleWishlistSubmit} className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="relative w-full sm:w-72">
+                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                   <input
+                     type="email"
+                     required
+                     value={email}
+                     onChange={(e) => setEmail(e.target.value)}
+                     placeholder="votre@email.com"
+                     className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                   />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="h-12 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl whitespace-nowrap"
+                >
+                   {status === "loading" ? <Loader2 size={16} className="animate-spin" /> : "Rejoindre la liste"}
+                </Button>
+             </form>
+           )}
+           {status === "error" && (
+             <p className="mt-3 text-xs font-bold text-red-500">Une erreur est survenue, réessayez dans un instant.</p>
+           )}
         </motion.div>
       </div>
     </section>
