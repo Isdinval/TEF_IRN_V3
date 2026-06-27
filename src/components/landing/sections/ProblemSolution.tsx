@@ -1,20 +1,12 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import { XCircle, CheckCircle2, AlertCircle, MessageSquare, Headphones, Zap } from "lucide-react";
 
 export function ProblemSolution() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const x = useTransform(scrollYProgress, [0.3, 0.6], ["0%", "-50%"]);
-
   return (
-    <section ref={containerRef} className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 overflow-hidden">
+    <section className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <motion.div
@@ -48,9 +40,15 @@ export function ProblemSolution() {
           </motion.p>
         </div>
 
-        <div className="relative h-[600px] rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 dark:border-white/5">
-          <div className="absolute inset-0 flex">
-             <div className="w-1/2 h-full p-8 md:p-16 flex flex-col justify-center gap-8 bg-white dark:bg-slate-800">
+        <div className="relative rounded-[3rem] overflow-hidden shadow-2xl border border-slate-200 dark:border-white/5">
+          <div className="flex flex-col md:flex-row">
+             <motion.div
+               initial={{ opacity: 0, x: -30 }}
+               whileInView={{ opacity: 1, x: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.6 }}
+               className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center gap-8 bg-white dark:bg-slate-800"
+             >
                 <div className="space-y-4">
                    <h3 className="text-3xl font-black text-slate-400">Méthodes Classiques</h3>
                    <p className="text-slate-400 font-medium italic">&quot;Des PDFs froids et des QCM répétitifs.&quot;</p>
@@ -69,9 +67,15 @@ export function ProblemSolution() {
                      </div>
                    ))}
                 </div>
-             </div>
+             </motion.div>
 
-             <div className="w-1/2 h-full p-8 md:p-16 flex flex-col justify-center gap-8 bg-gradient-to-br from-brand-blue to-brand-purple text-white">
+             <motion.div
+               initial={{ opacity: 0, x: 30 }}
+               whileInView={{ opacity: 1, x: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.6, delay: 0.15 }}
+               className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center gap-8 bg-gradient-to-br from-brand-blue to-brand-purple text-white"
+             >
                 <div className="space-y-4">
                    <h3 className="text-3xl font-black">L&apos;Expérience LlamaKusi</h3>
                    <p className="text-brand-blue-100 font-medium italic text-indigo-100">&quot;L&apos;IA vous corrige en temps réel, comme un prof.&quot;</p>
@@ -90,15 +94,10 @@ export function ProblemSolution() {
                      </div>
                    ))}
                 </div>
-             </div>
+             </motion.div>
           </div>
 
-          <motion.div
-            className="absolute inset-y-0 left-0 bg-white dark:bg-brand-dark z-10 border-r-4 border-brand-gold shadow-[10px_0_50px_rgba(212,175,55,0.3)]"
-            style={{ width: "50%", x }}
-          />
-
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+          <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
              <div className="w-16 h-16 rounded-full bg-brand-gold flex items-center justify-center shadow-2xl text-brand-dark">
                 <Zap size={32} fill="currentColor" />
              </div>

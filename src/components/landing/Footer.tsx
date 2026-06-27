@@ -82,7 +82,7 @@ export function Footer() {
 
         <div className="pt-12 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-slate-400 text-sm font-bold">
-            © {currentYear} SpeakFrance 2026 • LlamaKusi AI. Tous droits réservés.
+            © {currentYear} LlamaKusi. Tous droits réservés.
           </div>
           <div className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-[0.2em]">
             <span>Fait avec</span>

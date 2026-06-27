@@ -3,10 +3,10 @@ import { Hero } from "@/components/landing/sections/Hero";
 import { ProblemSolution } from "@/components/landing/sections/ProblemSolution";
 import { Features } from "@/components/landing/sections/Features";
 import { Vocabulary } from "@/components/landing/sections/Vocabulary";
-import { Gamification } from "@/components/landing/sections/Gamification";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
 import { Pricing } from "@/components/landing/sections/Pricing";
 import { FAQ } from "@/components/landing/sections/FAQ";
+import { Merchandising } from "@/components/landing/sections/Merchandising";
 import { FinalCTA } from "@/components/landing/sections/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
 
@@ -19,10 +19,10 @@ export default function LandingPage() {
         <ProblemSolution />
         <Features />
         <Vocabulary />
-        <Gamification />
         <Testimonials />
         <Pricing />
         <FAQ />
+        <Merchandising />
         <FinalCTA />
       </main>
       <Footer />

@@ -37,8 +37,8 @@ export function FinalCTA() {
             </h2>
 
             <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-3xl mx-auto mb-16 leading-relaxed">
-              87% de nos utilisateurs atteignent le niveau visé en moins de 2 mois.
-              <span className="text-white font-bold"> Serez-vous le prochain citoyen français ?</span>
+              Le certificat n&apos;est valable que 2 ans, et l&apos;EE/EO concentre 50% de la note.
+              <span className="text-white font-bold"> Entraînez-vous dès aujourd&apos;hui, pas la veille de l&apos;examen.</span>
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
@@ -71,7 +71,7 @@ export function FinalCTA() {
                <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />
                <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-brand-gold" />
-                  <span>Résultats garantis</span>
+                  <span>Coach IA disponible 24/7</span>
                </div>
             </div>
           </div>
