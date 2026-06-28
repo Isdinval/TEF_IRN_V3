@@ -12,7 +12,7 @@ const features = [
     icon: <PenTool size={32} />,
     color: "bg-blue-500",
     delay: 0.1,
-    demo: "writing" // identifiant pour l'animation
+    type: "writing"
   },
   {
     title: "Coaching Oral 24/7",
@@ -20,7 +20,7 @@ const features = [
     icon: <Mic2 size={32} />,
     color: "bg-purple-500",
     delay: 0.2,
-    demo: "oral"
+    type: "oral"
   },
   {
     title: "Exercices Adaptatifs",
@@ -28,7 +28,7 @@ const features = [
     icon: <BrainCircuit size={32} />,
     color: "bg-amber-500",
     delay: 0.3,
-    demo: "practice"
+    type: "practice"
   }
 ];
 
@@ -36,6 +36,7 @@ export function Features() {
   return (
     <section id="features" className="py-32 px-6 bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-24">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
@@ -52,17 +53,18 @@ export function Features() {
           </p>
         </div>
 
+        {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((f, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: f.delay }}
+              transition={{ duration: 0.7, delay: f.delay }}
             >
-              <Card className="group relative h-full rounded-[2.5rem] border-none bg-white/5 p-10 overflow-hidden hover:translate-y-[-10px] transition-all duration-500">
-                <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl shadow-opacity-20 mb-10 transition-transform group-hover:scale-110`}>
+              <Card className="group relative h-full rounded-[2.5rem] border-none bg-white/5 p-10 overflow-hidden hover:translate-y-[-12px] transition-all duration-700">
+                <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl mb-10 transition-transform group-hover:scale-110 duration-500`}>
                   {f.icon}
                 </div>
 
@@ -71,10 +73,10 @@ export function Features() {
                   {f.desc}
                 </p>
 
-                {/* === ZONE D'ANIMATION DÉMO === */}
-                <div className="relative mt-auto pt-10">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950 flex items-center justify-center">
-                    <FeatureDemo type={f.demo} />
+                {/* Démo animée améliorée */}
+                <div className="relative mt-auto pt-8">
+                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
+                    <FeatureDemo type={f.type} />
                   </div>
                 </div>
               </Card>
@@ -82,74 +84,135 @@ export function Features() {
           ))}
         </div>
 
-        {/* Le reste du composant (stats) reste identique */}
+        {/* Stats améliorées */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-20 p-12 rounded-[3rem] bg-brand-blue dark:bg-brand-purple flex flex-col md:flex-row items-center justify-between gap-12 text-white"
+          transition={{ duration: 0.8 }}
+          className="mt-20 p-12 rounded-[3rem] bg-gradient-to-br from-brand-blue to-brand-purple flex flex-col md:flex-row items-center justify-between gap-12 text-white"
         >
-          {/* ... (inchangé) */}
+          <StatItem 
+            icon={<LayoutPanelLeft size={32} />} 
+            title="40+ Leçons" 
+            subtitle="Contenu exclusif TEF IRN" 
+          />
+          <StatItem 
+            icon={<BrainCircuit size={32} />} 
+            title="2200+ Exercices" 
+            subtitle="QCM, trous & adaptés" 
+          />
+          <StatItem 
+            icon={<LineChart size={32} />} 
+            title="Progression IA" 
+            subtitle="Analyse de vos points faibles" 
+          />
+          <StatItem 
+            icon={<Zap size={32} />} 
+            title="Zéro Attente" 
+            subtitle="Correction instantanée" 
+          />
         </motion.div>
       </div>
     </section>
   );
 }
 
-// Composant d'animation selon le type
+// === Animations premium par fonctionnalité ===
 function FeatureDemo({ type }: { type: string }) {
   if (type === "writing") {
     return (
-      <motion.div
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 2.5, repeat: Infinity }}
-        className="w-full h-full p-8 flex flex-col justify-center text-white/90 text-sm font-mono"
-      >
-        <div className="mb-4 text-emerald-400">✓ Correction instantanée</div>
-        <div className="line-through opacity-50">"Je vais à la plage hier."</div>
-        <div className="text-emerald-400">"Je suis allé à la plage hier."</div>
-        <div className="mt-6 text-xs opacity-70">Note estimée : 92/100 • 3 suggestions</div>
-      </motion.div>
+      <div className="relative w-full h-full p-8 flex flex-col justify-center overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.7, 1] }}
+          transition={{ duration: 2.2, repeat: Infinity }}
+          className="space-y-6"
+        >
+          <div className="text-emerald-400 font-medium flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Correction en cours...
+          </div>
+          
+          <div className="bg-white/10 p-4 rounded-2xl text-sm">
+            <p className="line-through text-white/50">"Je suis aller à Paris hier."</p>
+            <motion.p 
+              initial={{ color: "#fff" }}
+              animate={{ color: "#34d399" }}
+              className="mt-3"
+            >
+              "Je suis allé à Paris hier."
+            </motion.p>
+          </div>
+
+          <div className="flex justify-between text-xs">
+            <div>Note estimée : <span className="text-emerald-400 font-bold">94/100</span></div>
+            <div className="text-emerald-400">3 améliorations suggérées</div>
+          </div>
+        </motion.div>
+      </div>
     );
   }
 
   if (type === "oral") {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-white/90">
+      <div className="flex flex-col items-center justify-center h-full text-white/90 relative">
         <motion.div
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 1.8, repeat: Infinity }}
-          className="w-20 h-20 rounded-full border-4 border-purple-500 flex items-center justify-center mb-6"
+          animate={{ 
+            scale: [1, 1.25, 1],
+            boxShadow: ["0 0 0 0 rgba(168, 85, 247, 0.4)", "0 0 0 25px rgba(168, 85, 247, 0)"]
+          }}
+          transition={{ duration: 2.2, repeat: Infinity }}
+          className="w-24 h-24 rounded-full border-[6px] border-purple-500 flex items-center justify-center mb-8"
         >
-          <Mic2 size={36} />
+          <Mic2 size={42} className="text-purple-400" />
         </motion.div>
-        <p className="text-center text-sm">Prononciation analysée en temps réel</p>
-        <p className="text-xs opacity-60 mt-2">Fluidité : 94% • Accent : Excellent</p>
+        
+        <p className="text-lg font-medium text-center">Prononciation analysée en direct</p>
+        <div className="mt-3 flex gap-4 text-sm">
+          <div>Fluidité <span className="text-purple-400 font-bold">96%</span></div>
+          <div>Accent <span className="text-purple-400 font-bold">Excellent</span></div>
+        </div>
       </div>
     );
   }
 
   // Exercices adaptatifs
   return (
-    <div className="w-full h-full p-8 flex flex-col justify-center gap-4 text-white/90">
-      <motion.div
-        animate={{ x: [-5, 5, -5] }}
-        transition={{ duration: 1.2, repeat: Infinity }}
-        className="bg-white/10 p-4 rounded-xl"
+    <div className="p-8 flex flex-col justify-center h-full text-white/90 space-y-6">
+      <div className="text-center text-sm font-medium opacity-75">Niveau adapté à votre profil</div>
+      
+      <motion.div 
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ duration: 1.8, repeat: Infinity }}
+        className="bg-white/10 p-5 rounded-2xl border border-amber-400/30"
       >
-        Choisissez la bonne réponse :
+        <p className="mb-4">Complétez : « Hier, je ___ à la bibliothèque. »</p>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {["vais", "suis allé", "allais", "allé"].map((opt, idx) => (
+            <motion.div
+              key={idx}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              className={`py-3 px-4 rounded-xl cursor-pointer transition-all ${idx === 1 ? 'bg-emerald-500 text-white font-medium' : 'bg-white/5 hover:bg-white/10'}`}
+            >
+              {opt}
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
-      <div className="space-y-3">
-        {["Option A", "Option B ✓", "Option C"].map((opt, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0.4 }}
-            animate={{ opacity: i === 1 ? 1 : 0.6 }}
-            className={`p-3 rounded-xl text-sm ${i === 1 ? 'bg-emerald-500/30 border border-emerald-500' : 'bg-white/5'}`}
-          >
-            {opt}
-          </motion.div>
-        ))}
+    </div>
+  );
+}
+
+function StatItem({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
+  return (
+    <div className="flex items-center gap-6 group">
+      <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center transition-transform group-hover:scale-110">
+        {icon}
+      </div>
+      <div>
+        <div className="text-3xl font-black tracking-tight">{title}</div>
+        <div className="text-white/70 text-sm">{subtitle}</div>
       </div>
     </div>
   );
