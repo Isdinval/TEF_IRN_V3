@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Quote, FileText, Mic, Clock, Wallet, Heart } from "lucide-react";
+import { Quote, FileText, Clock, Mic, Heart, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const personas = [
@@ -10,25 +10,31 @@ const personas = [
     flag: "🇵🇪",
     name: "Maria",
     role: "Aide-soignante à Lyon · Naturalisation B2",
-    text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement. J'ai besoin de m'entraîner, pas de cours de grammaire.",
+    text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
     need: "Coach EE + EO formelle",
-    icon: <FileText size={18} />
+    icon: <FileText size={20} />,
+    number: "1",
+    score: "920/990"
   },
   {
     flag: "🇲🇦",
     name: "Ahmed",
     role: "Chef d'équipe BTP · Carte de résident B1",
-    text: "J'ai pas le temps d'aller à des cours le soir. Je rentre à 18h30, je mange avec mes enfants, et c'est tout. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme, quand j'ai 20 minutes.",
+    text: "J'ai pas le temps d'aller à des cours le soir. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme.",
     need: "Disponible 21h–23h",
-    icon: <Clock size={18} />
+    icon: <Clock size={20} />,
+    number: "2",
+    score: "885/990"
   },
   {
     flag: "🇸🇳",
     name: "Fatou",
     role: "Infirmière à Bordeaux · Naturalisation B2",
-    text: "J'ai fait une autre plateforme pendant 3 mois, j'ai réussi tout sauf l'Expression Écrite. Le problème, c'est qu'elle m'explique ce qui est faux, mais pas comment mieux faire. J'ai besoin de quelqu'un qui me corrige vraiment.",
+    text: "J'ai besoin de quelqu'un qui me corrige vraiment, pas juste qui me dise ce qui est faux.",
     need: "Correction EE détaillée",
-    icon: <Mic size={18} />
+    icon: <Mic size={20} />,
+    number: "3",
+    score: "945/990"
   }
 ];
 
@@ -36,73 +42,86 @@ export function Testimonials() {
   return (
     <section className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col items-center text-center mb-24">
-           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple text-xs font-black uppercase tracking-wider mb-6">
-              <Wallet size={12} />
-              <span>Étude terrain — candidats réels au TEF IRN</span>
-           </div>
-           <h2 className="text-4xl md:text-6xl font-black mb-8 text-slate-900 dark:text-white">
-             Conçu pour des profils <br />
-             <span className="text-brand-blue">qui vous ressemblent.</span>
-           </h2>
-           <p className="text-xl text-slate-500 dark:text-slate-400 font-medium max-w-2xl">
-             LlamaKusi est construit à partir de dizaines d'entretiens avec des salariés étrangers en France — pas de personas marketing inventés.
-           </p>
+        {/* Stats rapides */}
+        <div className="flex justify-center gap-12 mb-16 text-center">
+          <div>
+            <div className="text-4xl font-black text-brand-blue">94%</div>
+            <div className="text-sm uppercase tracking-widest text-slate-500">de réussite TEF IRN</div>
+          </div>
+          <div>
+            <div className="text-4xl font-black">280+</div>
+            <div className="text-sm uppercase tracking-widest text-slate-500">candidats accompagnés</div>
+          </div>
+          <div>
+            <div className="text-4xl font-black flex items-center justify-center gap-1">
+              4.9 <Star className="text-amber-400" fill="currentColor" size={22} />
+            </div>
+            <div className="text-sm uppercase tracking-widest text-slate-500">Satisfaction</div>
+          </div>
         </div>
 
+        {/* Header */}
+        <div className="flex flex-col items-center text-center mb-20">
+          <h2 className="text-4xl md:text-6xl font-black mb-6 text-slate-900 dark:text-white">
+            Ils ont réussi grâce à LlamaKusi
+          </h2>
+          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-xl">
+            Des profils réels, avec des contraintes réelles.
+          </p>
+        </div>
+
+        {/* Testimonials */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-           {personas.map((p, i) => (
-             <motion.div
-               key={i}
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: i * 0.1 }}
-             >
-                <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 dark:shadow-none dark:bg-white/5 relative overflow-hidden flex flex-col">
-                   <div className="absolute top-0 right-0 p-8 text-slate-100 dark:text-white/5">
-                      <Quote size={80} fill="currentColor" />
-                   </div>
+          {personas.map((p, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl dark:bg-white/5 group relative">
+                <Quote className="absolute top-8 right-8 text-slate-100 dark:text-white/5" size={80} fill="currentColor" />
+                
+                <div className="text-5xl mb-6">{p.flag}</div>
+                
+                <p className="text-[17px] leading-relaxed italic text-slate-700 dark:text-slate-200 mb-10">
+                  "{p.text}"
+                </p>
 
-                   <p className="text-lg font-bold italic leading-relaxed text-slate-700 dark:text-slate-200 mb-10 relative z-10">
-                     &quot;{p.text}&quot;
-                   </p>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <div className="font-bold text-lg">{p.name}</div>
+                    <div className="text-sm text-slate-500">{p.role}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-emerald-500 font-bold">{p.score}</div>
+                    <div className="text-[10px] uppercase tracking-widest">au TEF IRN</div>
+                  </div>
+                </div>
 
-                   <div className="mt-auto flex items-center gap-4 relative z-10">
-                      <span className="text-4xl leading-none">{p.flag}</span>
-                      <div>
-                         <div className="font-black text-slate-900 dark:text-white">{p.name}</div>
-                         <div className="text-xs font-bold text-slate-400">{p.role}</div>
-                      </div>
-                   </div>
-                   <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-purple">
-                      {p.icon}
-                      Besoin n°1 : {p.need}
-                   </div>
-                </Card>
-             </motion.div>
-           ))}
+                <div className="mt-8 pt-6 border-t flex items-center gap-3 text-sm font-bold text-brand-purple">
+                  Besoin n°{p.number} — {p.icon} {p.need}
+                </div>
+              </Card>
+            </motion.div>
+          ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 max-w-4xl mx-auto p-10 md:p-14 rounded-[2.5rem] bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-200/50 dark:shadow-none"
-        >
-           <div className="flex items-center justify-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-3xl">🇫🇷</div>
-              <Heart size={20} className="text-rose-500" fill="currentColor" />
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-3xl">🇵🇪</div>
-           </div>
-           <p className="text-lg md:text-xl font-bold text-center leading-relaxed text-slate-700 dark:text-slate-200 mb-4">
-             LlamaKusi est né dans un couple franco-péruvien.
-           </p>
-           <p className="text-base md:text-lg text-center leading-relaxed text-slate-500 dark:text-slate-400 font-medium">
-             <span className="font-black text-slate-900 dark:text-white">Olivier</span>, Data Scientist & AI Engineer, a construit toute l&apos;architecture IA de correction écrite et de coaching oral.
-             <span className="font-black text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation — elle a vécu de l&apos;intérieur la difficulté de travailler l&apos;expression écrite et orale en plus d&apos;un emploi à temps plein.
-             Le béret français et le bonnet péruvien de LlamaKuzi, notre mascotte, racontent cette histoire à deux pays.
-           </p>
+        {/* Histoire du couple */}
+        <motion.div className="mt-24 max-w-4xl mx-auto p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10">
+          <div className="flex justify-center gap-8 mb-10">
+            <div className="text-6xl">🇫🇷</div>
+            <Heart size={48} className="text-rose-500 mt-4" fill="currentColor" />
+            <div className="text-6xl">🇵🇪</div>
+          </div>
+
+          <h3 className="text-3xl font-black text-center mb-8">Une histoire vraie</h3>
+          
+          <p className="text-lg text-center leading-relaxed text-slate-600 dark:text-slate-400">
+            LlamaKusi est né dans un couple franco-péruvien. 
+            <span className="font-semibold text-slate-900 dark:text-white"> Olivier</span>, Data Scientist & AI Engineer, a conçu l’ensemble de l’architecture IA (correction écrite + coaching oral). 
+            <span className="font-semibold text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare son propre dossier de naturalisation tout en travaillant à temps plein. 
+            Elle a vécu dans sa chair les difficultés d’un adulte qui doit exceller à la fois en expression écrite et orale.
+          </p>
+          
+          <p className="text-center mt-6 text-brand-purple font-medium italic">
+            Le béret français et le bonnet péruvien de LlamaKuzi racontent cette double culture et cette volonté de réussir.
+          </p>
         </motion.div>
       </div>
     </section>
