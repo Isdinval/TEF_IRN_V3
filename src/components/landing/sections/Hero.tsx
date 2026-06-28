@@ -117,58 +117,6 @@ export function Hero() {
              </div>
           </motion.div>
         </div>
-
-        {/* App Preview: Coach Écrit correction example */}
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="relative max-w-4xl mx-auto mt-20"
-        >
-          <div className="relative rounded-[3rem] p-4 bg-slate-200/50 dark:bg-white/5 backdrop-blur-3xl border border-white/20 shadow-2xl overflow-hidden">
-             <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 overflow-hidden">
-                {/* Fake browser top bar */}
-                <div className="flex items-center gap-2 px-6 py-4 border-b border-slate-100 dark:border-white/5">
-                   <div className="w-3 h-3 rounded-full bg-red-400" />
-                   <div className="w-3 h-3 rounded-full bg-amber-400" />
-                   <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                   <span className="ml-4 text-xs font-bold text-slate-400">Coach Écrit — Expression Écrite</span>
-                </div>
-
-                <div className="p-8 md:p-10 grid md:grid-cols-3 gap-8">
-                   <div className="md:col-span-2">
-                      <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Votre texte</div>
-                      <p className="text-lg md:text-xl leading-relaxed text-slate-700 dark:text-slate-200 font-medium">
-                         Hier, je suis{" "}
-                         <span className="relative">
-                            <span className="line-through text-red-500">aller</span>
-                            <span className="ml-2 font-black text-emerald-600">allé</span>
-                         </span>{" "}
-                         au marché avec mes enfants pour acheter des légumes frais.
-                      </p>
-                      <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black">
-                         <CheckCircle2 size={14} />
-                         Accord du participe passé corrigé
-                      </div>
-                   </div>
-
-                   <div className="md:col-span-1 flex flex-col gap-3">
-                      <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Analyse IA</div>
-                      <div className="p-4 rounded-2xl bg-brand-blue text-white">
-                         <div className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-1">Score estimé</div>
-                         <div className="font-black text-3xl flex items-center gap-1">B2 <Star size={18} className="text-brand-gold" /></div>
-                      </div>
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-300">
-                         <span>Grammaire</span><span className="text-emerald-600">9/10</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 text-sm font-bold text-slate-600 dark:text-slate-300">
-                         <span>Vocabulaire</span><span className="text-emerald-600">8/10</span>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </motion.div>
       </div>
 
       <VideoModal isOpen={videoOpen} onClose={() => setVideoOpen(false)} />
