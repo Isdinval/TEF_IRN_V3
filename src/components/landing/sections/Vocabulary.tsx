@@ -51,10 +51,6 @@ export function Vocabulary() {
                    </li>
                  ))}
               </ul>
-
-              <Button className="h-14 px-8 bg-brand-gold hover:bg-brand-gold/90 text-brand-dark font-black rounded-2xl shadow-xl shadow-brand-gold/20">
-                Explorer le dictionnaire
-              </Button>
            </motion.div>
 
            <div className="relative">
