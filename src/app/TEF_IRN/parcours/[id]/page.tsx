@@ -66,7 +66,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
       "description": lesson.objective,
       "url": `${siteUrl}/TEF_IRN/lessons/${lesson.id}`
     })),
-    "teaches": "Préparation complète au TEF IRN",
+    "teaches": "Maîtrise du français pour le TEF IRN",
     "learningResourceType": "LearningPath"
   };
 
