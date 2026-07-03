@@ -5,6 +5,7 @@ const defaultSupabase = createClient();
 
 export interface Parcours {
   id: string;
+  slug: string;
   level: string;
   category: string;
   objective: string;
@@ -24,6 +25,7 @@ export interface ParcoursProgress {
 
 export interface Lesson {
   id: string;
+  slug: string;
   title: string;
   order_index: number;
   level: string;
@@ -31,6 +33,7 @@ export interface Lesson {
   duration?: number;
   difficulty?: 'facile' | 'moyen' | 'difficile';
   objective?: string;
+  content?: string;
 }
 
 export interface Exercise {
@@ -48,7 +51,7 @@ export interface Exercise {
 export async function getParcours(supabase: SupabaseClient = defaultSupabase): Promise<Parcours[]> {
   const { data, error } = await supabase
     .from('parcours')
-    .select('id, level, category, objective, nom_parcours, justification_reference_au_referentiel')
+    .select('id, slug, level, category, objective, nom_parcours, justification_reference_au_referentiel')
     .order('level', { ascending: true })
     .order('category', { ascending: true });
 
@@ -148,7 +151,7 @@ export async function getParcoursProgress(
 export async function getParcoursById(id: string, supabase: SupabaseClient = defaultSupabase): Promise<Parcours | null> {
   const { data, error } = await supabase
     .from('parcours')
-    .select('id, level, category, objective, nom_parcours, justification_reference_au_referentiel')
+    .select('id, slug, level, category, objective, nom_parcours, justification_reference_au_referentiel')
     .eq('id', id)
     .single();
 
@@ -160,10 +163,25 @@ export async function getParcoursById(id: string, supabase: SupabaseClient = def
   return data;
 }
 
+export async function getParcoursBySlug(slug: string, supabase: SupabaseClient = defaultSupabase): Promise<Parcours | null> {
+  const { data, error } = await supabase
+    .from('parcours')
+    .select('id, slug, level, category, objective, nom_parcours, justification_reference_au_referentiel')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    console.error('Error fetching parcours by slug:', error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
-    .select('id, title, order_index, level, category, duration, difficulty, objective')
+    .select('id, slug, title, order_index, level, category, duration, difficulty, objective')
     .eq('level', level)
     .eq('category', category)
     .order('order_index', { ascending: true });
@@ -174,6 +192,36 @@ export async function getLessonsForParcours(level: string, category: string, sup
   }
 
   return data || [];
+}
+
+export async function getLessonBySlug(slug: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson | null> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('id, slug, title, order_index, level, category, duration, difficulty, objective, content')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    console.error('Error fetching lesson by slug:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function getLessonById(id: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson | null> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('id, slug, title, order_index, level, category, duration, difficulty, objective, content')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching lesson by id:', error);
+    return null;
+  }
+
+  return data;
 }
 
 export async function getRecommendedExercises(userId: string, level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Exercise[]> {

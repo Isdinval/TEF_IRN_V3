@@ -47,7 +47,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
   const { main: mainTitle } = splitTitle(lesson.title);
   const { description } = parseObjective(lesson.objective || "");
   const Icon = categoryIcons[category.toLowerCase()] || BookOpen;
-  const lessonUrl = `/TEF_IRN/lessons/${lesson.id}?parcoursId=${parcoursId}`;
+  const lessonUrl = `/TEF_IRN/lessons/${lesson.slug}?parcoursId=${parcoursId}`;
   const difficulty = lesson.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
   const theme = CATEGORY_THEMES[category.toLowerCase()] || CATEGORY_THEMES.default;

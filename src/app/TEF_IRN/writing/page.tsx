@@ -167,7 +167,7 @@ export function WritingCoachContent() {
               <button
                 onClick={() => {
                   if (activeParcours) {
-                    router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
+                    router.push(`/TEF_IRN/parcours/${activeParcours.slug}`);
                   } else {
                     router.back();
                   }

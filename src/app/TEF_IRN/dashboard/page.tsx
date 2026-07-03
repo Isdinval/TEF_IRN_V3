@@ -110,7 +110,7 @@ export default function DashboardPage() {
               </h2>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {recommendations.length > 0 ? recommendations.map((reco: any) => (
-                  <RecommendationCard key={reco.id} type={reco.type} reason={reco.reason} referenceId={reco.reference_id} />
+                  <RecommendationCard key={reco.id} type={reco.type} reason={reco.reason} referenceId={reco.reference_id} slug={reco.slug} />
                 )) : <div className="col-span-2 p-12 text-center border-2 border-dashed rounded-[2.5rem] text-zinc-400">Continuez à pratiquer !</div>}
               </div>
             </section>

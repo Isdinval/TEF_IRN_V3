@@ -1,21 +1,32 @@
 import { createClient } from "@/lib/supabase-server";
 import {
+  getParcoursBySlug,
   getParcoursById,
   getLessonsForParcours,
   getParcoursProgress,
   getRecommendedExercises,
   Exercise
 } from "@/lib/parcours";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ParcoursInteractive from "./ParcoursInteractive";
 import JsonLd from "@/components/shared/JsonLd";
 import { siteUrl } from "@/lib/site";
 
-export default async function ParcoursDetailPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
+export default async function ParcoursDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params;
   const supabase = await createClient();
 
-  const parcours = await getParcoursById(id, supabase);
+  let parcours = await getParcoursBySlug(slug, supabase);
+
+  // Backward compatibility
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!parcours && uuidRegex.test(slug)) {
+    const parcoursById = await getParcoursById(slug, supabase);
+    if (parcoursById) {
+      redirect(`/TEF_IRN/parcours/${parcoursById.slug}`);
+    }
+  }
+
   if (!parcours) {
     notFound();
   }
@@ -41,11 +52,11 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
   const { data: guideData } = await supabase
     .from('guides')
     .select('slug')
-    .eq('parcours_id', id)
+    .eq('parcours_id', parcours.id)
     .eq('is_published', true)
     .maybeSingle();
 
-  const parcoursUrl = `${siteUrl}/TEF_IRN/parcours/${id}`;
+  const parcoursUrl = `${siteUrl}/TEF_IRN/parcours/${parcours.slug}`;
 
   // Structured Data - Course
   const courseSchema = {
@@ -64,7 +75,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
       "@type": "Lesson",
       "name": lesson.title,
       "description": lesson.objective,
-      "url": `${siteUrl}/TEF_IRN/lessons/${lesson.id}`
+      "url": `${siteUrl}/TEF_IRN/lessons/${lesson.slug}`
     })),
     "teaches": "Maîtrise du français pour le TEF IRN",
     "learningResourceType": "LearningPath"

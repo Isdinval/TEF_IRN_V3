@@ -1,11 +1,19 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
-import { getParcoursById } from '@/lib/parcours';
+import { getParcoursBySlug, getParcoursById } from '@/lib/parcours';
+import { siteUrl } from '@/lib/site';
 
-export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await props.params;
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
   const supabase = await createClient();
-  const parcours = await getParcoursById(id, supabase);
+
+  let parcours = await getParcoursBySlug(slug, supabase);
+
+  // Backward compatibility check for metadata
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!parcours && uuidRegex.test(slug)) {
+    parcours = await getParcoursById(slug, supabase);
+  }
 
   if (!parcours) {
     return {
@@ -21,18 +29,18 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
     description: description.slice(0, 160),
     keywords: ["TEF IRN", "préparation TEF", parcours.category, parcours.level, "français B1", "cours de français"],
     alternates: {
-      canonical: `https://llamakusi.com/TEF_IRN/parcours/${id}`,
+      canonical: `${siteUrl}/TEF_IRN/parcours/${parcours.slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://llamakusi.com/TEF_IRN/parcours/${id}`,
+      url: `${siteUrl}/TEF_IRN/parcours/${parcours.slug}`,
       siteName: 'LlamaKusi',
       locale: 'fr_FR',
       type: 'article',
       images: [
         {
-          url: 'https://llamakusi.com/og-parcours.png',
+          url: `${siteUrl}/og-parcours.png`,
           width: 1200,
           height: 630,
           alt: `Parcours ${parcours.category} ${parcours.level}`,
@@ -43,14 +51,14 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://llamakusi.com/og-parcours.png'],
+      images: [`${siteUrl}/og-parcours.png`],
     },
   };
 }
 
 export default async function ParcoursLayout(props: {
   children: React.ReactNode;
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
   const { children } = props;
   return <>{children}</>;

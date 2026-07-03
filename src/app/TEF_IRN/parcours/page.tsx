@@ -80,7 +80,7 @@ export default async function ParcoursPage() {
           "url": siteUrl,
           "logo": `${siteUrl}/logo.png`
         },
-        "url": `${siteUrl}/TEF_IRN/parcours/${p.id}`,
+        "url": `${siteUrl}/TEF_IRN/parcours/${p.slug}`,
         "educationalLevel": p.level,
         "about": {
           "@type": "Thing",

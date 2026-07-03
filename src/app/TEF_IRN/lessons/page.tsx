@@ -39,7 +39,7 @@ export default async function LessonsPage() {
   // 2. Fetch all lessons
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('id, title, level, category, order_index, objective')
+    .select('id, slug, title, level, category, order_index, objective')
     .order('level', { ascending: true })
     .order('order_index', { ascending: true });
 
@@ -52,7 +52,7 @@ export default async function LessonsPage() {
     "itemListElement": lessonsData.map((lesson, index) => ({
       "@type": "ListItem",
       "position": index + 1,
-      "url": `${siteUrl}/TEF_IRN/lessons/${lesson.id}`,
+      "url": `${siteUrl}/TEF_IRN/lessons/${lesson.slug}`,
       "name": lesson.title
     }))
   };

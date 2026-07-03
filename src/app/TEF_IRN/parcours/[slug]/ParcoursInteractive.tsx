@@ -1,29 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
+import { Parcours, Lesson, Exercise, ParcoursProgress } from "@/lib/parcours";
+import { User } from "@supabase/supabase-js";
 import {
-  Parcours as ParcoursType,
-  Lesson,
-  Exercise
-} from "@/lib/parcours";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  Play,
+  Trophy,
   Target,
   Sparkles,
   BookText,
   ArrowRight,
-  RefreshCw
+  Clock,
+  TrendingUp,
+  ChevronRight
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import LessonCard from "./components/LessonCard";
 import ExerciseCard from "./components/ExerciseCard";
-import { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase";
-import { getParcoursProgress, getRecommendedExercises } from "@/lib/parcours";
+import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
+
+interface ParcoursInteractiveProps {
+  parcours: Parcours;
+  allLessons: Lesson[];
+  initialProgress: ParcoursProgress | null;
+  initialRecommendedExercises: Exercise[];
+  initialGuideSlug: string | null;
+  user: User | null;
+}
 
 export default function ParcoursInteractive({
   parcours,
@@ -32,137 +38,95 @@ export default function ParcoursInteractive({
   initialRecommendedExercises,
   initialGuideSlug,
   user
-}: {
-  parcours: ParcoursType;
-  allLessons: Lesson[];
-  initialProgress: any;
-  initialRecommendedExercises: Exercise[];
-  initialGuideSlug: string | null;
-  user: User | null;
-}) {
-  const [progress, setProgress] = useState(initialProgress);
-  const [recommendedExercises, setRecommendedExercises] = useState(initialRecommendedExercises);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showUpdateToast, setShowUpdateToast] = useState(false);
+}: ParcoursInteractiveProps) {
+  const [progress] = useState(initialProgress);
+  const [recommendedExercises] = useState(initialRecommendedExercises);
 
-  const supabase = createClient();
+  const lessonsWithStatus = useMemo(() => {
+    if (!user || !progress) return allLessons.map(l => ({ ...l, status: 'open' as const }));
 
-  const handleRefresh = async () => {
-    if (!user) return;
-    setIsRefreshing(true);
-    try {
-      const [progressData, exercisesData] = await Promise.all([
-        getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
-        getRecommendedExercises(user.id, parcours.level, parcours.category, supabase)
-      ]);
-      setProgress(progressData);
-      setRecommendedExercises(exercisesData);
-      setShowUpdateToast(true);
-      setTimeout(() => setShowUpdateToast(false), 4000);
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+    let nextFound = false;
+    return allLessons.map((lesson) => {
+      const isCompleted = progress.completedLessons.includes(lesson.id);
+      let status: 'completed' | 'next' | 'locked' | 'open' = 'open';
 
-  const getLessonStatus = (lessonId: string, index: number) : 'completed' | 'next' | 'locked' | 'open' => {
-    if (!user || !progress) return 'open';
-    const isCompleted = progress.completedLessons?.includes(lessonId) || false;
-    if (isCompleted) return 'completed';
-    const isNext = (index === 0 && progress.completed === 0) ||
-                   (index > 0 && progress.completedLessons?.includes(allLessons[index-1].id));
-    return isNext ? 'next' : 'locked';
-  };
+      if (isCompleted) {
+        status = 'completed';
+      } else if (!nextFound) {
+        status = 'next';
+        nextFound = true;
+      }
 
-  const lessonsWithStatus = allLessons.map((lesson, index) => ({
-    ...lesson,
-    status: getLessonStatus(lesson.id, index)
-  }));
-
-  const getLessonUrl = (lessonId: string) => `/TEF_IRN/lessons/${lessonId}?parcoursId=${parcours.id}`;
+      return { ...lesson, status };
+    });
+  }, [allLessons, progress, user]);
 
   return (
-    <article className="min-h-screen bg-slate-50/50 pb-20">
-      {/* Informations GEO pour IA */}
-      <div className="sr-only">
-        <section>
-          <h2>Résumé du parcours</h2>
-          <p>{parcours.objective}</p>
-          <h3>Compétences visées</h3>
-          <ul>
-            <li>Maîtrise du {parcours.category} niveau {parcours.level}</li>
-            <li>Préparation spécifique aux épreuves du TEF IRN</li>
-            <li>Validation des acquis par des exercices pratiques</li>
-          </ul>
-          <h3>Informations pratiques</h3>
-          <p>Durée estimée : {allLessons.length * 30} minutes (environ 30 min par leçon)</p>
-          <p>Niveau requis : {parcours.level === 'B1' ? 'A2' : 'A1'}</p>
-        </section>
+    <article className="min-h-screen bg-zinc-50/50 pb-24">
+      <div className="bg-white border-b border-zinc-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md bg-white/80">
+        <ParcoursBreadcrumb />
       </div>
 
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {showUpdateToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50"
-          >
-            <div className="bg-zinc-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-sm font-bold uppercase tracking-wider">Progression mise à jour</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="relative overflow-hidden bg-zinc-900 py-24 lg:py-32">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-blue/20 rounded-full blur-[120px]" />
+        </div>
 
-      <div className="bg-white border-b border-slate-100 pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Badge className="bg-indigo-50 text-indigo-600 hover:bg-indigo-50 border-none font-black px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest">
-                  Parcours de formation
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            <div className="flex-1 text-center lg:text-left space-y-8">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md"
+              >
+                <Badge className="bg-indigo-600 text-white border-none rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
+                  {parcours.level}
                 </Badge>
-                <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-slate-900 capitalize leading-[0.9]">
-                  {parcours.category} <span className="text-indigo-600">{parcours.level}</span>
-                </h1>
-              </div>
-              <p className="text-xl font-medium text-slate-500 max-w-2xl leading-relaxed italic">
-                "{parcours.objective}"
-              </p>
+                <span className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                  PARCOURS {parcours.category}
+                </span>
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[0.95]"
+              >
+                {parcours.nom_parcours?.toUpperCase() || `${parcours.category.toUpperCase()} ${parcours.level}`}
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-xl text-zinc-400 max-w-2xl font-medium leading-relaxed italic"
+              >
+                {parcours.objective}
+              </motion.p>
             </div>
 
             {user ? (
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="h-20 w-20 rounded-[2rem] border-slate-200 hover:bg-slate-50"
-                >
-                  <RefreshCw className={`text-slate-400 ${isRefreshing ? 'animate-spin' : ''}`} size={24} />
-                </Button>
-
-                {lessonsWithStatus.find(l => l.status !== 'completed') && (
-                  <div className="shrink-0">
-                    <Link href={getLessonUrl(lessonsWithStatus.find(l => l.status !== 'locked')?.id || lessonsWithStatus[0].id)}>
-                      <Button
-                        size="lg"
-                        className="h-20 px-10 rounded-[2rem] bg-zinc-900 text-white font-black text-xl hover:bg-indigo-600 shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.02] active:scale-[0.98] group"
-                      >
-                        <Play className="mr-3 group-hover:fill-white" size={24} fill="currentColor" />
-                        {progress?.completed === 0 ? "Commencer" : "Reprendre"}
-                      </Button>
-                    </Link>
+               <div className="shrink-0 w-full lg:w-auto">
+                <div className="bg-white/10 backdrop-blur-xl rounded-[3rem] p-10 border border-white/10 shadow-2xl space-y-8">
+                  <div className="text-center space-y-2">
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Prêt pour la suite ?</p>
+                    <h3 className="text-3xl font-black text-white">Continuez !</h3>
                   </div>
-                )}
+                  <Link href={`/TEF_IRN/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}>
+                    <Button
+                      size="lg"
+                      className="h-20 px-10 rounded-[2rem] bg-indigo-600 text-white font-black text-xl hover:bg-indigo-700 shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      Démarrer la leçon <ArrowRight className="ml-3" size={24} />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
-              <div className="shrink-0">
+              <div className="shrink-0 w-full lg:w-auto">
                 <Link href="/TEF_IRN/login">
                   <Button
                     size="lg"
@@ -263,7 +227,7 @@ export default function ParcoursInteractive({
               {lessonsWithStatus.map((lesson, index) => (
                 <LessonCard
                   key={lesson.id}
-                  lesson={lesson}
+                  lesson={lesson as any}
                   index={index}
                   isNext={lesson.status === 'next'}
                   category={parcours.category}

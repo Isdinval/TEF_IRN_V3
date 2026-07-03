@@ -107,7 +107,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await saveResults();
-      router.push(`/TEF_IRN/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/lessons/${lesson.slug}/complete`);
     }
   };
 
@@ -122,7 +122,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     } else {
       setLoading(true);
       await awardXpOnly();
-      router.push(`/TEF_IRN/lessons/${lesson.id}/complete`);
+      router.push(`/TEF_IRN/lessons/${lesson.slug}/complete`);
     }
   };
 
@@ -364,7 +364,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                       </p>
                    </div>
                    <div className="flex flex-col gap-4 max-w-xs mx-auto pt-6">
-                      <Link href={`/TEF_IRN/login?redirect=/TEF_IRN/lessons/${lesson.id}`}>
+                      <Link href={`/TEF_IRN/login?redirect=/TEF_IRN/lessons/${lesson.slug}`}>
                         <Button size="lg" className="w-full h-16 text-lg font-black rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100">
                           Se connecter
                         </Button>
@@ -457,7 +457,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                   <p className="text-4xl font-black text-amber-500">+100 XP</p>
                 </div>
               </div>
-              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/TEF_IRN/lessons/${lesson.id}/complete`)}>
+              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/TEF_IRN/lessons/${lesson.slug}/complete`)}>
                 Retour au Dashboard
               </Button>
             </motion.div>

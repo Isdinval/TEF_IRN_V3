@@ -1,20 +1,24 @@
 import { createClient } from '@/lib/supabase-server';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import LessonInteractive from './LessonInteractive';
-import Script from 'next/script';
 import { siteUrl } from '@/lib/site';
 import JsonLd from '@/components/shared/JsonLd';
+import { getLessonBySlug, getLessonById } from '@/lib/parcours';
 
-export default async function LessonPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
+export default async function LessonPage(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params;
   const supabase = await createClient();
 
-  // Fetch lesson data
-  const { data: lesson } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('id', id)
-    .single();
+  let lesson = await getLessonBySlug(slug, supabase);
+
+  // Backward compatibility: if slug is a UUID, try to fetch by ID and redirect
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!lesson && uuidRegex.test(slug)) {
+    const lessonById = await getLessonById(slug, supabase);
+    if (lessonById) {
+      redirect(`/TEF_IRN/lessons/${lessonById.slug}`);
+    }
+  }
 
   if (!lesson) {
     notFound();
@@ -24,7 +28,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
   const { data: exercise } = await supabase
     .from('exercises')
     .select('*')
-    .eq('lesson_id', id)
+    .eq('lesson_id', lesson.id)
     .eq('type', 'qcm')
     .limit(1)
     .maybeSingle();
@@ -32,7 +36,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
   // Fetch user session
   const { data: { user } } = await supabase.auth.getUser();
 
-  const lessonUrl = `${siteUrl}/TEF_IRN/lessons/${id}`;
+  const lessonUrl = `${siteUrl}/TEF_IRN/lessons/${lesson.slug}`;
 
   // Structured Data - Course
   const courseSchema = {
@@ -84,7 +88,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
     "publisher": {
       "@id": `${siteUrl}/#organization`
     },
-    "datePublished": lesson.created_at || "2024-01-01",
+    "datePublished": (lesson as any).created_at || "2024-01-01",
     "inLanguage": "fr"
   };
 
@@ -116,7 +120,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
 
   // FAQ Schema
   let faqSchema = null;
-  if (lesson.content && (lesson.content.includes('?') || lesson.objective.includes('?'))) {
+  if (lesson.content && (lesson.content.includes('?') || (lesson.objective && lesson.objective.includes('?')))) {
     faqSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -149,7 +153,7 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
             <h1>{lesson.title}</h1>
             <p>Niveau: {lesson.level} | Catégorie: {lesson.category}</p>
             <p>Auteur: LlamaKusi</p>
-            <p>Date: {new Date(lesson.created_at).getFullYear()}</p>
+            <p>Date: {new Date((lesson as any).created_at || Date.now()).getFullYear()}</p>
             <p>Source: {siteUrl}</p>
           </header>
 
