@@ -72,7 +72,7 @@ export default async function ParcoursPage() {
       "position": index + 1,
       "item": {
         "@type": "Course",
-        "name": p.nom_parcours || `Parcours ${p.category} ${p.level}`,
+        "name": `${p.category} ${p.level}`,
         "description": p.objective,
         "provider": {
           "@type": "Organization",

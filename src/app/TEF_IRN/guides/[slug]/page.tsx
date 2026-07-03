@@ -67,7 +67,9 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
       "@type": "WebPage",
       "@id": guideUrl
     },
-    "image": guide.image_url || `${siteUrl}/og-image/guides/${guide.slug}.jpg`
+    "image": `${siteUrl}/og-image/guides/${guide.slug}.jpg`,
+    "articleSection": guide.type,
+    "inLanguage": "fr-FR"
   };
 
   // FAQ Schema detection logic
