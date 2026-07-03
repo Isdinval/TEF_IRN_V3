@@ -19,40 +19,13 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
     notFound();
   }
 
-  const guideUrl = `${siteUrl}/TEF_IRN/guides/${guide.slug}`;
-
-  // Breadcrumb Schema
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Accueil",
-        "item": siteUrl
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Guides TEF IRN",
-        "item": `${siteUrl}/TEF_IRN/guides`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": guide.title,
-        "item": guideUrl
-      }
-    ]
-  };
-
-  // Article Schema
+  // Schema Article / BlogPosting (standard 2026)
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting", // Ou "Article" si evergreen
     "headline": guide.title,
     "description": guide.description,
+    "image": guide.image_url ? `${siteUrl}${guide.image_url}` : `${siteUrl}/og-image.png`,
     "datePublished": guide.created_at,
     "dateModified": guide.updated_at || guide.created_at,
     "author": {
@@ -61,47 +34,25 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
       "url": siteUrl
     },
     "publisher": {
-      "@id": `${siteUrl}/#organization`
+      "@type": "Organization",
+      "name": "LlamaKusi",
+      "url": siteUrl,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${siteUrl}/logo.png`
+      }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": guideUrl
+      "@id": `${siteUrl}/TEF_IRN/guides/${slug}`
     },
-    "image": `${siteUrl}/og-image/guides/${guide.slug}.jpg`,
-    "articleSection": guide.type || 'Guide TEF IRN',
-    "inLanguage": "fr-FR"
+    "keywords": ["TEF IRN", guide.category, guide.type, "préparation examen français"].filter(Boolean),
+    "articleSection": guide.type || "Guide TEF IRN"
   };
-
-  // FAQ Schema detection logic
-  const faqSchema: any = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": []
-  };
-
-  if (guide.content) {
-    const qaPairs = guide.content.matchAll(/### (?:Q: )?(.*?)\n\n(.*?)(?=\n\n###|$)/gs);
-    for (const match of qaPairs) {
-      if (match[1] && match[2]) {
-        faqSchema.mainEntity.push({
-          "@type": "Question",
-          "name": match[1].trim(),
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": match[2].trim()
-          }
-        });
-      }
-    }
-  }
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} id="breadcrumb-schema" />
-      <JsonLd data={articleSchema} id="article-schema" />
-      {faqSchema.mainEntity.length > 0 && (
-        <JsonLd data={faqSchema} id="faq-schema" />
-      )}
+      <JsonLd data={articleSchema} id={`article-${slug}`} />
       <GuideDetail guide={guide} />
     </>
   );
