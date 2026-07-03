@@ -122,8 +122,9 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
           <div className="relative z-10">
             <div className="flex items-center gap-2 text-blue-600 mb-4">
               <Sparkles size={18} />
-              <h2 className="text-sm font-black uppercase tracking-widest">Résumé pour l'IA & Points clés</h2>
+              <h2 className="text-sm font-black uppercase tracking-widest">Points clés du guide</h2>
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-lg font-bold text-zinc-900 mb-2">L'essentiel en 30 secondes</h3>
@@ -132,20 +133,37 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
                   Il est conçu pour aider les candidats au TEF IRN à maîtriser les compétences de {guide.category?.replace('-', ' ') || 'français'}.
                 </p>
               </div>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-slate-600">
-                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                  <span>Stratégies concrètes pour l'examen.</span>
-                </li>
-                <li className="flex items-start gap-2 text-slate-600">
-                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                  <span>Exemples adaptés au format TEF IRN.</span>
-                </li>
-                <li className="flex items-start gap-2 text-slate-600">
-                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                  <span>Conseils d'experts et méthodologie éprouvée.</span>
-                </li>
-              </ul>
+      
+              {/* Points clés dynamiques */}
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 mb-3">Ce que vous allez retenir</h3>
+                <ul className="space-y-3">
+                  {guide.key_points && guide.key_points.length > 0 ? (
+                    guide.key_points.map((point: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2 text-slate-600">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))
+                  ) : (
+                    // Fallback si pas encore de key_points
+                    <>
+                      <li className="flex items-start gap-2 text-slate-600">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>Stratégies concrètes adaptées à l'examen TEF IRN</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-slate-600">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>Exemples réalistes et méthodologie éprouvée</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-slate-600">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>Conseils pratiques pour éviter les pièges courants</span>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
