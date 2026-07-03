@@ -12,7 +12,9 @@ import {
   ChevronRight,
   BookOpen,
   Calendar,
-  ExternalLink
+  ExternalLink,
+  BrainCircuit,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -91,11 +93,11 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 py-6 border-y border-gray-50">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  M
+                  L
                 </div>
                 <div>
                    <p className="text-xs font-black text-zinc-900 uppercase tracking-widest">Par LlamaKusi</p>
-                   <p className="text-xs text-slate-400 font-medium">Expert TEF IRN</p>
+                   <p className="text-xs text-slate-400 font-medium">Expert TEF IRN & IA</p>
                 </div>
              </div>
              <div className="hidden sm:block w-[1px] h-8 bg-gray-100"></div>
@@ -110,6 +112,44 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
           </p>
         </motion.div>
       </header>
+
+      {/* AI Summary / GEO Optimization */}
+      <section className="max-w-6xl mx-auto px-6 mb-12">
+        <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <BrainCircuit size={100} className="text-blue-600" />
+          </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-blue-600 mb-4">
+              <Sparkles size={18} />
+              <h2 className="text-sm font-black uppercase tracking-widest">Résumé pour l'IA & Points clés</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 mb-2">L'essentiel en 30 secondes</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Ce guide {guide.type} traite de <strong>{guide.title}</strong> pour le niveau {guide.level || 'tous niveaux'}.
+                  Il est conçu pour aider les candidats au TEF IRN à maîtriser les compétences de {guide.category?.replace('-', ' ') || 'français'}.
+                </p>
+              </div>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-slate-600">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                  <span>Stratégies concrètes pour l'examen.</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-600">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                  <span>Exemples adaptés au format TEF IRN.</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-600">
+                  <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                  <span>Conseils d'experts et méthodologie éprouvée.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-6 pt-8">
@@ -146,18 +186,32 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
           </div>
         </section>
 
-        {/* Footer Navigation */}
-        <div className="mt-20 pt-12 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-100">M</div>
-              <div>
-                <p className="font-black text-zinc-900 tracking-tight">LlamaKusi</p>
-                <p className="text-xs text-slate-400 font-medium">Le coach IA pour votre réussite au TEF IRN.</p>
+        {/* E-E-A-T Footer */}
+        <div className="mt-20 pt-12 border-t border-gray-100">
+          <div className="bg-gray-50 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
+            <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-blue-100">L</div>
+            <div className="flex-grow space-y-2 text-center md:text-left">
+              <h3 className="font-black text-zinc-900 text-xl">À propos de LlamaKusi</h3>
+              <p className="text-slate-600">
+                LlamaKusi est la plateforme leader pour la préparation au TEF IRN. Nos guides sont rédigés par des experts en pédagogie et en intelligence artificielle pour offrir la meilleure expérience d'apprentissage.
+              </p>
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
+                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Expertise TEF IRN</Badge>
+                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Certifié Qualiopi (en cours)</Badge>
+                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Technologie IA 2025</Badge>
               </div>
-           </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Navigation */}
+        <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-8">
            <Link href="/TEF_IRN/guides" className="text-blue-600 font-black flex items-center gap-2 hover:translate-x-1 transition-transform">
-             Voir tous les guides <ChevronRight size={18} />
+             <ChevronRight size={18} className="rotate-180" /> Voir tous les guides
            </Link>
+           <div className="flex items-center gap-4 text-xs text-slate-400 font-medium italic">
+             <Info size={14} /> Dernière mise à jour le {new Date(guide.updated_at || guide.created_at).toLocaleDateString()}
+           </div>
         </div>
       </main>
     </div>

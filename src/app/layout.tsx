@@ -9,7 +9,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { createClient } from "@/lib/supabase-server";
 import { Analytics } from "@vercel/analytics/next";
 import { siteUrl } from "@/lib/site";
-import Script from "next/script";
+import JsonLd from "@/components/shared/JsonLd";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,24 +33,26 @@ export const metadata: Metadata = {
     default: "LlamaKusi - Coach IA TEF IRN / Examens de français",
     template: "%s | LlamaKusi"
   },
-  description: "Réussissez votre TEF IRN (Naturalisation & Résidence) avec LlamaKusi, le coach personnel alimenté par l'IA. Exercices interactifs, corrections temps réel et préparation complète.",
-  keywords: ["TEF IRN", "Test d'Évaluation de Français", "Nationalité française", "Carte de résident", "Examen de français", "Coach IA français", "Apprendre le français", "A2", "B1"],
-  authors: [{ name: "LlamaKusi Team" }],
+  description: "Réussissez votre TEF IRN avec un coach personnel alimenté par l'IA. Guides gratuits, exercices interactifs et préparation complète au certificat de français.",
+  keywords: ["TEF IRN", "Test d'Évaluation de Français", "IA", "Coach Français", "Naturalisation", "Carte de résident", "Examen de français"],
+  authors: [{ name: "LlamaKusi" }],
   creator: "LlamaKusi",
   publisher: "LlamaKusi",
-  alternates: {
-    canonical: "/",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
   openGraph: {
     type: "website",
     locale: "fr_FR",
     url: siteUrl,
     siteName: "LlamaKusi",
-    title: "LlamaKusi - Coach IA TEF IRN / Examens de français",
-    description: "La plateforme n°1 pour réussir son TEF IRN grâce à l'intelligence artificielle.",
+    title: "LlamaKusi - Réussissez le TEF IRN avec l'IA",
+    description: "Le premier coach IA dédié à votre réussite au TEF IRN.",
     images: [
       {
-        url: "/logo.png",
+        url: "/og-image.png", // Ensure this exists or use a default
         width: 1200,
         height: 630,
         alt: "LlamaKusi - Coach IA TEF IRN",
@@ -61,7 +63,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LlamaKusi - Coach IA TEF IRN",
     description: "Réussissez votre TEF IRN avec l'IA.",
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -84,27 +86,30 @@ export default async function RootLayout({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const jsonLd = {
+  const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "LlamaKusi",
     "url": siteUrl,
     "logo": `${siteUrl}/logo.png`,
-    "description": "LlamaKusi est la plateforme de référence pour la préparation au TEF IRN, utilisant l'intelligence artificielle pour accompagner les candidats vers la réussite de leur examen de français.",
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "FR"
+    "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer l'examen du TEF IRN.",
+    "sameAs": [
+      "https://www.facebook.com/llamakusi",
+      "https://www.instagram.com/llamakusi",
+      "https://www.linkedin.com/company/llamakusi"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "contact@llamakusi.com",
+      "url": `${siteUrl}/contact`
     }
   };
 
   return (
     <html lang="fr" className="h-full" suppressHydrationWarning>
       <body className={`${inter.variable} ${montserrat.variable} font-sans h-full bg-slate-50/30`}>
-        <Script
-          id="organization-schema"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={organizationSchema} id="schema-org" />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
