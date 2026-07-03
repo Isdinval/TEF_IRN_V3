@@ -68,7 +68,7 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
       "@id": guideUrl
     },
     "image": `${siteUrl}/og-image/guides/${guide.slug}.jpg`,
-    "articleSection": guide.type,
+    "articleSection": guide.type || 'Guide TEF IRN',
     "inLanguage": "fr-FR"
   };
 
