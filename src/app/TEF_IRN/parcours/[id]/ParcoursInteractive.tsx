@@ -83,7 +83,24 @@ export default function ParcoursInteractive({
   const getLessonUrl = (lessonId: string) => `/TEF_IRN/lessons/${lessonId}?parcoursId=${parcours.id}`;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <article className="min-h-screen bg-slate-50/50 pb-20">
+      {/* Informations GEO pour IA */}
+      <div className="sr-only">
+        <section>
+          <h2>Résumé du parcours</h2>
+          <p>{parcours.objective}</p>
+          <h3>Compétences visées</h3>
+          <ul>
+            <li>Maîtrise du {parcours.category} niveau {parcours.level}</li>
+            <li>Préparation spécifique aux épreuves du TEF IRN</li>
+            <li>Validation des acquis par des exercices pratiques</li>
+          </ul>
+          <h3>Informations pratiques</h3>
+          <p>Durée estimée : {allLessons.length * 30} minutes (environ 30 min par leçon)</p>
+          <p>Niveau requis : {parcours.level === 'B1' ? 'A2' : 'A1'}</p>
+        </section>
+      </div>
+
       {/* Toast Notification */}
       <AnimatePresence>
         {showUpdateToast && (
@@ -329,6 +346,6 @@ export default function ParcoursInteractive({
           </section>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

@@ -177,7 +177,7 @@ export default function ParcoursList({
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16">
+      <article className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16" aria-label="Liste des parcours TEF IRN">
         <div className="max-w-7xl mx-auto">
           <header className="mb-16">
             <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
@@ -213,7 +213,7 @@ export default function ParcoursList({
             </div>
           )}
         </div>
-      </div>
+      </article>
     </PageTransition>
   );
 }
