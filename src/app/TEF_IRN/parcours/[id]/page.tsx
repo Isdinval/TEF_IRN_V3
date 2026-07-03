@@ -53,6 +53,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
     "@type": "Course",
     "name": `${parcours.category} ${parcours.level}`,
     "description": parcours.objective,
+    "educationalLevel": parcours.level,
     "provider": {
       "@type": "Organization",
       "name": "LlamaKusi",
@@ -60,11 +61,13 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
       "logo": `${siteUrl}/logo.png`
     },
     "hasPart": allLessons.map(lesson => ({
-      "@type": "Course",
+      "@type": "Lesson",
       "name": lesson.title,
       "description": lesson.objective,
       "url": `${siteUrl}/TEF_IRN/lessons/${lesson.id}`
-    }))
+    })),
+    "teaches": "Préparation complète au TEF IRN",
+    "learningResourceType": "LearningPath"
   };
 
   // Structured Data - Breadcrumb
