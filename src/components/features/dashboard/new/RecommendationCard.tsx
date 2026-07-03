@@ -8,14 +8,15 @@ interface RecommendationCardProps {
   type: string;
   reason: string;
   referenceId: string;
+  slug?: string;
 }
 
-export function RecommendationCard({ type, reason, referenceId }: RecommendationCardProps) {
+export function RecommendationCard({ type, reason, referenceId, slug }: RecommendationCardProps) {
   const router = useRouter();
 
   const getTargetUrl = () => {
     switch (type) {
-      case 'lesson': return `/TEF_IRN/lessons/${referenceId}`;
+      case 'lesson': return `/TEF_IRN/lessons/${slug || referenceId}`;
       case 'exercise': return '/TEF_IRN/practice';
       case 'review': return '/TEF_IRN/practice';
       default: return '/TEF_IRN/practice';

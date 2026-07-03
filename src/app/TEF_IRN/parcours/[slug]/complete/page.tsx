@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcoursById, Parcours } from "@/lib/parcours";
+import { getParcoursBySlug, getParcoursById, Parcours } from "@/lib/parcours";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -19,8 +19,8 @@ import {
 import { motion } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 
-export default function ParcoursCompletePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ParcoursCompletePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [loading, setLoading] = useState(true);
   const [parcours, setParcours] = useState<Parcours | null>(null);
   const router = useRouter();
@@ -29,12 +29,23 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ id:
 
   useEffect(() => {
     async function fetchData() {
-      const p = await getParcoursById(id);
+      let p = await getParcoursBySlug(slug, supabase);
+
+      // Backward compatibility
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!p && uuidRegex.test(slug)) {
+        p = await getParcoursById(slug, supabase);
+        if (p) {
+          router.replace(`/TEF_IRN/parcours/${p.slug}/complete`);
+          return;
+        }
+      }
+
       setParcours(p);
       setLoading(false);
     }
     fetchData();
-  }, [id]);
+  }, [slug, supabase, router]);
 
   if (loading) {
     return (

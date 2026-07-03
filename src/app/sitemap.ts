@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const { data: lessons } = await supabase
     .from('lessons')
-    .select('id, created_at, updated_at');
+    .select('slug, created_at, updated_at');
 
   const { data: guides } = await supabase
     .from('guides')
@@ -17,10 +17,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const { data: parcours } = await supabase
     .from('parcours')
-    .select('id, created_at');
+    .select('slug, created_at');
 
   const lessonUrls = (lessons || []).map((lesson: any) => ({
-    url: `${rootPath}/lessons/${lesson.id}`,
+    url: `${rootPath}/lessons/${lesson.slug}`,
     lastModified: new Date(lesson.updated_at || lesson.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const parcoursUrls = (parcours || []).map((p: any) => ({
-    url: `${rootPath}/parcours/${p.id}`,
+    url: `${rootPath}/parcours/${p.slug}`,
     lastModified: new Date(p.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,

@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import ExerciseCard from "@/app/TEF_IRN/parcours/[id]/components/ExerciseCard";
+import ExerciseCard from "@/app/TEF_IRN/parcours/[slug]/components/ExerciseCard";
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -313,7 +313,7 @@ export function GrammarCheckContent() {
         badgeColor="indigo"
         onBack={() => {
           if (activeParcours) {
-            router.push(`/TEF_IRN/parcours/${activeParcours.id}`);
+            router.push(`/TEF_IRN/parcours/${activeParcours.slug}`);
           } else {
             setIsStarted(false);
           }

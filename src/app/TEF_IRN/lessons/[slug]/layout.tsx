@@ -1,15 +1,19 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { siteUrl } from '@/lib/site';
+import { getLessonBySlug, getLessonById } from '@/lib/parcours';
 
-export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await props.params;
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
   const supabase = await createClient();
-  const { data: lesson } = await supabase
-    .from('lessons')
-    .select('title, objective, level, category')
-    .eq('id', id)
-    .single();
+
+  let lesson = await getLessonBySlug(slug, supabase);
+
+  // Backward compatibility check for metadata
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!lesson && uuidRegex.test(slug)) {
+    lesson = await getLessonById(slug, supabase);
+  }
 
   if (!lesson) {
     return { title: 'Leçon non trouvée' };
@@ -31,13 +35,13 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
       lesson.category
     ],
     alternates: {
-      canonical: `/TEF_IRN/lessons/${id}`,
+      canonical: `/TEF_IRN/lessons/${lesson.slug}`,
     },
     openGraph: {
       title: `${title} - Leçon TEF IRN | LlamaKusi`,
       description,
       type: 'article',
-      url: `${siteUrl}/TEF_IRN/lessons/${id}`,
+      url: `${siteUrl}/TEF_IRN/lessons/${lesson.slug}`,
       siteName: 'LlamaKusi',
       images: [
         {

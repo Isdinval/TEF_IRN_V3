@@ -25,7 +25,7 @@ export function ParcoursBreadcrumb({ className }: ParcoursBreadcrumbProps) {
       </Link>
       <ChevronRight size={12} />
       <Link
-        href={`/TEF_IRN/parcours/${activeParcours.id}`}
+        href={`/TEF_IRN/parcours/${activeParcours.slug}`}
         className="hover:text-indigo-600 transition-colors text-zinc-500"
       >
         {activeParcours.category} {activeParcours.level}

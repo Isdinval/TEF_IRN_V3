@@ -3,11 +3,10 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcours } from "@/lib/parcours";
+import { getParcours, getLessonBySlug, getLessonById } from "@/lib/parcours";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
-  Sparkles,
   ArrowRight,
   BookOpen,
   Brain,
@@ -22,18 +21,21 @@ import { motion } from "framer-motion";
 
 interface PathLesson {
   id: string;
+  slug: string;
   title: string;
   order_index: number | null;
   created_at: string;
+  level: string;
+  category: string;
 }
 
-export default function LessonComplete({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function LessonComplete({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [parcoursId, setParcoursId] = useState<string | null>(null);
-  const [lesson, setLesson] = useState<any>(null);
-  const [nextLesson, setNextLesson] = useState<any>(null);
+  const [lesson, setLesson] = useState<PathLesson | null>(null);
+  const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
 
   const supabase = createClient();
@@ -42,24 +44,42 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
     async function fetchData() {
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
-      if (!user) { router.replace(`/TEF_IRN/lessons/${id}`); return; }
 
-      const { data: currentLesson } = await supabase
-        .from('lessons')
-        .select('*')
-        .eq('id', id)
-        .single();
+      let currentLesson = await getLessonBySlug(slug, supabase);
 
-      if (!currentLesson) return;
-      setLesson(currentLesson);
+      // Backward compatibility
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!currentLesson && uuidRegex.test(slug)) {
+        currentLesson = await getLessonById(slug, supabase);
+        if (currentLesson) {
+          router.replace(`/TEF_IRN/lessons/${currentLesson.slug}/complete`);
+          return;
+        }
+      }
 
+      if (!user) {
+        if (currentLesson) {
+          router.replace(`/TEF_IRN/lessons/${currentLesson.slug}`);
+        } else {
+          router.replace('/TEF_IRN/lessons');
+        }
+        return;
+      }
+
+      if (!currentLesson) {
+        setLoading(false);
+        return;
+      }
+
+      setLesson(currentLesson as unknown as PathLesson);
+
+      // Fetch all lessons for the same path
       const { data: pathLessonsData } = await supabase
         .from('lessons')
-        .select('id, title, order_index, created_at')
+        .select('id, slug, title, order_index, created_at, level, category')
         .eq('level', currentLesson.level)
         .eq('category', currentLesson.category)
-        .order('order_index', { ascending: true })
-        .order('created_at', { ascending: true });
+        .order('order_index', { ascending: true });
 
       const pathLessons = (pathLessonsData as PathLesson[]) || [];
 
@@ -78,22 +98,21 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
           total: pathLessons.length
         });
 
-        const currentIndex = pathLessons.findIndex((l: PathLesson) => l.id === id);
+        const currentIndex = pathLessons.findIndex((l: PathLesson) => l.id === currentLesson?.id);
         if (currentIndex !== -1 && currentIndex < pathLessons.length - 1) {
           setNextLesson(pathLessons[currentIndex + 1]);
         }
       }
 
-
       // Find current parcours ID
-      const allParcours = await getParcours();
-      const currentParcours = allParcours.find(p => p.level === currentLesson.level && p.category === currentLesson.category);
+      const allParcours = await getParcours(supabase);
+      const currentParcours = allParcours.find(p => p.level === currentLesson?.level && p.category === currentLesson?.category);
       if (currentParcours) setParcoursId(currentParcours.id);
 
       setLoading(false);
     }
     fetchData();
-  }, [id, supabase]);
+  }, [slug, supabase, router]);
 
   if (loading) {
     return (
@@ -103,9 +122,9 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
     );
   }
 
-  if (!lesson) return <div>Leçon non trouvée.</div>;
+  if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
 
-  const practiceBaseUrl = (page: string) => `/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
+  const practiceBaseUrl = (page: string) => `/TEF_IRN/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
 
   return (
     <div className="max-w-6xl mx-auto p-8 py-16 min-h-screen">
@@ -130,7 +149,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
                 Bien joué ! 🎉
               </h1>
               <p className="text-2xl text-slate-500 font-medium leading-relaxed">
-                Vous avez terminé la leçon <span className="text-indigo-600 font-black italic block mt-1">"{lesson.title}"</span>
+                Vous avez terminé la leçon <span className="text-indigo-600 font-black italic block mt-1">"${lesson.title}"</span>
               </p>
             </div>
           </div>
@@ -139,7 +158,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
             <div className="flex justify-between items-end mb-4">
               <div>
                 <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Ma progression</p>
-                <h3 className="text-2xl font-black text-slate-800">Parcours {lesson.level}</h3>
+                <h3 className="text-2xl font-black text-slate-800">Parcours ${lesson.level}</h3>
               </div>
               <p className="text-2xl font-black text-indigo-600">
                 {progress.completed}/{progress.total}
@@ -160,7 +179,7 @@ export default function LessonComplete({ params }: { params: Promise<{ id: strin
 
           <div>
             {nextLesson ? (
-              <Link href={`/TEF_IRN/lessons/${nextLesson.id}`}>
+              <Link href={`/TEF_IRN/lessons/${nextLesson.slug}`}>
                 <Button
                   size="lg"
                   className="w-full h-20 text-2xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
