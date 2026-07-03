@@ -18,7 +18,6 @@ export default async function GuidesPage() {
   const guides = data || [];
   const guidesUrl = `${siteUrl}/TEF_IRN/guides`;
 
-  // CollectionPage Schema
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -36,9 +35,30 @@ export default async function GuidesPage() {
     }
   };
 
+  // Optionnel : BreadcrumbList pour la liste
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": siteUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Guides TEF IRN",
+        "item": guidesUrl
+      }
+    ]
+  };
+
   return (
     <>
       <JsonLd data={collectionSchema} id="guides-collection-schema" />
+      <JsonLd data={breadcrumbSchema} id="guides-breadcrumb" />
       <GuidesList initialGuides={guides} />
     </>
   );
