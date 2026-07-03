@@ -89,19 +89,26 @@ export default async function RootLayout({
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": `${siteUrl}/#organization`,
+    "@id": `${siteUrl}/#organization`, // Important pour lien avec Article
     "name": "LlamaKusi",
     "url": siteUrl,
-    "logo": `${siteUrl}/logo.png`,
-    "description": "Coach IA spécialisé dans la préparation au TEF IRN pour l'intégration, la résidence et la nationalité en France.",
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteUrl}/logo.png`,
+      "width": 200,
+      "height": 200
+    },
+    "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer l'examen du TEF IRN.",
     "sameAs": [
-      "https://twitter.com/llamakusi",
-      "https://linkedin.com/company/llamakusi"
+      "https://www.facebook.com/llamakusi",
+      "https://www.instagram.com/llamakusi",
+      "https://www.linkedin.com/company/llamakusi"
     ],
     "contactPoint": {
       "@type": "ContactPoint",
-      "contactType": "customer service",
-      "email": "contact@llamakusi.com"
+      "contactType": "customer support",
+      "email": "contact@llamakusi.com",
+      "url": `${siteUrl}/contact`
     }
   };
 
