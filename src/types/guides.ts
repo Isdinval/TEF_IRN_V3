@@ -16,4 +16,5 @@ export interface Guide {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  key_points?: string[];
 }
