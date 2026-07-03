@@ -47,36 +47,30 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
     ]
   };
 
-  // BlogPosting Schema
-  const blogPostingSchema = {
+  // Article Schema
+  const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "Article",
     "headline": guide.title,
     "description": guide.description,
-    "image": guide.image_url || `${siteUrl}/og-image.png`,
+    "datePublished": guide.created_at,
+    "dateModified": guide.updated_at || guide.created_at,
     "author": {
       "@type": "Organization",
       "name": "LlamaKusi",
       "url": siteUrl
     },
     "publisher": {
-      "@type": "Organization",
-      "name": "LlamaKusi",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${siteUrl}/logo.png`
-      }
+      "@id": `${siteUrl}/#organization`
     },
-    "datePublished": guide.created_at,
-    "dateModified": guide.updated_at || guide.created_at,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": guideUrl
-    }
+    },
+    "image": guide.image_url || `${siteUrl}/og-image/guides/${guide.slug}.jpg`
   };
 
   // FAQ Schema detection logic
-  // Look for "Q:" and "A:" or Question/Answer patterns in content
   const faqSchema: any = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -84,7 +78,6 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
   };
 
   if (guide.content) {
-    // Basic regex to find questions (e.g., "### Q: ..." followed by text)
     const qaPairs = guide.content.matchAll(/### (?:Q: )?(.*?)\n\n(.*?)(?=\n\n###|$)/gs);
     for (const match of qaPairs) {
       if (match[1] && match[2]) {
@@ -103,7 +96,7 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
   return (
     <>
       <JsonLd data={breadcrumbSchema} id="breadcrumb-schema" />
-      <JsonLd data={blogPostingSchema} id="blog-posting-schema" />
+      <JsonLd data={articleSchema} id="article-schema" />
       {faqSchema.mainEntity.length > 0 && (
         <JsonLd data={faqSchema} id="faq-schema" />
       )}

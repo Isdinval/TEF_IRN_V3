@@ -8,6 +8,8 @@ import {
 } from "@/lib/parcours";
 import { notFound } from "next/navigation";
 import ParcoursInteractive from "./ParcoursInteractive";
+import JsonLd from "@/components/shared/JsonLd";
+import { siteUrl } from "@/lib/site";
 
 export default async function ParcoursDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -43,14 +45,66 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ id: 
     .eq('is_published', true)
     .maybeSingle();
 
+  const parcoursUrl = `${siteUrl}/TEF_IRN/parcours/${id}`;
+
+  // Structured Data - Course
+  const courseSchema = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": `${parcours.category} ${parcours.level}`,
+    "description": parcours.objective,
+    "provider": {
+      "@type": "Organization",
+      "name": "LlamaKusi",
+      "url": siteUrl,
+      "logo": `${siteUrl}/logo.png`
+    },
+    "hasPart": allLessons.map(lesson => ({
+      "@type": "Course",
+      "name": lesson.title,
+      "description": lesson.objective,
+      "url": `${siteUrl}/TEF_IRN/lessons/${lesson.id}`
+    }))
+  };
+
+  // Structured Data - Breadcrumb
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": siteUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Parcours",
+        "item": `${siteUrl}/TEF_IRN/parcours`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": `${parcours.category} ${parcours.level}`,
+        "item": parcoursUrl
+      }
+    ]
+  };
+
   return (
-    <ParcoursInteractive
-      parcours={parcours}
-      allLessons={allLessons}
-      initialProgress={progress}
-      initialRecommendedExercises={recommendedExercises}
-      initialGuideSlug={guideData?.slug || null}
-      user={user}
-    />
+    <>
+      <JsonLd data={courseSchema} id="course-schema" />
+      <JsonLd data={breadcrumbSchema} id="breadcrumb-schema" />
+      <ParcoursInteractive
+        parcours={parcours}
+        allLessons={allLessons}
+        initialProgress={progress}
+        initialRecommendedExercises={recommendedExercises}
+        initialGuideSlug={guideData?.slug || null}
+        user={user}
+      />
+    </>
   );
 }

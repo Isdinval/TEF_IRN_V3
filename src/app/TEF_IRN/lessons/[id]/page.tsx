@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import LessonInteractive from './LessonInteractive';
 import Script from 'next/script';
 import { siteUrl } from '@/lib/site';
+import JsonLd from '@/components/shared/JsonLd';
 
 export default async function LessonPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -31,6 +32,8 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
   // Fetch user session
   const { data: { user } } = await supabase.auth.getUser();
 
+  const lessonUrl = `${siteUrl}/TEF_IRN/lessons/${id}`;
+
   // Structured Data - Course
   const courseSchema = {
     "@context": "https://schema.org",
@@ -48,21 +51,22 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
       {
         "@type": "WebPageElement",
         "name": "Théorie et exemples",
-        "description": "Contenu pédagogique détaillé"
-      },
-      {
-        "@type": "WebPageElement",
-        "name": "Quiz Interactif",
-        "description": "Validation des acquis avec score"
+        "description": "Contenu pédagogique détaillé",
+        "url": lessonUrl
       }
     ],
-    "teaches": [
-      `Compétences de l'examen TEF IRN`,
-      `Français niveau ${lesson.level}`,
-      lesson.category
-    ],
+    "teaches": `Préparation au TEF IRN niveau ${lesson.level}`,
     "learningResourceType": "Lesson"
   };
+
+  if (exercise) {
+    courseSchema.hasPart.push({
+      "@type": "WebPageElement",
+      "name": "Quiz Interactif",
+      "description": "Validation des acquis avec score",
+      "url": lessonUrl
+    });
+  }
 
   // Structured Data - LearningResource (GEO-optimized)
   const learningResourceSchema = {
@@ -78,10 +82,9 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
       "name": "LlamaKusi"
     },
     "publisher": {
-      "@type": "Organization",
-      "name": "LlamaKusi"
+      "@id": `${siteUrl}/#organization`
     },
-    "datePublished": "2024-01-01", // Or dynamic if available
+    "datePublished": lesson.created_at || "2024-01-01",
     "inLanguage": "fr"
   };
 
@@ -106,17 +109,14 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
         "@type": "ListItem",
         "position": 3,
         "name": lesson.title,
-        "item": `${siteUrl}/TEF_IRN/lessons/${id}`
+        "item": lessonUrl
       }
     ]
   };
 
-  // Extract FAQ if possible (simple heuristic for GEO)
-  // We'll look for common Q&A patterns in the content or objective
+  // FAQ Schema
   let faqSchema = null;
   if (lesson.content && (lesson.content.includes('?') || lesson.objective.includes('?'))) {
-    // This is a simplified version. Ideally, you'd extract real Q&As.
-    // For now, we provide one main question based on the objective.
     faqSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -135,27 +135,11 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
 
   return (
     <>
-      <Script
-        id="course-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
-      />
-      <Script
-        id="learning-resource-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(learningResourceSchema) }}
-      />
-      <Script
-        id="breadcrumb-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <JsonLd data={courseSchema} id="course-schema" />
+      <JsonLd data={learningResourceSchema} id="learning-resource-schema" />
+      <JsonLd data={breadcrumbSchema} id="breadcrumb-schema" />
       {faqSchema && (
-        <Script
-          id="faq-schema"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
+        <JsonLd data={faqSchema} id="faq-schema" />
       )}
 
       <main className="min-h-screen pb-12">
@@ -165,8 +149,8 @@ export default async function LessonPage(props: { params: Promise<{ id: string }
             <h1>{lesson.title}</h1>
             <p>Niveau: {lesson.level} | Catégorie: {lesson.category}</p>
             <p>Auteur: LlamaKusi</p>
-            <p>Date: 2024</p>
-            <p>Source: https://llamakusi.com</p>
+            <p>Date: {new Date(lesson.created_at).getFullYear()}</p>
+            <p>Source: {siteUrl}</p>
           </header>
 
           <LessonInteractive

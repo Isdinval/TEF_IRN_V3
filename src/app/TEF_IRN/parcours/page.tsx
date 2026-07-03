@@ -2,24 +2,26 @@ import { Metadata } from "next";
 import { createClient } from "@/lib/supabase-server";
 import { getParcours, getParcoursProgress, Parcours, ParcoursProgress } from "@/lib/parcours";
 import ParcoursList from "./ParcoursList";
+import JsonLd from "@/components/shared/JsonLd";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Parcours d'Apprentissage TEF IRN - LlamaKusi",
   description: "Découvrez nos parcours structurés pour réussir le TEF IRN. Préparation complète aux niveaux A1, A2 et B1 avec un coach IA personnalisé. Progressez pas à pas vers votre certification.",
   keywords: ["TEF IRN", "préparation TEF", "examen français", "B1 français", "parcours apprentissage", "LlamaKusi"],
   alternates: {
-    canonical: 'https://llamakusi.com/TEF_IRN/parcours',
+    canonical: `${siteUrl}/TEF_IRN/parcours`,
   },
   openGraph: {
     title: "Parcours d'Apprentissage TEF IRN - LlamaKusi",
     description: "Programmes complets de préparation au TEF IRN : Grammaire, Vocabulaire, Compréhension et Expression.",
-    url: 'https://llamakusi.com/TEF_IRN/parcours',
+    url: `${siteUrl}/TEF_IRN/parcours`,
     siteName: 'LlamaKusi',
     locale: 'fr_FR',
     type: 'website',
     images: [
       {
-        url: 'https://llamakusi.com/og-parcours.png',
+        url: `${siteUrl}/og-parcours.png`,
         width: 1200,
         height: 630,
         alt: 'Parcours LlamaKusi TEF IRN',
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Parcours d'Apprentissage TEF IRN - LlamaKusi",
     description: "Préparez votre TEF IRN avec des parcours structurés et l'aide de notre IA.",
-    images: ['https://llamakusi.com/og-parcours.png'],
+    images: [`${siteUrl}/og-parcours.png`],
   },
 };
 
@@ -51,7 +53,6 @@ export default async function ParcoursPage() {
 
   if (user) {
     const progressPromises = allParcours.map(async (p) => {
-      // Pass p.id to getParcoursProgress to fetch status and started_at
       const prog = await getParcoursProgress(user.id, p.level, p.category, p.id, supabase);
       return { ...p, progress: prog };
     });
@@ -76,9 +77,10 @@ export default async function ParcoursPage() {
         "provider": {
           "@type": "Organization",
           "name": "LlamaKusi",
-          "sameAs": "https://llamakusi.com"
+          "url": siteUrl,
+          "logo": `${siteUrl}/logo.png`
         },
-        "url": `https://llamakusi.com/TEF_IRN/parcours/${p.id}`,
+        "url": `${siteUrl}/TEF_IRN/parcours/${p.id}`,
         "educationalLevel": p.level,
         "about": {
           "@type": "Thing",
@@ -90,10 +92,7 @@ export default async function ParcoursPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} id="parcours-list-schema" />
       <ParcoursList
         allParcours={parcoursWithProgress}
         user={user}

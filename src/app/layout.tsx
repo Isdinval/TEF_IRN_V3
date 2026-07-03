@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     description: "Le premier coach IA dédié à votre réussite au TEF IRN.",
     images: [
       {
-        url: "/og-image.png", // Ensure this exists or use a default
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "LlamaKusi - Coach IA TEF IRN",
@@ -89,20 +89,19 @@ export default async function RootLayout({
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
     "name": "LlamaKusi",
     "url": siteUrl,
     "logo": `${siteUrl}/logo.png`,
-    "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer l'examen du TEF IRN.",
+    "description": "Coach IA spécialisé dans la préparation au TEF IRN pour l'intégration, la résidence et la nationalité en France.",
     "sameAs": [
-      "https://www.facebook.com/llamakusi",
-      "https://www.instagram.com/llamakusi",
-      "https://www.linkedin.com/company/llamakusi"
+      "https://twitter.com/llamakusi",
+      "https://linkedin.com/company/llamakusi"
     ],
     "contactPoint": {
       "@type": "ContactPoint",
-      "contactType": "customer support",
-      "email": "contact@llamakusi.com",
-      "url": `${siteUrl}/contact`
+      "contactType": "customer service",
+      "email": "contact@llamakusi.com"
     }
   };
 
