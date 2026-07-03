@@ -10,7 +10,7 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
 
   const { data: guide, error } = await supabase
     .from('guides')
-    .select('*')
+    .select(`*, key_points`)
     .eq('slug', slug)
     .eq('is_published', true)
     .single();
