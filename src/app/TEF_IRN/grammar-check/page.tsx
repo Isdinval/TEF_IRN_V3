@@ -27,8 +27,8 @@ interface GrammarQuestion {
   level: string;
 }
 
-// Composant dédié à l'exercice (exporté pour [id]/page.tsx)
-export function ExerciseView() {
+// Composant Exercice (Client Component)
+function ExerciseView() {
   const params = useParams();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -238,7 +238,7 @@ export function ExerciseView() {
   );
 }
 
-// === CATALOGUE ===
+// Catalogue
 function CatalogueView() {
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
@@ -378,7 +378,7 @@ export default function GrammarCheckPage() {
   const exId = (params?.id as string) || searchParams.get("id");
 
   if (exId) {
-    return <ExerciseView key={exId} id={exId} onBack={() => window.history.back()} />;
+    return <ExerciseView />;
   }
 
   return <CatalogueView />;
