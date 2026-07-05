@@ -2,18 +2,29 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  // === NORMALISATION DE CASSE ===
+  const pathname = request.nextUrl.pathname
+  
+  // Redirige /tef_irn/... vers /TEF_IRN/... (version canonique en majuscules)
+  if (/^\/tef_irn/i.test(pathname)) {
+    const normalizedPath = pathname.replace(/^\/tef_irn/i, '/TEF_IRN')
+    const url = request.nextUrl.clone()
+    url.pathname = normalizedPath
+    return NextResponse.redirect(url, { status: 301 }) // 301 = redirection permanente (bon pour SEO)
+  }
+
+  // === Middleware Supabase Auth existant ===
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
-    return response;
+    return response
   }
 
   const supabase = createServerClient(
@@ -41,8 +52,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Routes protégées : dashboard, practice, writing, etc.
-  // /parcours est désormais public (hub SEO)
+  // Routes protégées
   const protectedRoutes = [
     '/TEF_IRN/dashboard',
     '/TEF_IRN/practice',
@@ -55,7 +65,10 @@ export async function middleware(request: NextRequest) {
     '/TEF_IRN/settings',
     '/TEF_IRN/profile'
   ]
-  const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+
+  const isProtectedRoute = protectedRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
 
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/TEF_IRN/login', request.url))
