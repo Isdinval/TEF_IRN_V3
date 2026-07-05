@@ -8,7 +8,7 @@ import ExerciseCard from "@/app/TEF_IRN/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, Calendar } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -235,7 +235,7 @@ export default function GrammarCheckPage() {
     return <ExerciseView key={exId} id={exId} onBack={() => window.history.back()} />;
   }
 
-  // Catalogue
+  // === CATALOGUE ===
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -253,7 +253,12 @@ export default function GrammarCheckPage() {
         const { data: attempts } = await supabase.from("exercise_attempts").select("exercise_id, is_completed, score").eq("user_id", user.id).in("exercise_id", exercises.map((e: any) => e.id));
         const mapped = exercises.map((ex: any) => {
           const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
-          return { ...ex, is_completed: exAttempts.some((a: any) => a.is_completed), attempts_count: exAttempts.length, success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined };
+          return {
+            ...ex,
+            is_completed: exAttempts.some((a: any) => a.is_completed),
+            attempts_count: exAttempts.length,
+            success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
+          };
         });
         setCatalogue(mapped);
       } else {
@@ -266,7 +271,9 @@ export default function GrammarCheckPage() {
     }
   }, [filters.level, filters.category, supabase]);
 
-  useEffect(() => { fetchCatalogue(); }, [fetchCatalogue]);
+  useEffect(() => {
+    fetchCatalogue();
+  }, [fetchCatalogue]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -277,9 +284,51 @@ export default function GrammarCheckPage() {
           badgeColor="indigo"
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
         >
-          {/* Filtres et Catalogue - identique à avant */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* ... (même code filtres) ... */}
+            <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <Target size={14} className="text-indigo-600" /> Choisir votre niveau
+              </div>
+              <div className="flex gap-2">
+                {["A1", "A2", "B1", "B2"].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => setLevel(lvl)}
+                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <GraduationCap size={14} className="text-indigo-600" /> Thématiques
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                <Zap size={14} /> Flash entraînement
+              </div>
+              <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                <Calendar size={16} /> Entraînement Quotidien
+              </div>
+            </div>
           </div>
 
           <section className="mt-12">
@@ -296,11 +345,15 @@ export default function GrammarCheckPage() {
 
             {loadingCatalogue ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((i) => <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />)}
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                ))}
               </div>
             ) : catalogue.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((ex: Exercise) => <ExerciseCard key={ex.id} exercise={ex} />)}
+                {catalogue.map((ex: Exercise) => (
+                  <ExerciseCard key={ex.id} exercise={ex} />
+                ))}
               </div>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
@@ -312,13 +365,5 @@ export default function GrammarCheckPage() {
         </ExerciseLayout>
       </div>
     </div>
-  );
-}
-
-export default function GrammarCheckPage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
-      <GrammarCheckContent />
-    </Suspense>
   );
 }
