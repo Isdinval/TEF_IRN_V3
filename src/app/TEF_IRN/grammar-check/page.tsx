@@ -36,7 +36,6 @@ export function GrammarCheckContent() {
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [isStarted, setIsStarted] = useState(false);
-
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [inputValue, setInputValue] = useState("");
@@ -99,6 +98,8 @@ export function GrammarCheckContent() {
 
   const startSpecificExercise = useCallback(async (id: string) => {
     setLoading(true);
+    setIsStarted(false); // reset explicite
+
     const { data } = await supabase
       .from('exercises')
       .select('*')
@@ -116,23 +117,32 @@ export function GrammarCheckContent() {
         level: data.level,
         difficulty: data.difficulty
       }));
+
       setQuestions(qs);
-      setIsStarted(true);
       setCurrentIdx(0);
       setScore(0);
       setFinished(false);
       setStatus("typing");
       setInputValue("");
+      setIsStarted(true);
+      console.log("✅ Exercice démarré avec ID:", id);
+    } else {
+      console.error("❌ Données exercice invalides pour ID:", id);
     }
     setLoading(false);
   }, [supabase]);
 
+  // UseEffect amélioré pour détecter l'ID
   useEffect(() => {
-    const exId = searchParams.get("id") || (params?.id as string);
-    if (exId) {
+    const exIdFromParams = params?.id as string | undefined;
+    const exIdFromSearch = searchParams.get("id");
+    const exId = exIdFromParams || exIdFromSearch;
+
+    if (exId && !isStarted && !loading) {
+      console.log("🔄 Détection ID dans URL:", exId);
       startSpecificExercise(exId);
     }
-  }, [params?.id, searchParams, startSpecificExercise]);
+  }, [params?.id, searchParams?.toString(), isStarted, loading, startSpecificExercise]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
@@ -153,16 +163,18 @@ export function GrammarCheckContent() {
       setStatus("typing");
     } else {
       setFinished(true);
-      // Log attempt
       const finalScore = Math.round((score / questions.length) * 100);
       const exId = searchParams.get("id") || (params?.id as string);
       if (exId) {
-        await supabase.from("exercise_attempts").insert({
-          exercise_id: exId,
-          score: finalScore,
-          is_completed: true,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        });
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("exercise_attempts").insert({
+            exercise_id: exId,
+            score: finalScore,
+            is_completed: true,
+            user_id: user.id
+          });
+        }
       }
     }
   };
@@ -177,31 +189,44 @@ export function GrammarCheckContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-           <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
-              <Zap size={48} />
-           </div>
-           <div className="space-y-2">
-              <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
-              <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
-           </div>
-           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
-              <div className="text-center">
-                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
-                 <div className="text-3xl font-black text-zinc-900">{Math.round((score / questions.length) * 100)}%</div>
-              </div>
-              <div className="w-px h-12 bg-zinc-100" />
-              <div className="text-center">
-                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
-                 <div className="text-3xl font-black text-emerald-600">{score} / {questions.length}</div>
-              </div>
-           </div>
-           <div className="flex flex-col gap-3">
-              <Button onClick={() => setIsStarted(false)} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
-              {nextLesson && (
-                <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
-              )}
-           </div>
+          <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+            <Zap size={48} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
+          </div>
+          <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-3xl font-black text-zinc-900">{Math.round((score / questions.length) * 100)}%</div>
+            </div>
+            <div className="w-px h-12 bg-zinc-100" />
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-3xl font-black text-emerald-600">{score} / {questions.length}</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => setIsStarted(false)} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
+            {nextLesson && (
+              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
+            )}
+          </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  // Force affichage si ID dans URL mais état non mis à jour
+  const urlId = (params?.id as string) || searchParams.get("id");
+  if (urlId && !isStarted && !loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin text-indigo-600 mx-auto mb-4" size={48} />
+          <p className="text-zinc-600">Chargement de l'exercice...</p>
+        </div>
       </div>
     );
   }
@@ -255,12 +280,12 @@ export function GrammarCheckContent() {
               <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                   <Zap size={14} /> Flash entraînement
+                  <Zap size={14} /> Flash entraînement
                 </div>
                 <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <Calendar size={16} /> Entraînement Quotidien
-                 </div>
+                  <Calendar size={16} /> Entraînement Quotidien
+                </div>
               </div>
             </div>
 
@@ -311,128 +336,91 @@ export function GrammarCheckContent() {
         title="CHASSE AUX ERREURS"
         badge="Coach Exercice à Trous"
         badgeColor="indigo"
-        onBack={() => {
-          if (activeParcours) {
-            router.push(`/TEF_IRN/parcours/${activeParcours.slug}`);
-          } else {
-            setIsStarted(false);
-          }
-        }}
-        rightElement={
-          <div className="hidden md:flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Score actuel</div>
-              <div className="text-lg font-black text-zinc-900">{score} / {questions.length}</div>
+      >
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <div className="text-sm font-medium text-zinc-500">
+                Question {currentIdx + 1} / {questions.length}
+              </div>
+              <div className="text-sm font-medium text-zinc-500">
+                Score : {score} / {questions.length}
+              </div>
             </div>
-            <div className="h-10 w-px bg-zinc-100 mx-2" />
-            <div className="w-32 h-2 bg-zinc-100 rounded-full overflow-hidden">
-               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
-                className="h-full bg-indigo-600"
-               />
+            <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-indigo-600 transition-all duration-300" 
+                style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
+              />
             </div>
           </div>
-        }
-      />
 
-      <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="max-w-4xl w-full">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIdx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-12"
-            >
-              <div className="bg-white p-12 lg:p-20 rounded-[4rem] shadow-2xl shadow-zinc-200/50 text-center space-y-12 border border-zinc-50 relative overflow-hidden">
-                <div className="relative z-10">
-                   <h3 className="text-[clamp(1.5rem,3vw+1rem,2.25rem)] font-black text-zinc-900 leading-tight tracking-tight mb-8">
-                    {current?.sentence}
-                  </h3>
-                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl font-black text-lg uppercase tracking-widest">
-                    <Target size={20} />
-                    Corriger : "{current?.error_fragment}"
-                  </div>
-                </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
-              </div>
+          <motion.div
+            key={currentIdx}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl shadow-xl p-10 mb-8"
+          >
+            <p className="text-xl leading-relaxed mb-8 text-zinc-800">
+              {current?.sentence}
+            </p>
 
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="relative group">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    disabled={status !== "typing"}
-                    placeholder="Tapez votre correction ici..."
-                    className={`w-full h-24 bg-white border-4 rounded-3xl px-8 text-[clamp(1.125rem,2vw+0.75rem,1.5rem)] font-black transition-all outline-none text-center shadow-xl
-                      ${status === "typing" ? "border-zinc-100 focus:border-indigo-600 group-hover:border-zinc-200" :
-                        status === "correct" ? "border-emerald-500 text-emerald-600 bg-emerald-50" : "border-rose-500 text-rose-600 bg-rose-50"}`}
-                    onKeyPress={(e) => e.key === "Enter" && status === "typing" && checkCorrection()}
-                    autoFocus
-                  />
-                  <AnimatePresence>
-                    {status === "correct" && (
-                      <motion.div
-                        initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        className="absolute -right-4 -top-4 w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg z-20"
-                      >
-                        <CheckCircle2 size={24} />
-                      </motion.div>
-                    )}
-                    {status === "wrong" && (
-                      <motion.div
-                        initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        className="absolute -right-4 -top-4 w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center text-white shadow-lg z-20"
-                      >
-                        <XCircle size={24} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && checkCorrection()}
+                placeholder="Corrigez l'erreur ici..."
+                className="w-full px-6 py-4 text-lg border border-zinc-200 rounded-2xl focus:outline-none focus:border-indigo-500"
+              />
 
-                {status === "typing" ? (
+              {status === "typing" && (
+                <Button
+                  onClick={checkCorrection}
+                  disabled={!inputValue.trim()}
+                  className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  VÉRIFIER MA RÉPONSE
+                </Button>
+              )}
+
+              {(status === "correct" || status === "wrong") && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                  <Card className={`p-8 rounded-[2rem] border-none shadow-xl ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
+                    <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
+                      <Sparkles size={16} /> Explication Pédagogique
+                    </div>
+                    <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
+                    <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
+                      Réponse correcte : <span className="underline decoration-wavy">{current?.correction}</span>
+                    </div>
+                  </Card>
+
                   <Button
-                    onClick={checkCorrection}
-                    disabled={!inputValue.trim()}
-                    className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                    onClick={handleNextAction}
+                    className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
                   >
-                    VÉRIFIER MA RÉPONSE
+                    {currentIdx < questions.length - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
+                    <ArrowRight size={24} />
                   </Button>
-                ) : (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                    <Card className={`p-8 rounded-[2rem] border-none shadow-xl ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
-                       <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
-                          <Sparkles size={16} /> Explication Pédagogique
-                       </div>
-                       <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
-                       <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
-                          Réponse correcte : <span className="underline decoration-wavy">{current?.correction}</span>
-                       </div>
-                    </Card>
-                    <Button
-                      onClick={handleNextAction}
-                      className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
-                    >
-                      {currentIdx < questions.length - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
-                      <ArrowRight size={24} />
-                    </Button>
-                  </motion.div>
-                )}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
         </div>
-      </main>
+      </ExerciseLayout>
     </div>
   );
 }
 
 export default function GrammarCheckPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    }>
       <GrammarCheckContent />
     </Suspense>
   );
