@@ -9,8 +9,7 @@ export default function GrammarCheckByIdPage() {
         <Loader2 className="animate-spin text-indigo-600" size={48} />
       </div>
     }>
-      {/* Le composant ExerciseView récupère l'ID via useParams */}
-      <ExerciseView id="" onBack={() => window.history.back()} />
+      <ExerciseView />
     </Suspense>
   );
 }
