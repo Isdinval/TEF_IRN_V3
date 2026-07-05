@@ -28,7 +28,7 @@ interface GrammarQuestion {
 }
 
 // Composant Exercice (Client Component)
-function ExerciseView() {
+export function ExerciseView() {
   const params = useParams();
   const searchParams = useSearchParams();
   const supabase = createClient();
