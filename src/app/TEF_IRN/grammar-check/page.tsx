@@ -46,8 +46,8 @@ export function GrammarCheckContent() {
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  // Guard anti-boucle
   const processedIdRef = useRef<string | null>(null);
+  const isMountedRef = useRef(true);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -113,7 +113,7 @@ export function GrammarCheckContent() {
         .eq('id', id)
         .single();
 
-      if (data && data.content?.questions) {
+      if (data && data.content?.questions && isMountedRef.current) {
         const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
           id: `${data.id}-${i}`,
           sentence: q,
@@ -132,31 +132,33 @@ export function GrammarCheckContent() {
         setStatus("typing");
         setInputValue("");
         setIsStarted(true);
-        console.log("✅ Exercice démarré avec ID:", id);
+        console.log("✅ Exercice chargé et démarré:", id);
       } else {
-        console.error("❌ Impossible de charger l'exercice:", id);
+        console.error("❌ Données invalides pour l'exercice:", id);
         setIsStarted(false);
-        processedIdRef.current = null;
       }
     } catch (error) {
-      console.error("Erreur lors du chargement de l'exercice:", error);
+      console.error("Erreur chargement exercice:", error);
       setIsStarted(false);
-      processedIdRef.current = null;
     } finally {
       setLoading(false);
     }
   }, [supabase, loading]);
 
-  // Détection robuste de l'ID
+  // Détection ID - avec cleanup
   useEffect(() => {
     const exIdFromParams = params?.id as string | undefined;
     const exIdFromSearch = searchParams.get("id");
     const exId = exIdFromParams || exIdFromSearch;
 
     if (exId && !isStarted && !loading && processedIdRef.current !== exId) {
-      console.log("🔄 Détection ID exercice dans URL:", exId);
+      console.log("🔄 Tentative de chargement exercice ID:", exId);
       startSpecificExercise(exId);
     }
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [params?.id, searchParams?.toString(), isStarted, loading, startSpecificExercise]);
 
   const checkCorrection = () => {
@@ -259,7 +261,6 @@ export function GrammarCheckContent() {
             badgeColor="indigo"
             description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
           >
-            {/* Quick Filters + Catalogue (code identique à avant) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
