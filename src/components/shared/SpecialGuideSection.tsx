@@ -25,7 +25,6 @@ export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title,
   const faqItems = useMemo(() => {
     if (type !== 'faq') return [];
     const items: { question: string; answer: string }[] = [];
-    // Robust FAQ regex: matches **Question** at the start of a line and its following answer
     const regex = /(?:^|\n)\*\*(.*?)\*\*\n*(.*?)(?=\n\*\*|$)/gs;
     let match;
     while ((match = regex.exec(content)) !== null) {
@@ -93,7 +92,7 @@ export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title,
         </h2>
       </div>
 
-      <Accordion type="single" collapsible className="space-y-4">
+      <Accordion className="space-y-4">
         {faqItems.map((item, index) => (
           <AccordionItem
             key={index}
