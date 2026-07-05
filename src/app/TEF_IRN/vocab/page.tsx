@@ -17,7 +17,9 @@ import {
   Brain,
   Target,
   Zap,
-  GraduationCap
+  GraduationCap,
+  Calendar,
+  RotateCcw
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +43,7 @@ export function VocabCoachContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const exerciseIdFromParams = params?.id as string | undefined;
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Administration");
 
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -114,83 +117,89 @@ export function VocabCoachContent() {
 
   const startSpecificCard = useCallback(async (id: string) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("vocabulary")
-      .select("*")
-      .eq("id", id)
-      .single();
+    try {
+        const { data } = await supabase
+            .from("vocabulary")
+            .select("*")
+            .eq("id", id)
+            .single();
 
-    if (data) {
-      setCards([data as Flashcard]);
-      setMode("training");
-      setIndex(0);
-      setStep("presentation");
-      setFinished(false);
-      setSessionMasteredCount(0);
+        if (data) {
+            setCards([data as Flashcard]);
+            setMode("training");
+            setIndex(0);
+            setStep("presentation");
+            setFinished(false);
+            setSessionMasteredCount(0);
+            setFlipped(false);
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   }, [supabase]);
 
   const startTraining = useCallback(async (review: boolean = false, lvl?: string, cat?: string) => {
     setLoading(true);
-    const { data: authData } = await supabase.auth.getUser();
-    const user = authData?.user;
+    try {
+        const { data: authData } = await supabase.auth.getUser();
+        const user = authData?.user;
 
-    let query = supabase.from('vocabulary').select('*');
+        let query = supabase.from('vocabulary').select('*');
 
-    if (review && user) {
-      setIsReviewMode(true);
-      const { data: reviews } = await supabase
-        .from('user_vocabulary_reviews')
-        .select('vocab_id')
-        .eq('user_id', user.id)
-        .lte('next_review_at', new Date().toISOString())
-        .limit(10);
+        if (review && user) {
+            setIsReviewMode(true);
+            const { data: reviews } = await supabase
+                .from('user_vocabulary_reviews')
+                .select('vocab_id')
+                .eq('user_id', user.id)
+                .lte('next_review_at', new Date().toISOString())
+                .limit(10);
 
-      if (reviews && reviews.length > 0) {
-        query = query.in('id', reviews.map((r: any) => r.vocab_id));
-      } else {
-        query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
-      }
-    } else {
-      setIsReviewMode(false);
-      query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
+            if (reviews && reviews.length > 0) {
+                query = query.in('id', reviews.map((r: any) => r.vocab_id));
+            } else {
+                query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
+            }
+        } else {
+            setIsReviewMode(false);
+            query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
+        }
+
+        const { data } = await query;
+
+        if (data && data.length > 0) {
+            setCards(data as Flashcard[]);
+            setMode("training");
+            setIndex(0);
+            setStep("presentation");
+            setFinished(false);
+            setSessionMasteredCount(0);
+            setFlipped(false);
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setLoading(false);
     }
-
-    const { data, error } = await query;
-
-    if (data && data.length > 0) {
-      setCards(data as Flashcard[]);
-      setMode("training");
-      setIndex(0);
-      setStep("presentation");
-      setFinished(false);
-      setSessionMasteredCount(0);
-    }
-    setLoading(false);
   }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
-    const cardId = (params?.id as string | undefined) || searchParams.get("id");
-    const lessonId = searchParams.get("lessonId");
-    const topic = searchParams.get("topic");
-    const level = searchParams.get("level");
+    if (exerciseIdFromParams) {
+        startSpecificCard(exerciseIdFromParams);
+    } else {
+        const lessonId = searchParams.get("lessonId");
+        const topic = searchParams.get("topic");
+        const level = searchParams.get("level");
 
-    if (cardId) {
-      startSpecificCard(cardId);
-    } else if (lessonId && topic) {
-      setLevel(level || filters.level);
-      setCategory(topic);
-
-      const timer = setTimeout(() => {
-        startTraining();
-      }, 500);
-      return () => clearTimeout(timer);
+        if (lessonId && topic) {
+            setLevel(level || filters.level);
+            setCategory(topic);
+            startTraining(false, level || filters.level, topic);
+        }
     }
-  }, [params?.id, searchParams, startSpecificCard, startTraining, filters.level, filters.category, setLevel, setCategory]);
-
-  const categoriesList = ["Toutes", "Administration", "Santé", "Travail", "Logement"];
-  const levelsList = ["A1", "A2", "B1", "B2"];
+  }, [exerciseIdFromParams, searchParams, startSpecificCard, startTraining, setLevel, setCategory, filters.level]);
 
   const handleStepComplete = async (isCorrect: boolean) => {
     if (isCorrect && step === "type") {
@@ -203,9 +212,11 @@ export function VocabCoachContent() {
 
     if (isCorrect) {
       if (step === "presentation") {
-        const otherCards = catalogue.filter(c => c.id !== cards[index].id);
-        const distractors = otherCards.sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.definition);
+        const distractorsQuery = supabase.from("vocabulary").select("definition").neq("id", cards[index].id).limit(10);
+        const { data: distractorsData } = await distractorsQuery;
+        const distractors = (distractorsData?.map( (d: any) => d.definition) || []).sort(() => 0.5 - Math.random()).slice(0, 3);
         const options = [...distractors, cards[index].definition].sort(() => 0.5 - Math.random());
+
         setQuizOptions(options);
         setStep("quiz");
         setFlipped(false);
@@ -226,13 +237,8 @@ export function VocabCoachContent() {
         }
       }
     } else {
-      if (step === "quiz") {
-        setStep("presentation");
-        setFlipped(false);
-      } else if (step === "type") {
-        setStep("presentation");
-        setFlipped(false);
-      }
+      setStep("presentation");
+      setFlipped(false);
     }
   };
 
@@ -246,9 +252,21 @@ export function VocabCoachContent() {
     }
   };
 
+  const handleBack = () => {
+    if (mode === "selection") {
+        router.back();
+    } else {
+        setMode("selection");
+        router.push("/TEF_IRN/vocab");
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-      <Loader2 className="animate-spin text-emerald-600" size={48} />
+      <div className="text-center">
+        <Loader2 className="animate-spin text-emerald-600 mx-auto mb-4" size={48} />
+        <p className="text-zinc-600 font-bold uppercase tracking-widest text-xs">Préparation de la session...</p>
+      </div>
     </div>
   );
 
@@ -256,174 +274,92 @@ export function VocabCoachContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-           <div className="w-32 h-32 bg-emerald-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-emerald-200">
-              <Trophy size={48} />
-           </div>
-           <div className="space-y-2">
-              <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Session Terminée !</h2>
-              <p className="text-zinc-500 font-medium">Vous avez enrichi votre lexique aujourd'hui.</p>
-           </div>
-           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
-              <div className="text-center">
-                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Maîtrisés</div>
-                 <div className="text-3xl font-black text-emerald-600">+{sessionMasteredCount}</div>
-              </div>
-              <div className="w-px h-12 bg-zinc-100" />
-              <div className="text-center">
-                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Mots vus</div>
-                 <div className="text-3xl font-black text-zinc-900">{cards.length}</div>
-              </div>
-           </div>
-           <div className="flex flex-col gap-3">
-              <Button onClick={() => setMode("selection")} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU LEXIQUE</Button>
-              {nextLesson && (
-                <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
-              )}
-           </div>
+          <div className="w-32 h-32 bg-emerald-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-emerald-200">
+            <Trophy size={48} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Session terminée !</h2>
+            <p className="text-zinc-500 font-medium">Vous avez maîtrisé {sessionMasteredCount} nouveaux mots.</p>
+          </div>
+          <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Mots vus</div>
+              <div className="text-3xl font-black text-zinc-900">{cards.length}</div>
+            </div>
+            <div className="w-px h-12 bg-zinc-100" />
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Maîtrisés</div>
+              <div className="text-3xl font-black text-emerald-600">{sessionMasteredCount}</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => setMode("selection")} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all">RETOURNER AU CATALOGUE</Button>
+            {nextLesson && (
+              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
+            )}
+            <Button
+                variant="ghost"
+                onClick={() => {
+                    if (exerciseIdFromParams) startSpecificCard(exerciseIdFromParams);
+                    else startTraining();
+                }}
+                className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+              >
+                <RotateCcw size={14} className="mr-2" /> Recommencer la session
+              </Button>
+          </div>
         </motion.div>
       </div>
     );
   }
 
-  if (mode === "selection") {
+  if (mode === "training") {
+    const current = cards[index];
+    const progress = ((index + 1) / cards.length) * 100;
+
     return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
-          <ExerciseLayout
-            title="VOTRE LEXIQUE IMMÉDIAT"
-            badge="Coach Vocabulaire"
-            badgeColor="emerald"
-            description="Maîtrisez les mots clés du TEF IRN grâce à notre méthode active de mémorisation en 3 étapes : découverte, association, maîtrise."
-          >
-            {/* Quick Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Target size={14} className="text-emerald-600" /> Votre Niveau
-                </div>
-                <div className="flex gap-2">
-                  {levelsList.map((lvl) => (
-                    <button
-                      key={lvl}
-                      onClick={() => setLevel(lvl)}
-                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
-                </div>
+      <div className="min-h-screen bg-zinc-50 flex flex-col">
+        <ExerciseLayout
+          variant="compact"
+          title="COACH VOCABULAIRE"
+          badge="Mémorisation SRS"
+          badgeColor="emerald"
+          onBack={handleBack}
+          rightElement={
+            <div className="hidden md:flex items-center gap-6">
+              <div className="text-right">
+                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Progression</div>
+                <div className="text-2xl font-black text-zinc-900">{index + 1} / {cards.length}</div>
               </div>
-
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <GraduationCap size={14} className="text-emerald-600" /> Thématiques
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {categoriesList.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div
-                onClick={() => startTraining(true)}
-                className="bg-emerald-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-emerald-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                   <Brain size={14} /> Mémoire Active
-                </div>
-                <h4 className="text-xl font-black leading-tight">Lancer vos révisions SRS</h4>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <Zap size={16} /> Spaced Repetition
+              <div className="h-12 w-px bg-zinc-100" />
+              <div className="flex flex-col gap-2">
+                 <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      className="h-full bg-emerald-600"
+                    />
+                 </div>
+                 <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
+                    <span>{Math.round(progress)}% complété</span>
                  </div>
               </div>
             </div>
+          }
+        />
 
-            {/* Catalogue */}
-            <section className="mt-12">
-               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                  <Badge className="bg-emerald-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
-                  <span className="text-zinc-400">•</span>
-                  <span className="capitalize text-zinc-500">{filters.category}</span>
-                </h2>
-              </div>
-
-              {loadingCatalogue ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="aspect-[4/5] rounded-[2rem] bg-zinc-100 animate-pulse" />
-                  ))}
-                </div>
-              ) : catalogue.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {catalogue.map((item) => (
-                    <VocabCard
-                      key={item.id}
-                      item={item}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 border-zinc-200 rounded-[2.5rem] p-12 text-center bg-zinc-50/50">
-                  <Brain className="mx-auto mb-4 text-zinc-300" size={40} />
-                  <p className="font-bold text-zinc-500">Aucun mot trouvé dans cette catégorie.</p>
-                </Card>
-              )}
-            </section>
-          </ExerciseLayout>
-        </div>
-      </div>
-    );
-  }
-
-  const current = cards[index];
-
-  return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col">
-      <ExerciseLayout
-        variant="compact"
-        title="VOTRE LEXIQUE IMMÉDIAT"
-        badge="Coach Vocabulaire"
-        badgeColor="emerald"
-        onBack={() => setMode("selection")}
-        rightElement={
-          <div className="hidden md:flex items-center gap-6">
-            <div className="text-right">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Session</div>
-              <div className="text-xl font-black text-zinc-900">{index + 1} / {cards.length}</div>
-            </div>
-            <div className="h-10 w-px bg-zinc-100" />
-            <div className="w-32 h-2 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${((index + 1) / cards.length) * 100}%` }}
-                className="h-full bg-emerald-600"
-              />
-            </div>
-          </div>
-        }
-      />
-
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
-        <AnimatePresence mode="wait">
+        <main className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 overflow-y-auto">
+           <AnimatePresence mode="wait">
           {step === "presentation" && (
             <motion.div
               key="presentation"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              className="w-full max-w-2xl flex flex-col items-center gap-10"
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="w-full max-w-2xl flex flex-col items-center gap-12"
             >
               <div
-                className="w-full aspect-[4/3] cursor-pointer perspective-1000 group"
+                className="relative w-full h-[450px] cursor-pointer perspective-1000 group"
                 onClick={() => setFlipped(!flipped)}
               >
                 <div className={`
@@ -553,9 +489,14 @@ export function VocabCoachContent() {
                 <Input
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !typeChecked && userInput.trim() && (async () => {
+                    const res = validateVocabResponse(userInput, current?.word);
+                    setValidationResult(res);
+                    setTypeChecked(true);
+                  })()}
                   disabled={typeChecked}
                   placeholder="Tapez le mot ici..."
-                  className={`h-20 text-center text-[clamp(1.125rem,2vw+0.75rem,1.5rem)] font-black rounded-2xl border-2 transition-all ${
+                  className={`h-20 text-center text-[clamp(1.125rem,2vw+0.75rem,1.5rem)] font-black rounded-2xl border-4 transition-all ${
                     typeChecked
                     ? (validationResult?.isValid ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-rose-500 bg-rose-50 text-rose-900')
                     : 'border-zinc-200 focus:border-emerald-600 bg-white'
@@ -605,15 +546,111 @@ export function VocabCoachContent() {
             </motion.div>
           )}
         </AnimatePresence>
+        </main>
+      </div>
+    );
+  }
+
+  // SCREEN: SELECTION (Catalogue)
+  return (
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
+        <ExerciseLayout
+          title="COACH VOCABULAIRE"
+          badge="Mémorisation SRS"
+          badgeColor="emerald"
+          description="Enrichissez votre lexique thématique pour le TEF IRN. Notre algorithme de répétition espacée (SRS) cible vos lacunes pour une rétention maximale."
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <Target size={14} className="text-emerald-600" /> Choisir votre niveau
+              </div>
+              <div className="flex gap-2">
+                {["A1", "A2", "B1", "B2"].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => setLevel(lvl)}
+                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-emerald-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <GraduationCap size={14} className="text-emerald-600" /> Thématiques
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["Administration", "Santé", "Travail", "Logement", "Toutes"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div
+                onClick={() => startTraining(true)}
+                className="bg-emerald-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-emerald-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                <Brain size={14} /> Flash révision
+              </div>
+              <h4 className="text-xl font-black leading-tight">Lancer mes mots à réviser</h4>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                <Zap size={16} /> Mode Intelligent (SRS)
+              </div>
+            </div>
+          </div>
+
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <Badge className="bg-emerald-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
+                <span className="text-zinc-400">•</span>
+                <span className="capitalize text-zinc-500">{filters.category}</span>
+              </h2>
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {catalogue.length} mot{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+              </div>
+            </div>
+
+            {loadingCatalogue ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                ))}
+              </div>
+            ) : catalogue.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {catalogue.map((item: any) => (
+                  <VocabCard key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
+                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                <p className="font-bold text-zinc-500">Aucun mot trouvé pour cette sélection.</p>
+              </Card>
+            )}
+          </section>
+        </ExerciseLayout>
       </div>
     </div>
   );
 }
 
-
 export default function VocabCoach() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-emerald-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-emerald-600" size={48} /></div>}>
       <VocabCoachContent />
     </Suspense>
   );
