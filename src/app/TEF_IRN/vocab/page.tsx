@@ -71,10 +71,12 @@ export function VocabCoachContent() {
   const [typeChecked, setTypeChecked] = useState(false);
   const [validationResult, setValidationResult] = useState<{ isValid: boolean; toleranceApplied: boolean; message?: string } | null>(null);
 
-  const loadingRef = useRef<string | null>(null);
+  const hasInitialized = useRef(false);
+  const isFetchingCatalogue = useRef(false);
 
   const fetchCatalogue = useCallback(async () => {
-    if (loadingCatalogue) return;
+    if (isFetchingCatalogue.current) return;
+    isFetchingCatalogue.current = true;
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -109,21 +111,19 @@ export function VocabCoachContent() {
       console.error("Error fetching catalogue:", err);
     } finally {
       setLoadingCatalogue(false);
+      isFetchingCatalogue.current = false;
     }
-  }, [filters.level, filters.category, supabase, loadingCatalogue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
-    if (mode === "selection" && !exerciseIdFromParams) {
+    if (mode === "selection") {
       fetchCatalogue();
     }
-  }, [fetchCatalogue, mode, exerciseIdFromParams]);
+  }, [fetchCatalogue, mode]);
 
   const startSpecificCard = useCallback(async (id: string) => {
-    if (!id || loadingRef.current === id) return;
-    loadingRef.current = id;
     setLoading(true);
-    console.log("Loading specific card:", id);
-
     try {
         const { data, error } = await supabase
             .from("vocabulary")
@@ -146,21 +146,19 @@ export function VocabCoachContent() {
         setMode("selection");
     } finally {
         setLoading(false);
-        loadingRef.current = null;
     }
   }, [supabase]);
 
   const startTraining = useCallback(async (review: boolean = false, lvl?: string, cat?: string) => {
-    const key = `training-${review}-${lvl}-${cat}`;
-    if (loadingRef.current === key) return;
-    loadingRef.current = key;
     setLoading(true);
-
     try {
         const { data: authData } = await supabase.auth.getUser();
         const user = authData?.user;
 
         let query = supabase.from('vocabulary').select('*');
+
+        const targetLvl = lvl || filters.level;
+        const targetCat = cat || filters.category;
 
         if (review && user) {
             setIsReviewMode(true);
@@ -174,11 +172,11 @@ export function VocabCoachContent() {
             if (reviews && reviews.length > 0) {
                 query = query.in('id', reviews.map((r: any) => r.vocab_id));
             } else {
-                query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
+                query = query.eq('level', targetLvl).eq('category', targetCat).limit(10);
             }
         } else {
             setIsReviewMode(false);
-            query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
+            query = query.eq('level', targetLvl).eq('category', targetCat).limit(10);
         }
 
         const { data, error } = await query;
@@ -200,14 +198,16 @@ export function VocabCoachContent() {
         setMode("selection");
     } finally {
         setLoading(false);
-        loadingRef.current = null;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
+    if (hasInitialized.current) return;
     if (mode !== "selection" || loading) return;
 
     if (exerciseIdFromParams) {
+        hasInitialized.current = true;
         startSpecificCard(exerciseIdFromParams);
     } else {
         const lessonId = searchParams.get("lessonId");
@@ -215,6 +215,7 @@ export function VocabCoachContent() {
         const level = searchParams.get("level");
 
         if (lessonId && topic) {
+            hasInitialized.current = true;
             setLevel(level || filters.level);
             setCategory(topic);
             startTraining(false, level || filters.level, topic);
@@ -246,7 +247,6 @@ export function VocabCoachContent() {
             setQuizChecked(false);
         } catch (err) {
             console.error("Error generating distractors:", err);
-            // Fallback to typing if distractors fail
             setStep("type");
             setUserInput("");
             setTypeChecked(false);
@@ -584,7 +584,6 @@ export function VocabCoachContent() {
     );
   }
 
-  // SCREEN: SELECTION (Catalogue)
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">

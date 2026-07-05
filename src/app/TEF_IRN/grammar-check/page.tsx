@@ -47,10 +47,12 @@ export function GrammarCheckContent() {
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
 
-  const loadingRef = useRef<string | null>(null);
+  const hasInitialized = useRef(false);
+  const isFetchingCatalogue = useRef(false);
 
   const fetchCatalogue = useCallback(async () => {
-    if (loadingCatalogue) return;
+    if (isFetchingCatalogue.current) return;
+    isFetchingCatalogue.current = true;
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -82,8 +84,10 @@ export function GrammarCheckContent() {
       console.error("Error fetching catalogue:", err);
     } finally {
       setLoadingCatalogue(false);
+      isFetchingCatalogue.current = false;
     }
-  }, [filters.level, filters.category, supabase, loadingCatalogue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
     if (mode === "selection" && !exerciseIdFromParams) {
@@ -92,10 +96,8 @@ export function GrammarCheckContent() {
   }, [fetchCatalogue, mode, exerciseIdFromParams]);
 
   const startTraining = useCallback(async (id: string) => {
-    if (!id || loadingRef.current === id) return;
-    loadingRef.current = id;
+    if (!id) return;
     setLoading(true);
-    console.log("Loading exercise:", id);
 
     try {
       const { data, error } = await supabase
@@ -108,7 +110,6 @@ export function GrammarCheckContent() {
       if (!data) throw new Error("Exercise not found");
 
       let qs: GrammarQuestion[] = [];
-
       if (data.content?.questions && Array.isArray(data.content.questions)) {
           qs = data.content.questions.map((q: string, i: number) => ({
               id: `${data.id}-${i}`,
@@ -141,7 +142,6 @@ export function GrammarCheckContent() {
           setInputValue("");
           setStatus("typing");
       } else {
-          console.error("No valid questions found in content:", data.content);
           setMode("selection");
       }
     } catch (err) {
@@ -149,15 +149,16 @@ export function GrammarCheckContent() {
       setMode("selection");
     } finally {
       setLoading(false);
-      loadingRef.current = null;
     }
   }, [supabase]);
 
   useEffect(() => {
-    if (exerciseIdFromParams && mode === "selection") {
+    if (hasInitialized.current) return;
+    if (exerciseIdFromParams && mode === "selection" && !loading) {
+      hasInitialized.current = true;
       startTraining(exerciseIdFromParams);
     }
-  }, [exerciseIdFromParams, startTraining, mode]);
+  }, [exerciseIdFromParams, startTraining, mode, loading]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
@@ -217,7 +218,6 @@ export function GrammarCheckContent() {
     );
   }
 
-  // SCREEN: RESULT
   if (mode === "result") {
     const finalPercent = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     return (
@@ -261,7 +261,6 @@ export function GrammarCheckContent() {
     );
   }
 
-  // SCREEN: TRAINING
   if (mode === "training") {
     const current = questions[currentIdx];
     const totalQuestions = questions.length;
@@ -310,7 +309,6 @@ export function GrammarCheckContent() {
                 exit={{ opacity: 0, y: -30 }}
                 className="space-y-12"
               >
-                {/* Question Text */}
                 <div className="bg-white p-16 lg:p-24 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-200 rotate-3 group">
                       <Target size={32} className="group-hover:scale-110 transition-transform" />
@@ -394,7 +392,6 @@ export function GrammarCheckContent() {
     );
   }
 
-  // SCREEN: SELECTION (Catalogue)
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
