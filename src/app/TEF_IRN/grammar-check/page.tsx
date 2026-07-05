@@ -47,7 +47,6 @@ export function GrammarCheckContent() {
   const [finished, setFinished] = useState(false);
 
   const processedIdRef = useRef<string | null>(null);
-  const isMountedRef = useRef(true);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -113,7 +112,7 @@ export function GrammarCheckContent() {
         .eq('id', id)
         .single();
 
-      if (data && data.content?.questions && isMountedRef.current) {
+      if (data && data.content?.questions) {
         const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
           id: `${data.id}-${i}`,
           sentence: q,
@@ -132,34 +131,30 @@ export function GrammarCheckContent() {
         setStatus("typing");
         setInputValue("");
         setIsStarted(true);
-        console.log("✅ Exercice chargé et démarré:", id);
+        console.log("✅ Exercice chargé et démarré :", id);
       } else {
-        console.error("❌ Données invalides pour l'exercice:", id);
+        console.error("❌ Données invalides pour l'exercice :", id);
         setIsStarted(false);
       }
     } catch (error) {
-      console.error("Erreur chargement exercice:", error);
+      console.error("Erreur chargement exercice :", error);
       setIsStarted(false);
     } finally {
       setLoading(false);
     }
   }, [supabase, loading]);
 
-  // Détection ID - avec cleanup
+  // Détection ID ultra-robuste
   useEffect(() => {
     const exIdFromParams = params?.id as string | undefined;
     const exIdFromSearch = searchParams.get("id");
     const exId = exIdFromParams || exIdFromSearch;
 
-    if (exId && !isStarted && !loading && processedIdRef.current !== exId) {
-      console.log("🔄 Tentative de chargement exercice ID:", exId);
+    if (exId && processedIdRef.current !== exId) {
+      console.log("🔄 Détection nouvel ID :", exId);
       startSpecificExercise(exId);
     }
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [params?.id, searchParams?.toString(), isStarted, loading, startSpecificExercise]);
+  }, [params?.id, searchParams?.toString(), startSpecificExercise]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
