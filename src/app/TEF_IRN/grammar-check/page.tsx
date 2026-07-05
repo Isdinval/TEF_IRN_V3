@@ -27,7 +27,8 @@ interface GrammarQuestion {
   level: string;
 }
 
-function ExerciseView({ id, onBack }: { id: string; onBack: () => void }) {
+// Composant dédié à l'exercice (exporté pour [id]/page.tsx)
+export function ExerciseView({ id, onBack }: { id: string; onBack: () => void }) {
   const supabase = createClient();
   const { nextLesson } = useParcours();
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
@@ -226,16 +227,8 @@ function ExerciseView({ id, onBack }: { id: string; onBack: () => void }) {
   );
 }
 
-export default function GrammarCheckPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const exId = (params?.id as string) || searchParams.get("id");
-
-  if (exId) {
-    return <ExerciseView key={exId} id={exId} onBack={() => window.history.back()} />;
-  }
-
-  // === CATALOGUE ===
+// === CATALOGUE ===
+function CatalogueView() {
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -366,4 +359,16 @@ export default function GrammarCheckPage() {
       </div>
     </div>
   );
+}
+
+export default function GrammarCheckPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const exId = (params?.id as string) || searchParams.get("id");
+
+  if (exId) {
+    return <ExerciseView key={exId} id={exId} onBack={() => window.history.back()} />;
+  }
+
+  return <CatalogueView />;
 }
