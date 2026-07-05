@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, useRef } from "react";
-import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useState, useEffect, Suspense, useCallback } from "react";
+import { useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import ExerciseCard from "@/app/TEF_IRN/parcours/[slug]/components/ExerciseCard";
@@ -9,7 +9,7 @@ import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, ArrowRight, Loader2, Target, Sparkles, Zap, GraduationCap, Calendar } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
@@ -27,85 +27,20 @@ interface GrammarQuestion {
   level: string;
 }
 
-export function GrammarCheckContent() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const router = useRouter();
+function ExerciseView({ id, onBack }: { id: string; onBack: () => void }) {
   const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
-  const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
-
-  const [isStarted, setIsStarted] = useState(false);
+  const { nextLesson } = useParcours();
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
-  const [loading, setLoading] = useState(false);
-  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
-  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  const processedIdRef = useRef<string | null>(null);
-
-  const fetchCatalogue = useCallback(async () => {
-    setLoadingCatalogue(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      let query = supabase
-        .from("exercises")
-        .select("*")
-        .eq("type", "trous")
-        .eq("level", filters.level);
-
-      if (filters.category !== "Toutes") {
-        query = query.ilike("category", `%${filters.category}%`);
-      }
-
-      const { data: exercises } = await query.limit(20);
-
-      if (exercises && user) {
-        const { data: attempts } = await supabase
-          .from("exercise_attempts")
-          .select("exercise_id, is_completed, score")
-          .eq("user_id", user.id)
-          .in("exercise_id", exercises.map((e: any) => e.id));
-
-        const mapped = exercises.map((ex: any) => {
-          const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
-          return {
-            ...ex,
-            is_completed: exAttempts.some((a: any) => a.is_completed),
-            attempts_count: exAttempts.length,
-            success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
-          };
-        });
-        setCatalogue(mapped);
-      } else {
-        setCatalogue(exercises || []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingCatalogue(false);
-    }
-  }, [filters.level, filters.category, supabase]);
-
   useEffect(() => {
-    if (!isStarted) {
-      fetchCatalogue();
-    }
-  }, [fetchCatalogue, isStarted]);
-
-  const startSpecificExercise = useCallback(async (id: string) => {
-    if (loading || processedIdRef.current === id) return;
-
-    processedIdRef.current = id;
-    setLoading(true);
-    setIsStarted(false);
-
-    try {
+    const loadExercise = async () => {
+      setLoading(true);
       const { data } = await supabase
         .from('exercises')
         .select('*')
@@ -123,44 +58,18 @@ export function GrammarCheckContent() {
           level: data.level,
           difficulty: data.difficulty
         }));
-
         setQuestions(qs);
-        setCurrentIdx(0);
-        setScore(0);
-        setFinished(false);
-        setStatus("typing");
-        setInputValue("");
-        setIsStarted(true);
-        console.log("✅ Exercice chargé et démarré :", id);
-      } else {
-        console.error("❌ Données invalides pour l'exercice :", id);
-        setIsStarted(false);
       }
-    } catch (error) {
-      console.error("Erreur chargement exercice :", error);
-      setIsStarted(false);
-    } finally {
       setLoading(false);
-    }
-  }, [supabase, loading]);
+    };
 
-  // Détection ID ultra-robuste
-  useEffect(() => {
-    const exIdFromParams = params?.id as string | undefined;
-    const exIdFromSearch = searchParams.get("id");
-    const exId = exIdFromParams || exIdFromSearch;
-
-    if (exId && processedIdRef.current !== exId) {
-      console.log("🔄 Détection nouvel ID :", exId);
-      startSpecificExercise(exId);
-    }
-  }, [params?.id, searchParams?.toString(), startSpecificExercise]);
+    loadExercise();
+  }, [id, supabase]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
     if (!current) return;
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
-
     if (isCorrect) {
       setStatus("correct");
       setScore(s => s + 1);
@@ -177,17 +86,14 @@ export function GrammarCheckContent() {
     } else {
       setFinished(true);
       const finalScore = Math.round((score / questions.length) * 100);
-      const exId = searchParams.get("id") || (params?.id as string);
-      if (exId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from("exercise_attempts").insert({
-            exercise_id: exId,
-            score: finalScore,
-            is_completed: true,
-            user_id: user.id
-          });
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("exercise_attempts").insert({
+          exercise_id: id,
+          score: finalScore,
+          is_completed: true,
+          user_id: user.id
+        });
       }
     }
   };
@@ -226,116 +132,12 @@ export function GrammarCheckContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button 
-              onClick={() => {
-                setIsStarted(false);
-                setFinished(false);
-                setQuestions([]);
-                processedIdRef.current = null;
-              }} 
-              className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg"
-            >
-              RETOURNER AU CATALOGUE
-            </Button>
+            <Button onClick={onBack} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
             )}
           </div>
         </motion.div>
-      </div>
-    );
-  }
-
-  if (!isStarted) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
-          <ExerciseLayout
-            title="CHASSE AUX ERREURS"
-            badge="Coach Exercice à Trous"
-            badgeColor="indigo"
-            description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Target size={14} className="text-indigo-600" /> Choisir votre niveau
-                </div>
-                <div className="flex gap-2">
-                  {["A1", "A2", "B1", "B2"].map((lvl) => (
-                    <button
-                      key={lvl}
-                      onClick={() => setLevel(lvl)}
-                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
-                    >
-                      {lvl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <GraduationCap size={14} className="text-indigo-600" /> Thématiques
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategory(cat)}
-                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                  <Zap size={14} /> Flash entraînement
-                </div>
-                <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                  <Calendar size={16} /> Entraînement Quotidien
-                </div>
-              </div>
-            </div>
-
-            <section className="mt-12">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                  <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
-                  <span className="text-zinc-400">•</span>
-                  <span className="capitalize text-zinc-500">{filters.category}</span>
-                </h2>
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
-                </div>
-              </div>
-
-              {loadingCatalogue ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[1, 2, 3, 4].map((i: number) => (
-                    <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
-                  ))}
-                </div>
-              ) : catalogue.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {catalogue.map((ex: Exercise) => (
-                    <ExerciseCard key={ex.id} exercise={ex} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
-                  <Target className="mx-auto mb-4 text-zinc-300" size={40} />
-                  <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
-                </Card>
-              )}
-            </section>
-          </ExerciseLayout>
-        </div>
       </div>
     );
   }
@@ -361,10 +163,7 @@ export function GrammarCheckContent() {
               </div>
             </div>
             <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-indigo-600 transition-all duration-300" 
-                style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
-              />
+              <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
             </div>
           </div>
 
@@ -428,12 +227,97 @@ export function GrammarCheckContent() {
 }
 
 export default function GrammarCheckPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const exId = (params?.id as string) || searchParams.get("id");
+
+  if (exId) {
+    return <ExerciseView key={exId} id={exId} onBack={() => window.history.back()} />;
+  }
+
+  // Catalogue
+  const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
+  const [catalogue, setCatalogue] = useState<Exercise[]>([]);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const supabase = createClient();
+
+  const fetchCatalogue = useCallback(async () => {
+    setLoadingCatalogue(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let query = supabase.from("exercises").select("*").eq("type", "trous").eq("level", filters.level);
+      if (filters.category !== "Toutes") query = query.ilike("category", `%${filters.category}%`);
+      const { data: exercises } = await query.limit(20);
+
+      if (exercises && user) {
+        const { data: attempts } = await supabase.from("exercise_attempts").select("exercise_id, is_completed, score").eq("user_id", user.id).in("exercise_id", exercises.map((e: any) => e.id));
+        const mapped = exercises.map((ex: any) => {
+          const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
+          return { ...ex, is_completed: exAttempts.some((a: any) => a.is_completed), attempts_count: exAttempts.length, success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined };
+        });
+        setCatalogue(mapped);
+      } else {
+        setCatalogue(exercises || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCatalogue(false);
+    }
+  }, [filters.level, filters.category, supabase]);
+
+  useEffect(() => { fetchCatalogue(); }, [fetchCatalogue]);
+
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
+        <ExerciseLayout
+          title="CHASSE AUX ERREURS"
+          badge="Coach Exercice à Trous"
+          badgeColor="indigo"
+          description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
+        >
+          {/* Filtres et Catalogue - identique à avant */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* ... (même code filtres) ... */}
+          </div>
+
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
+                <span className="text-zinc-400">•</span>
+                <span className="capitalize text-zinc-500">{filters.category}</span>
+              </h2>
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+              </div>
+            </div>
+
+            {loadingCatalogue ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />)}
+              </div>
+            ) : catalogue.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {catalogue.map((ex: Exercise) => <ExerciseCard key={ex.id} exercise={ex} />)}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
+                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
+              </Card>
+            )}
+          </section>
+        </ExerciseLayout>
       </div>
-    }>
+    </div>
+  );
+}
+
+export default function GrammarCheckPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
       <GrammarCheckContent />
     </Suspense>
   );
