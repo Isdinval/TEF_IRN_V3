@@ -2,18 +2,17 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  // === NORMALISATION DE CASSE ===
-  const pathname = request.nextUrl.pathname
-  
-  // Redirige /tef_irn/... vers /TEF_IRN/... (version canonique en majuscules)
-  if (/^\/tef_irn/i.test(pathname)) {
+  let pathname = request.nextUrl.pathname
+
+  // === NORMALISATION DE CASSE (sécurisée contre les boucles) ===
+  if (/^\/tef_irn/i.test(pathname) && !pathname.startsWith('/TEF_IRN')) {
     const normalizedPath = pathname.replace(/^\/tef_irn/i, '/TEF_IRN')
     const url = request.nextUrl.clone()
     url.pathname = normalizedPath
-    return NextResponse.redirect(url, { status: 301 }) // 301 = redirection permanente (bon pour SEO)
+    return NextResponse.redirect(url, { status: 301 })
   }
 
-  // === Middleware Supabase Auth existant ===
+  // === Middleware Supabase Auth ===
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -36,10 +35,10 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet: any[]) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request,
-          })
+          cookiesToSet.forEach(({ name, value, options }) => 
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
@@ -48,9 +47,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Routes protégées
   const protectedRoutes = [
@@ -67,7 +64,7 @@ export async function middleware(request: NextRequest) {
   ]
 
   const isProtectedRoute = protectedRoutes.some(route => 
-    request.nextUrl.pathname.startsWith(route)
+    pathname.startsWith(route)
   )
 
   if (isProtectedRoute && !user) {
