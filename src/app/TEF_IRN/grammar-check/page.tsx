@@ -28,9 +28,14 @@ interface GrammarQuestion {
 }
 
 // Composant dédié à l'exercice (exporté pour [id]/page.tsx)
-export function ExerciseView({ id, onBack }: { id: string; onBack: () => void }) {
+export function ExerciseView() {
+  const params = useParams();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const { nextLesson } = useParcours();
+
+  const id = (params?.id as string) || searchParams.get("id") || "";
+
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [inputValue, setInputValue] = useState("");
@@ -40,6 +45,8 @@ export function ExerciseView({ id, onBack }: { id: string; onBack: () => void })
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
+
     const loadExercise = async () => {
       setLoading(true);
       const { data } = await supabase
@@ -99,6 +106,10 @@ export function ExerciseView({ id, onBack }: { id: string; onBack: () => void })
     }
   };
 
+  const handleBack = () => {
+    window.history.back();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
@@ -133,7 +144,7 @@ export function ExerciseView({ id, onBack }: { id: string; onBack: () => void })
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={onBack} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
+            <Button onClick={handleBack} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
             )}
