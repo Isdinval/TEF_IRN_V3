@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,10 @@ export function VocabCoachContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const exerciseIdFromParams = params?.id as string | undefined;
+  const exerciseIdFromParams = (params?.id as string) || searchParams.get("id");
+
+  const supabase = useMemo(() => createClient(), []);
+  const { nextLesson } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Administration");
 
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -68,10 +71,10 @@ export function VocabCoachContent() {
   const [typeChecked, setTypeChecked] = useState(false);
   const [validationResult, setValidationResult] = useState<{ isValid: boolean; toleranceApplied: boolean; message?: string } | null>(null);
 
-  const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
+  const loadingRef = useRef<string | null>(null);
 
   const fetchCatalogue = useCallback(async () => {
+    if (loadingCatalogue) return;
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -103,45 +106,56 @@ export function VocabCoachContent() {
         setCatalogue(items || []);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching catalogue:", err);
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, supabase]);
+  }, [filters.level, filters.category, supabase, loadingCatalogue]);
 
   useEffect(() => {
-    if (mode === "selection") {
+    if (mode === "selection" && !exerciseIdFromParams) {
       fetchCatalogue();
     }
-  }, [fetchCatalogue, mode]);
+  }, [fetchCatalogue, mode, exerciseIdFromParams]);
 
   const startSpecificCard = useCallback(async (id: string) => {
+    if (!id || loadingRef.current === id) return;
+    loadingRef.current = id;
     setLoading(true);
+    console.log("Loading specific card:", id);
+
     try {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from("vocabulary")
             .select("*")
             .eq("id", id)
             .single();
 
-        if (data) {
-            setCards([data as Flashcard]);
-            setMode("training");
-            setIndex(0);
-            setStep("presentation");
-            setFinished(false);
-            setSessionMasteredCount(0);
-            setFlipped(false);
-        }
+        if (error) throw error;
+        if (!data) throw new Error("Card not found");
+
+        setCards([data as Flashcard]);
+        setMode("training");
+        setIndex(0);
+        setStep("presentation");
+        setFinished(false);
+        setSessionMasteredCount(0);
+        setFlipped(false);
     } catch (err) {
-        console.error(err);
+        console.error("Error loading specific card:", err);
+        setMode("selection");
     } finally {
         setLoading(false);
+        loadingRef.current = null;
     }
   }, [supabase]);
 
   const startTraining = useCallback(async (review: boolean = false, lvl?: string, cat?: string) => {
+    const key = `training-${review}-${lvl}-${cat}`;
+    if (loadingRef.current === key) return;
+    loadingRef.current = key;
     setLoading(true);
+
     try {
         const { data: authData } = await supabase.auth.getUser();
         const user = authData?.user;
@@ -167,7 +181,8 @@ export function VocabCoachContent() {
             query = query.eq('level', lvl || filters.level).eq('category', cat || filters.category).limit(10);
         }
 
-        const { data } = await query;
+        const { data, error } = await query;
+        if (error) throw error;
 
         if (data && data.length > 0) {
             setCards(data as Flashcard[]);
@@ -177,15 +192,21 @@ export function VocabCoachContent() {
             setFinished(false);
             setSessionMasteredCount(0);
             setFlipped(false);
+        } else {
+            setMode("selection");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Error starting training:", err);
+        setMode("selection");
     } finally {
         setLoading(false);
+        loadingRef.current = null;
     }
   }, [filters.level, filters.category, supabase]);
 
   useEffect(() => {
+    if (mode !== "selection" || loading) return;
+
     if (exerciseIdFromParams) {
         startSpecificCard(exerciseIdFromParams);
     } else {
@@ -199,7 +220,7 @@ export function VocabCoachContent() {
             startTraining(false, level || filters.level, topic);
         }
     }
-  }, [exerciseIdFromParams, searchParams, startSpecificCard, startTraining, setLevel, setCategory, filters.level]);
+  }, [exerciseIdFromParams, searchParams, startSpecificCard, startTraining, setLevel, setCategory, filters.level, mode, loading]);
 
   const handleStepComplete = async (isCorrect: boolean) => {
     if (isCorrect && step === "type") {
@@ -212,16 +233,25 @@ export function VocabCoachContent() {
 
     if (isCorrect) {
       if (step === "presentation") {
-        const distractorsQuery = supabase.from("vocabulary").select("definition").neq("id", cards[index].id).limit(10);
-        const { data: distractorsData } = await distractorsQuery;
-        const distractors = (distractorsData?.map( (d: any) => d.definition) || []).sort(() => 0.5 - Math.random()).slice(0, 3);
-        const options = [...distractors, cards[index].definition].sort(() => 0.5 - Math.random());
+        try {
+            const distractorsQuery = supabase.from("vocabulary").select("definition").neq("id", cards[index].id).limit(20);
+            const { data: distractorsData } = await distractorsQuery;
+            const distractors = (distractorsData?.map((d: any) => d.definition) || []).sort(() => 0.5 - Math.random()).slice(0, 3);
+            const options = [...distractors, cards[index].definition].sort(() => 0.5 - Math.random());
 
-        setQuizOptions(options);
-        setStep("quiz");
-        setFlipped(false);
-        setSelectedOption(null);
-        setQuizChecked(false);
+            setQuizOptions(options);
+            setStep("quiz");
+            setFlipped(false);
+            setSelectedOption(null);
+            setQuizChecked(false);
+        } catch (err) {
+            console.error("Error generating distractors:", err);
+            // Fallback to typing if distractors fail
+            setStep("type");
+            setUserInput("");
+            setTypeChecked(false);
+            setValidationResult(null);
+        }
       } else if (step === "quiz") {
         setStep("type");
         setUserInput("");
@@ -257,7 +287,9 @@ export function VocabCoachContent() {
         router.back();
     } else {
         setMode("selection");
-        router.push("/TEF_IRN/vocab");
+        if (params?.id) {
+            router.push("/TEF_IRN/vocab");
+        }
     }
   };
 
@@ -315,7 +347,7 @@ export function VocabCoachContent() {
 
   if (mode === "training") {
     const current = cards[index];
-    const progress = ((index + 1) / cards.length) * 100;
+    const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0;
 
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col">
@@ -495,6 +527,7 @@ export function VocabCoachContent() {
                     setTypeChecked(true);
                   })()}
                   disabled={typeChecked}
+                  autoFocus
                   placeholder="Tapez le mot ici..."
                   className={`h-20 text-center text-[clamp(1.125rem,2vw+0.75rem,1.5rem)] font-black rounded-2xl border-4 transition-all ${
                     typeChecked

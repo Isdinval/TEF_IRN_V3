@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import ExerciseCard from "@/app/TEF_IRN/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, CheckCircle2, RotateCcw, Trophy } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -31,9 +31,10 @@ export function GrammarCheckContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const exerciseIdFromParams = params?.id as string | undefined;
-  const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
+  const exerciseIdFromParams = (params?.id as string) || searchParams.get("id");
+
+  const supabase = useMemo(() => createClient(), []);
+  const { nextLesson } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
@@ -46,7 +47,10 @@ export function GrammarCheckContent() {
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
 
+  const loadingRef = useRef<string | null>(null);
+
   const fetchCatalogue = useCallback(async () => {
+    if (loadingCatalogue) return;
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -75,57 +79,85 @@ export function GrammarCheckContent() {
         setCatalogue(exercises || []);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching catalogue:", err);
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, supabase]);
+  }, [filters.level, filters.category, supabase, loadingCatalogue]);
 
   useEffect(() => {
-    if (mode === "selection") {
+    if (mode === "selection" && !exerciseIdFromParams) {
       fetchCatalogue();
     }
-  }, [fetchCatalogue, mode]);
+  }, [fetchCatalogue, mode, exerciseIdFromParams]);
 
   const startTraining = useCallback(async (id: string) => {
+    if (!id || loadingRef.current === id) return;
+    loadingRef.current = id;
     setLoading(true);
+    console.log("Loading exercise:", id);
+
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('exercises')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (data && data.content?.questions) {
-        const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
-          id: `${data.id}-${i}`,
-          sentence: q,
-          error_fragment: data.content.error_fragments[i],
-          correction: data.content.corrections[i],
-          explanation: data.content.explanations[i],
-          category: data.category,
-          level: data.level,
-          difficulty: data.difficulty
-        }));
-        setQuestions(qs);
-        setMode("training");
-        setCurrentIdx(0);
-        setScore(0);
-        setInputValue("");
-        setStatus("typing");
+      if (error) throw error;
+      if (!data) throw new Error("Exercise not found");
+
+      let qs: GrammarQuestion[] = [];
+
+      if (data.content?.questions && Array.isArray(data.content.questions)) {
+          qs = data.content.questions.map((q: string, i: number) => ({
+              id: `${data.id}-${i}`,
+              sentence: q,
+              error_fragment: data.content.error_fragments?.[i] || "",
+              correction: String(data.content.corrections?.[i] || data.content.correct_answers?.[i] || ""),
+              explanation: data.content.explanations?.[i] || "",
+              category: data.category,
+              level: data.level,
+              difficulty: data.difficulty
+          }));
+      } else if (data.content?.sentence) {
+          qs = [{
+              id: data.id,
+              sentence: data.content.sentence,
+              error_fragment: data.content.error_fragment || "",
+              correction: String(data.content.correction || data.content.correct_answer || ""),
+              explanation: data.content.explanation || "",
+              category: data.category,
+              level: data.level,
+              difficulty: data.difficulty
+          }];
+      }
+
+      if (qs.length > 0) {
+          setQuestions(qs);
+          setMode("training");
+          setCurrentIdx(0);
+          setScore(0);
+          setInputValue("");
+          setStatus("typing");
+      } else {
+          console.error("No valid questions found in content:", data.content);
+          setMode("selection");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error starting training:", err);
+      setMode("selection");
     } finally {
       setLoading(false);
+      loadingRef.current = null;
     }
   }, [supabase]);
 
   useEffect(() => {
-    if (exerciseIdFromParams) {
+    if (exerciseIdFromParams && mode === "selection") {
       startTraining(exerciseIdFromParams);
     }
-  }, [exerciseIdFromParams, startTraining]);
+  }, [exerciseIdFromParams, startTraining, mode]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
@@ -147,14 +179,18 @@ export function GrammarCheckContent() {
     } else {
       setMode("result");
       const finalScore = Math.round((score / questions.length) * 100);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && exerciseIdFromParams) {
-        await supabase.from("exercise_attempts").insert({
-          exercise_id: exerciseIdFromParams,
-          score: finalScore,
-          is_completed: true,
-          user_id: user.id
-        });
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && exerciseIdFromParams) {
+          await supabase.from("exercise_attempts").insert({
+            exercise_id: exerciseIdFromParams,
+            score: finalScore,
+            is_completed: true,
+            user_id: user.id
+          });
+        }
+      } catch (err) {
+        console.error("Error saving attempt:", err);
       }
     }
   };
@@ -164,7 +200,9 @@ export function GrammarCheckContent() {
       router.back();
     } else {
       setMode("selection");
-      router.push("/TEF_IRN/grammar-check");
+      if (params?.id) {
+          router.push("/TEF_IRN/grammar-check");
+      }
     }
   };
 
@@ -181,7 +219,7 @@ export function GrammarCheckContent() {
 
   // SCREEN: RESULT
   if (mode === "result") {
-    const finalPercent = Math.round((score / questions.length) * 100);
+    const finalPercent = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
@@ -210,7 +248,9 @@ export function GrammarCheckContent() {
             )}
             <Button
                 variant="ghost"
-                onClick={() => startTraining(exerciseIdFromParams!)}
+                onClick={() => {
+                    if (exerciseIdFromParams) startTraining(exerciseIdFromParams);
+                }}
                 className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
@@ -225,7 +265,7 @@ export function GrammarCheckContent() {
   if (mode === "training") {
     const current = questions[currentIdx];
     const totalQuestions = questions.length;
-    const progress = ((currentIdx + 1) / totalQuestions) * 100;
+    const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
 
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col">
@@ -291,6 +331,7 @@ export function GrammarCheckContent() {
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && status === "typing" && checkCorrection()}
                       disabled={status !== "typing"}
+                      autoFocus
                       placeholder="Tapez la correction ici..."
                       className={`w-full h-24 px-10 text-2xl font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
                         status === "typing"
