@@ -113,6 +113,24 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
         </motion.div>
       </header>
 
+
+      {/* Hero Image */}
+      {guide.image_url && (
+        <div className="max-w-6xl mx-auto px-6 -mt-8 mb-12">
+          <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <img
+              src={guide.image_url}
+              alt={guide.title}
+              className="w-full h-auto object-cover aspect-[16/9] md:aspect-[2.5/1]"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          </div>
+        </div>
+      )}
+
+      
+
       {/* AI Summary / GEO Optimization */}
       <section className="max-w-6xl mx-auto px-6 mb-12">
         <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 relative overflow-hidden">
