@@ -97,55 +97,66 @@ export function GrammarCheckContent() {
   }, [fetchCatalogue, isStarted]);
 
   const startSpecificExercise = useCallback(async (id: string) => {
+    if (loading) return;
+    
     setLoading(true);
-    setIsStarted(false); // reset explicite
+    setIsStarted(false);
 
-    const { data } = await supabase
-      .from('exercises')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const { data } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (data && data.content?.questions) {
-      const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
-        id: `${data.id}-${i}`,
-        sentence: q,
-        error_fragment: data.content.error_fragments[i],
-        correction: data.content.corrections[i],
-        explanation: data.content.explanations[i],
-        category: data.category,
-        level: data.level,
-        difficulty: data.difficulty
-      }));
+      if (data && data.content?.questions) {
+        const qs: GrammarQuestion[] = data.content.questions.map((q: string, i: number) => ({
+          id: `${data.id}-${i}`,
+          sentence: q,
+          error_fragment: data.content.error_fragments[i],
+          correction: data.content.corrections[i],
+          explanation: data.content.explanations[i],
+          category: data.category,
+          level: data.level,
+          difficulty: data.difficulty
+        }));
 
-      setQuestions(qs);
-      setCurrentIdx(0);
-      setScore(0);
-      setFinished(false);
-      setStatus("typing");
-      setInputValue("");
-      setIsStarted(true);
-      console.log("✅ Exercice démarré avec ID:", id);
-    } else {
-      console.error("❌ Données exercice invalides pour ID:", id);
+        setQuestions(qs);
+        setCurrentIdx(0);
+        setScore(0);
+        setFinished(false);
+        setStatus("typing");
+        setInputValue("");
+        setIsStarted(true);
+        console.log("✅ Exercice démarré avec ID:", id);
+      } else {
+        console.error("❌ Impossible de charger l'exercice:", id);
+        setIsStarted(false);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'exercice:", error);
+      setIsStarted(false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [supabase]);
+  }, [supabase, loading]);
 
-  // UseEffect amélioré pour détecter l'ID
+  // Détection robuste de l'ID dans l'URL
   useEffect(() => {
     const exIdFromParams = params?.id as string | undefined;
     const exIdFromSearch = searchParams.get("id");
     const exId = exIdFromParams || exIdFromSearch;
 
     if (exId && !isStarted && !loading) {
-      console.log("🔄 Détection ID dans URL:", exId);
+      console.log("🔄 Détection ID exercice dans URL:", exId);
       startSpecificExercise(exId);
     }
   }, [params?.id, searchParams?.toString(), isStarted, loading, startSpecificExercise]);
 
   const checkCorrection = () => {
     const current = questions[currentIdx];
+    if (!current) return;
+    
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
@@ -165,6 +176,7 @@ export function GrammarCheckContent() {
       setFinished(true);
       const finalScore = Math.round((score / questions.length) * 100);
       const exId = searchParams.get("id") || (params?.id as string);
+      
       if (exId) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -179,11 +191,16 @@ export function GrammarCheckContent() {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-      <Loader2 className="animate-spin text-indigo-600" size={48} />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin text-indigo-600 mx-auto mb-4" size={48} />
+          <p className="text-zinc-600">Chargement de l'exercice...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (finished) {
     return (
@@ -208,25 +225,16 @@ export function GrammarCheckContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => setIsStarted(false)} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
+            <Button onClick={() => {
+              setIsStarted(false);
+              setFinished(false);
+              setQuestions([]);
+            }} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
             )}
           </div>
         </motion.div>
-      </div>
-    );
-  }
-
-  // Force affichage si ID dans URL mais état non mis à jour
-  const urlId = (params?.id as string) || searchParams.get("id");
-  if (urlId && !isStarted && !loading) {
-    return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin text-indigo-600 mx-auto mb-4" size={48} />
-          <p className="text-zinc-600">Chargement de l'exercice...</p>
-        </div>
       </div>
     );
   }
@@ -241,7 +249,6 @@ export function GrammarCheckContent() {
             badgeColor="indigo"
             description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
           >
-            {/* Quick Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
@@ -289,7 +296,6 @@ export function GrammarCheckContent() {
               </div>
             </div>
 
-            {/* Catalogue Section */}
             <section className="mt-12">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
