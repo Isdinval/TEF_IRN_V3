@@ -5,13 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { Guide } from '@/types/guides';
-import { Sparkles, HelpCircle } from 'lucide-react';
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion';
 
 interface GuideContentProps {
   guide: Guide;
@@ -21,11 +14,12 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
   const [headings, setHeadings] = useState<{ id: string; text: string; level: number }[]>([]);
 
   useEffect(() => {
+    // Basic TOC extraction from markdown
     if (guide.content) {
       const headingLines = guide.content.split('\n').filter(line => line.startsWith('#'));
       const extractedHeadings = headingLines.map(line => {
         const level = line.match(/^#+/)?.[0].length || 0;
-        const text = line.replace(/^#+\s*/, '').trim();
+        const text = line.replace(/^#+\/s*/, '').trim();
         const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
         return { id, text, level };
       }).filter(h => h.level > 1 && h.level < 4);
@@ -33,59 +27,13 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
     }
   }, [guide.content]);
 
-  // Custom components with special handling
+  // Custom components for ReactMarkdown to handle interactive elements or styling
   const components = {
-    h2: ({ children, node }: any) => {
+    h2: ({ children, ...props }: any) => {
       const text = String(children);
       const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
-
-      if (text.includes('Comment LlamaKusi vous aide')) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="my-12"
-          >
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 border border-blue-100 rounded-3xl p-10 shadow-xl shadow-blue-100/50 relative overflow-hidden">
-              <div className="absolute -top-6 -right-6 opacity-10">
-                <Sparkles size={140} className="text-blue-500" />
-              </div>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="text-white" size={32} />
-                </div>
-                <h2 id={id} className="text-4xl font-black tracking-tight text-zinc-900">{children}</h2>
-              </div>
-              <div className="prose prose-lg max-w-none">
-                {/* Content will be handled by parent markdown */}
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      if (text.includes('FAQ')) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="my-12"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-violet-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <HelpCircle className="text-white" size={32} />
-              </div>
-              <h2 id={id} className="text-4xl font-black tracking-tight text-zinc-900">{children}</h2>
-            </div>
-          </motion.div>
-        );
-      }
-
-      return <h2 id={id} className="text-3xl font-black mt-12 mb-6 tracking-tight text-zinc-900">{children}</h2>;
+      return <h2 id={id} {...props} className="text-3xl font-black mt-12 mb-6 tracking-tight text-zinc-900">{children}</h2>;
     },
-    // Other components remain
     h3: ({ children, ...props }: any) => {
       const text = String(children);
       const id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
@@ -96,13 +44,16 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
         {children}
       </blockquote>
     ),
-    ul: ({ children }: any) => <ul className="list-disc pl-6 space-y-3 my-6 text-slate-600 text-lg">{children}</ul>,
-    p: ({ children }: any) => <p className="text-lg leading-relaxed text-slate-600 my-6">{children}</p>,
-    strong: ({ children }: any) => <strong className="font-semibold text-zinc-900">{children}</strong>,
+    ul: ({ children }: any) => <ul className="list-disc pl-6 space-y-2 my-4 text-slate-600">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal pl-6 space-y-2 my-4 text-slate-600">{children}</ol>,
+    li: ({ children }: any) => <li className="text-lg leading-relaxed">{children}</li>,
+    p: ({ children }: any) => <p className="text-lg leading-relaxed text-slate-600 my-4">{children}</p>,
+    strong: ({ children }: any) => <strong className="font-bold text-zinc-900">{children}</strong>,
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-12">
+      {/* Table of Contents - Desktop */}
       {headings.length > 0 && (
         <aside className="hidden lg:block w-64 flex-shrink-0">
           <div className="sticky top-24">
@@ -112,7 +63,9 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
                 <a
                   key={heading.id}
                   href={`#${heading.id}`}
-                  className={`block text-sm font-medium transition-colors hover:text-blue-600 ${heading.level === 3 ? 'pl-4 text-slate-400' : 'text-slate-500'}`}
+                  className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
+                    heading.level === 3 ? 'pl-4 text-slate-400' : 'text-slate-500'
+                  }`}
                 >
                   {heading.text}
                 </a>
@@ -122,6 +75,7 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
         </aside>
       )}
 
+      {/* Main Content */}
       <div className="flex-grow max-w-3xl">
         <motion.article
           initial={{ opacity: 0 }}
