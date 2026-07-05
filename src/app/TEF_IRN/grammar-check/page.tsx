@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, useRef } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,9 @@ export function GrammarCheckContent() {
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  // Guard anti-boucle
+  const processedIdRef = useRef<string | null>(null);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -97,8 +100,9 @@ export function GrammarCheckContent() {
   }, [fetchCatalogue, isStarted]);
 
   const startSpecificExercise = useCallback(async (id: string) => {
-    if (loading) return;
-    
+    if (loading || processedIdRef.current === id) return;
+
+    processedIdRef.current = id;
     setLoading(true);
     setIsStarted(false);
 
@@ -132,22 +136,24 @@ export function GrammarCheckContent() {
       } else {
         console.error("❌ Impossible de charger l'exercice:", id);
         setIsStarted(false);
+        processedIdRef.current = null;
       }
     } catch (error) {
       console.error("Erreur lors du chargement de l'exercice:", error);
       setIsStarted(false);
+      processedIdRef.current = null;
     } finally {
       setLoading(false);
     }
   }, [supabase, loading]);
 
-  // Détection robuste de l'ID dans l'URL
+  // Détection robuste de l'ID
   useEffect(() => {
     const exIdFromParams = params?.id as string | undefined;
     const exIdFromSearch = searchParams.get("id");
     const exId = exIdFromParams || exIdFromSearch;
 
-    if (exId && !isStarted && !loading) {
+    if (exId && !isStarted && !loading && processedIdRef.current !== exId) {
       console.log("🔄 Détection ID exercice dans URL:", exId);
       startSpecificExercise(exId);
     }
@@ -156,7 +162,6 @@ export function GrammarCheckContent() {
   const checkCorrection = () => {
     const current = questions[currentIdx];
     if (!current) return;
-    
     const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
 
     if (isCorrect) {
@@ -176,7 +181,6 @@ export function GrammarCheckContent() {
       setFinished(true);
       const finalScore = Math.round((score / questions.length) * 100);
       const exId = searchParams.get("id") || (params?.id as string);
-      
       if (exId) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -225,11 +229,17 @@ export function GrammarCheckContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => {
-              setIsStarted(false);
-              setFinished(false);
-              setQuestions([]);
-            }} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg">RETOURNER AU CATALOGUE</Button>
+            <Button 
+              onClick={() => {
+                setIsStarted(false);
+                setFinished(false);
+                setQuestions([]);
+                processedIdRef.current = null;
+              }} 
+              className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg"
+            >
+              RETOURNER AU CATALOGUE
+            </Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
             )}
@@ -249,6 +259,7 @@ export function GrammarCheckContent() {
             badgeColor="indigo"
             description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
           >
+            {/* Quick Filters + Catalogue (code identique à avant) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
