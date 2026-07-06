@@ -325,7 +325,7 @@ export function GrammarCheckContent() {
                 <Button
                   onClick={() => toggleLesson(current.lesson_id)}
                   variant="outline"
-                  className="h-10 rounded-xl border-2 border-zinc-100 text-zinc-600 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50"
+                  className="h-10 rounded-xl border-2 border-indigo-100 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100"
                 >
                   {loadingLesson ? (
                     <Loader2 size={14} className="mr-2 animate-spin" />
@@ -371,12 +371,12 @@ export function GrammarCheckContent() {
                 className="space-y-12"
               >
                 <div className="bg-white p-10 lg:p-16 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-200 rotate-3 group">
-                      <Target size={32} className="group-hover:scale-110 transition-transform" />
+                   <div className="w-16 h-16 mx-auto bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 rotate-3 group">
+                      <Target size={28} className="group-hover:scale-110 transition-transform" />
                    </div>
 
                    {current?.instructions && (
-                     <div className="inline-block mt-6 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
+                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
                        {current.instructions}
                      </div>
                    )}
@@ -397,9 +397,12 @@ export function GrammarCheckContent() {
                       className="overflow-hidden"
                     >
                       <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white max-h-[50vh] overflow-y-auto">
-                        <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                          <BookOpen size={14} /> {lessonCache[current.lesson_id].title}
+                        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                          <BookOpen size={14} /> Leçon associée
                         </div>
+                        <h4 className="text-xl font-black text-zinc-900 leading-snug mb-4">
+                          {lessonCache[current.lesson_id].title}
+                        </h4>
                         <div className="prose prose-zinc prose-sm max-w-none">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {lessonCache[current.lesson_id].content}
