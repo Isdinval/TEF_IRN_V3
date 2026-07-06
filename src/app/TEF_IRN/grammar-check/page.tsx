@@ -423,7 +423,7 @@ export function GrammarCheckContent() {
                       disabled={status !== "typing"}
                       autoFocus
                       placeholder="Tapez la correction ici..."
-                      className={`w-full h-24 px-10 text-2xl font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
+                      className={`w-full h-16 px-8 text-lg font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
                         status === "typing"
                         ? "border-zinc-100 focus:border-indigo-600 bg-white"
                         : status === "correct"
@@ -444,7 +444,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={!inputValue.trim()}
-                          className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-base shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
