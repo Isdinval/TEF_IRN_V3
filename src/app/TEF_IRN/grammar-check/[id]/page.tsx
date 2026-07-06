@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { ExerciseView } from "../page";
+import { GrammarCheckContent } from "../page";
 
 export default function GrammarCheckByIdPage() {
   return (
@@ -9,7 +9,7 @@ export default function GrammarCheckByIdPage() {
         <Loader2 className="animate-spin text-indigo-600" size={48} />
       </div>
     }>
-      <ExerciseView />
+      <GrammarCheckContent />
     </Suspense>
   );
 }
