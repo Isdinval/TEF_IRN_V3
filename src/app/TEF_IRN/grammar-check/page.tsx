@@ -381,7 +381,7 @@ export function GrammarCheckContent() {
                      </div>
                    )}
 
-                   <h3 className="text-[clamp(1.5rem,3vw+1rem,2.25rem)] font-black text-zinc-900 leading-tight tracking-tight mt-4">
+                   <h3 className="text-xl md:text-2xl font-black text-zinc-900 leading-tight tracking-tight mt-4">
                     {current?.sentence}
                   </h3>
                   <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
