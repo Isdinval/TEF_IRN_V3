@@ -8,8 +8,10 @@ import ExerciseCard from "@/app/TEF_IRN/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, Trophy } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, Trophy, BookOpen, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
@@ -25,6 +27,13 @@ interface GrammarQuestion {
   explanation: string;
   category: string;
   level: string;
+  instructions?: string;
+  lesson_id?: string;
+}
+
+interface LessonSummary {
+  title: string;
+  content: string;
 }
 
 export function GrammarCheckContent() {
@@ -46,6 +55,9 @@ export function GrammarCheckContent() {
   const [score, setScore] = useState(0);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [lessonVisible, setLessonVisible] = useState(false);
+  const [loadingLesson, setLoadingLesson] = useState(false);
+  const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
@@ -119,7 +131,9 @@ export function GrammarCheckContent() {
               explanation: data.content.explanations?.[i] || "",
               category: data.category,
               level: data.level,
-              difficulty: data.difficulty
+              difficulty: data.difficulty,
+              instructions: data.instructions,
+              lesson_id: data.lesson_id
           }));
       } else if (data.content?.sentence) {
           qs = [{
@@ -130,7 +144,9 @@ export function GrammarCheckContent() {
               explanation: data.content.explanation || "",
               category: data.category,
               level: data.level,
-              difficulty: data.difficulty
+              difficulty: data.difficulty,
+              instructions: data.instructions,
+              lesson_id: data.lesson_id
           }];
       }
 
@@ -141,6 +157,7 @@ export function GrammarCheckContent() {
           setScore(0);
           setInputValue("");
           setStatus("typing");
+          setLessonVisible(false);
       } else {
           setMode("selection");
       }
@@ -177,6 +194,7 @@ export function GrammarCheckContent() {
       setCurrentIdx(c => c + 1);
       setInputValue("");
       setStatus("typing");
+      setLessonVisible(false);
     } else {
       setMode("result");
       const finalScore = Math.round((score / questions.length) * 100);
@@ -195,6 +213,33 @@ export function GrammarCheckContent() {
       }
     }
   };
+
+  const toggleLesson = useCallback(async (lessonId?: string) => {
+    if (!lessonId) return;
+    if (lessonVisible) {
+      setLessonVisible(false);
+      return;
+    }
+    if (!lessonCache[lessonId]) {
+      setLoadingLesson(true);
+      try {
+        const { data, error } = await supabase
+          .from("lessons")
+          .select("title, content")
+          .eq("id", lessonId)
+          .single();
+        if (error) throw error;
+        if (data) {
+          setLessonCache(prev => ({ ...prev, [lessonId]: data as LessonSummary }));
+        }
+      } catch (err) {
+        console.error("Error fetching lesson:", err);
+      } finally {
+        setLoadingLesson(false);
+      }
+    }
+    setLessonVisible(true);
+  }, [lessonVisible, lessonCache, supabase]);
 
   const handleBack = () => {
     if (mode === "selection") {
@@ -276,6 +321,22 @@ export function GrammarCheckContent() {
           onBack={handleBack}
           rightElement={
             <div className="hidden md:flex items-center gap-6">
+              {current?.lesson_id && (
+                <Button
+                  onClick={() => toggleLesson(current.lesson_id)}
+                  variant="outline"
+                  className="h-10 rounded-xl border-2 border-indigo-100 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100"
+                >
+                  {loadingLesson ? (
+                    <Loader2 size={14} className="mr-2 animate-spin" />
+                  ) : lessonVisible ? (
+                    <ChevronUp size={14} className="mr-2" />
+                  ) : (
+                    <BookOpen size={14} className="mr-2" />
+                  )}
+                  {lessonVisible ? "Masquer la leçon" : "Voir la leçon"}
+                </Button>
+              )}
               <div className="text-right">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
                 <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
@@ -309,17 +370,48 @@ export function GrammarCheckContent() {
                 exit={{ opacity: 0, y: -30 }}
                 className="space-y-12"
               >
-                <div className="bg-white p-16 lg:p-24 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-200 rotate-3 group">
-                      <Target size={32} className="group-hover:scale-110 transition-transform" />
+                <div className="bg-white p-10 lg:p-16 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                   <div className="w-16 h-16 mx-auto bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 rotate-3 group">
+                      <Target size={28} className="group-hover:scale-110 transition-transform" />
                    </div>
 
-                   <h3 className="text-[clamp(1.5rem,3vw+1rem,2.25rem)] font-black text-zinc-900 leading-tight tracking-tight mt-6">
+                   {current?.instructions && (
+                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
+                       {current.instructions}
+                     </div>
+                   )}
+
+                   <h3 className="text-xl md:text-2xl font-black text-zinc-900 leading-tight tracking-tight mt-4">
                     {current?.sentence}
                   </h3>
                   <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
                 </div>
+
+                <AnimatePresence>
+                  {lessonVisible && current?.lesson_id && lessonCache[current.lesson_id] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white max-h-[50vh] overflow-y-auto">
+                        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                          <BookOpen size={14} /> Leçon associée
+                        </div>
+                        <h4 className="text-xl font-black text-zinc-900 leading-snug mb-4">
+                          {lessonCache[current.lesson_id].title}
+                        </h4>
+                        <div className="prose prose-zinc prose-sm max-w-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {lessonCache[current.lesson_id].content}
+                          </ReactMarkdown>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="space-y-8">
                   <div className="relative">
@@ -331,7 +423,7 @@ export function GrammarCheckContent() {
                       disabled={status !== "typing"}
                       autoFocus
                       placeholder="Tapez la correction ici..."
-                      className={`w-full h-24 px-10 text-2xl font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
+                      className={`w-full h-16 px-8 text-lg font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
                         status === "typing"
                         ? "border-zinc-100 focus:border-indigo-600 bg-white"
                         : status === "correct"
@@ -352,7 +444,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={!inputValue.trim()}
-                          className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-base shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
