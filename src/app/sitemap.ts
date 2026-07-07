@@ -6,10 +6,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
   const rootPath = `${siteUrl}/TEF_IRN`;
 
-  // === LESSONS (pas de colonne is_published) ===
+  // === LESSONS ===
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
-    .select('slug, created_at, updated_at');
+    .select('slug, created_at');
 
   if (lessonsError) {
     console.error('Erreur sitemap lessons:', lessonsError);
@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const lessonUrls: MetadataRoute.Sitemap = (lessons || []).map((lesson: any) => ({
     url: `${rootPath}/lessons/${lesson.slug}`,
-    lastModified: new Date(lesson.updated_at || lesson.created_at || new Date()),
+    lastModified: new Date(lesson.created_at || new Date()),
     changeFrequency: 'weekly' as const,
     priority: 0.85,
   }));
