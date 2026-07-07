@@ -4,9 +4,16 @@ import { siteUrl } from '@/lib/site';
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
+      // Règle générale pour tous les bots
       {
         userAgent: '*',
-        allow: ['/TEF_IRN/lessons', '/TEF_IRN/guides', '/TEF_IRN/parcours'],
+        allow: [
+          '/TEF_IRN/lessons',
+          '/TEF_IRN/guides',
+          '/TEF_IRN/parcours',
+          '/TEF_IRN/lessons/*',
+          '/TEF_IRN/guides/*',
+        ],
         disallow: [
           '/TEF_IRN/dashboard',
           '/TEF_IRN/practice',
@@ -25,15 +32,71 @@ export default function robots(): MetadataRoute.Robots {
           '/TEF_IRN/lessons/*/complete',
         ],
       },
+
+      // === Bots IA "Mauvais" (entraînement / scraping agressif) ===
       {
-        userAgent: ['GPTBot', 'ClaudeBot', 'Google-Extended', 'CCBot', 'Bytespider'],
+        userAgent: [
+          'GPTBot',
+          'ClaudeBot',
+          'Google-Extended',
+          'CCBot',
+          'Bytespider',
+          'anthropic-ai',
+          'cohere-training',
+          'meta-llama',
+          'LLaMA',
+          'weborama',
+          'diffbot',
+        ],
         disallow: '/',
       },
+
+      // === Bots IA "Bons" (recherche avec citation de sources) ===
       {
-        userAgent: ['OAI-SearchBot', 'ChatGPT-User', 'PerplexityBot', 'Claude-SearchBot', 'Claude-User'],
+        userAgent: [
+          // OpenAI
+          'OAI-SearchBot',
+          'ChatGPT-User',
+          'ChatGPT',
+          
+          // Anthropic
+          'Claude-SearchBot',
+          'Claude-User',
+          'ClaudeBot-Search',
+          
+          // xAI
+          'GrokBot',
+          'Grok',
+          'xAI',
+          
+          // Perplexity
+          'PerplexityBot',
+          'Perplexity-User',
+          'PerplexityAI',
+          
+          // DeepSeek
+          'DeepSeekBot',
+          'DeepSeek',
+          
+          // Autres bons bots IA / Recherche
+          'YouBot',
+          'You.com',
+          'MetaBot',
+          'Meta-AI',
+          'MistralBot',
+          'Mistral',
+          'PiBot',           // Inflection Pi
+          'PhindBot',
+          'Phind',
+          'HuggingFaceBot',
+          'HuggingFace',
+          'CohereBot',
+          'Cohere',
+        ],
         allow: '/',
       },
     ],
+
     sitemap: `${siteUrl}/sitemap.xml`,
   };
 }
