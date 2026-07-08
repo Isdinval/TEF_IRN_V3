@@ -15,10 +15,10 @@ Idéal pour atteindre les niveaux requis (A2 carte de séjour, B1 carte résiden
 
 ## Accès au Contenu Public
 
-- **[Accueil & Offres](https://llamakusi.com/TEF_IRN)** : Fonctionnalités, témoignages et tarifs
-- **[Leçons Interactives](https://llamakusi.com/TEF_IRN/lessons)** : Thématiques officielles TEF IRN
-- **[Guides par Compétence](https://llamakusi.com/TEF_IRN/guides)** : Méthodologie EE, EO, grilles d'évaluation
-- **[Parcours Structurés](https://llamakusi.com/TEF_IRN/parcours)** : A2, B1, B2 adaptés aux profils salariés
+- **[Accueil & Offres](https://llamakusi.com/tef-irn)** : Fonctionnalités, témoignages et tarifs
+- **[Leçons Interactives](https://llamakusi.com/tef-irn/lessons)** : Thématiques officielles TEF IRN
+- **[Guides par Compétence](https://llamakusi.com/tef-irn/guides)** : Méthodologie EE, EO, grilles d'évaluation
+- **[Parcours Structurés](https://llamakusi.com/tef-irn/parcours)** : A2, B1, B2 adaptés aux profils salariés
 
 ## Référentiel Officiel
 

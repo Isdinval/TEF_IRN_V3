@@ -71,7 +71,7 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide }) => {
           <Clock size={14} className="mr-1" />
           {guide.reading_time} min
         </div>
-        <Link href={`/TEF_IRN/guides/${guide.slug}`} passHref>
+        <Link href={`/tef-irn/guides/${guide.slug}`} passHref>
           <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 group/btn font-bold">
             Lire le guide <ArrowRight size={16} className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
           </Button>

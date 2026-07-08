@@ -4,7 +4,7 @@ import { siteUrl } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
-  const rootPath = `${siteUrl}/TEF_IRN`;
+  const rootPath = `${siteUrl}/tef-irn`;
 
   // === LESSONS ===
   const { data: lessons, error: lessonsError } = await supabase

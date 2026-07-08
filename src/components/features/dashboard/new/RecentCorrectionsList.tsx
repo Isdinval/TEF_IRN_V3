@@ -45,7 +45,7 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             className="group cursor-pointer"
-            onClick={() => router.push(`/TEF_IRN/correction?id=${item.id}`)}
+            onClick={() => router.push(`/tef-irn/correction?id=${item.id}`)}
           >
             <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30 transition-all flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
@@ -75,7 +75,7 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
                       className="text-[8px] uppercase tracking-tighter border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/TEF_IRN/practice?topic=${encodeURIComponent(notion)}`);
+                        router.push(`/tef-irn/practice?topic=${encodeURIComponent(notion)}`);
                       }}
                     >
                       {notion}

@@ -16,10 +16,10 @@ export function RecommendationCard({ type, reason, referenceId, slug }: Recommen
 
   const getTargetUrl = () => {
     switch (type) {
-      case 'lesson': return `/TEF_IRN/lessons/${slug || referenceId}`;
-      case 'exercise': return '/TEF_IRN/practice';
-      case 'review': return '/TEF_IRN/practice';
-      default: return '/TEF_IRN/practice';
+      case 'lesson': return `/tef-irn/lessons/${slug || referenceId}`;
+      case 'exercise': return '/tef-irn/practice';
+      case 'review': return '/tef-irn/practice';
+      default: return '/tef-irn/practice';
     }
   };
 

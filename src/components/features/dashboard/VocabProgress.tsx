@@ -15,7 +15,7 @@ export function VocabProgress({ stats }: { stats: any }) {
           <BookMarked size={14} className="text-indigo-500" /> Maîtrise Vocabulaire
         </h3>
         <div
-          onClick={() => router.push('/TEF_IRN/vocab')}
+          onClick={() => router.push('/tef-irn/vocab')}
           className="flex items-center gap-1 text-[10px] font-black text-indigo-600 cursor-pointer hover:underline"
         >
           Apprendre <ChevronRight size={10} />

@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Logo() {
   return (
-    <Link href="/TEF_IRN" className="flex items-center gap-2">
+    <Link href="/tef-irn" className="flex items-center gap-2">
       <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-lg">
         <Image
           src="/logo.png"

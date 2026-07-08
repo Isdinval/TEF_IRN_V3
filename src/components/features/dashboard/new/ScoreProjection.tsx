@@ -60,7 +60,7 @@ export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: Sco
           </div>
 
           <button
-            onClick={() => router.push('/TEF_IRN/exam')}
+            onClick={() => router.push('/tef-irn/exam')}
             className="flex w-full items-center justify-between rounded-2xl bg-white/10 p-4 transition-all hover:bg-white/20 group"
           >
              <div className="flex items-center gap-3">

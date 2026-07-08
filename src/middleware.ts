@@ -5,8 +5,8 @@ export async function middleware(request: NextRequest) {
   let pathname = request.nextUrl.pathname
 
   // === NORMALISATION DE CASSE (sécurisée contre les boucles) ===
-  if (/^\/tef_irn/i.test(pathname) && !pathname.startsWith('/TEF_IRN')) {
-    const normalizedPath = pathname.replace(/^\/tef_irn/i, '/TEF_IRN')
+  if (/^\/tef_irn/i.test(pathname) && !pathname.startsWith('/tef-irn')) {
+    const normalizedPath = pathname.replace(/^\/tef_irn/i, '/tef-irn')
     const url = request.nextUrl.clone()
     url.pathname = normalizedPath
     return NextResponse.redirect(url, { status: 301 })
@@ -51,16 +51,16 @@ export async function middleware(request: NextRequest) {
 
   // Routes protégées
   const protectedRoutes = [
-    '/TEF_IRN/dashboard',
-    '/TEF_IRN/practice',
-    '/TEF_IRN/writing',
-    '/TEF_IRN/grammar-check',
-    '/TEF_IRN/vocab',
-    '/TEF_IRN/oral',
-    '/TEF_IRN/coach',
-    '/TEF_IRN/correction',
-    '/TEF_IRN/settings',
-    '/TEF_IRN/profile'
+    '/tef-irn/dashboard',
+    '/tef-irn/practice',
+    '/tef-irn/writing',
+    '/tef-irn/grammar-check',
+    '/tef-irn/vocab',
+    '/tef-irn/oral',
+    '/tef-irn/coach',
+    '/tef-irn/correction',
+    '/tef-irn/settings',
+    '/tef-irn/profile'
   ]
 
   const isProtectedRoute = protectedRoutes.some(route => 
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
   )
 
   if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/TEF_IRN/login', request.url))
+    return NextResponse.redirect(new URL('/tef-irn/login', request.url))
   }
 
   return response
