@@ -38,7 +38,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: [
           'GPTBot',
           'ClaudeBot',
-          'Google-Extended',
           'CCBot',
           'Bytespider',
           'anthropic-ai',
@@ -73,6 +72,10 @@ export default function robots(): MetadataRoute.Robots {
           'PerplexityBot',
           'Perplexity-User',
           'PerplexityAI',
+
+          // Google (très important)
+          'Google-Extended',
+          'Googlebot',
           
           // DeepSeek
           'DeepSeekBot',
