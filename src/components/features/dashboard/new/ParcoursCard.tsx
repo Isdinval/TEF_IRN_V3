@@ -47,7 +47,7 @@ export function ParcoursCard({ id, slug, level, category, progress }: ParcoursCa
         </div>
 
         <Button
-          onClick={() => router.push(`/TEF_IRN/parcours/${slug}`)}
+          onClick={() => router.push(`/tef-irn/parcours/${slug}`)}
           className="mt-8 h-14 w-full rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center justify-center gap-2"
         >
           {progress.percent > 0 ? "Continuer" : "Commencer"} <ArrowRight size={18} />

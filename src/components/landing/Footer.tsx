@@ -13,16 +13,16 @@ export function Footer() {
         { name: "Fonctionnalités", href: "#features" },
         { name: "Vocabulaire", href: "#vocab" },
         { name: "Tarifs", href: "#pricing" },
-        { name: "Simulateur TEF", href: "/TEF_IRN/exam" },
+        { name: "Simulateur TEF", href: "/tef-irn/exam" },
       ]
     },
     {
       title: "Ressources",
       links: [
-        { name: "Guides TEF IRN", href: "/TEF_IRN/guides" },
+        { name: "Guides TEF IRN", href: "/tef-irn/guides" },
         { name: "Blog FLE", href: "#" },
         { name: "Centre d'aide", href: "#" },
-        { name: "Test gratuit", href: "/TEF_IRN/exercice-gratuit" },
+        { name: "Test gratuit", href: "/tef-irn/exercice-gratuit" },
       ]
     },
     {

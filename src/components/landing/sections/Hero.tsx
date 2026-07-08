@@ -83,7 +83,7 @@ export function Hero() {
             transition={{ delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center gap-6"
           >
-            <Link href="/TEF_IRN/login?mode=signup">
+            <Link href="/tef-irn/login?mode=signup">
               <Button className="h-16 px-10 text-xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl shadow-2xl shadow-brand-blue/30 group">
                 Commencer gratuitement
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />

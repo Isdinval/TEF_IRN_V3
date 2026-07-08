@@ -48,7 +48,7 @@ export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title,
             remarkPlugins={[remarkGfm]}
             components={{
               a: ({ href, children }) => {
-                const isInternal = href?.startsWith('/') || href?.startsWith('https://llamakusi.com') || href?.startsWith('/TEF_IRN');
+                const isInternal = href?.startsWith('/') || href?.startsWith('https://llamakusi.com') || href?.startsWith('/tef-irn');
                 const Component = isInternal ? Link : 'a';
                 return (
                   <Component

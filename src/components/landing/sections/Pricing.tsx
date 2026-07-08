@@ -135,7 +135,7 @@ export function Pricing() {
                      ))}
                   </ul>
 
-                  <Link href="/TEF_IRN/login?mode=signup">
+                  <Link href="/tef-irn/login?mode=signup">
                      <Button
                        className={`w-full h-14 rounded-2xl font-black text-lg transition-all ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100' : 'bg-brand-blue text-white hover:bg-brand-blue/90'}`}
                      >
@@ -162,7 +162,7 @@ export function Pricing() {
         >
            <p className="flex items-center justify-center gap-2 text-slate-400 font-bold">
              <Sparkles size={16} className="text-brand-gold" />
-             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/TEF_IRN/login" className="text-brand-gold underline">Connectez-vous ici</Link>.
+             Prix transparents, aucune charge cachée. Déjà client ? <Link href="/tef-irn/login" className="text-brand-gold underline">Connectez-vous ici</Link>.
            </p>
            <p className="flex items-center justify-center gap-2 text-sm font-black text-brand-gold">
              <Flame size={14} />

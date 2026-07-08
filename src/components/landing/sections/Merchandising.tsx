@@ -114,7 +114,7 @@ export function Merchandising() {
                 La peluche LlamaKuzi offerte pour les 50 premiers abonnés Premium ou Super Premium.
               </p>
            </div>
-           <Link href="/TEF_IRN/login?mode=signup" className="shrink-0">
+           <Link href="/tef-irn/login?mode=signup" className="shrink-0">
               <Button className="h-14 px-8 bg-white text-brand-blue hover:bg-slate-100 font-black rounded-2xl whitespace-nowrap">
                  J&apos;en profite
               </Button>

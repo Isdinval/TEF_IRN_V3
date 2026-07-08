@@ -26,13 +26,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Public routes check
-  const publicRoutes = [ "/TEF_IRN/login", "/TEF_IRN/guides", "/TEF_IRN/pricing", "/TEF_IRN/exercice-gratuit", "/TEF_IRN/placement-test", "/TEF_IRN/onboarding"];
-  const isLandingPage = pathname === "/TEF_IRN" || pathname === "/TEF_IRN/";
+  const publicRoutes = [ "/tef-irn/login", "/tef-irn/guides", "/tef-irn/pricing", "/tef-irn/exercice-gratuit", "/tef-irn/placement-test", "/tef-irn/onboarding"];
+  const isLandingPage = pathname === "/tef-irn" || pathname === "/tef-irn/";
   const isPublic = pathname ? (isLandingPage || publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) : true;
-  const isExam = pathname === "/TEF_IRN/exam";
+  const isExam = pathname === "/tef-irn/exam";
 
   // Public content (Lessons & Parcours hub)
-  const isPublicContent = pathname?.startsWith('/TEF_IRN/lessons') || pathname?.startsWith('/TEF_IRN/parcours');
+  const isPublicContent = pathname?.startsWith('/tef-irn/lessons') || pathname?.startsWith('/tef-irn/parcours');
 
   // Case 1: Pure public landing/auth routes or Exam
   if (isPublic || isExam) {
@@ -46,10 +46,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
           <Logo />
           <div className="flex items-center gap-4">
-            <Link href="/TEF_IRN/login">
+            <Link href="/tef-irn/login">
               <Button variant="ghost" className="font-bold">Connexion</Button>
             </Link>
-            <Link href="/TEF_IRN/login?mode=signup">
+            <Link href="/tef-irn/login?mode=signup">
               <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
                 Essai Gratuit
               </Button>
@@ -73,7 +73,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         {/* Only mount Coach on client side, if not on /coach page AND if user is logged in */}
-        {mounted && user && pathname !== "/TEF_IRN/coach" && (
+        {mounted && user && pathname !== "/tef-irn/coach" && (
            <div className="hidden md:block">
              <Suspense fallback={null}>
                <ChatCoach mode="popup" />

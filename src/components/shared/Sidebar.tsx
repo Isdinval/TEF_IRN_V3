@@ -52,7 +52,7 @@ function SidebarContent() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      router.refresh(); router.push("/TEF_IRN/login");
+      router.refresh(); router.push("/tef-irn/login");
     } catch (e) { console.error(e); }
   };
 
@@ -62,15 +62,15 @@ function SidebarContent() {
   };
 
   const menuItems = [
-    { label: "Tableau de bord", icon: LayoutDashboard, href: "/TEF_IRN/dashboard" },
-    { label: "Leçons", icon: BookOpen, href: "/TEF_IRN/lessons" },
-    { label: "Mes Parcours", icon: Flag, href: "/TEF_IRN/parcours" },
-    { label: "Chasse aux erreurs", icon: Zap, href: "/TEF_IRN/grammar-check" },
-    { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/TEF_IRN/vocab" },
-    { label: "Entraînement QCM", icon: Target, href: "/TEF_IRN/practice" },
-    { label: "Rédaction", icon: PenTool, href: "/TEF_IRN/writing" },
-    { label: "Expression Orale", icon: Mic, href: "/TEF_IRN/oral" },
-    { label: "Corrections", icon: History, href: "/TEF_IRN/correction" },
+    { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
+    { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
+    { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
+    { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
+    { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab" },
+    { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice" },
+    { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
+    { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
+    { label: "Corrections", icon: History, href: "/tef-irn/correction" },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -78,7 +78,7 @@ function SidebarContent() {
   return (
     <div className="w-64 border-r border-zinc-100 bg-white h-screen sticky top-0 flex flex-col selection:bg-indigo-100 shrink-0">
       <div className="p-8">
-        <Link href={getHrefWithContext("/TEF_IRN/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
+        <Link href={getHrefWithContext("/tef-irn/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
           <div className="relative w-9 h-9 overflow-hidden rounded-xl shadow-xl">
             <Image
               src="/logo.png"
@@ -108,7 +108,7 @@ function SidebarContent() {
           <div className="flex items-center gap-2 text-indigo-600 uppercase text-[10px] font-black tracking-widest"><Shield size={14} /> {profile?.subscription_tier === 'premium' ? 'Pro' : 'Free'}</div>
         </div>
         <div className="flex flex-col gap-1">
-          <Link href={getHrefWithContext("/TEF_IRN/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/TEF_IRN/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
+          <Link href={getHrefWithContext("/tef-irn/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/tef-irn/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
           <button onClick={handleSignOut} className="flex items-center gap-3 w-full px-4 py-2 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-all"><LogOut size={16} />Déconnexion</button>
         </div>
       </div>

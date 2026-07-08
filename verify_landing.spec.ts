@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('landing page visual verification', async ({ page }) => {
-  await page.goto('http://localhost:3000/TEF_IRN');
+  await page.goto('http://localhost:3000/tef-irn');
 
   // Wait for content to load
   await page.waitForSelector('h1');
