@@ -31,7 +31,7 @@ const team = [
   {
     name: "Olivier",
     role: "Fondateur Technique · 33 ans · Français",
-    bio: "Data Scientist & AI Engineer. Il conçoit l'architecture globale et l'intelligence artificielle au cœur de la plateforme — du coach d'expression écrite au coach oral temps réel.",
+    bio: "Data Scientist & AI Engineer freelance, 4 ans d'expérience en Machine Learning et NLP, formé chez OpenClassrooms. Il conçoit toute l'intelligence de LlamaKusi : le coach d'expression écrite, le coach oral en temps réel, et l'algorithme de progression.",
     flag: "🇫🇷",
     photoUrl: OLIVIER_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/olivier-raymond/",
@@ -39,7 +39,7 @@ const team = [
   {
     name: "Grecia",
     role: "Cofondatrice & Experte Utilisateur · 29 ans · Péruvienne",
-    bio: "Ingénieure civile. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité, pour que la plateforme reste simple, humaine et efficace.",
+    bio: "Ingénieure civile péruvienne, diplômée avec mention en atténuation des risques après une licence obtenue avec excellence à Lima. Elle a travaillé en géotechnique, enseigné la gestion des risques de catastrophes dans le cadre d'un programme universitaire international, et exerce aujourd'hui comme ingénieure conseil en France. Un métier qui consiste à anticiper les points de rupture avant qu'ils n'arrivent — elle applique la même rigueur à l'expérience utilisateur de LlamaKusi.",
     flag: "🇵🇪",
     photoUrl: GRECIA_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
@@ -73,7 +73,7 @@ export default function NotreHistoirePage() {
     "name": "Olivier",
     "jobTitle": "Fondateur Technique",
     "description":
-      "Data Scientist & AI Engineer, cofondateur de LlamaKusi. Il conçoit l'architecture globale et l'intelligence artificielle de la plateforme.",
+      "Data Scientist & AI Engineer freelance, cofondateur de LlamaKusi, 4 ans d'expérience en Machine Learning et NLP. Il conçoit l'architecture globale et l'intelligence artificielle de la plateforme.",
     "image": OLIVIER_PHOTO_URL,
     "nationality": "Française",
     "sameAs": ["https://www.linkedin.com/in/olivier-raymond/"],
@@ -90,7 +90,7 @@ export default function NotreHistoirePage() {
     "name": "Grecia",
     "jobTitle": "Cofondatrice & Experte Utilisateur",
     "description":
-      "Ingénieure civile, cofondatrice de LlamaKusi. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité de la plateforme.",
+      "Ingénieure civile péruvienne spécialisée en atténuation des risques, cofondatrice et experte utilisateur de LlamaKusi. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité de la plateforme.",
     "image": GRECIA_PHOTO_URL,
     "nationality": "Péruvienne",
     "sameAs": ["https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/"],
@@ -195,21 +195,25 @@ export default function NotreHistoirePage() {
             <p>
               Nous nous sommes rencontrés au Pérou, pendant un voyage de trois mois qu'Olivier
               y a fait. De cette rencontre est née une vie commune en France — et avec elle,
-              une étape que nous n'avions pas anticipée : le parcours de naturalisation de Grecia,
-              et l'examen qui en conditionne chaque dossier, le TEF IRN.
+              dès fin 2022, une étape que nous n'avions pas anticipée : le parcours de
+              naturalisation de Grecia, et l'examen qui en conditionne chaque dossier, le TEF IRN.
             </p>
             <p>
-              Nous en avons été les témoins directs : le stress, les formations hors de prix
-              ou rigides, le manque d'outils vraiment adaptés à ce que cet examen demande.
-              Pendant ce temps, partageant un amour profond pour la France, nous avons parcouru
-              le pays ensemble — en vivant successivement à{" "}
-              {cities.slice(0, 4).join(", ")}, et en explorant d'autres villes qui nous sont
-              chères, {cities.slice(4).join(", ")}.
+              Nous en avons été les témoins directs : des formations entre 300 et 800 € pour
+              une préparation complète, un examen à repasser à 180–205 € la session en cas
+              d'échec, et surtout aucun outil pour vraiment s'entraîner — aucune plateforme ne
+              proposait de correction instantanée de l'expression écrite, ni de simulation
+              orale interactive. Le stress, lui, était partout. Et en déménageant au fil des
+              opportunités d'Olivier — {cities.slice(0, 4).join(", ")}, puis{" "}
+              {cities.slice(4).join(", ")} — nous avons vu combien les démarches administratives
+              et les ressources disponibles varient d'une région à l'autre, sans jamais devenir
+              plus simples.
             </p>
             <p>
-              C'est ce vécu — administratif et humain à la fois — que nous avons injecté
-              dans LlamaKusi : une solution pensée pour transformer une contrainte en une
-              étape de réussite sereine, pour ceux qui vivent aujourd'hui ce que Grecia a vécu.
+              C'est ce vécu — administratif et humain à la fois — que nous avons injecté dans
+              LlamaKusi : un coach IA qui corrige l'expression écrite en quelques secondes et
+              entraîne à l'oral 24/7, pensé pour transformer une contrainte en une étape de
+              réussite sereine — pour ceux qui vivent aujourd'hui ce que Grecia a vécu.
             </p>
           </div>
         </section>
@@ -259,7 +263,9 @@ export default function NotreHistoirePage() {
                 Dossier en cours
               </div>
               <p className="text-slate-500 dark:text-slate-400">
-                La demande de naturalisation de Grecia est aujourd'hui en cours de constitution.
+                La demande de naturalisation de Grecia est aujourd'hui en cours de constitution —
+                nous vivons encore, avec vous, la suite du parcours. C'est aussi pour ça que
+                LlamaKusi continue d'évoluer.
               </p>
             </Card>
           </div>
@@ -324,9 +330,10 @@ export default function NotreHistoirePage() {
               Ce n'est pas qu'une image de marque
             </h2>
             <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 leading-relaxed">
-              C'est notre manière de vous dire que nous connaissons ce chemin, que nous
-              l'avons parcouru, et que nous sommes à vos côtés pour le réussir — avec un
-              coach IA disponible 24/7, conçu spécifiquement pour le TEF IRN.
+              C'est notre manière de vous dire que nous ne vendons pas juste une plateforme —
+              nous avons vécu la question avant de coder la réponse. Notre engagement : que
+              chaque candidat qui utilise LlamaKusi arrive à son examen mieux préparé que
+              nous ne l'étions.
             </p>
 
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-3">
