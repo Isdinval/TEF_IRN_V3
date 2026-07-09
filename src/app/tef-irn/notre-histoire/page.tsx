@@ -24,7 +24,7 @@ const GRECIA_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/ob
 const BANNER_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/BANNER_IMAGE.webp";
 
 const cities = [
-  "Niort", "Lille", "Clermont-Ferrand", "Marseille", "Queyras", "Nice", "Strasbourg",
+  "Niort", "Lille", "Clermont-Ferrand", "Marseille",
 ];
 
 const team = [
