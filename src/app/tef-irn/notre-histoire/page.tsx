@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck } from "lucide-react";
+import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin } from "lucide-react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { Card } from "@/components/ui/card";
+import JsonLd from "@/components/shared/JsonLd";
+import { siteUrl } from "@/lib/site";
 
 // TODO(Olivier): remplacer par l'URL Supabase/CDN de l'illustration Monet
 // (Vieux-Port de La Rochelle, style aquarelle impressionniste)
@@ -32,6 +34,7 @@ const team = [
     bio: "Data Scientist & AI Engineer. Il conçoit l'architecture globale et l'intelligence artificielle au cœur de la plateforme — du coach d'expression écrite au coach oral temps réel.",
     flag: "🇫🇷",
     photoUrl: OLIVIER_PHOTO_URL,
+    linkedinUrl: "https://www.linkedin.com/in/olivier-raymond/",
   },
   {
     name: "Grecia",
@@ -39,12 +42,103 @@ const team = [
     bio: "Ingénieure civile. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité, pour que la plateforme reste simple, humaine et efficace.",
     flag: "🇵🇪",
     photoUrl: GRECIA_PHOTO_URL,
+    linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
+  },
+];
+
+const timeline = [
+  {
+    year: "2018",
+    title: "La rencontre",
+    description: "Olivier et Grecia se rencontrent au Pérou, pendant un voyage de trois mois.",
+  },
+  {
+    year: "2022",
+    title: "Le mariage",
+    description: "Olivier et Grecia se marient et s'installent ensemble en France.",
+  },
+  {
+    year: "2026",
+    title: "TEF IRN & lancement de LlamaKusi",
+    description: "Grecia obtient son TEF IRN B2, et cette expérience donne naissance à LlamaKusi.",
   },
 ];
 
 export default function NotreHistoirePage() {
+  const pageUrl = `${siteUrl}/tef-irn/notre-histoire`;
+
+  const olivierSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Olivier",
+    "jobTitle": "Fondateur Technique",
+    "description":
+      "Data Scientist & AI Engineer, cofondateur de LlamaKusi. Il conçoit l'architecture globale et l'intelligence artificielle de la plateforme.",
+    "image": OLIVIER_PHOTO_URL,
+    "nationality": "Française",
+    "sameAs": ["https://www.linkedin.com/in/olivier-raymond/"],
+    "worksFor": {
+      "@type": "Organization",
+      "name": "LlamaKusi",
+      "url": siteUrl,
+    },
+  };
+
+  const greciaSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Grecia",
+    "jobTitle": "Cofondatrice & Experte Utilisateur",
+    "description":
+      "Ingénieure civile, cofondatrice de LlamaKusi. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité de la plateforme.",
+    "image": GRECIA_PHOTO_URL,
+    "nationality": "Péruvienne",
+    "sameAs": ["https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/"],
+    "worksFor": {
+      "@type": "Organization",
+      "name": "LlamaKusi",
+      "url": siteUrl,
+    },
+  };
+
+  const aboutPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "Notre histoire - LlamaKusi",
+    "description":
+      "L'histoire d'Olivier et Grecia, fondateurs de LlamaKusi : pourquoi un ingénieur IA et une ingénieure civile ont créé le coach IA du TEF IRN à partir de leur propre parcours de naturalisation.",
+    "url": pageUrl,
+    "mainEntity": [
+      { "@type": "Person", "name": "Olivier" },
+      { "@type": "Person", "name": "Grecia" },
+    ],
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Notre histoire",
+        "item": pageUrl,
+      },
+    ],
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-brand-dark">
+      <JsonLd data={aboutPageSchema} id="notre-histoire-aboutpage-schema" />
+      <JsonLd data={breadcrumbSchema} id="notre-histoire-breadcrumb-schema" />
+      <JsonLd data={olivierSchema} id="notre-histoire-olivier-schema" />
+      <JsonLd data={greciaSchema} id="notre-histoire-grecia-schema" />
       <Header />
 
       <main className="flex-1 pt-20">
@@ -120,6 +214,32 @@ export default function NotreHistoirePage() {
           </div>
         </section>
 
+        {/* Timeline */}
+        <section className="pb-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative border-l-2 border-brand-blue/20 dark:border-white/10 pl-8 space-y-10">
+              {timeline.map((item) => (
+                <motion.div
+                  key={item.year}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="relative"
+                >
+                  <span className="absolute -left-[2.55rem] top-1 flex h-4 w-4 rounded-full bg-brand-blue dark:bg-brand-gold ring-4 ring-white dark:ring-brand-dark" />
+                  <div className="text-sm font-bold uppercase tracking-widest text-brand-blue dark:text-brand-gold mb-1">
+                    {item.year}
+                  </div>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mb-1">
+                    {item.title}
+                  </div>
+                  <p className="text-slate-500 dark:text-slate-400">{item.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Milestone */}
         <section className="pb-20 px-6">
           <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -176,9 +296,18 @@ export default function NotreHistoirePage() {
                     <p className="text-sm font-bold uppercase tracking-wide text-brand-blue dark:text-brand-gold mb-4">
                       {member.role}
                     </p>
-                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
                       {member.bio}
                     </p>
+                    <a
+                      href={member.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-brand-blue dark:text-brand-gold hover:opacity-80 transition-opacity"
+                    >
+                      <Linkedin size={16} />
+                      Voir le profil LinkedIn
+                    </a>
                     </div>
                   </Card>
                 </motion.div>
