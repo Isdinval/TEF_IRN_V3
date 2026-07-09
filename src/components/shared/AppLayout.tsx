@@ -26,7 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Public routes check
-  const publicRoutes = [ "/tef-irn/login", "/tef-irn/guides", "/tef-irn/pricing", "/tef-irn/exercice-gratuit", "/tef-irn/placement-test", "/tef-irn/onboarding"];
+  const publicRoutes = [ "/tef-irn/login", "/tef-irn/guides", "/tef-irn/pricing", "/tef-irn/exercice-gratuit", "/tef-irn/placement-test", "/tef-irn/onboarding", "/tef-irn/notre-histoire"];
   const isLandingPage = pathname === "/tef-irn" || pathname === "/tef-irn/";
   const isPublic = pathname ? (isLandingPage || publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) : true;
   const isExam = pathname === "/tef-irn/exam";
