@@ -109,7 +109,7 @@ export default function NotreHistoirePage() {
               ou rigides, le manque d'outils vraiment adaptés à ce que cet examen demande.
               Pendant ce temps, partageant un amour profond pour la France, nous avons parcouru
               le pays ensemble — en vivant successivement à{" "}
-              {cities.slice(0, 4).join(", ")}, et en explorant des régions qui nous sont
+              {cities.slice(0, 4).join(", ")}, et en explorant d'autres villes qui nous sont
               chères, {cities.slice(4).join(", ")}.
             </p>
             <p>
@@ -159,13 +159,14 @@ export default function NotreHistoirePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="p-8 h-full">
+                  <Card className="h-full overflow-hidden p-0">
                     <img
                       src={member.photoUrl}
                       alt={`Photo de ${member.name}, ${member.role}`}
-                      className="w-20 h-20 rounded-full object-cover ring-2 ring-brand-blue/20 dark:ring-brand-gold/30 mb-4"
+                      className="w-full h-auto object-contain bg-slate-100 dark:bg-slate-800"
                       loading="lazy"
                     />
+                    <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">{member.flag}</span>
                       <span className="text-xl font-black text-slate-900 dark:text-white">
@@ -178,6 +179,7 @@ export default function NotreHistoirePage() {
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                       {member.bio}
                     </p>
+                    </div>
                   </Card>
                 </motion.div>
               ))}
