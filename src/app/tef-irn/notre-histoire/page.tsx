@@ -10,8 +10,8 @@ import { Card } from "@/components/ui/card";
 import JsonLd from "@/components/shared/JsonLd";
 import { siteUrl } from "@/lib/site";
 
-// TODO(Olivier): remplacer par l'URL Supabase/CDN de l'illustration Monet
-// (Vieux-Port de La Rochelle, style aquarelle impressionniste)
+// TODO(Olivier): remplacer par l'URL Supabase/CDN de l'illustration aquarelle
+// impressionniste (inspirée de Gordes, Provence)
 const HERO_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/NOUS.webp";
 
 // TODO(Olivier): remplacer par l'URL Supabase/CDN réelle (photo/illustration d'Olivier)
@@ -20,11 +20,12 @@ const OLIVIER_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/o
 // TODO(Olivier): remplacer par l'URL Supabase/CDN réelle (photo/illustration de Grecia)
 const GRECIA_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/GRECIA_PHOTO.webp";
 
-// TODO(Olivier): remplacer par l'URL Supabase/CDN de la bannière (même format que HERO_IMAGE_URL)
+// TODO(Olivier): remplacer par l'URL Supabase/CDN de la bannière — même format et
+// même style aquarelle que HERO_IMAGE_URL (inspirée de Gordes, Provence)
 const BANNER_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/BANNER_IMAGE.webp";
 
 const cities = [
-  "Niort", "Lille", "Clermont-Ferrand", "Marseille",
+  "Niort", "Lille", "Marseille",
 ];
 
 const team = [
@@ -39,7 +40,7 @@ const team = [
   {
     name: "Grecia",
     role: "Cofondatrice & Experte Utilisateur · 29 ans · Péruvienne",
-    bio: "Ingénieure civile péruvienne, diplômée avec mention en atténuation des risques après une licence obtenue avec excellence à Lima. Elle a travaillé en géotechnique, enseigné la gestion des risques de catastrophes dans le cadre d'un programme universitaire international, et exerce aujourd'hui comme ingénieure conseil en France. Un métier qui consiste à anticiper les points de rupture avant qu'ils n'arrivent — elle applique la même rigueur à l'expérience utilisateur de LlamaKusi.",
+    bio: "Ingénieure civile péruvienne, diplômée avec mention en atténuation des risques. Elle a travaillé en géotechnique et enseigné la gestion des risques de catastrophes, avant d'exercer aujourd'hui comme ingénieure conseil en France. Anticiper les points de rupture avant qu'ils n'arrivent — elle applique la même rigueur à l'expérience utilisateur de LlamaKusi.",
     flag: "🇵🇪",
     photoUrl: GRECIA_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
@@ -195,8 +196,15 @@ export default function NotreHistoirePage() {
             <p>
               Nous nous sommes rencontrés au Pérou, pendant un voyage de trois mois qu'Olivier
               y a fait. De cette rencontre est née une vie commune en France — et avec elle,
-              dès 2026, une étape que nous n'avions pas anticipée : le parcours de
-              naturalisation de Grecia, et l'examen qui en conditionne chaque dossier, le TEF IRN.
+              dès fin 2022, une étape que nous n'avions pas anticipée : le parcours de
+              naturalisation de Grecia, et l'examen qui en conditionne chaque dossier, le{" "}
+              <Link
+                href="/tef-irn/guides"
+                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+              >
+                TEF IRN
+              </Link>
+              .
             </p>
             <p>
               Nous en avons été les témoins directs : des formations entre 300 et 800 € pour
@@ -204,14 +212,19 @@ export default function NotreHistoirePage() {
               d'échec, et surtout aucun outil pour vraiment s'entraîner — aucune plateforme ne
               proposait de correction instantanée de l'expression écrite, ni de simulation
               orale interactive. Le stress, lui, était partout. Et en déménageant au fil des
-              opportunités d'Olivier — {cities.slice(0, 4).join(", ")}, puis{" "}
-              {cities.slice(4).join(", ")} — nous avons vu combien les démarches administratives
+              opportunités d'Olivier — {cities.slice(0, 4).join(", ")} — nous avons vu combien les démarches administratives
               et les ressources disponibles varient d'une région à l'autre, sans jamais devenir
               plus simples.
             </p>
             <p>
-              C'est ce vécu — administratif et humain à la fois — que nous avons injecté dans
-              LlamaKusi : un coach IA qui corrige l'expression écrite en quelques secondes et
+              C'est ce vécu — administratif et humain à la fois — que nous avons injecté dans{" "}
+              <Link
+                href="/tef-irn/pricing"
+                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+              >
+                LlamaKusi
+              </Link>
+              : un coach IA qui corrige l'expression écrite en quelques secondes et
               entraîne à l'oral 24/7, pensé pour transformer une contrainte en une étape de
               réussite sereine — pour ceux qui vivent aujourd'hui ce que Grecia a vécu.
             </p>
@@ -339,7 +352,7 @@ export default function NotreHistoirePage() {
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-3">
               <img
                 src={BANNER_IMAGE_URL}
-                alt="Olivier et Grecia, fondateurs de LlamaKusi, illustration de leur parcours en France"
+                alt="Olivier et Grecia, fondateurs de LlamaKusi, illustration aquarelle inspirée de Gordes (Provence)"
                 className="w-full h-auto object-cover aspect-[16/9] md:aspect-[2.5/1]"
                 loading="lazy"
               />
