@@ -195,7 +195,7 @@ export default function NotreHistoirePage() {
             <p>
               Nous nous sommes rencontrés au Pérou, pendant un voyage de trois mois qu'Olivier
               y a fait. De cette rencontre est née une vie commune en France — et avec elle,
-              dès fin 2022, une étape que nous n'avions pas anticipée : le parcours de
+              dès 2026, une étape que nous n'avions pas anticipée : le parcours de
               naturalisation de Grecia, et l'examen qui en conditionne chaque dossier, le TEF IRN.
             </p>
             <p>
