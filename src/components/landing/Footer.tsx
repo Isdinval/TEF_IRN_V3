@@ -20,6 +20,7 @@ export function Footer() {
       title: "Ressources",
       links: [
         { name: "Guides TEF IRN", href: "/tef-irn/guides" },
+        { name: "Notre histoire", href: "/tef-irn/notre-histoire" },
         { name: "Blog FLE", href: "#" },
         { name: "Centre d'aide", href: "#" },
         { name: "Test gratuit", href: "/tef-irn/exercice-gratuit" },
