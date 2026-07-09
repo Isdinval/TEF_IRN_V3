@@ -10,7 +10,16 @@ import { Card } from "@/components/ui/card";
 
 // TODO(Olivier): remplacer par l'URL Supabase/CDN de l'illustration Monet
 // (Vieux-Port de La Rochelle, style aquarelle impressionniste)
-const HERO_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/guides-images/codes-culturels-france.webp";
+const HERO_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/NOUS.webp";
+
+// TODO(Olivier): remplacer par l'URL Supabase/CDN réelle (photo/illustration d'Olivier)
+const OLIVIER_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/OLIVIER_PHOTO.webp";
+
+// TODO(Olivier): remplacer par l'URL Supabase/CDN réelle (photo/illustration de Grecia)
+const GRECIA_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/GRECIA_PHOTO.webp";
+
+// TODO(Olivier): remplacer par l'URL Supabase/CDN de la bannière (même format que HERO_IMAGE_URL)
+const BANNER_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/BANNER_IMAGE.webp";
 
 const cities = [
   "Niort", "Lille", "Clermont-Ferrand", "Marseille", "Queyras", "Nice", "Strasbourg",
@@ -22,12 +31,14 @@ const team = [
     role: "Fondateur Technique · 33 ans · Français",
     bio: "Data Scientist & AI Engineer. Il conçoit l'architecture globale et l'intelligence artificielle au cœur de la plateforme — du coach d'expression écrite au coach oral temps réel.",
     flag: "🇫🇷",
+    photoUrl: OLIVIER_PHOTO_URL,
   },
   {
     name: "Grecia",
     role: "Cofondatrice & Experte Utilisateur · 29 ans · Péruvienne",
     bio: "Ingénieure civile. Son expérience personnelle du TEF IRN et de la naturalisation guide chaque fonctionnalité, pour que la plateforme reste simple, humaine et efficace.",
     flag: "🇵🇪",
+    photoUrl: GRECIA_PHOTO_URL,
   },
 ];
 
@@ -82,9 +93,6 @@ export default function NotreHistoirePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           </div>
-          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-3 italic">
-            Illustration réalisée avec l'assistance de l'IA, d'après nos photos et notre histoire personnelle.
-          </p>
         </section>
 
         {/* Story */}
@@ -152,6 +160,12 @@ export default function NotreHistoirePage() {
                   viewport={{ once: true }}
                 >
                   <Card className="p-8 h-full">
+                    <img
+                      src={member.photoUrl}
+                      alt={`Photo de ${member.name}, ${member.role}`}
+                      className="w-20 h-20 rounded-full object-cover ring-2 ring-brand-blue/20 dark:ring-brand-gold/30 mb-4"
+                      loading="lazy"
+                    />
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">{member.flag}</span>
                       <span className="text-xl font-black text-slate-900 dark:text-white">
@@ -183,6 +197,18 @@ export default function NotreHistoirePage() {
               l'avons parcouru, et que nous sommes à vos côtés pour le réussir — avec un
               coach IA disponible 24/7, conçu spécifiquement pour le TEF IRN.
             </p>
+
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-3">
+              <img
+                src={BANNER_IMAGE_URL}
+                alt="Olivier et Grecia, fondateurs de LlamaKusi, illustration de leur parcours en France"
+                className="w-full h-auto object-cover aspect-[16/9] md:aspect-[2.5/1]"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+            </div>
+
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/tef-irn/pricing"
