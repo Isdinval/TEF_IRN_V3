@@ -171,8 +171,11 @@ export default function NotreHistoirePage() {
               transition={{ delay: 0.2 }}
               className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto"
             >
-              Olivier, ingénieur IA français, et Grecia, ingénieure civile péruvienne :
-              voici pourquoi nous avons construit LlamaKusi.
+              On ne veut pas qu'un autre couple vive ce qu'on a vécu : des centaines 
+              d'euros gaspillés, des nuits à douter, un examen à repasser par manque 
+              d'entraînement. On a créé LlamaKusi pour que vous, comme Grecia, vous 
+              arriviez à votre TEF IRN avec une seule certitude : vous avez bossé 
+              intelligemment."
             </motion.p>
           </div>
         </section>
@@ -194,39 +197,30 @@ export default function NotreHistoirePage() {
         <section className="py-20 px-6">
           <div className="max-w-3xl mx-auto space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
             <p>
-              Nous nous sommes rencontrés au Pérou, pendant un voyage de trois mois qu'Olivier
-              y a fait. De cette rencontre est née une vie commune en France — et avec elle,
-              dès fin 2022, une étape que nous n'avions pas anticipée : le parcours de
-              naturalisation de Grecia, et l'examen qui en conditionne chaque dossier, le{" "}
+              Cher futur candidat,
+            </p>
+            <p>
+              On ne se connaît pas. Mais on se comprend. Toi, tu prépares le{" "}
               <Link
                 href="/tef-irn/guides"
                 className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
               >
                 TEF IRN
               </Link>
-              .
+              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Et puis Grecia a dit : "Je veux devenir française." On ne savait pas ce que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
             </p>
             <p>
-              Nous en avons été les témoins directs : des formations entre 300 et 800 € pour
-              une préparation complète, un examen à repasser à 180–205 € la session en cas
-              d'échec, et surtout aucun outil pour vraiment s'entraîner — aucune plateforme ne
-              proposait de correction instantanée de l'expression écrite, ni de simulation
-              orale interactive. Le stress, lui, était partout. Et en déménageant au fil des
-              opportunités d'Olivier — {cities.slice(0, 4).join(", ")} — nous avons vu combien les démarches administratives
-              et les ressources disponibles varient d'une région à l'autre, sans jamais devenir
-              plus simples.
+              Des formations à 300€, 500€, 800€. Un examen à repasser à 200€. Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de simulation orale. Rien. Juste du stress. On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
             </p>
             <p>
-              C'est ce vécu — administratif et humain à la fois — que nous avons injecté dans{" "}
+              Alors on a construit ce qu'on aurait voulu trouver :{" "}
               <Link
                 href="/tef-irn/pricing"
                 className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
               >
                 LlamaKusi
               </Link>
-              : un coach IA qui corrige l'expression écrite en quelques secondes et
-              entraîne à l'oral 24/7, pensé pour transformer une contrainte en une étape de
-              réussite sereine — pour ceux qui vivent aujourd'hui ce que Grecia a vécu.
+              , un coach IA qui corrige l'écrit en quelques secondes, qui simule l'oral 24/7, qui te donne un vrai retour. On ne vend pas une plateforme. On partage ce qu'on a cherché en vain. Et si notre expérience peut t'éviter une nuit blanche ou un échec... alors notre combat aura servi à quelque chose.
             </p>
           </div>
         </section>
@@ -235,7 +229,23 @@ export default function NotreHistoirePage() {
         <section className="pb-20 px-6">
           <div className="max-w-3xl mx-auto">
             <div className="relative border-l-2 border-brand-blue/20 dark:border-white/10 pl-8 space-y-10">
-              {timeline.map((item) => (
+              {[
+                {
+                  year: "2018",
+                  title: "Le coup de foudre",
+                  description: "Un voyage de trois mois au Pérou. Olivier rencontre Grecia. Leur histoire commence sans savoir qu'elle les mènerait jusqu'ici."
+                },
+                {
+                  year: "2022",
+                  title: "Le choix d'une vie commune",
+                  description: "Olivier et Grecia se marient. Ils s'installent en France. C'est le début d'une nouvelle vie, mais aussi d'un parcours qu'ils n'avaient pas anticipé."
+                },
+                {
+                  year: "2026",
+                  title: "La révélation",
+                  description: "Grecia obtient le TEF IRN B2. Mais elle découvre que des milliers de candidats vivent les mêmes difficultés qu'elle. Avec Olivier, ils décident de créer la préparation qu'ils ont cherchée."
+                }
+              ].map((item) => (
                 <motion.div
                   key={item.year}
                   initial={{ opacity: 0, x: -10 }}
@@ -260,25 +270,22 @@ export default function NotreHistoirePage() {
         {/* Milestone */}
         <section className="pb-20 px-6">
           <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <Card className="p-8 items-start">
+            <Card className="p-8 items-start bg-gradient-to-br from-brand-blue/5 to-transparent dark:from-brand-gold/5">
               <GraduationCap className="text-brand-blue dark:text-brand-gold mb-3" size={28} />
               <div className="text-2xl font-black text-slate-900 dark:text-white mb-1">
-                TEF IRN B2 obtenu
+                Grecia a réussi
               </div>
               <p className="text-slate-500 dark:text-slate-400">
-                Grecia a passé et réussi son propre examen — l'expérience qui a donné
-                naissance à LlamaKusi.
+                Elle a obtenu son TEF IRN B2. Mais elle se souvient des nuits à réviser seule, sans retour, sans outils. Ce souvenir a donné naissance à LlamaKusi.
               </p>
             </Card>
             <Card className="p-8 items-start">
               <FileCheck className="text-brand-blue dark:text-brand-gold mb-3" size={28} />
               <div className="text-2xl font-black text-slate-900 dark:text-white mb-1">
-                Dossier en cours
+                Notre dossier est encore en cours
               </div>
               <p className="text-slate-500 dark:text-slate-400">
-                La demande de naturalisation de Grecia est aujourd'hui en cours de constitution —
-                nous vivons encore, avec vous, la suite du parcours. C'est aussi pour ça que
-                LlamaKusi continue d'évoluer.
+                On n'a pas fini le parcours. On vit encore, avec vous, les démarches, les délais, les doutes. LlamaKusi évolue avec nous, à chaque étape.
               </p>
             </Card>
           </div>
@@ -365,7 +372,7 @@ export default function NotreHistoirePage() {
                 href="/tef-irn/pricing"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-blue text-white font-bold hover:opacity-90 transition-opacity"
               >
-                Découvrir LlamaKusi
+                Je me lance
                 <ArrowRight size={18} />
               </Link>
               <Link
