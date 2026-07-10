@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PenTool, Mic2, BrainCircuit, Sparkles, LayoutPanelLeft, LineChart, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 
 const features = [
   {
@@ -52,6 +53,28 @@ export function Features() {
             Plus qu'une plateforme, LlamaKusi est votre coach personnel qui vous accompagne jusqu'au jour de l'examen.
           </p>
         </div>
+
+        {/* Image Technologie - Image 2 */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="my-12 md:my-16"
+        >
+          <Image
+            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE2.webp"
+            alt="Olivier et Grecia travaillant sur LlamaKusi à Paris avec vue sur Notre-Dame"
+            width={1200}
+            height={620}
+            className="w-full rounded-3xl shadow-xl"
+            sizes="(max-width: 1280px) 100vw, 1200px"
+          />
+        </motion.div>
+
+        {/* Légende explicative */}
+        <p className="text-center text-sm md:text-base text-slate-400 max-w-2xl mx-auto -mt-6 mb-20">
+          Olivier et Grecia développant LlamaKusi. Leur expérience personnelle a permis de créer un outil qui répond vraiment aux difficultés rencontrées par les candidats au TEF IRN.
+        </p>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -118,7 +141,7 @@ export function Features() {
   );
 }
 
-// === Animations premium par fonctionnalité ===
+// === Animations premium par fonctionnalité === (inchangées)
 function FeatureDemo({ type }: { type: string }) {
   if (type === "writing") {
     return (
@@ -176,7 +199,6 @@ function FeatureDemo({ type }: { type: string }) {
     );
   }
 
-  // Exercices adaptatifs
   return (
     <div className="p-8 flex flex-col justify-center h-full text-white/90 space-y-6">
       <div className="text-center text-sm font-medium opacity-75">Niveau adapté à votre profil</div>
