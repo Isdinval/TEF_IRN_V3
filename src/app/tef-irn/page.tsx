@@ -1,3 +1,5 @@
+import { Metadata } from "next";
+import { siteUrl } from "@/lib/site";
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/sections/Hero";
 import { ProblemSolution } from "@/components/landing/sections/ProblemSolution";
@@ -9,6 +11,22 @@ import { FAQ } from "@/components/landing/sections/FAQ";
 import { Merchandising } from "@/components/landing/sections/Merchandising";
 import { FinalCTA } from "@/components/landing/sections/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
+
+export const metadata: Metadata = {
+  title: "LlamaKusi - Coach IA pour réussir le TEF IRN",
+  description:
+    "Préparez le TEF IRN avec un coach IA personnalisé : exercices adaptatifs, guides gratuits, simulateurs d'examen et suivi de progression pour la naturalisation ou la carte de résident.",
+  alternates: {
+    canonical: "/tef-irn",
+  },
+  openGraph: {
+    title: "LlamaKusi - Coach IA pour réussir le TEF IRN",
+    description:
+      "Votre coach IA personnel pour réussir le TEF IRN : exercices, guides et suivi de progression.",
+    url: `${siteUrl}/tef-irn`,
+    type: "website",
+  },
+};
 
 export default function LandingPage() {
   return (
@@ -22,7 +40,6 @@ export default function LandingPage() {
         <Testimonials />
         <Pricing />
         <FAQ />
-        <Merchandising />
         <FinalCTA />
       </main>
       <Footer />
