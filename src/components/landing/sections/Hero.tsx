@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Play, CheckCircle2, Globe, Users, Euro, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoModal } from "../VideoModal";
+import Image from "next/image";
 
 export function Hero() {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -106,17 +107,39 @@ export function Hero() {
             transition={{ delay: 0.5 }}
             className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
           >
-             <div className="flex items-center gap-2">
-                <Users size={16} className="text-brand-blue" />
-                <span>50 000+ candidats TEF IRN / an en France</span>
-             </div>
-             <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
-             <div className="flex items-center gap-2">
-                <Euro size={16} className="text-brand-blue" />
-                <span>55€/mois vs 300–800€ en formation traditionnelle</span>
-             </div>
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-brand-blue" />
+              <span>50 000+ candidats TEF IRN / an en France</span>
+            </div>
+            <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <Euro size={16} className="text-brand-blue" />
+              <span>55€/mois vs 300–800€ en formation traditionnelle</span>
+            </div>
           </motion.div>
         </div>
+
+        {/* === HERO IMAGE === */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="relative w-full aspect-[16/6.5] max-h-[560px] overflow-hidden rounded-3xl shadow-2xl"
+        >
+          <Image
+            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE1.webp" 
+            alt="Olivier et Grecia, fondateurs de LlamaKusi, marchant sur les quais de Seine à Paris avec la Tour Eiffel"
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+          />
+        </motion.div>
+
+        {/* Légende explicative */}
+        <p className="mt-6 text-center text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-3xl mx-auto">
+          Olivier et Grecia, fondateurs de LlamaKusi. Ils ont créé cette plateforme après avoir vécu eux-mêmes les difficultés du parcours de naturalisation. Leur histoire est au cœur de notre mission.
+        </p>
       </div>
 
       <VideoModal isOpen={videoOpen} onClose={() => setVideoOpen(false)} />
