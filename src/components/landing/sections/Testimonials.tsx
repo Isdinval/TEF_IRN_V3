@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Quote, FileText, Clock, Mic, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 
 const personas = [
   {
@@ -61,7 +62,6 @@ export function Testimonials() {
               transition={{ delay: i * 0.1 }}
             >
               <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl dark:bg-white/5 group relative overflow-hidden">
-                {/* Background subtle country pattern */}
                 <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
                   <div className="absolute top-8 right-8 text-8xl">{p.flag}</div>
                 </div>
@@ -90,30 +90,40 @@ export function Testimonials() {
           ))}
         </div>
 
-        {/* Histoire du couple franco-péruvien */}
+        {/* Histoire du couple franco-péruvien + Image 3 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-24 max-w-4xl mx-auto p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10"
+          className="mt-24 max-w-4xl mx-auto"
         >
-          <div className="flex justify-center gap-8 mb-10">
-            <div className="text-6xl">🇫🇷</div>
-            <Heart size={48} className="text-rose-500 mt-3" fill="currentColor" />
-            <div className="text-6xl">🇵🇪</div>
-          </div>
+          <Image
+            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE3.webp" // ← Remplace par ton URL Supabase
+            alt="Olivier et Grecia préparant le dossier de naturalisation à Paris"
+            width={1100}
+            height={720}
+            className="w-full rounded-3xl shadow-xl mb-8"
+          />
 
-          <h3 className="text-3xl font-black text-center mb-8">Une histoire vraie</h3>
-          
-          <p className="text-lg text-center leading-relaxed text-slate-600 dark:text-slate-400">
-            LlamaKusi est né dans un couple franco-péruvien. 
-            <span className="font-semibold text-slate-900 dark:text-white"> Olivier</span>, Data Scientist & AI Engineer, a conçu toute l’architecture IA. 
-            <span className="font-semibold text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation tout en travaillant à temps plein.
-          </p>
-          
-          <p className="text-center mt-6 italic text-brand-purple">
-            Le béret français et le bonnet péruvien de LlamaKuzi symbolisent cette union et cette volonté de réussir.
-          </p>
+          <div className="p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10">
+            <div className="flex justify-center gap-8 mb-10">
+              <div className="text-6xl">🇫🇷</div>
+              <Heart size={48} className="text-rose-500 mt-3" fill="currentColor" />
+              <div className="text-6xl">🇵🇪</div>
+            </div>
+
+            <h3 className="text-3xl font-black text-center mb-8">Une histoire vraie</h3>
+            
+            <p className="text-lg text-center leading-relaxed text-slate-600 dark:text-slate-400">
+              LlamaKusi est né dans un couple franco-péruvien. 
+              <span className="font-semibold text-slate-900 dark:text-white"> Olivier</span>, Data Scientist & AI Engineer, a conçu toute l’architecture IA. 
+              <span className="font-semibold text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation tout en travaillant à temps plein.
+            </p>
+            
+            <p className="text-center mt-6 italic text-brand-purple">
+              Le béret français et l'écharpe péruvienne de LlamaKuzi symbolisent cette union et cette volonté de réussir.
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>
