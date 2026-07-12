@@ -24,6 +24,10 @@ const GRECIA_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/ob
 // même style aquarelle que HERO_IMAGE_URL (inspirée de Gordes, Provence)
 const BANNER_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/BANNER_IMAGE.webp";
 
+// TODO(Olivier): remplacer par l'URL Supabase/CDN de la mascotte LlamaKusi
+// (illustration du lama souriant, béret + écharpe + drapeau français)
+const MASCOT_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/MASCOT.webp";
+
 const cities = [
   "Niort", "Lille", "Marseille",
 ];
@@ -207,7 +211,7 @@ export default function NotreHistoirePage() {
               >
                 TEF IRN
               </Link>
-              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Et puis Grecia a dit : "Je veux devenir française." On ne savait pas ce que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
+              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Très vite, Grecia a ressenti le désir profond d'obtenir la nationalité française – non pas pour renier ses origines, mais pour pleinement appartenir au pays qui était devenu le sien. On ne mesurait pas encore tout ce que cela impliquait.. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
             </p>
             <p>
               Des formations à 300€, 500€, 800€. Un examen à repasser à 200€. Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de simulation orale. Rien. Juste du stress. On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
@@ -225,9 +229,46 @@ export default function NotreHistoirePage() {
           </div>
         </section>
 
+        {/* Pourquoi LlamaKusi */}
+        <section className="pb-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-10">
+              Pourquoi LlamaKusi ?
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-8 items-center">
+              <img
+                src={MASCOT_IMAGE_URL}
+                alt="La mascotte LlamaKusi, un lama souriant portant un béret, une écharpe et un drapeau français"
+                className="w-40 sm:w-48 h-auto mx-auto"
+                loading="lazy"
+              />
+              <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+                <p>
+                  "Kusi" veut dire "heureux", "souriant" en quechua, la langue des Andes péruviennes.
+                  Grecia a grandi avec ce mot. Alors quand est venu le moment de nommer ce qu'on
+                  construisait, il n'y avait pas d'autre choix : ce serait LlamaKusi, le lama heureux.
+                </p>
+                <p>
+                  Le lama, ce n'est pas qu'un clin d'œil au Pérou de Grecia. Dans les Andes, c'est
+                  l'animal qui porte les charges les plus lourdes, sur les chemins les plus longs,
+                  en altitude, sans jamais se plaindre. On a trouvé que ça ressemblait beaucoup à ce
+                  que vit un candidat au TEF IRN : un parcours exigeant, qu'on porte souvent seul.
+                </p>
+                <p>
+                  Alors on a voulu qu'à défaut d'alléger le chemin, LlamaKusi le rende moins seul —
+                  et qu'il te fasse sourire un peu plus souvent qu'il ne te fait douter.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Timeline */}
         <section className="pb-20 px-6">
           <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-14">
+              Notre parcours
+            </h2>
             <div className="relative border-l-2 border-brand-blue/20 dark:border-white/10 pl-8 space-y-10">
               {[
                 {
