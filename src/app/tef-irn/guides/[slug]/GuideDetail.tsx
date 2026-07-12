@@ -126,6 +126,11 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           </div>
+          {guide.image_caption && (
+            <p className="mt-3 text-sm text-slate-400 text-center italic">
+              {guide.image_caption}
+            </p>
+          )}
         </div>
       )}
 
