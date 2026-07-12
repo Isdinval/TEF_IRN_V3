@@ -12,6 +12,7 @@ export interface Guide {
   content: string | null;
   reading_time: number | null;
   image_url: string | null;
+  image_caption: string | null;
   icon: string | null;
   is_published: boolean;
   created_at: string;
