@@ -179,7 +179,7 @@ export default function NotreHistoirePage() {
               d'euros gaspillés, des nuits à douter, un examen à repasser par manque 
               d'entraînement. On a créé LlamaKusi pour que vous, comme Grecia, vous 
               arriviez à votre TEF IRN avec une seule certitude : vous avez bossé 
-              intelligemment."
+              intelligemment.
             </motion.p>
           </div>
         </section>
@@ -211,7 +211,7 @@ export default function NotreHistoirePage() {
               >
                 TEF IRN
               </Link>
-              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Très vite, Grecia a ressenti le désir profond d'obtenir la nationalité française – non pas pour renier ses origines, mais pour pleinement appartenir au pays qui était devenu le sien. On ne mesurait pas encore tout ce que cela impliquait.. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
+              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Très vite, Grecia a ressenti le désir d'obtenir la nationalité française – non pas pour renier ses origines, mais pour pleinement appartenir au pays qui était devenu le sien. On ne mesurait pas encore tout ce que cela impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
             </p>
             <p>
               Des formations à 300€, 500€, 800€. Un examen à repasser à 200€. Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de simulation orale. Rien. Juste du stress. On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
