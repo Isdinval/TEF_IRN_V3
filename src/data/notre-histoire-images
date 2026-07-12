@@ -1,0 +1,5 @@
+export const HERO_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/NOUS.webp";
+export const OLIVIER_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/OLIVIER_PHOTO.webp";
+export const GRECIA_PHOTO_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/GRECIA_PHOTO.webp";
+export const BANNER_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/BANNER_IMAGE.webp";
+export const MASCOT_IMAGE_URL = "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/notre-histoire/MASCOT.webp";
