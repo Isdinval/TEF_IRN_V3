@@ -1,6 +1,13 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { siteUrl } from '@/lib/site';
+import {
+  HERO_IMAGE_URL,
+  OLIVIER_PHOTO_URL,
+  GRECIA_PHOTO_URL,
+  BANNER_IMAGE_URL,
+  MASCOT_IMAGE_URL,
+} from './tef-irn/notre-histoire/page';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
@@ -18,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // === GUIDES ===
   const { data: guides } = await supabase
     .from('guides')
-    .select('slug, created_at, updated_at')
+    .select('slug, created_at, updated_at, image_url')
     .eq('is_published', true);
 
   // === PARCOURS ===
@@ -38,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(guide.updated_at || guide.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
+    ...(guide.image_url ? { images: [guide.image_url] } : {}),
   }));
 
   const parcoursUrls: MetadataRoute.Sitemap = (parcours || []).map((p: any) => ({
@@ -52,6 +60,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${rootPath}/lessons`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     { url: `${rootPath}/guides`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     { url: `${rootPath}/parcours`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.85 },
+    {
+      url: `${rootPath}/notre-histoire`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+      images: [
+        HERO_IMAGE_URL,
+        OLIVIER_PHOTO_URL,
+        GRECIA_PHOTO_URL,
+        BANNER_IMAGE_URL,
+        MASCOT_IMAGE_URL,
+      ],
+    },
   ];
 
   return [...staticUrls, ...lessonUrls, ...guideUrls, ...parcoursUrls];
