@@ -21,14 +21,55 @@ interface GrammarQuestion {
   tags?: string[];
   is_ai_generated?: boolean;
   id: string;
+  /**
+   * Phrase brute. Si elle contient une erreur, le mot fautif est encadré
+   * par des crochets, ex: "Elles sont [parti] en vacances."
+   * Si la phrase est correcte, aucun crochet n'est présent.
+   */
   sentence: string;
-  error_fragment: string;
-  correction: string;
+  /** Mot correct à afficher après validation (uniquement si la phrase contient une erreur) */
+  correct_word: string;
   explanation: string;
   category: string;
   level: string;
   instructions?: string;
   lesson_id?: string;
+}
+
+/** Un token de la phrase, avec l'info "est-ce le mot fautif ?" */
+interface SentenceToken {
+  index: number;
+  display: string;
+  isErrorWord: boolean;
+}
+
+/**
+ * Parse une phrase au format Voltaire (notation [mot]).
+ * - Sépare la phrase en tokens (mots) sur les espaces.
+ * - Détecte le token entouré de crochets -> c'est le mot fautif.
+ * - Conserve la ponctuation collée en dehors des crochets (ex: "[parti].").
+ */
+function parseVoltaireSentence(sentence: string): {
+  tokens: SentenceToken[];
+  hasError: boolean;
+  errorIndex: number | null;
+} {
+  const rawTokens = (sentence || "").split(/\s+/).filter(Boolean);
+  let hasError = false;
+  let errorIndex: number | null = null;
+
+  const tokens: SentenceToken[] = rawTokens.map((raw, index) => {
+    const match = raw.match(/^([^[\]]*)\[([^[\]]+)\]([^[\]]*)$/);
+    if (match) {
+      hasError = true;
+      errorIndex = index;
+      const [, prefix, word, suffix] = match;
+      return { index, display: `${prefix}${word}${suffix}`, isErrorWord: true };
+    }
+    return { index, display: raw, isErrorWord: false };
+  });
+
+  return { tokens, hasError, errorIndex };
 }
 
 interface LessonSummary {
@@ -49,7 +90,8 @@ export function GrammarCheckContent() {
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [inputValue, setInputValue] = useState("");
+  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
+  const [selectedNoError, setSelectedNoError] = useState(false);
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
@@ -126,8 +168,9 @@ export function GrammarCheckContent() {
           qs = data.content.questions.map((q: string, i: number) => ({
               id: `${data.id}-${i}`,
               sentence: q,
-              error_fragment: data.content.error_fragments?.[i] || "",
-              correction: String(data.content.corrections?.[i] || data.content.correct_answers?.[i] || ""),
+              correct_word: String(
+                data.content.correct_words?.[i] ?? data.content.corrections?.[i] ?? data.content.correct_answers?.[i] ?? ""
+              ),
               explanation: data.content.explanations?.[i] || "",
               category: data.category,
               level: data.level,
@@ -139,8 +182,9 @@ export function GrammarCheckContent() {
           qs = [{
               id: data.id,
               sentence: data.content.sentence,
-              error_fragment: data.content.error_fragment || "",
-              correction: String(data.content.correction || data.content.correct_answer || ""),
+              correct_word: String(
+                data.content.correct_word ?? data.content.correction ?? data.content.correct_answer ?? ""
+              ),
               explanation: data.content.explanation || "",
               category: data.category,
               level: data.level,
@@ -155,7 +199,8 @@ export function GrammarCheckContent() {
           setMode("training");
           setCurrentIdx(0);
           setScore(0);
-          setInputValue("");
+          setSelectedWordIndex(null);
+          setSelectedNoError(false);
           setStatus("typing");
           setLessonVisible(false);
       } else {
@@ -177,10 +222,30 @@ export function GrammarCheckContent() {
     }
   }, [exerciseIdFromParams, startTraining, mode, loading]);
 
+  const current = questions[currentIdx];
+  const currentParsed = useMemo(
+    () => parseVoltaireSentence(current?.sentence || ""),
+    [current]
+  );
+
+  const handleSelectWord = (index: number) => {
+    if (status !== "typing") return;
+    setSelectedWordIndex(index);
+    setSelectedNoError(false);
+  };
+
+  const handleSelectNoError = () => {
+    if (status !== "typing") return;
+    setSelectedNoError(true);
+    setSelectedWordIndex(null);
+  };
+
   const checkCorrection = () => {
-    const current = questions[currentIdx];
     if (!current) return;
-    const isCorrect = inputValue.trim().toLowerCase() === current.correction.toLowerCase();
+    const { hasError, errorIndex } = currentParsed;
+    const isCorrect = hasError
+      ? selectedWordIndex === errorIndex
+      : selectedNoError;
     if (isCorrect) {
       setStatus("correct");
       setScore(s => s + 1);
@@ -192,7 +257,8 @@ export function GrammarCheckContent() {
   const handleNextAction = async () => {
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(c => c + 1);
-      setInputValue("");
+      setSelectedWordIndex(null);
+      setSelectedNoError(false);
       setStatus("typing");
       setLessonVisible(false);
     } else {
@@ -307,7 +373,6 @@ export function GrammarCheckContent() {
   }
 
   if (mode === "training") {
-    const current = questions[currentIdx];
     const totalQuestions = questions.length;
     const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
 
@@ -316,7 +381,7 @@ export function GrammarCheckContent() {
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
-          badge="Coach Exercice à Trous"
+          badge="Coach Repérage d'Erreurs"
           badgeColor="indigo"
           onBack={handleBack}
           rightElement={
@@ -381,9 +446,41 @@ export function GrammarCheckContent() {
                      </div>
                    )}
 
-                   <h3 className="text-xl md:text-2xl font-black text-zinc-900 leading-tight tracking-tight mt-4">
-                    {current?.sentence}
-                  </h3>
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-6 relative z-10">
+                    {currentParsed.tokens.map((token) => {
+                      const isSelected = selectedWordIndex === token.index;
+                      const isTheError = currentParsed.hasError && token.index === currentParsed.errorIndex;
+
+                      let stateClass = "bg-zinc-50 text-zinc-900 border-transparent hover:bg-indigo-50 hover:border-indigo-100";
+                      if (status === "typing") {
+                        if (isSelected) {
+                          stateClass = "bg-indigo-600 text-white border-indigo-600";
+                        }
+                      } else {
+                        if (isTheError && isSelected) {
+                          stateClass = "bg-emerald-500 text-white border-emerald-600";
+                        } else if (isTheError) {
+                          stateClass = "bg-emerald-100 text-emerald-900 border-emerald-400";
+                        } else if (isSelected) {
+                          stateClass = "bg-rose-100 text-rose-900 border-rose-400";
+                        } else {
+                          stateClass = "bg-zinc-50 text-zinc-400 border-transparent";
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={token.index}
+                          type="button"
+                          onClick={() => handleSelectWord(token.index)}
+                          disabled={status !== "typing"}
+                          className={`px-3 py-1.5 rounded-2xl border-2 font-black text-xl md:text-2xl tracking-tight transition-all ${stateClass} disabled:cursor-default`}
+                        >
+                          {token.display}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
                 </div>
@@ -414,23 +511,27 @@ export function GrammarCheckContent() {
                 </AnimatePresence>
 
                 <div className="space-y-8">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && status === "typing" && checkCorrection()}
+                  <div className="relative flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleSelectNoError}
                       disabled={status !== "typing"}
-                      autoFocus
-                      placeholder="Tapez la correction ici..."
-                      className={`w-full h-16 px-8 text-lg font-bold rounded-[2.5rem] border-4 transition-all outline-none text-center shadow-xl ${
+                      className={`h-14 px-8 rounded-[2.5rem] border-4 font-black text-sm uppercase tracking-widest transition-all shadow-xl disabled:cursor-default ${
                         status === "typing"
-                        ? "border-zinc-100 focus:border-indigo-600 bg-white"
-                        : status === "correct"
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-900"
-                        : "border-rose-500 bg-rose-50 text-rose-900"
+                          ? selectedNoError
+                            ? "border-indigo-600 bg-indigo-600 text-white"
+                            : "border-zinc-100 bg-white hover:border-indigo-200"
+                          : !currentParsed.hasError && selectedNoError
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-900"
+                          : !currentParsed.hasError
+                          ? "border-emerald-400 bg-emerald-100 text-emerald-900"
+                          : selectedNoError
+                          ? "border-rose-500 bg-rose-50 text-rose-900"
+                          : "border-zinc-100 bg-white text-zinc-400"
                       }`}
-                    />
+                    >
+                      Il n'y a pas de faute
+                    </button>
                     {status !== "typing" && (
                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg bg-zinc-900">
                         {status === "correct" ? "Excellent !" : "Presque !"}
@@ -443,7 +544,7 @@ export function GrammarCheckContent() {
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <Button
                           onClick={checkCorrection}
-                          disabled={!inputValue.trim()}
+                          disabled={selectedWordIndex === null && !selectedNoError}
                           className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-base shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
@@ -461,7 +562,11 @@ export function GrammarCheckContent() {
                           </div>
                           <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
                           <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
-                            Réponse correcte : <span className="underline decoration-wavy">{current?.correction}</span>
+                            {currentParsed.hasError ? (
+                              <>Réponse correcte : <span className="underline decoration-wavy">{current?.correct_word}</span></>
+                            ) : (
+                              <>Cette phrase ne contient aucune faute.</>
+                            )}
                           </div>
                         </Card>
 
@@ -489,7 +594,7 @@ export function GrammarCheckContent() {
       <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
         <ExerciseLayout
           title="CHASSE AUX ERREURS"
-          badge="Coach Exercice à Trous"
+          badge="Coach Repérage d'Erreurs"
           badgeColor="indigo"
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
         >
