@@ -8,13 +8,18 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, Trophy, BookOpen, ChevronUp } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import {
+  VICTORY_MASCOT_URLS,
+  PERPLEXED_MASCOT_URLS,
+  CATALOGUE_WATERCOLOR_URL,
+  pickRandomImage,
+} from "@/data/grammar-check-images";
 
 interface GrammarQuestion {
   difficulty?: string;
@@ -100,6 +105,11 @@ export function GrammarCheckContent() {
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
+  // Défaut = 1ère pose (identique SSR/CSR), tirage aléatoire déclenché ensuite
+  // uniquement via des événements 100% client (cf. handleNextAction / fetchCatalogue)
+  // pour éviter tout mismatch d'hydratation Next.js.
+  const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
+  const [emptyStateMascotUrl, setEmptyStateMascotUrl] = useState<string>(PERPLEXED_MASCOT_URLS[0]);
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
@@ -131,8 +141,10 @@ export function GrammarCheckContent() {
           };
         });
         setCatalogue(mapped);
+        if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       } else {
         setCatalogue(exercises || []);
+        if (!exercises || exercises.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
@@ -263,6 +275,7 @@ export function GrammarCheckContent() {
       setLessonVisible(false);
     } else {
       setMode("result");
+      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       const finalScore = Math.round((score / questions.length) * 100);
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -334,28 +347,38 @@ export function GrammarCheckContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-          <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
-            <Trophy size={48} />
-          </div>
+          <img
+            src={resultMascotUrl}
+            alt="Mascotte LlamaKusi célébrant la réussite de l'exercice"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
+          />
           <div className="space-y-2">
-            <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
             <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
           </div>
           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
-              <div className="text-3xl font-black text-zinc-900">{finalPercent}%</div>
+              <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-12 bg-zinc-100" />
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
-              <div className="text-3xl font-black text-emerald-600">{score} / {questions.length}</div>
+              <div className="text-2xl font-black text-emerald-600">{score} / {questions.length}</div>
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => setMode("selection")} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all">RETOURNER AU CATALOGUE</Button>
+            <Button
+              onClick={() => {
+                setMode("selection");
+                if (params?.id) {
+                  router.push("/tef-irn/grammar-check");
+                }
+              }}
+              className="h-16 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+            >RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
-              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
+              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
             )}
             <Button
                 variant="ghost"
@@ -441,7 +464,7 @@ export function GrammarCheckContent() {
                    </div>
 
                    {current?.instructions && (
-                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
+                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
                        {current.instructions}
                      </div>
                    )}
@@ -474,7 +497,7 @@ export function GrammarCheckContent() {
                           type="button"
                           onClick={() => handleSelectWord(token.index)}
                           disabled={status !== "typing"}
-                          className={`px-3 py-1.5 rounded-2xl border-2 font-black text-xl md:text-2xl tracking-tight transition-all ${stateClass} disabled:cursor-default`}
+                          className={`px-3 py-1.5 rounded-2xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
                         >
                           {token.display}
                         </button>
@@ -493,18 +516,14 @@ export function GrammarCheckContent() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white max-h-[50vh] overflow-y-auto">
+                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white">
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
-                        <h4 className="text-xl font-black text-zinc-900 leading-snug mb-4">
+                        <h4 className="text-lg font-black text-zinc-900 leading-snug mb-4">
                           {lessonCache[current.lesson_id].title}
                         </h4>
-                        <div className="prose prose-zinc prose-sm max-w-none">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {lessonCache[current.lesson_id].content}
-                          </ReactMarkdown>
-                        </div>
+                        <LessonMarkdown content={lessonCache[current.lesson_id].content} />
                       </Card>
                     </motion.div>
                   )}
@@ -545,7 +564,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={selectedWordIndex === null && !selectedNoError}
-                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-base shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-bold rounded-3xl text-sm shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
@@ -560,7 +579,7 @@ export function GrammarCheckContent() {
                           <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
                             <Sparkles size={16} /> Note pédagogique
                           </div>
-                          <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
+                          <p className="text-sm font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
                           <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
                             {currentParsed.hasError ? (
                               <>Réponse correcte : <span className="underline decoration-wavy">{current?.correct_word}</span></>
@@ -572,7 +591,7 @@ export function GrammarCheckContent() {
 
                         <Button
                           onClick={handleNextAction}
-                          className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
+                          className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-3xl text-sm shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
                         >
                           {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
                           <ArrowRight size={24} />
@@ -597,6 +616,13 @@ export function GrammarCheckContent() {
           badge="Coach Repérage d'Erreurs"
           badgeColor="indigo"
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
+          rightElement={
+            <img
+              src={CATALOGUE_WATERCOLOR_URL}
+              alt="Illustration aquarelle : les fondateurs de LlamaKusi corrigeant un texte avec le lama mascotte"
+              className="w-40 h-40 lg:w-48 lg:h-48 rounded-[2.5rem] object-cover shadow-xl border-4 border-white"
+            />
+          }
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
@@ -644,7 +670,7 @@ export function GrammarCheckContent() {
               <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
                 <Zap size={14} /> Flash entraînement
               </div>
-              <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
+              <h4 className="text-lg font-black leading-tight">Lancer une session aléatoire</h4>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase">
                 <Calendar size={16} /> Entraînement Quotidien
               </div>
@@ -653,7 +679,7 @@ export function GrammarCheckContent() {
 
           <section className="mt-12">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
                 <span className="text-zinc-400">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
@@ -677,7 +703,11 @@ export function GrammarCheckContent() {
               </div>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
-                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                <img
+                  src={emptyStateMascotUrl}
+                  alt="Mascotte LlamaKusi perplexe, aucun exercice trouvé"
+                  className="w-24 h-24 mx-auto mb-4 object-contain"
+                />
                 <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
               </Card>
             )}
