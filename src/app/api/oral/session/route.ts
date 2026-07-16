@@ -204,6 +204,17 @@ export async function GET(request: Request) {
             transcription: {
               model: "gpt-realtime-whisper",
             },
+            // semantic_vad (plutôt que le server_vad par défaut, basé uniquement sur un
+            // silence fixe) : le modèle attend que le tour du candidat semble réellement
+            // terminé avant de répondre, ce qui évite de couper le candidat sur une courte
+            // pause ("euh", hésitation) et réduit les cas où le coach démarre trop tôt puis
+            // se fait lui-même interrompre.
+            turn_detection: {
+              type: "semantic_vad",
+              eagerness: "low",
+              create_response: true,
+              interrupt_response: true,
+            },
           },
           output: {
             voice: scenario.voice || DEFAULT_VOICE,
