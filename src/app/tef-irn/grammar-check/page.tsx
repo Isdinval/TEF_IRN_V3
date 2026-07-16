@@ -10,8 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
@@ -517,18 +516,14 @@ export function GrammarCheckContent() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white max-h-[50vh] overflow-y-auto">
+                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white">
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
                         <h4 className="text-lg font-black text-zinc-900 leading-snug mb-4">
                           {lessonCache[current.lesson_id].title}
                         </h4>
-                        <div className="prose prose-zinc prose-sm max-w-none">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {lessonCache[current.lesson_id].content}
-                          </ReactMarkdown>
-                        </div>
+                        <LessonMarkdown content={lessonCache[current.lesson_id].content} />
                       </Card>
                     </motion.div>
                   )}
