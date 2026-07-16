@@ -9,17 +9,32 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const url = "https://api.openai.com/v1/realtime/sessions";
+  const url = "https://api.openai.com/v1/realtime/client_secrets";
   const response = await fetch(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       "Content-Type": "application/json",
+      // Lie le jeton éphémère à cet utilisateur pour le monitoring anti-abus côté OpenAI
+      "OpenAI-Safety-Identifier": user.id,
     },
     body: JSON.stringify({
-      model: "gpt-4o-realtime-preview-2024-10-01",
-      voice: "alloy",
-      instructions: "Tu es un examinateur du TEF IRN. Tu dois simuler une conversation de la Section A ou B. Sois naturel, pose des questions, et relance l'utilisateur.",
+      session: {
+        type: "realtime",
+        model: "gpt-realtime",
+        instructions:
+          "Tu es un examinateur officiel de l'épreuve d'expression orale du TEF IRN (France). Tu simules une interaction orale réaliste avec un candidat, dans le cadre d'une Section A (appel téléphonique pour un service) ou B (échange courant). Ton objectif est de faire parler le candidat de manière fluide et naturelle : il doit parler environ 80% du temps. Pose une seule question ou idée à la fois, en 1 à 2 phrases maximum, sans liste ni explication pédagogique ni correction grammaticale. Privilégie les questions ouvertes et les relances naturelles (\"Pourquoi ?\", \"Pouvez-vous préciser ?\", \"Et vous, qu'en pensez-vous ?\"). Si le candidat est bloqué, reformule ou simplifie la question sans jamais donner le contenu à dire. La conversation doit durer environ 2 à 3 minutes, puis se conclure naturellement par un court remerciement.",
+        audio: {
+          input: {
+            transcription: {
+              model: "gpt-realtime-whisper",
+            },
+          },
+          output: {
+            voice: "marin",
+          },
+        },
+      },
     }),
   });
 
