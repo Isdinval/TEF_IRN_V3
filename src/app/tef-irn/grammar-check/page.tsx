@@ -353,7 +353,15 @@ export function GrammarCheckContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => setMode("selection")} className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all">RETOURNER AU CATALOGUE</Button>
+            <Button
+              onClick={() => {
+                setMode("selection");
+                if (params?.id) {
+                  router.push("/tef-irn/grammar-check");
+                }
+              }}
+              className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all"
+            >RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
             )}
@@ -474,7 +482,7 @@ export function GrammarCheckContent() {
                           type="button"
                           onClick={() => handleSelectWord(token.index)}
                           disabled={status !== "typing"}
-                          className={`px-3 py-1.5 rounded-2xl border-2 font-black text-xl md:text-2xl tracking-tight transition-all ${stateClass} disabled:cursor-default`}
+                          className={`px-3 py-1.5 rounded-2xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
                         >
                           {token.display}
                         </button>
@@ -572,7 +580,7 @@ export function GrammarCheckContent() {
 
                         <Button
                           onClick={handleNextAction}
-                          className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
+                          className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-3xl text-sm shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
                         >
                           {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
                           <ArrowRight size={24} />
