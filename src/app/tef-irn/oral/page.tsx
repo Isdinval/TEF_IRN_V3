@@ -28,6 +28,7 @@ export default function OralCoach() {
   const [status, setStatus] = useState<Status>("catalogue");
   const [isListening, setIsListening] = useState(false);
   const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+  const scenarioRef = useRef<ScenarioInfo | null>(null);
   const [analysis, setAnalysis] = useState<OralAnalysis | null>(null);
 
   const [allScenarios, setAllScenarios] = useState<ScenarioListItem[]>([]);
@@ -77,7 +78,10 @@ export default function OralCoach() {
       const EPHEMERAL_KEY = data.value;
       if (!EPHEMERAL_KEY) throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
 
-      if (data.scenario) setScenario(data.scenario as ScenarioInfo);
+      if (data.scenario) {
+        setScenario(data.scenario as ScenarioInfo);
+        scenarioRef.current = data.scenario as ScenarioInfo;
+      }
 
       const pc = new RTCPeerConnection();
       peerConnection.current = pc;
@@ -174,7 +178,7 @@ export default function OralCoach() {
     setIsListening(false);
 
     const transcript = turnsRef.current;
-    const currentScenario = scenario;
+    const currentScenario = scenarioRef.current;
 
     if (!currentScenario || transcript.length === 0) {
       resetToCatalogue();
@@ -203,6 +207,7 @@ export default function OralCoach() {
   const resetToCatalogue = () => {
     setStatus("catalogue");
     setScenario(null);
+    scenarioRef.current = null;
     setAnalysis(null);
     turnsRef.current = [];
     currentCoachTurn.current = "";
