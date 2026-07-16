@@ -8,13 +8,19 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, Trophy, BookOpen, ChevronUp } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import {
+  VICTORY_MASCOT_URLS,
+  PERPLEXED_MASCOT_URLS,
+  CATALOGUE_WATERCOLOR_URL,
+  pickRandomImage,
+} from "@/data/grammar-check-images";
 
 interface GrammarQuestion {
   difficulty?: string;
@@ -100,6 +106,11 @@ export function GrammarCheckContent() {
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
+  // Défaut = 1ère pose (identique SSR/CSR), tirage aléatoire déclenché ensuite
+  // uniquement via des événements 100% client (cf. handleNextAction / fetchCatalogue)
+  // pour éviter tout mismatch d'hydratation Next.js.
+  const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
+  const [emptyStateMascotUrl, setEmptyStateMascotUrl] = useState<string>(PERPLEXED_MASCOT_URLS[0]);
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
@@ -131,8 +142,10 @@ export function GrammarCheckContent() {
           };
         });
         setCatalogue(mapped);
+        if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       } else {
         setCatalogue(exercises || []);
+        if (!exercises || exercises.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
@@ -263,6 +276,7 @@ export function GrammarCheckContent() {
       setLessonVisible(false);
     } else {
       setMode("result");
+      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       const finalScore = Math.round((score / questions.length) * 100);
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -334,9 +348,11 @@ export function GrammarCheckContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-          <div className="w-32 h-32 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
-            <Trophy size={48} />
-          </div>
+          <img
+            src={resultMascotUrl}
+            alt="Mascotte LlamaKusi célébrant la réussite de l'exercice"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
+          />
           <div className="space-y-2">
             <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
             <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
@@ -605,6 +621,13 @@ export function GrammarCheckContent() {
           badge="Coach Repérage d'Erreurs"
           badgeColor="indigo"
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
+          rightElement={
+            <img
+              src={CATALOGUE_WATERCOLOR_URL}
+              alt="Illustration aquarelle : les fondateurs de LlamaKusi corrigeant un texte avec le lama mascotte"
+              className="w-40 h-40 lg:w-48 lg:h-48 rounded-[2.5rem] object-cover shadow-xl border-4 border-white"
+            />
+          }
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
@@ -685,7 +708,11 @@ export function GrammarCheckContent() {
               </div>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
-                <Target className="mx-auto mb-4 text-zinc-300" size={40} />
+                <img
+                  src={emptyStateMascotUrl}
+                  alt="Mascotte LlamaKusi perplexe, aucun exercice trouvé"
+                  className="w-24 h-24 mx-auto mb-4 object-contain"
+                />
                 <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
               </Card>
             )}
