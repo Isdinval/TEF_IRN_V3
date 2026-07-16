@@ -6,11 +6,28 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mic, MicOff, Loader2, Volume2, MessageSquare, Sparkles } from "lucide-react";
 
+type Section = "A" | "B";
+type Level = "A2" | "B1" | "B2";
+
+type ScenarioInfo = {
+  id: string;
+  section: Section;
+  level: Level;
+  title: string;
+  role_interlocuteur: string;
+  sujet: string;
+  objectifs: string[];
+};
+
 export default function OralCoach() {
   const [status, setStatus] = useState<"idle" | "connecting" | "active">("idle");
   const [isListening, setIsListening] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [aiResponse, setAiResponse] = useState("");
+  const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+
+  const [section, setSection] = useState<Section>("A");
+  const [level, setLevel] = useState<Level>("B1");
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
@@ -20,8 +37,10 @@ export default function OralCoach() {
     try {
       setStatus("connecting");
 
-      // 1. Get ephemeral token from our API
-      const tokenResponse = await fetch("/api/oral/session");
+      // 1. Récupère le token éphémère + le scénario choisi par le serveur
+      const tokenResponse = await fetch(
+        `/api/oral/session?section=${section}&level=${level}`
+      );
       const data = await tokenResponse.json();
 
       if (data.error) {
@@ -31,6 +50,10 @@ export default function OralCoach() {
       const EPHEMERAL_KEY = data.value;
       if (!EPHEMERAL_KEY) {
         throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
+      }
+
+      if (data.scenario) {
+        setScenario(data.scenario as ScenarioInfo);
       }
 
       // 2. Create Peer Connection
@@ -54,15 +77,19 @@ export default function OralCoach() {
       dataChannel.current = dc;
       dc.onmessage = (e) => {
         const event = JSON.parse(e.data);
-        // Handle transcription events
+
+        // Transcription du candidat (input) — noms d'events inchangés en GA
         if (event.type === "conversation.item.input_audio_transcription.completed") {
           setTranscription(prev => prev + " " + event.transcript);
         }
-        if (event.type === "response.audio_transcript.delta") {
+
+        // Transcription du coach IA (output) — noms d'events GA
+        // (TASK 1 fix : "response.audio_transcript.*" était le nom de l'ancienne API beta)
+        if (event.type === "response.output_audio_transcript.delta") {
           setAiResponse(prev => prev + event.delta);
         }
-        if (event.type === "response.audio_transcript.done") {
-           // Response finished
+        if (event.type === "response.output_audio_transcript.done") {
+          // Réponse terminée
         }
       };
 
@@ -105,6 +132,7 @@ export default function OralCoach() {
     setIsListening(false);
     setTranscription("");
     setAiResponse("");
+    setScenario(null);
   };
 
   const toggleMic = () => {
@@ -130,13 +158,50 @@ export default function OralCoach() {
               COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span>
             </h1>
             <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-              Simulation Section A : téléphonez pour poser des questions sur un service, comme le jour du TEF IRN.
+              {scenario
+                ? scenario.sujet
+                : "Choisissez une section et un niveau, puis démarrez la session."}
             </p>
           </div>
           <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
             <Sparkles size={14} className="mr-1" /> Session vocale
           </Badge>
         </header>
+
+        {status === "idle" && (
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Section</span>
+              <div className="flex gap-2">
+                {(["A", "B"] as Section[]).map((s) => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={section === s ? "default" : "outline"}
+                    onClick={() => setSection(s)}
+                  >
+                    Section {s}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Niveau</span>
+              <div className="flex gap-2">
+                {(["A2", "B1", "B2"] as Level[]).map((l) => (
+                  <Button
+                    key={l}
+                    size="sm"
+                    variant={level === l ? "default" : "outline"}
+                    onClick={() => setLevel(l)}
+                  >
+                    {l}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex min-h-0 flex-1 flex-col gap-6">
           <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
@@ -181,7 +246,9 @@ export default function OralCoach() {
                 </h3>
                 <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
                   {status === "active"
-                    ? "Parlez naturellement, comme lors de l'examen."
+                    ? scenario
+                      ? `Vous parlez avec : ${scenario.role_interlocuteur}`
+                      : "Parlez naturellement, comme lors de l'examen."
                     : "Cliquez sur le bouton ci-dessous pour démarrer la session."}
                 </p>
               </div>
