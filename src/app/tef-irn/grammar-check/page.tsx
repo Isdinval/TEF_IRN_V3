@@ -338,18 +338,18 @@ export function GrammarCheckContent() {
             <Trophy size={48} />
           </div>
           <div className="space-y-2">
-            <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
             <p className="text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
           </div>
           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
-              <div className="text-3xl font-black text-zinc-900">{finalPercent}%</div>
+              <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-12 bg-zinc-100" />
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
-              <div className="text-3xl font-black text-emerald-600">{score} / {questions.length}</div>
+              <div className="text-2xl font-black text-emerald-600">{score} / {questions.length}</div>
             </div>
           </div>
           <div className="flex flex-col gap-3">
@@ -360,10 +360,10 @@ export function GrammarCheckContent() {
                   router.push("/tef-irn/grammar-check");
                 }
               }}
-              className="h-16 bg-zinc-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all"
+              className="h-16 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
             >RETOURNER AU CATALOGUE</Button>
             {nextLesson && (
-              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
+              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
             )}
             <Button
                 variant="ghost"
@@ -449,7 +449,7 @@ export function GrammarCheckContent() {
                    </div>
 
                    {current?.instructions && (
-                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
+                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
                        {current.instructions}
                      </div>
                    )}
@@ -505,7 +505,7 @@ export function GrammarCheckContent() {
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
-                        <h4 className="text-xl font-black text-zinc-900 leading-snug mb-4">
+                        <h4 className="text-lg font-black text-zinc-900 leading-snug mb-4">
                           {lessonCache[current.lesson_id].title}
                         </h4>
                         <div className="prose prose-zinc prose-sm max-w-none">
@@ -553,7 +553,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={selectedWordIndex === null && !selectedNoError}
-                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-base shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-bold rounded-3xl text-sm shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
@@ -568,7 +568,7 @@ export function GrammarCheckContent() {
                           <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
                             <Sparkles size={16} /> Note pédagogique
                           </div>
-                          <p className="text-lg font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
+                          <p className="text-sm font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
                           <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
                             {currentParsed.hasError ? (
                               <>Réponse correcte : <span className="underline decoration-wavy">{current?.correct_word}</span></>
@@ -652,7 +652,7 @@ export function GrammarCheckContent() {
               <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
                 <Zap size={14} /> Flash entraînement
               </div>
-              <h4 className="text-xl font-black leading-tight">Lancer une session aléatoire</h4>
+              <h4 className="text-lg font-black leading-tight">Lancer une session aléatoire</h4>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase">
                 <Calendar size={16} /> Entraînement Quotidien
               </div>
@@ -661,7 +661,7 @@ export function GrammarCheckContent() {
 
           <section className="mt-12">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
                 <span className="text-zinc-400">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
