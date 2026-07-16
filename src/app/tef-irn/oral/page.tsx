@@ -28,7 +28,7 @@ export default function OralCoach() {
         throw new Error(data.error);
       }
 
-      const EPHEMERAL_KEY = data.client_secret?.value;
+      const EPHEMERAL_KEY = data.value;
       if (!EPHEMERAL_KEY) {
         throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
       }
@@ -70,10 +70,9 @@ export default function OralCoach() {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // 7. Connect to OpenAI Realtime WebRTC
-      const baseUrl = "https://api.openai.com/v1/realtime";
-      const model = "gpt-4o-realtime-preview-2024-10-01";
-      const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
+      // 7. Connect to OpenAI Realtime WebRTC (endpoint GA, le modèle est déjà
+      // fixé côté serveur lors de la création du jeton éphémère)
+      const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
         method: "POST",
         body: offer.sdp,
         headers: {
