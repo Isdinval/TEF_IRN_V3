@@ -86,8 +86,8 @@ Tu aides uniquement à relancer la parole. Tu ne donnes jamais de contenu prêt 
 
 # FIN DE CONVERSATION
 
-Quand les objectifs sont atteints ou que le temps est presque écoulé : fais une conclusion courte, remercie le candidat, termine l'échange.
-Exemple : "Très bien, merci pour cet échange. C'est la fin de l'exercice. Bonne continuation."
+Quand les objectifs sont atteints ou que le temps est presque écoulé : fais une conclusion courte, remercie le candidat, PUIS appelle immédiatement l'outil "terminer_exercice" pour signaler la fin de l'entretien. N'attends pas de confirmation du candidat pour appeler l'outil.
+Exemple de conclusion avant l'appel d'outil : "Très bien, merci pour cet échange. C'est la fin de l'exercice. Bonne continuation."
 
 ---
 
@@ -181,6 +181,25 @@ export async function GET(request: Request) {
             voice: scenario.voice || DEFAULT_VOICE,
           },
         },
+        tools: [
+          {
+            type: "function",
+            name: "terminer_exercice",
+            description:
+              "À appeler uniquement quand l'examinateur (toi) considère que l'entretien est terminé (objectifs couverts ou temps écoulé), juste après avoir dit une phrase de conclusion au candidat.",
+            parameters: {
+              type: "object",
+              properties: {
+                raison: {
+                  type: "string",
+                  description: "Motif court de la fin de l'exercice (ex: objectifs atteints, temps écoulé).",
+                },
+              },
+              required: ["raison"],
+            },
+          },
+        ],
+        tool_choice: "auto",
       },
     }),
   });

@@ -1,13 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Volume2, MessageSquare, Sparkles } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles } from "lucide-react";
+import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
+import { OralAnalysisView } from "./components/OralAnalysisView";
+import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
 
-type Section = "A" | "B";
-type Level = "A2" | "B1" | "B2";
+type Status = "catalogue" | "connecting" | "active" | "analyzing" | "done";
 
 type ScenarioInfo = {
   id: string;
@@ -19,48 +21,67 @@ type ScenarioInfo = {
   objectifs: string[];
 };
 
-export default function OralCoach() {
-  const [status, setStatus] = useState<"idle" | "connecting" | "active">("idle");
-  const [isListening, setIsListening] = useState(false);
-  const [transcription, setTranscription] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
-  const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+// Filet de sécurité si le coach n'appelle jamais l'outil de fin d'exercice.
+const MAX_SESSION_MS = 4 * 60 * 1000;
 
-  const [section, setSection] = useState<Section>("A");
-  const [level, setLevel] = useState<Level>("B1");
+export default function OralCoach() {
+  const [status, setStatus] = useState<Status>("catalogue");
+  const [isListening, setIsListening] = useState(false);
+  const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+  const [analysis, setAnalysis] = useState<OralAnalysis | null>(null);
+
+  const [allScenarios, setAllScenarios] = useState<ScenarioListItem[]>([]);
+  const [loadingScenarios, setLoadingScenarios] = useState(true);
+  const [filterSection, setFilterSection] = useState<Section | "all">("all");
+  const [filterLevel, setFilterLevel] = useState<Level | "all">("all");
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const turnsRef = useRef<OralTurn[]>([]);
+  const currentCoachTurn = useRef<string>("");
+  const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startSession = async () => {
+  // Force re-render pour afficher la transcription en cours (turnsRef n'est pas réactif seul)
+  const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/oral/scenarios")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.scenarios) setAllScenarios(data.scenarios);
+      })
+      .catch((err) => console.error("Erreur chargement scénarios:", err))
+      .finally(() => setLoadingScenarios(false));
+  }, []);
+
+  const startSession = async (scenarioId?: string) => {
     try {
       setStatus("connecting");
+      turnsRef.current = [];
+      currentCoachTurn.current = "";
 
-      // 1. Récupère le token éphémère + le scénario choisi par le serveur
-      const tokenResponse = await fetch(
-        `/api/oral/session?section=${section}&level=${level}`
-      );
+      const params = new URLSearchParams();
+      if (scenarioId) {
+        params.set("scenarioId", scenarioId);
+      } else {
+        if (filterSection !== "all") params.set("section", filterSection);
+        if (filterLevel !== "all") params.set("level", filterLevel);
+      }
+
+      const tokenResponse = await fetch(`/api/oral/session?${params.toString()}`);
       const data = await tokenResponse.json();
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
 
       const EPHEMERAL_KEY = data.value;
-      if (!EPHEMERAL_KEY) {
-        throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
-      }
+      if (!EPHEMERAL_KEY) throw new Error("Clé éphémère manquante dans la réponse OpenAI.");
 
-      if (data.scenario) {
-        setScenario(data.scenario as ScenarioInfo);
-      }
+      if (data.scenario) setScenario(data.scenario as ScenarioInfo);
 
-      // 2. Create Peer Connection
       const pc = new RTCPeerConnection();
       peerConnection.current = pc;
 
-      // 3. Set up audio playback
       const audioEl = document.createElement("audio");
       audioEl.autoplay = true;
       audioRef.current = audioEl;
@@ -68,37 +89,46 @@ export default function OralCoach() {
         audioEl.srcObject = e.streams[0];
       };
 
-      // 4. Add local microphone track
       const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
       pc.addTrack(ms.getTracks()[0]);
 
-      // 5. Set up data channel for events (transcription, etc)
       const dc = pc.createDataChannel("oai-events");
       dataChannel.current = dc;
+
+      // TASK 2 : le coach parle en premier dès l'ouverture du canal.
+      dc.onopen = () => {
+        dc.send(JSON.stringify({ type: "response.create" }));
+      };
+
       dc.onmessage = (e) => {
         const event = JSON.parse(e.data);
 
-        // Transcription du candidat (input) — noms d'events inchangés en GA
         if (event.type === "conversation.item.input_audio_transcription.completed") {
-          setTranscription(prev => prev + " " + event.transcript);
+          turnsRef.current = [...turnsRef.current, { role: "candidat", text: event.transcript }];
+          forceTick((t) => t + 1);
         }
 
-        // Transcription du coach IA (output) — noms d'events GA
-        // (TASK 1 fix : "response.audio_transcript.*" était le nom de l'ancienne API beta)
         if (event.type === "response.output_audio_transcript.delta") {
-          setAiResponse(prev => prev + event.delta);
+          currentCoachTurn.current += event.delta;
+          forceTick((t) => t + 1);
         }
         if (event.type === "response.output_audio_transcript.done") {
-          // Réponse terminée
+          if (currentCoachTurn.current.trim()) {
+            turnsRef.current = [...turnsRef.current, { role: "coach", text: currentCoachTurn.current.trim() }];
+          }
+          currentCoachTurn.current = "";
+          forceTick((t) => t + 1);
+        }
+
+        // TASK 3 : le coach décide que l'exercice est terminé.
+        if (event.type === "response.function_call_arguments.done" && event.name === "terminer_exercice") {
+          finishSession("ai");
         }
       };
 
-      // 6. Create and set local description (offer)
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // 7. Connect to OpenAI Realtime WebRTC (endpoint GA, le modèle est déjà
-      // fixé côté serveur lors de la création du jeton éphémère)
       const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
         method: "POST",
         body: offer.sdp,
@@ -116,35 +146,75 @@ export default function OralCoach() {
 
       setStatus("active");
       setIsListening(true);
+
+      sessionTimeout.current = setTimeout(() => finishSession("timeout"), MAX_SESSION_MS);
     } catch (err) {
       console.error("Session start error:", err);
-      setStatus("idle");
+      setStatus("catalogue");
       alert("Erreur lors de la connexion au micro. Vérifiez les autorisations.");
     }
   };
 
-  const stopSession = () => {
+  // TASK 3 (fermeture) + TASK 4 (déclenchement de l'analyse)
+  const finishSession = async (endedBy: "user" | "ai" | "timeout") => {
+    if (sessionTimeout.current) clearTimeout(sessionTimeout.current);
+
     if (peerConnection.current) {
       peerConnection.current.close();
       peerConnection.current = null;
     }
-    setStatus("idle");
     setIsListening(false);
-    setTranscription("");
-    setAiResponse("");
+
+    const transcript = turnsRef.current;
+    const currentScenario = scenario;
+
+    if (!currentScenario || transcript.length === 0) {
+      resetToCatalogue();
+      return;
+    }
+
+    setStatus("analyzing");
+
+    try {
+      const res = await fetch("/api/oral/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript, scenario: currentScenario, endedBy }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setAnalysis(data as OralAnalysis);
+      setStatus("done");
+    } catch (err) {
+      console.error("Analyze error:", err);
+      alert("Erreur lors de l'analyse de la session.");
+      resetToCatalogue();
+    }
+  };
+
+  const resetToCatalogue = () => {
+    setStatus("catalogue");
     setScenario(null);
+    setAnalysis(null);
+    turnsRef.current = [];
+    currentCoachTurn.current = "";
   };
 
   const toggleMic = () => {
     if (peerConnection.current) {
       const senders = peerConnection.current.getSenders();
-      const audioTrack = senders.find(s => s.track?.kind === 'audio')?.track;
+      const audioTrack = senders.find((s) => s.track?.kind === "audio")?.track;
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsListening(audioTrack.enabled);
       }
     }
   };
+
+  const liveTranscript: OralTurn[] = [
+    ...turnsRef.current,
+    ...(currentCoachTurn.current ? [{ role: "coach" as const, text: currentCoachTurn.current }] : []),
+  ];
 
   return (
     <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
@@ -160,7 +230,9 @@ export default function OralCoach() {
             <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
               {scenario
                 ? scenario.sujet
-                : "Choisissez une section et un niveau, puis démarrez la session."}
+                : status === "catalogue"
+                ? "Choisissez un exercice dans le catalogue, ou laissez-vous surprendre."
+                : "Session en cours."}
             </p>
           </div>
           <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
@@ -168,99 +240,80 @@ export default function OralCoach() {
           </Badge>
         </header>
 
-        {status === "idle" && (
-          <div className="flex flex-wrap gap-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Section</span>
-              <div className="flex gap-2">
-                {(["A", "B"] as Section[]).map((s) => (
-                  <Button
-                    key={s}
-                    size="sm"
-                    variant={section === s ? "default" : "outline"}
-                    onClick={() => setSection(s)}
-                  >
-                    Section {s}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Niveau</span>
-              <div className="flex gap-2">
-                {(["A2", "B1", "B2"] as Level[]).map((l) => (
-                  <Button
-                    key={l}
-                    size="sm"
-                    variant={level === l ? "default" : "outline"}
-                    onClick={() => setLevel(l)}
-                  >
-                    {l}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+        {status === "catalogue" && (
+          <ScenarioCatalogue
+            scenarios={allScenarios}
+            loading={loadingScenarios}
+            section={filterSection}
+            level={filterLevel}
+            onSectionChange={setFilterSection}
+            onLevelChange={setFilterLevel}
+            onSelectScenario={(id) => startSession(id)}
+            onSurpriseMe={() => startSession()}
+          />
         )}
 
-        <div className="flex min-h-0 flex-1 flex-col gap-6">
-          <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
-            {status === "active" && isListening && (
-              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
-                {[...Array(12)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="w-2 animate-bounce rounded-full bg-indigo-500"
-                    style={{
-                      height: `${Math.random() * 60 + 20}%`,
-                      animationDelay: `${index * 0.1}s`,
-                      animationDuration: `${0.5 + Math.random()}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+        {(status === "connecting" || status === "active" || status === "analyzing") && (
+          <div className="flex min-h-0 flex-1 flex-col gap-6">
+            <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+              {status === "active" && isListening && (
+                <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
+                  {[...Array(12)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-2 animate-bounce rounded-full bg-indigo-500"
+                      style={{
+                        height: `${Math.random() * 60 + 20}%`,
+                        animationDelay: `${index * 0.1}s`,
+                        animationDuration: `${0.5 + Math.random()}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
 
-            <div className="z-10 flex flex-col items-center gap-6 p-10">
-              <div
-                className={`flex h-36 w-36 items-center justify-center rounded-full transition-all duration-500 ${
-                  status === "active"
-                    ? isListening
-                      ? "bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.6)]"
-                      : "bg-indigo-900"
-                    : "bg-slate-800"
-                }`}
-              >
-                {status === "connecting" ? (
-                  <Loader2 className="animate-spin text-white" size={54} />
-                ) : (
-                  <Mic className="text-white" size={54} />
-                )}
-              </div>
+              <div className="z-10 flex flex-col items-center gap-6 p-10">
+                <div
+                  className={`flex h-36 w-36 items-center justify-center rounded-full transition-all duration-500 ${
+                    status === "active"
+                      ? isListening
+                        ? "bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.6)]"
+                        : "bg-indigo-900"
+                      : "bg-slate-800"
+                  }`}
+                >
+                  {status === "connecting" || status === "analyzing" ? (
+                    <Loader2 className="animate-spin text-white" size={54} />
+                  ) : (
+                    <Mic className="text-white" size={54} />
+                  )}
+                </div>
 
-              <div className="text-center">
-                <h3 className="text-2xl font-black tracking-tight text-white">
-                  {status === "idle" && "Prêt à parler ?"}
-                  {status === "connecting" && "Connexion au Coach..."}
-                  {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
-                </h3>
-                <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
-                  {status === "active"
-                    ? scenario
-                      ? `Vous parlez avec : ${scenario.role_interlocuteur}`
-                      : "Parlez naturellement, comme lors de l'examen."
-                    : "Cliquez sur le bouton ci-dessous pour démarrer la session."}
-                </p>
-              </div>
+                <div className="text-center">
+                  <h3 className="text-2xl font-black tracking-tight text-white">
+                    {status === "connecting" && "Connexion au Coach..."}
+                    {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
+                    {status === "analyzing" && "Analyse de votre passage..."}
+                  </h3>
+                  <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
+                    {status === "active"
+                      ? scenario
+                        ? `Vous parlez avec : ${scenario.role_interlocuteur}`
+                        : "Parlez naturellement, comme lors de l'examen."
+                      : status === "analyzing"
+                      ? "Le coach évalue votre prestation selon la grille officielle TEF IRN."
+                      : "Préparez-vous, le coach va démarrer l'échange."}
+                  </p>
+                </div>
 
-              <div className="flex flex-wrap justify-center gap-4 pt-2">
-                {status === "idle" ? (
-                  <Button size="lg" className="h-14 rounded-2xl bg-indigo-600 px-8 text-base font-black shadow-xl shadow-indigo-900/30 hover:bg-indigo-700" onClick={startSession}>
-                    Démarrer la session
-                  </Button>
-                ) : (
-                  <>
-                    <Button size="lg" variant="outline" className="h-14 rounded-2xl border-white/20 bg-white/10 px-8 font-black text-white hover:bg-white/20" onClick={stopSession}>
+                {status === "active" && (
+                  <div className="flex flex-wrap justify-center gap-4 pt-2">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="h-14 rounded-2xl border-white/20 bg-white/10 px-8 font-black text-white hover:bg-white/20"
+                      onClick={() => finishSession("user")}
+                    >
                       Quitter
                     </Button>
                     <Button
@@ -278,36 +331,31 @@ export default function OralCoach() {
                         </>
                       )}
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
-            </div>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
-              <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-                <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  <MessageSquare size={14} className="text-indigo-500" /> Transcription
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[160px] min-h-[120px] overflow-auto p-6 text-sm font-medium leading-relaxed text-zinc-500">
-                {transcription || "Votre voix apparaîtra ici après chaque phrase..."}
-              </CardContent>
             </Card>
 
-            <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
-              <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-                <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  <Volume2 size={14} className="text-emerald-500" /> Réponse du Coach
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[160px] min-h-[120px] overflow-auto p-6 text-sm font-bold leading-relaxed text-indigo-900">
-                {aiResponse || "Le coach répondra vocalement."}
-              </CardContent>
-            </Card>
+            {status === "active" && liveTranscript.length > 0 && (
+              <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+                <div className="flex max-h-[220px] flex-col gap-3 overflow-auto p-6">
+                  {liveTranscript.map((t, i) => (
+                    <p key={i} className="text-sm leading-relaxed">
+                      <span className={`font-black ${t.role === "candidat" ? "text-indigo-600" : "text-zinc-500"}`}>
+                        {t.role === "candidat" ? "Vous : " : "Coach : "}
+                      </span>
+                      <span className="text-zinc-600">{t.text}</span>
+                    </p>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
-        </div>
+        )}
+
+        {status === "done" && analysis && (
+          <OralAnalysisView analysis={analysis} transcript={turnsRef.current} onRestart={resetToCatalogue} />
+        )}
       </div>
     </div>
   );
