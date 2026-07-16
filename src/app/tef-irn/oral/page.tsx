@@ -121,7 +121,15 @@ export default function OralCoach() {
         }
 
         // TASK 3 : le coach décide que l'exercice est terminé.
-        if (event.type === "response.function_call_arguments.done" && event.name === "terminer_exercice") {
+        // Note : event.name n'est pas fiable sur "response.function_call_arguments.done"
+        // (absent/undefined selon les runs, non documenté par OpenAI). L'event
+        // "response.output_item.done" avec item.type === "function_call" contient
+        // toujours item.name de façon fiable.
+        if (
+          event.type === "response.output_item.done" &&
+          event.item?.type === "function_call" &&
+          event.item?.name === "terminer_exercice"
+        ) {
           finishSession("ai");
         }
       };
