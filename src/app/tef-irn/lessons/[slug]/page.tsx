@@ -29,7 +29,7 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     .from('exercises')
     .select('*')
     .eq('lesson_id', lesson.id)
-    .eq('type', 'qcm')
+    .eq('type', 'qcm_centre_entrainement')
     .limit(1)
     .maybeSingle();
 
