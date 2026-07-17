@@ -1,17 +1,19 @@
-import { createClient as createBrowserClient } from './supabase';
+import { createClient as createServerClient } from './supabase-server';
 
 /**
- * Algorithme SM-2 simplifié pour la répétition espacée (SRS) — Vocabulaire.
- * Utilisé côté client (vocab/page.tsx).
+ * Algorithme SM-2 simplifié pour la répétition espacée (SRS) — Exercices généraux.
+ * Utilisé côté serveur uniquement (api/exercise-complete/route.ts), pour avoir accès
+ * à la session utilisateur (cookies) et respecter la RLS sur user_reviews.
  */
-export async function updateVocabularySRS(userId: string, vocabId: string, isCorrect: boolean) {
-  const supabase = createBrowserClient();
+export async function updateSRS(userId: string, exerciseId: string, score: number) {
+  const supabase = await createServerClient();
+  const isCorrect = score >= 80;
 
   const { data: existing } = await supabase
-    .from('user_vocabulary_reviews')
+    .from('user_reviews')
     .select('*')
     .eq('user_id', userId)
-    .eq('vocab_id', vocabId)
+    .eq('exercise_id', exerciseId)
     .maybeSingle();
 
   let interval = 1;
@@ -35,7 +37,7 @@ export async function updateVocabularySRS(userId: string, vocabId: string, isCor
 
   const payload = {
     user_id: userId,
-    vocab_id: vocabId,
+    exercise_id: exerciseId,
     next_review_at: nextReview.toISOString(),
     interval_days: interval,
     ease_factor: ease,
@@ -44,8 +46,8 @@ export async function updateVocabularySRS(userId: string, vocabId: string, isCor
   };
 
   if (existing) {
-    await supabase.from('user_vocabulary_reviews').update(payload).eq('id', existing.id);
+    await supabase.from('user_reviews').update(payload).eq('id', existing.id);
   } else {
-    await supabase.from('user_vocabulary_reviews').insert(payload);
+    await supabase.from('user_reviews').insert(payload);
   }
 }

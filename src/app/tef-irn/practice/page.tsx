@@ -36,6 +36,7 @@ interface Question {
   tags?: string[];
   is_ai_generated?: boolean;
   id: string;
+  exercise_id: string;
   text: string;
   options: string[];
   correctAnswer: number;
@@ -171,6 +172,7 @@ export function PracticeContent() {
     if (!ex?.content?.questions) return [];
     return ex.content.questions.map((q, idx) => ({
       id: `${ex.id}-${idx}`,
+      exercise_id: ex.id,
       difficulty: ex.difficulty,
       tags: ex.tags,
       is_ai_generated: ex.is_ai_generated,
@@ -377,7 +379,7 @@ export function PracticeContent() {
     if (!user) return;
 
     const finalScore = Math.round((score / questions.length) * 100);
-    const exerciseId = questions[0].id.split('-')[0];
+    const exerciseId = questions[0].exercise_id;
 
     await fetch('/api/exercise-complete', {
       method: 'POST',
