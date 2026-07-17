@@ -31,7 +31,7 @@ Suivez vos performances grâce à un tableau de bord premium et gamifié.
 ### 🧠 Apprentissage Adaptatif (SRS)
 Optimisez votre mémorisation avec notre moteur de répétition espacée (Spaced Repetition System).
 - **SRS Intelligent** : Algorithme SM-2 personnalisé pour le vocabulaire et les exercices.
-- **Moteur de Recommandation** : Suggestions de leçons basées sur vos erreurs récurrentes.
+- **Moteur de Recommandation Unifié** : Un exercice recommandé n'est jamais choisi au hasard — priorité aux révisions dues, puis à la leçon en cours, puis aux points jamais abordés, avec la raison de la recommandation affichée directement à l'écran.
 
 ---
 
