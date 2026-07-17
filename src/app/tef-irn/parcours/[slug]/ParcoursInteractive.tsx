@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useCoachContext } from "@/contexts/CoachContext";
 import { Parcours, Lesson, Exercise, ParcoursProgress } from "@/lib/parcours";
 import { User } from "@supabase/supabase-js";
 import {
@@ -41,6 +42,23 @@ export default function ParcoursInteractive({
 }: ParcoursInteractiveProps) {
   const [progress] = useState(initialProgress);
   const [recommendedExercises] = useState(initialRecommendedExercises);
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    const next = recommendedExercises[0];
+    setPageContext({
+      type: "parcours",
+      category: parcours.category,
+      level: parcours.level,
+      objective: parcours.objective,
+      progress: progress
+        ? { completed: progress.completed, total: progress.total, percent: progress.percent }
+        : undefined,
+      nextExercise: next ? { type: next.type, instructions: next.instructions } : null,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parcours.id, progress, recommendedExercises]);
 
   const lessonsWithStatus = useMemo(() => {
     if (!user || !progress) return allLessons.map(l => ({ ...l, status: 'open' as const }));

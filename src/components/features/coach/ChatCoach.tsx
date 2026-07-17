@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
-  X, Send, Bot, Sparkles, Loader2, MessageCircle, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check
+  X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,60 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { useCoachContext } from '@/contexts/CoachContext';
+import {
+  VICTORY_MASCOT_URLS,
+  PERPLEXED_MASCOT_URLS,
+  NEUTRAL_MASCOT_URLS,
+  THINKING_MASCOT_URLS,
+  pickRandomImage,
+} from '@/data/grammar-check-images';
+
+type CoachMood = 'victorieux' | 'perplexe' | 'neutre' | 'reflechit';
+
+const MASCOT_URLS_BY_MOOD: Record<CoachMood, string[]> = {
+  victorieux: VICTORY_MASCOT_URLS,
+  perplexe: PERPLEXED_MASCOT_URLS,
+  neutre: NEUTRAL_MASCOT_URLS,
+  reflechit: THINKING_MASCOT_URLS,
+};
+
+/** Dernier appel à l'outil set_coach_mood dans un message assistant, si présent. */
+function extractMood(message: any): CoachMood | null {
+  const invocations = message?.toolInvocations as any[] | undefined;
+  if (!invocations) return null;
+  const moodCall = [...invocations].reverse().find((t) => t.toolName === 'set_coach_mood');
+  return moodCall?.result?.mood ?? null;
+}
+
+/** Suggestions dynamiques quand un contexte de page structuré est disponible. */
+function getContextualSuggestions(pageContext: ReturnType<typeof useCoachContext>['pageContext']) {
+  if (!pageContext) return null;
+  switch (pageContext.type) {
+    case 'lesson':
+      return [
+        { label: `Explique-moi "${pageContext.title}"`, prompt: `Peux-tu m'expliquer les points clés de la leçon "${pageContext.title}" de manière simple ?`, icon: BookOpen },
+        { label: "Donne-moi un exemple", prompt: "Donne-moi 3 exemples concrets d'utilisation de ce point de grammaire.", icon: GraduationCap }
+      ];
+    case 'parcours':
+      return [
+        { label: "Quel est mon prochain exercice ?", prompt: "Peux-tu me proposer le prochain exercice adapté à ma progression sur ce parcours ?", icon: Sparkles },
+        { label: "Mes points faibles ici", prompt: `Quelles sont mes erreurs les plus fréquentes sur le thème "${pageContext.category} ${pageContext.level}" ?`, icon: AlertCircle }
+      ];
+    case 'writing':
+      return [
+        { label: "Conseils pour ce sujet", prompt: `Donne-moi des conseils pour bien répondre à ce sujet d'expression écrite : "${pageContext.instructions}"`, icon: PenTool },
+        { label: "Vocabulaire utile", prompt: "Quel vocabulaire formel devrais-je utiliser pour ce type de rédaction ?", icon: BookOpen }
+      ];
+    case 'oral':
+      return [
+        { label: "Aide-moi à préparer ce scénario", prompt: `Comment aborder ce scénario oral : "${pageContext.title}" (${pageContext.sujet}) ?`, icon: GraduationCap },
+        { label: "Phrases utiles", prompt: "Donne-moi quelques phrases toutes faites utiles pour ce type de scénario oral.", icon: Sparkles }
+      ];
+    default:
+      return null;
+  }
+}
 
 const SUGGESTIONS_BY_PATH: Record<string, { label: string; prompt: string; icon: any }[]> = {
   '/dashboard': [
@@ -37,8 +91,11 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const [isMounted, setIsMounted] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const pathname = usePathname();
+  const { pageContext } = useCoachContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [interactionCount, setInteractionCount] = useState(0);
+  // Une seule pose "neutre" tirée par montage, pour éviter que l'avatar change à chaque re-render.
+  const [idleMascotUrl] = useState(() => pickRandomImage(NEUTRAL_MASCOT_URLS));
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,7 +104,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const chat = useChat({
     api: '/api/coach/chat',
     body: {
-        pageContext: pathname,
+        // Contexte structuré (leçon/parcours/writing/oral) si disponible, sinon fallback pathname brut.
+        pageContext: pageContext ?? pathname,
         interactionCount: interactionCount
     },
     initialMessages: [
@@ -63,6 +121,20 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   });
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = chat as any;
+
+  const lastAssistantMessage = [...messages].reverse().find((m: any) => m.role === 'assistant');
+  const currentMood: CoachMood = isLoading ? 'reflechit' : (extractMood(lastAssistantMessage) || 'neutre');
+
+  const [mascotUrl, setMascotUrl] = useState(idleMascotUrl);
+  const previousMoodRef = useRef<CoachMood>('neutre');
+
+  // Ne tire une nouvelle pose que lorsque le mood change réellement (pas à chaque render, ex: frappe clavier).
+  useEffect(() => {
+    if (previousMoodRef.current !== currentMood) {
+      previousMoodRef.current = currentMood;
+      setMascotUrl(currentMood === 'neutre' ? idleMascotUrl : pickRandomImage(MASCOT_URLS_BY_MOOD[currentMood]));
+    }
+  }, [currentMood, idleMascotUrl]);
 
   useEffect(() => {
     if (isMounted && initialMessage && isOpen && messages.length <= 1) {
@@ -84,7 +156,10 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const currentSuggestions = SUGGESTIONS_BY_PATH[Object.keys(SUGGESTIONS_BY_PATH).find(p => pathname?.startsWith(p)) || ''] || DEFAULT_SUGGESTIONS;
+  const currentSuggestions =
+    getContextualSuggestions(pageContext) ||
+    SUGGESTIONS_BY_PATH[Object.keys(SUGGESTIONS_BY_PATH).find(p => pathname?.startsWith(p)) || ''] ||
+    DEFAULT_SUGGESTIONS;
 
   const chatContent = (
     <div className={`flex flex-col bg-white shadow-2xl overflow-hidden ${
@@ -95,8 +170,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {/* Fixed Header */}
       <div className="p-4 bg-indigo-600 text-white flex justify-between items-center shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-white/20 p-2 rounded-xl">
-            <Bot className="w-5 h-5" />
+          <div className="bg-white/20 rounded-xl w-9 h-9 overflow-hidden shrink-0">
+            <img src={mascotUrl} alt="Mascotte LlamaKusi" className="w-full h-full object-contain object-bottom" />
           </div>
           <div>
             <h3 className="font-bold text-sm leading-tight text-white">Coach TEF</h3>
@@ -164,8 +239,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
           {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
-              <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm">
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+              <div className="bg-white p-2 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm w-12 h-12 overflow-hidden">
+                <img src={mascotUrl} alt="Coach TEF réfléchit" className="w-full h-full object-contain" />
               </div>
             </div>
           )}
@@ -258,7 +333,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             }}
             className="absolute inset-0 bg-white/30 rounded-full"
           />
-          <MessageCircle className="w-7 h-7 text-white relative z-10" />
+          <img src={idleMascotUrl} alt="Ouvrir le Coach TEF" className="w-10 h-10 object-contain relative z-10" />
         </Button>
       </motion.div>
     );

@@ -6,6 +6,44 @@ import { z } from 'zod';
 
 export const runtime = 'edge';
 
+// Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
+// Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
+interface CoachPageContext {
+  type: 'lesson' | 'parcours' | 'writing' | 'oral';
+  title?: string;
+  level?: string;
+  category?: string;
+  difficulty?: string;
+  objective?: string;
+  instructions?: string;
+  sujet?: string;
+  objectifs?: string[];
+  progress?: { completed: number; total: number; percent: number };
+  nextExercise?: { type: string; instructions: string } | null;
+}
+
+function describePageContext(pageContext: CoachPageContext | string | undefined): string {
+  if (!pageContext) return 'Dashboard';
+  if (typeof pageContext === 'string') return pageContext; // fallback pathname brut (pages non migrées)
+
+  switch (pageContext.type) {
+    case 'lesson':
+      return `L'utilisateur consulte la leçon "${pageContext.title}" (niveau ${pageContext.level}, catégorie ${pageContext.category}${pageContext.difficulty ? `, difficulté ${pageContext.difficulty}` : ''})${pageContext.objective ? `. Objectif de la leçon : ${pageContext.objective}` : ''}.`;
+    case 'parcours': {
+      const progressLine = pageContext.progress
+        ? ` Progression actuelle : ${pageContext.progress.completed}/${pageContext.progress.total} leçons (${pageContext.progress.percent}%).`
+        : '';
+      return `L'utilisateur est sur le parcours "${pageContext.category} ${pageContext.level}"${pageContext.objective ? ` — objectif : ${pageContext.objective}` : ''}.${progressLine}`;
+    }
+    case 'writing':
+      return `L'utilisateur est en train de rédiger un exercice d'expression écrite (niveau ${pageContext.level}). Sujet : "${pageContext.instructions}".`;
+    case 'oral':
+      return `L'utilisateur est en pleine simulation d'expression orale : "${pageContext.title}" (niveau ${pageContext.level}). Sujet : ${pageContext.sujet}.${pageContext.objectifs?.length ? ` Objectifs : ${pageContext.objectifs.join(', ')}.` : ''}`;
+    default:
+      return 'Dashboard';
+  }
+}
+
 export async function POST(req: Request) {
   const requestId = Math.random().toString(36).substring(7);
 
@@ -79,12 +117,18 @@ LOGIQUE DE RESSOURCES & CONTRAINTES:
     - /vocab -> utilise 'get_vocab_list' pour donner une liste thématique.
 - PROACTIVITÉ: Une fois toutes les 3 interactions (interactionCount: ${interactionCount}), si c'est pertinent, propose une activité directe (ex: "Veux-tu un petit exercice sur ce point ?").
 
+MASCOTTE (obligatoire):
+- À LA TOUTE FIN de chaque tour (après ton message texte), appelle systématiquement l'outil 'set_coach_mood' pour indiquer ton état :
+  - 'victorieux' si l'utilisateur vient de réussir, a une bonne réponse, ou mérite une célébration.
+  - 'perplexe' si l'utilisateur s'est trompé, est confus, ou si tu refuses une question hors-sujet.
+  - 'neutre' dans tous les autres cas (explication neutre, question générale).
+
 CONTRAINTES TECHNIQUES:
 - Uniquement du TEXTE et du MARKDOWN. Pas de pièces jointes.
 - INTERDICTION FORMELLE DE DONNER DES LIENS OU DES URLS.
 - IMPORTANT: Si tu utilises un outil (tool), tu DOIS toujours accompagner le résultat d'un message explicatif ou d'un conseil. Ne laisse jamais une réponse vide.
 
-Page actuelle: ${pageContext || 'Dashboard'}`;
+Contexte de la page actuelle : ${describePageContext(pageContext)}`;
 
     const openai = createOpenAI({ apiKey });
 
@@ -115,10 +159,20 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
           }
         }),
         get_random_exercise: tool({
-            description: 'Donne un lien vers un exercice aléatoire de niveau adapté.',
+            description: 'Donne un exercice adapté au niveau de l\'utilisateur. Si l\'utilisateur est sur un parcours, privilégie la recommandation déjà calculée pour lui plutôt qu\'un tirage aléatoire.',
             parameters: z.object({}),
             execute: async () => {
-                console.log('Tool get_random_exercise called');
+                // Sur /parcours, resolveNextExercises() a déjà tourné côté page — on réutilise
+                // sa recommandation plutôt que de retirer au hasard (cf. dette technique Phase 5).
+                if (pageContext && typeof pageContext === 'object' && pageContext.type === 'parcours' && pageContext.nextExercise) {
+                    console.log('Tool get_random_exercise: reuse resolveNextExercises recommendation');
+                    return {
+                        instructions: pageContext.nextExercise.instructions,
+                        type: pageContext.nextExercise.type
+                    };
+                }
+
+                console.log('Tool get_random_exercise called (fallback aléatoire)');
                 const { data } = await supabase.from('exercises').select('instructions, content, type').eq('level', userLevel).limit(30);
                 if (!data || data.length === 0) return { error: "Désolé, je n'ai pas trouvé d'exercice pour le moment." };
                 const random = data[Math.floor(Math.random() * data.length)];
@@ -127,6 +181,15 @@ Page actuelle: ${pageContext || 'Dashboard'}`;
                     content: random.content,
                     type: random.type
                 };
+            }
+        }),
+        set_coach_mood: tool({
+            description: 'Signale l\'état émotionnel de la mascotte du Coach TEF pour ce tour de conversation. À appeler systématiquement à la fin de chaque réponse.',
+            parameters: z.object({
+                mood: z.enum(['victorieux', 'perplexe', 'neutre']).describe('victorieux = réussite/célébration, perplexe = erreur/confusion/hors-sujet, neutre = sinon')
+            }),
+            execute: async ({ mood }) => {
+                return { mood };
             }
         }),
         get_tef_info: tool({
