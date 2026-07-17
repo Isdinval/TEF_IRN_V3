@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { generateRecommendation, trackUserError } from '@/lib/recommendation-engine';
+import { analyzeUserErrorsAndRecommend, trackUserError } from '@/lib/recommendation-engine';
 import { updateSRS } from '@/lib/srs-engine-server';
 
 export async function POST(req: Request) {
@@ -59,8 +59,6 @@ export async function POST(req: Request) {
 
     // 4. Déclencher le moteur de recommandation
     try {
-      await generateRecommendation(user.id);
-      const { analyzeUserErrorsAndRecommend } = await import('@/lib/recommendation-engine');
       await analyzeUserErrorsAndRecommend(user.id);
     } catch (recoError) {
       console.error("Recommendation engine error:", recoError);

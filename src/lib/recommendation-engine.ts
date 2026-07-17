@@ -38,11 +38,33 @@ export async function trackUserError(userId: string, category: string, subCatego
   }
 }
 
+const MAX_PENDING_RECOMMENDATIONS = 3;
+
 /**
- * Analyse les erreurs récentes de l'utilisateur pour générer des recommandations intelligentes.
+ * Analyse les erreurs récentes de l'utilisateur (user_errors) pour générer une
+ * recommandation de leçon ciblée.
+ *
+ * Seule fonction du moteur : generateRecommendation() a été retirée (Phase 5) —
+ * elle recalculait la même information en re-scannant exercise_attempts + une
+ * jointure exercises à chaque appel, alors que user_errors (Phase 1) est déjà
+ * la source fiable et agrégée pour ce signal. Son seul apport réel, le plafond
+ * à MAX_PENDING_RECOMMENDATIONS pour ne pas empiler les recommandations, est
+ * repris ci-dessous.
  */
 export async function analyzeUserErrorsAndRecommend(userId: string) {
   const supabase = await createClient();
+
+  // 0. Ne pas empiler les recommandations indéfiniment
+  const { data: existingReco } = await supabase
+    .from('recommendations')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('status', 'pending')
+    .limit(MAX_PENDING_RECOMMENDATIONS);
+
+  if (existingReco && existingReco.length >= MAX_PENDING_RECOMMENDATIONS) {
+    return;
+  }
 
   // 1. Récupérer les erreurs les plus fréquentes de l'utilisateur
   const { data: errors } = await supabase
@@ -104,59 +126,4 @@ async function createGenericRecommendation(userId: string) {
     reason: randomOption.reason,
     status: 'pending'
   });
-}
-
-export async function generateRecommendation(userId: string) {
-  const supabase = await createClient();
-
-  // 1. Récupérer les 5 derniers échecs (score < 50)
-  const { data: failures } = await supabase
-    .from('exercise_attempts')
-    .select('*, exercises(category, level)')
-    .eq('user_id', userId)
-    .lt('score', 50)
-    .order('created_at', { ascending: false })
-    .limit(5);
-
-  if (!failures || failures.length === 0) {
-    return null;
-  }
-
-  // 2. Identifier la catégorie la plus problématique
-  const categories = failures.map(f => (f.exercises as any)?.category).filter(Boolean);
-  if (categories.length === 0) return null;
-
-  const mostFrequentCategory = categories.reduce((a, b, i, arr) =>
-    arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
-  );
-
-  // 3. Vérifier s'il y a déjà une recommandation en attente pour cette catégorie
-  const { data: existingReco } = await supabase
-    .from('recommendations')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('status', 'pending')
-    .limit(3);
-
-  if (existingReco && existingReco.length >= 3) {
-    return null;
-  }
-
-  // 4. Trouver une leçon de cette catégorie
-  const { data: suggestion } = await supabase
-    .from('lessons')
-    .select('id, title')
-    .eq('category', mostFrequentCategory.toLowerCase())
-    .limit(1)
-    .single();
-
-  if (suggestion) {
-    await supabase.from('recommendations').insert({
-      user_id: userId,
-      type: 'lesson',
-      reference_id: suggestion.id,
-      reason: `Tu as eu des difficultés récemment en ${mostFrequentCategory}. Cette leçon va t'aider à progresser.`,
-      status: 'pending'
-    });
-  }
 }
