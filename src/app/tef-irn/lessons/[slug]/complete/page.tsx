@@ -155,7 +155,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
                 Bien joué ! 🎉
               </h1>
               <p className="text-2xl text-slate-500 font-medium leading-relaxed">
-                Vous avez terminé la leçon <span className="text-indigo-600 font-black italic block mt-1">"${lesson.title}"</span>
+                Vous avez terminé la leçon <span className="text-indigo-600 font-black italic block mt-1">"{lesson.title}"</span>
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <div className="flex justify-between items-end mb-4">
               <div>
                 <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Ma progression</p>
-                <h3 className="text-2xl font-black text-slate-800">Parcours ${lesson.level}</h3>
+                <h3 className="text-2xl font-black text-slate-800">Parcours {lesson.level}</h3>
               </div>
               <p className="text-2xl font-black text-indigo-600">
                 {progress.completed}/{progress.total}
