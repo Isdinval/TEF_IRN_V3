@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { generateRecommendation, trackUserError } from '@/lib/recommendation-engine';
-import { updateSRS } from '@/lib/srs-engine';
+import { updateSRS } from '@/lib/srs-engine-server';
 
 export async function POST(req: Request) {
   try {
