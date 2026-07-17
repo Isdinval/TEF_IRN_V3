@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { generateRecommendation } from '@/lib/recommendation-engine';
+import { generateRecommendation, trackUserError } from '@/lib/recommendation-engine';
 import { updateSRS } from '@/lib/srs-engine';
 
 export async function POST(req: Request) {
@@ -26,9 +26,6 @@ export async function POST(req: Request) {
     if (attemptError) throw attemptError;
 
     // 2. Mettre à jour les XP du profil
-    // On multiplie par 10 pour que ce soit plus gratifiant (score 100% = 1000 XP)
-    // ou on reste sur 100 XP max. L'utilisateur semble s'attendre à plus.
-    // Mettons un gain de XP fixe + bonus de score.
     const xpGain = Math.round(score);
     const { data: profile } = await supabase
       .from('profiles')
@@ -43,7 +40,24 @@ export async function POST(req: Request) {
 
     if (profileError) console.error("Profile update error:", profileError);
 
-    // 3. Déclencher le moteur de recommandation
+    // 3. Tracker l'erreur si l'exercice est raté (prérequis du moteur de recommandation)
+    if (exerciseId && score < 50) {
+      try {
+        const { data: exerciseData } = await supabase
+          .from('exercises')
+          .select('category')
+          .eq('id', exerciseId)
+          .single();
+
+        if (exerciseData?.category) {
+          await trackUserError(user.id, exerciseData.category);
+        }
+      } catch (errorTrackingError) {
+        console.error("Error tracking failed:", errorTrackingError);
+      }
+    }
+
+    // 4. Déclencher le moteur de recommandation
     try {
       await generateRecommendation(user.id);
       const { analyzeUserErrorsAndRecommend } = await import('@/lib/recommendation-engine');
@@ -52,7 +66,7 @@ export async function POST(req: Request) {
       console.error("Recommendation engine error:", recoError);
     }
 
-    // 4. Mettre à jour l'algorithme de répétition espacée (SRS)
+    // 5. Mettre à jour l'algorithme de répétition espacée (SRS)
     if (exerciseId) {
       try {
         await updateSRS(user.id, exerciseId, score);
