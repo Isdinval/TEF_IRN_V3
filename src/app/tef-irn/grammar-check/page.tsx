@@ -448,28 +448,28 @@ export function GrammarCheckContent() {
           }
         />
 
-        <main className="flex-1 flex items-center justify-center p-6 lg:p-12 overflow-y-auto">
-          <div className="max-w-3xl w-full">
+        <main className="flex-1 flex items-center justify-center p-3 lg:p-4 overflow-y-auto">
+          <div className="max-w-2xl w-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIdx}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -30 }}
-                className="space-y-12"
+                className="space-y-3"
               >
-                <div className="bg-white p-10 lg:p-16 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="w-16 h-16 mx-auto bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 rotate-3 group">
-                      <Target size={28} className="group-hover:scale-110 transition-transform" />
+                <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                   <div className="w-10 h-10 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 rotate-3 group">
+                      <Target size={18} className="group-hover:scale-110 transition-transform" />
                    </div>
 
                    {current?.instructions && (
-                     <div className="inline-block mt-4 px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest">
+                     <div className="inline-block mt-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest">
                        {current.instructions}
                      </div>
                    )}
 
-                  <div className="flex flex-wrap items-center justify-center gap-2 mt-6 relative z-10">
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-3 relative z-10">
                     {currentParsed.tokens.map((token) => {
                       const isSelected = selectedWordIndex === token.index;
                       const isTheError = currentParsed.hasError && token.index === currentParsed.errorIndex;
@@ -497,7 +497,7 @@ export function GrammarCheckContent() {
                           type="button"
                           onClick={() => handleSelectWord(token.index)}
                           disabled={status !== "typing"}
-                          className={`px-3 py-1.5 rounded-2xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
+                          className={`px-3 py-1.5 rounded-xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
                         >
                           {token.display}
                         </button>
@@ -516,11 +516,11 @@ export function GrammarCheckContent() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white">
+                      <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
-                        <h4 className="text-lg font-black text-zinc-900 leading-snug mb-4">
+                        <h4 className="text-base font-black text-zinc-900 leading-snug mb-3">
                           {lessonCache[current.lesson_id].title}
                         </h4>
                         <LessonMarkdown content={lessonCache[current.lesson_id].content} />
@@ -529,13 +529,13 @@ export function GrammarCheckContent() {
                   )}
                 </AnimatePresence>
 
-                <div className="space-y-8">
+                <div className="space-y-3">
                   <div className="relative flex justify-center">
                     <button
                       type="button"
                       onClick={handleSelectNoError}
                       disabled={status !== "typing"}
-                      className={`h-14 px-8 rounded-[2.5rem] border-4 font-black text-sm uppercase tracking-widest transition-all shadow-xl disabled:cursor-default ${
+                      className={`h-11 px-6 rounded-2xl border-4 font-black text-xs uppercase tracking-widest transition-all shadow-lg disabled:cursor-default ${
                         status === "typing"
                           ? selectedNoError
                             ? "border-indigo-600 bg-indigo-600 text-white"
@@ -552,7 +552,7 @@ export function GrammarCheckContent() {
                       Il n'y a pas de faute
                     </button>
                     {status !== "typing" && (
-                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg bg-zinc-900">
+                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg bg-zinc-900">
                         {status === "correct" ? "Excellent !" : "Presque !"}
                        </div>
                     )}
@@ -564,7 +564,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={selectedWordIndex === null && !selectedNoError}
-                          className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-bold rounded-3xl text-sm shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
@@ -573,14 +573,14 @@ export function GrammarCheckContent() {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-6"
+                        className="space-y-2"
                       >
-                        <Card className={`p-8 rounded-[2.5rem] border-none shadow-xl ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
-                          <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
-                            <Sparkles size={16} /> Note pédagogique
+                        <Card className={`p-4 rounded-2xl border-none shadow-lg ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
+                          <div className="flex items-center gap-2 mb-2 opacity-80 text-[9px] font-black uppercase tracking-widest">
+                            <Sparkles size={14} /> Note pédagogique
                           </div>
-                          <p className="text-sm font-bold leading-relaxed italic mb-4">"{current?.explanation}"</p>
-                          <div className="flex items-center gap-2 font-black text-sm uppercase tracking-widest pt-4 border-t border-white/10">
+                          <p className="text-xs font-bold leading-relaxed italic mb-2">"{current?.explanation}"</p>
+                          <div className="flex items-center gap-2 font-black text-xs uppercase tracking-widest pt-2 border-t border-white/10">
                             {currentParsed.hasError ? (
                               <>Réponse correcte : <span className="underline decoration-wavy">{current?.correct_word}</span></>
                             ) : (
@@ -591,10 +591,10 @@ export function GrammarCheckContent() {
 
                         <Button
                           onClick={handleNextAction}
-                          className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-3xl text-sm shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
+                          className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3"
                         >
                           {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
-                          <ArrowRight size={24} />
+                          <ArrowRight size={20} />
                         </Button>
                       </motion.div>
                     )}
