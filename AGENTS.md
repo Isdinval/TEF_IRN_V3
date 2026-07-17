@@ -47,53 +47,55 @@ src/app/
 ├── layout.tsx                # Layout racine (providers, fonts)
 ├── globals.css               # Styles globaux Tailwind v4
 │
-├── admin/
-│   └── generator/            # Interface admin de génération de contenu IA
-│
 ├── api/                      # Route Handlers Next.js 15 (server-side uniquement)
+│   ├── exercise-complete/    # Point d'entrée unique post-exercice (attempts, XP, SRS, recommandations)
 │   └── ...                   # Stripe webhooks, OpenAI, Supabase helpers
 │
 ├── auth/
 │   └── callback/             # Callback OAuth Supabase (magic link, Google, etc.)
 │
-├── correction/               # Correction écrite IA — feedback ligne par ligne
-├── dashboard/                # Tableau de bord utilisateur (radar, historique, stats)
-├── exam/                     # Simulation d'examen TEF IRN complet
-├── exercice-gratuit/         # Page d'exercice sans authentification (acquisition)
-├── grammar-check/            # Vérification grammaticale assistée par IA
-├── guides/                   # Guides TEF IRN (pages publiques SEO)
-├── lessons/                  # Leçons structurées (120 leçons : 4 niveaux × 5 catégories × 6)
-├── login/                    # Authentification (Supabase Auth UI)
-├── onboarding/               # Onboarding post-inscription (niveau initial, objectif)
-├── oral/                     # Coach oral IA — simulation examinateur en temps réel
-├── practice/                 # Exercices adaptatifs généraux
-├── pricing/                  # Page tarifs + intégration Stripe Checkout
-├── profile/                  # Profil utilisateur
-├── settings/                 # Paramètres du compte
-├── vocab/                    # Entraînement vocabulaire
-└── writing/                  # Exercices d'expression écrite
+└── tef-irn/                  # ⚠️ TOUT le produit vit sous ce préfixe de route (voir avertissement ci-dessous)
+    ├── admin/generator/      # Interface admin de génération de contenu IA
+    ├── correction/           # Correction écrite IA — feedback ligne par ligne
+    ├── dashboard/            # Tableau de bord utilisateur (radar, historique, stats)
+    ├── exam/                 # Simulation d'examen TEF IRN complet
+    ├── exercice-gratuit/     # Page d'exercice sans authentification (acquisition)
+    ├── grammar-check/        # Exercices "texte à trous" (type exercises.type = 'trous')
+    ├── guides/               # Guides TEF IRN (pages publiques SEO)
+    ├── lessons/              # Leçons + mini-quiz de fin de leçon (type 'qcm_centre_entrainement')
+    ├── login/                # Authentification (Supabase Auth UI)
+    ├── onboarding/           # Onboarding post-inscription (niveau initial, objectif)
+    ├── oral/                 # Coach oral IA — simulation examinateur en temps réel
+    ├── parcours/             # Parcours d'apprentissage par niveau/catégorie + moteur de recommandation
+    ├── practice/             # Exercices adaptatifs généraux (type 'qcm', 'association')
+    ├── pricing/              # Page tarifs + intégration Stripe Checkout
+    ├── profile/              # Profil utilisateur
+    ├── settings/             # Paramètres du compte
+    ├── vocab/                # Entraînement vocabulaire (SRS dédié)
+    └── writing/              # Exercices d'expression écrite (type 'ecrit')
 
 supabase/
 └── migrations/               # Migrations SQL — NE PAS modifier manuellement, créer un nouveau fichier
 ```
 
-### Routes protégées vs publiques
+### ⚠️ Piège fréquent : le préfixe `/tef-irn/`
 
-| Publique (sans auth) | Protégée (session requise) |
+**Toutes les routes produit sont sous `src/app/tef-irn/`, pas directement sous `src/app/`.** Un agent qui cherche `src/app/practice/page.tsx` ne trouvera rien — le vrai fichier est `src/app/tef-irn/practice/page.tsx`. Le middleware normalise aussi une variante `/tef_irn` (underscore) vers `/tef-irn` (tiret) par redirection 301 — ne pas la retirer.
+
+### Routes protégées vs publiques (source : `src/middleware.ts`, section `protectedRoutes`)
+
+| Protégée (redirige vers `/tef-irn/login` si non connecté) | Publique ou "soft-gated" (accessible sans compte, fonctionnalités réduites) |
 |---|---|
-| `/` | `/dashboard` |
-| `/guides` | `/lessons` |
-| `/pricing` | `/practice` |
-| `/exercice-gratuit` | `/oral` |
-| `/login` | `/correction` |
-| | `/exam` |
-| | `/vocab` |
-| | `/writing` |
-| | `/grammar-check` |
-| | `/profile` |
-| | `/settings` |
-| | `/onboarding` |
-| | `/admin/generator` |
+| `/tef-irn/dashboard` | `/tef-irn/` (landing) |
+| `/tef-irn/practice` | `/tef-irn/guides` |
+| `/tef-irn/writing` | `/tef-irn/pricing` |
+| `/tef-irn/grammar-check` | `/tef-irn/exercice-gratuit` |
+| `/tef-irn/vocab` | `/tef-irn/login` |
+| `/tef-irn/oral` | `/tef-irn/parcours` (soft-gated : consultable sans compte, CTA connexion pour les exercices) |
+| `/tef-irn/coach` | `/tef-irn/lessons` (soft-gated : lecture libre, quiz nécessite un compte) |
+| `/tef-irn/correction` | `/tef-irn/exam`, `/tef-irn/onboarding`, `/tef-irn/admin/generator` (gérés par leur propre logique, pas par le middleware) |
+| `/tef-irn/settings` | |
+| `/tef-irn/profile` | |
 
 ---
 
@@ -132,6 +134,33 @@ supabase/
 
 ---
 
+## Moteur de recommandation d'exercices (`src/lib/`)
+
+Point d'entrée unique côté serveur : `POST /api/exercise-complete` (`src/app/api/exercise-complete/route.ts`). **Les 3 pages qui enregistrent une tentative d'exercice (`practice`, `grammar-check`, le mini-quiz dans `lessons/[slug]`) doivent toutes appeler cette route** — ne jamais réintroduire un `supabase.from('exercise_attempts').insert()` direct côté client, ça prive silencieusement l'utilisateur du tracking d'erreurs, du SRS et des recommandations.
+
+| Fichier | Rôle |
+|---|---|
+| `src/lib/recommendation-resolver.ts` | `resolveNextExercises()` — moteur de sélection unifié, appelé par `/parcours/[slug]` et `/lessons/[slug]/complete`. Priorité stricte par paliers (SRS dû > contexte leçon > jamais tenté > tenté), pas de formule pondérée. |
+| `src/lib/recommendation-engine.ts` | `trackUserError()` (alimente `user_errors`) + `analyzeUserErrorsAndRecommend()` (alimente la table `recommendations` avec une raison textuelle, pour affichage futur côté coach/dashboard). |
+| `src/lib/srs-engine.ts` | `updateVocabularySRS()` — **client navigateur uniquement**, appelé depuis `vocab/page.tsx` (composant client). |
+| `src/lib/srs-engine-server.ts` | `updateSRS()` — **client serveur uniquement** (`@/lib/supabase-server`), appelé depuis `api/exercise-complete/route.ts`. |
+
+**Piège à ne pas réintroduire** : ces deux derniers fichiers ont été séparés volontairement. Mélanger les deux fonctions SRS dans un seul fichier avec les deux clients Supabase importés en haut cassait le build (`next/headers` ne peut pas être bundlé dans un composant client) dès qu'un composant client important une seule des deux fonctions du fichier. Toujours garder une frontière stricte fichier serveur / fichier client pour ce genre d'utilitaire partagé.
+
+### Taxonomie des types d'exercices (`exercises.type`)
+
+Trois types actifs, chacun lié à une page précise — ne pas les confondre, c'est la source de bug la plus fréquente rencontrée sur ce module :
+
+| `type` | Page qui le consomme | Usage |
+|---|---|---|
+| `qcm` | `/tef-irn/practice/[id]` | Entraînement QCM général |
+| `trous` | `/tef-irn/grammar-check/[id]` | Texte à trous |
+| `qcm_centre_entrainement` | `lessons/[slug]/page.tsx` (mini-quiz de fin de leçon) | Un seul exercice par leçon, filtré par `lesson_id` + `type` |
+
+`reformulage`, `ecrit` et `oral` existent dans la contrainte `CHECK` de la table mais ne sont pas consommés par le moteur de recommandation.
+
+---
+
 ## Variables d'environnement requises
 
 ```
@@ -157,6 +186,8 @@ NEXT_PUBLIC_POSTHOG_HOST        (optionnel)
 - ❌ Modifier les fichiers `supabase/migrations/` manuellement sans créer une nouvelle migration
 - ❌ Utiliser `@supabase/auth-helpers-nextjs` — déprécié, remplacé par `@supabase/ssr`
 - ❌ Modifier `src/components/ui/` manuellement (fichiers gérés par shadcn CLI)
+- ❌ Insérer une tentative d'exercice directement (`exercise_attempts.insert()` côté client) au lieu d'appeler `POST /api/exercise-complete` — ça contourne le tracking d'erreurs, le SRS et les recommandations
+- ❌ Mélanger un import `@/lib/supabase` (client) et `@/lib/supabase-server` (serveur) dans le même fichier `src/lib/` partagé entre composants client et server — voir `srs-engine.ts` / `srs-engine-server.ts` pour le pattern correct de séparation
 
 ---
 
@@ -179,7 +210,7 @@ Le **TEF IRN** est un examen de français reconnu par les autorités françaises
 - La demande de **nationalité française**
 - La demande de **carte de résident** (10 ans)
 
-Niveaux cibles : A2 minimum (titre de séjour), B1 (nationalité).
+Niveaux cibles : A2 minimum (titre de séjourpluriannuelle), B1 (arte de résident de longue durée) et B2 (demande de nationalité française). 
 
 Compétences évaluées : compréhension orale, compréhension écrite, expression orale, expression écrite.
 
