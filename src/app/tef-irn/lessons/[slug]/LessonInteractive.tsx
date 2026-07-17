@@ -96,28 +96,33 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
   };
 
   const awardXpOnly = async () => {
-    if (initialUser) {
-      await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
-      await supabase.rpc('increment_xp', { amount: 100 });
-    }
-  };
-
-  const saveResults = async () => {
-    if (initialUser && exercise) {
-      const totalQuestions = exercise.content.questions.length;
-      const finalScore = (score / totalQuestions) * 100;
-      await supabase.from('exercise_attempts').insert({
-        user_id: initialUser.id,
-        exercise_id: exercise.id,
-        score: finalScore,
-        is_completed: true,
-      });
-      if (finalScore >= 50) {
+  const awardXpOnly = async () => {
+      if (initialUser) {
         await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
         await supabase.rpc('increment_xp', { amount: 100 });
       }
-    }
-  };
+    };
+  
+    const saveResults = async () => {
+      if (initialUser && exercise) {
+        const totalQuestions = exercise.content.questions.length;
+        const finalScore = (score / totalQuestions) * 100;
+  
+        await fetch('/api/exercise-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exerciseId: exercise.id,
+            score: finalScore,
+            answers: { correct: score, total: totalQuestions }
+          })
+        });
+  
+        if (finalScore >= 50) {
+          await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
+        }
+      }
+    };
 
   const { main: mainTitle, subtitle } = splitTitle(lesson.title || "");
 
