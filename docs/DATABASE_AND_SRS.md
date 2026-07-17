@@ -9,9 +9,12 @@ Le schéma est structuré pour supporter la progression utilisateur et le conten
 ### Tables Principales
 - **`profiles`** : Informations utilisateur, XP total, niveau, ligue actuelle, et préférences.
 - **`lessons`** : Contenu théorique organisé par niveau (A1-B2) et catégorie.
-- **`exercises`** : Questions de type QCM liées aux leçons.
+- **`exercises`** : Trois types actifs — `qcm` (pratique générale), `trous` (texte à trous), `qcm_centre_entrainement` (mini-quiz de fin de leçon, un par leçon via `lesson_id`). `reformulage`, `ecrit` et `oral` existent dans le schéma mais ne sont pas consommés par le moteur de recommandation.
+- **`exercise_attempts`** : Historique des tentatives (score, complétion), alimenté exclusivement via `POST /api/exercise-complete`.
+- **`user_errors`** : Compteur de fréquence d'erreur par catégorie (`category`, `sub_category`), alimenté à chaque échec (`score < 50`). Source de données du moteur de recommandation.
+- **`recommendations`** : Recommandations de leçons/exercices avec une raison textuelle, générées à partir de `user_errors`.
 - **`exams` & `exam_questions`** : Structure et contenu des simulations d'examen TEF IRN.
-- **`user_reviews`** : Suivi SRS pour les exercices généraux.
+- **`user_reviews`** : Suivi SRS pour les exercices généraux (tous types confondus).
 - **`user_vocabulary_reviews`** : Suivi SRS spécifique au module vocabulaire.
 
 ## 2. Spaced Repetition System (SRS)
@@ -28,11 +31,36 @@ LlamaKusi implémente une variante de l'algorithme **SM-2** pour déterminer la 
 2. **Échec** : L'intervalle est réinitialisé à 1 jour. L'ease factor diminue (-0.2).
 
 ### Implémentation
-Le code source de cette logique se trouve dans `src/lib/srs-engine.ts`.
+
+La logique SM-2 est dupliquée volontairement dans deux fichiers séparés par frontière client/serveur :
+- **`src/lib/srs-engine.ts`** — `updateVocabularySRS()`, appelée côté client depuis `vocab/page.tsx`.
+- **`src/lib/srs-engine-server.ts`** — `updateSRS()`, appelée côté serveur depuis `api/exercise-complete/route.ts`.
+
+Ne pas les fusionner dans un seul fichier : un composant client qui importerait une fonction serveur (laquelle dépend de `next/headers` via `@/lib/supabase-server`) casse le build Next.js.
 
 ## 3. Moteur de Recommandation
 
-Le système analyse les 5 derniers échecs de l'utilisateur pour identifier la catégorie la plus problématique. Il recherche ensuite dans la table `lessons` une ressource non encore complétée pour cette catégorie et l'ajoute à la table `recommendations`.
+### Écriture (déclenchée à chaque tentative d'exercice)
+
+`POST /api/exercise-complete` orchestre, dans l'ordre :
+1. Enregistrement de la tentative dans `exercise_attempts`.
+2. Mise à jour de l'XP (`profiles.total_xp`), proportionnelle au score.
+3. Si `score < 50` : `trackUserError()` incrémente `user_errors` pour la catégorie de l'exercice.
+4. `analyzeUserErrorsAndRecommend()` (`src/lib/recommendation-engine.ts`) : identifie la catégorie la plus fréquente dans `user_errors`, cherche une leçon correspondante, et upsert une entrée dans `recommendations` (plafonnée à 3 recommandations `pending` par utilisateur).
+5. `updateSRS()` : met à jour `user_reviews` pour l'exercice tenté.
+
+### Lecture (côté UI)
+
+`resolveNextExercises()` (`src/lib/recommendation-resolver.ts`) est le point d'entrée unique consommé par `/parcours/[slug]` et `/lessons/[slug]/complete`. Il construit un pool candidat (`exercises` filtré par `level`, et par `category` si fourni), puis classe chaque exercice par palier de priorité stricte — pas de formule pondérée :
+
+0. **Dû au sens SRS** (`user_reviews.next_review_at <= maintenant`)
+1. **Même leçon que le contexte fourni** (`lessonId`), pas encore réussi
+2. **Jamais tenté**
+3. **Déjà tenté**, trié par score croissant (le moins bien réussi en premier)
+
+La "catégorie faible" (`user_errors`) agit comme un critère de tri secondaire, pas comme un palier : dans un pool mono-catégorie (cas de `/parcours/[slug]`, filtré sur la catégorie du parcours), elle n'a mécaniquement aucun effet observable. Elle ne redevient utile que si `resolveNextExercises` est appelée sans `category` (pool multi-catégories sur tout le niveau).
+
+Chaque exercice retourné porte un champ `recommendation_reason` dérivé de son palier, affiché côté UI sur la carte mise en avant (`ExerciseCard` variant `hero`, utilisé sur `/lessons/[slug]/complete`).
 
 ---
 © 2025 LlamaKusi AI
