@@ -40,7 +40,7 @@ export function ExerciseLayout({
 
   if (variant === "compact") {
     return (
-      <header className="bg-white border-b border-zinc-100 px-6 py-4 lg:px-12 sticky top-0 z-50">
+      <header className="bg-white border-b border-zinc-100 px-6 py-3 lg:px-12 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
             {onBack && (
