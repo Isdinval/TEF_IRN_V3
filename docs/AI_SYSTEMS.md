@@ -23,9 +23,9 @@ LlamaKusi utilise les capacités multimodales d'OpenAI pour simuler des interact
 - **Instructions Système** : L'IA adopte le rôle d'un examinateur TEF IRN bienveillant mais rigoureux dans ses relances.
 
 ## 3. Analyse des Erreurs & Recommandations
-Un moteur intelligent analyse les échecs récents pour guider l'utilisateur.
-- **Logique** : Si un utilisateur échoue plusieurs fois sur des exercices de "Conjugaison", le moteur suggère automatiquement une leçon théorique pertinente présente dans la base de données.
-- **Lib** : `src/lib/recommendation-engine.ts`.
+Le moteur de recommandation a deux volets distincts :
+- **Écriture** (`src/lib/recommendation-engine.ts`) : après chaque tentative d'exercice, si un utilisateur échoue (`score < 50`), sa catégorie d'erreur est incrémentée dans `user_errors`. Si un utilisateur échoue plusieurs fois sur des exercices de "Conjugaison", une leçon pertinente est proposée dans la table `recommendations` avec une raison textuelle.
+- **Lecture / sélection** (`src/lib/recommendation-resolver.ts`) : `resolveNextExercises()` est la fonction qui décide réellement quels exercices s'affichent à l'écran (`/parcours/[slug]`, `/lessons/[slug]/complete`), par palier de priorité (SRS dû, contexte de la leçon en cours, jamais tenté, puis score le plus faible) — indépendante de la table `recommendations`, qui sert surtout de signal textuel exploitable ailleurs (coach, dashboard).
 
 ## 4. Sécurité & Coûts
 - **Server-Side Only** : Toutes les clés API OpenAI sont stockées côté serveur et jamais exposées au client.
