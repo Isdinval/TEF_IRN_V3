@@ -11,6 +11,13 @@ export interface ResolveContext {
   lessonId?: string;
 }
 
+const TIER_REASONS: Record<number, string> = {
+  0: 'À réviser aujourd\u2019hui',
+  1: 'Lié à la leçon que tu viens de terminer',
+  2: 'Pour découvrir ce point',
+  3: 'Pour progresser sur ce point'
+};
+
 /**
  * Moteur de recommandation unifié.
  *
@@ -21,6 +28,9 @@ export interface ResolveContext {
  *   1. Même leçon que le contexte fourni (lessonId), pas encore réussi
  *   2. Jamais tenté
  *   3. Déjà tenté, tri par score croissant (le moins bien réussi en premier)
+ *
+ * Chaque exercice retourné porte un champ recommendation_reason dérivé de son palier —
+ * utilisé côté UI pour expliquer pourquoi il est proposé (cf. ExerciseCard variant "hero").
  *
  * La "catégorie faible" (user_errors) n'est pas un palier à part : elle agit comme
  * boost de tri secondaire. Dans un pool mono-catégorie (context.category fourni,
@@ -108,6 +118,7 @@ export async function resolveNextExercises(
       ...ex,
       tier,
       weakCategoryBoost,
+      recommendation_reason: TIER_REASONS[tier],
       is_completed: isCompleted,
       success_rate: successRate,
       attempts_count: exAttempts.length
