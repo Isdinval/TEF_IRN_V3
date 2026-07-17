@@ -96,7 +96,6 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
   };
 
   const awardXpOnly = async () => {
-  const awardXpOnly = async () => {
       if (initialUser) {
         await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
         await supabase.rpc('increment_xp', { amount: 100 });
