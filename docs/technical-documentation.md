@@ -37,7 +37,7 @@ LlamaKusi utilise une approche hybride pour la gestion de l'état :
 ## 5. Base de Données (Supabase)
 - **Migrations** : Toutes les modifications de schéma sont tracées dans `supabase/migrations`.
 - **RLS (Row Level Security)** : La sécurité est gérée au niveau de la base de données. Chaque table possède des politiques strictes garantissant que l'utilisateur ne peut accéder qu'à ses propres données.
-- **Tables clés** : `profiles`, `lessons`, `exercises`, `user_reviews` (SRS), `user_vocabulary_reviews`.
+- **Tables clés** : `profiles`, `lessons`, `exercises`, `exercise_attempts`, `user_errors`, `recommendations`, `user_reviews` (SRS), `user_vocabulary_reviews`.
 
 ## 6. Conventions de Développement
 - **Server Components par défaut** : Optimisation de la performance et du SEO.
@@ -48,4 +48,4 @@ LlamaKusi utilise une approche hybride pour la gestion de l'état :
 Le projet est optimisé pour un déploiement sur **Vercel**, bénéficiant ainsi de la mise à l'échelle automatique des fonctions Edge et de l'optimisation des images.
 
 ---
-Dernière mise à jour : Février 2025
+Dernière mise à jour : Juillet 2026
