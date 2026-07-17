@@ -1,11 +1,12 @@
-import { createClient } from './supabase';
+import { createClient as createBrowserClient } from './supabase';
+import { createClient as createServerClient } from './supabase-server';
 
 /**
  * Algorithme SM-2 simplifié pour la répétition espacée (SRS).
  * Utilisé pour le vocabulaire et les exercices.
  */
 export async function updateSRS(userId: string, exerciseId: string, score: number) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const isCorrect = score >= 80;
 
   const { data: existing } = await supabase
@@ -52,7 +53,7 @@ export async function updateSRS(userId: string, exerciseId: string, score: numbe
 }
 
 export async function updateVocabularySRS(userId: string, vocabId: string, isCorrect: boolean) {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const { data: existing } = await supabase
     .from('user_vocabulary_reviews')
@@ -70,13 +71,10 @@ export async function updateVocabularySRS(userId: string, vocabId: string, isCor
     if (correctCount === 1) interval = 1;
     else if (correctCount === 2) interval = 6;
     else interval = Math.round((existing?.interval_days || 1) * ease);
-
-    // Augmenter légèrement l'ease factor si on maîtrise
     ease = Math.min(3.0, ease + 0.1);
   } else {
     correctCount = 0;
     interval = 1;
-    // Diminuer l'ease factor si on se trompe
     ease = Math.max(1.3, ease - 0.2);
   }
 
