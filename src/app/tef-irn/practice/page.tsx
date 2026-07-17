@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   XCircle,
   ChevronLeft,
+  ChevronUp,
   ArrowRight,
   BookOpen,
   Target,
@@ -20,13 +21,14 @@ import {
   Zap,
   Calendar,
   GraduationCap,
-  Trophy,
   RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import LessonMarkdown from "@/components/shared/LessonMarkdown";
+import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 
 // --- Types ---
 interface Question {
@@ -41,6 +43,7 @@ interface Question {
   category: string;
   instructions: string;
   explanation?: string;
+  lesson_id?: string;
 }
 
 interface ExerciseDB {
@@ -52,6 +55,7 @@ interface ExerciseDB {
   type: string;
   category: string;
   level: string;
+  lesson_id?: string;
   content: {
     explanations?: string[];
     questions: string[];
@@ -81,6 +85,37 @@ export function PracticeContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [lessonVisible, setLessonVisible] = useState(false);
+  const [loadingLesson, setLoadingLesson] = useState(false);
+  const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
+  const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
+
+  const toggleLesson = useCallback(async (lessonId?: string) => {
+    if (!lessonId) return;
+    if (lessonVisible) {
+      setLessonVisible(false);
+      return;
+    }
+    if (!lessonCache[lessonId]) {
+      setLoadingLesson(true);
+      try {
+        const { data, error } = await supabase
+          .from("lessons")
+          .select("title, content")
+          .eq("id", lessonId)
+          .single();
+        if (error) throw error;
+        if (data) {
+          setLessonCache(prev => ({ ...prev, [lessonId]: data as { title: string; content: string } }));
+        }
+      } catch (err) {
+        console.error("Error fetching lesson:", err);
+      } finally {
+        setLoadingLesson(false);
+      }
+    }
+    setLessonVisible(true);
+  }, [lessonVisible, lessonCache, supabase]);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -146,6 +181,7 @@ export function PracticeContent() {
       category: ex.category,
       instructions: ex.instructions,
       explanation: ex.content.explanations?.[idx],
+      lesson_id: ex.lesson_id,
     }));
   };
 
@@ -286,6 +322,30 @@ export function PracticeContent() {
     setIsLoading(false);
   };
 
+  const handleBackToCatalogue = () => {
+    setMode("selection");
+    setScore(0);
+    setCurrentIdx(0);
+    setSelected(null);
+    setIsChecked(false);
+    if (params?.id) {
+      router.push("/tef-irn/practice");
+    }
+  };
+
+  const restartExercise = () => {
+    setScore(0);
+    setCurrentIdx(0);
+    setSelected(null);
+    setIsChecked(false);
+    setLessonVisible(false);
+    if (exerciseIdFromParams) {
+      fetchExerciseById(exerciseIdFromParams);
+    } else {
+      startTraining();
+    }
+  };
+
   const handleSelect = (idx: number) => {
     if (isChecked) return;
     setSelected(idx);
@@ -304,8 +364,10 @@ export function PracticeContent() {
       setCurrentIdx(currentIdx + 1);
       setSelected(null);
       setIsChecked(false);
+      setLessonVisible(false);
     } else {
       await saveScore();
+      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
     }
   };
@@ -347,49 +409,46 @@ export function PracticeContent() {
 
   // SCREEN: RESULT
   if (mode === "result") {
-    const percentage = Math.round((score / questions.length) * 100);
+    const finalPercent = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
-        >
-          <Card className="p-12 text-center rounded-[4rem] shadow-2xl shadow-purple-100 border-none bg-white">
-            <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-8">
-              <Trophy className="text-purple-600" size={48} />
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
+          <img
+            src={resultMascotUrl}
+            alt="Mascotte LlamaKusi célébrant la réussite du QCM"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
+          />
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <p className="text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
+          </div>
+          <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
-            <h2 className="text-4xl font-black mb-2 tracking-tighter uppercase">Félicitations !</h2>
-            <p className="text-zinc-500 font-bold mb-10 italic">Vous progressez vers votre objectif.</p>
-
-            <div className="bg-zinc-50 rounded-[2.5rem] p-10 mb-10 border border-zinc-100">
-               <div className="text-7xl font-black text-purple-600 mb-2 tracking-tighter">{percentage}%</div>
-               <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Score de Précision</div>
+            <div className="w-px h-12 bg-zinc-100" />
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-2xl font-black text-purple-600">{score} / {questions.length}</div>
             </div>
-
-            <div className="space-y-4">
-              <Button
-                className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white font-black rounded-2xl text-lg shadow-xl shadow-purple-200 transition-all active:scale-95"
-                onClick={() => {
-                   setMode("selection");
-                   setScore(0);
-                   setCurrentIdx(0);
-                }}
-              >
-                NOUVEL EXERCICE
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full h-12 text-zinc-400 hover:text-purple-600 font-black rounded-2xl transition-all"
-                onClick={() => router.push('/tef-irn/dashboard')}
-              >
-                RETOUR AU TABLEAU DE BORD
-              </Button>
-              {nextLesson && (
-                <Button onClick={() => nextLesson()} variant="outline" className="w-full h-16 border-2 border-zinc-100 rounded-2xl font-black text-zinc-600">LEÇON SUIVANTE</Button>
-              )}
-            </div>
-          </Card>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handleBackToCatalogue}
+              className="h-16 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+            >RETOURNER AU CATALOGUE</Button>
+            {nextLesson && (
+              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
+            )}
+            <Button
+              variant="ghost"
+              onClick={restartExercise}
+              className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+            >
+              <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
@@ -508,9 +567,25 @@ export function PracticeContent() {
           title="CENTRE D’ENTRAÎNEMENT QCM"
           badge="Coach QCM"
           badgeColor="purple"
-          onBack={() => setMode("selection")}
+          onBack={handleBackToCatalogue}
           rightElement={
             <div className="hidden md:flex items-center gap-6">
+              {currentQuestion?.lesson_id && (
+                <Button
+                  onClick={() => toggleLesson(currentQuestion.lesson_id)}
+                  variant="outline"
+                  className="h-10 rounded-xl border-2 border-purple-100 bg-purple-50 text-purple-600 font-black text-[10px] uppercase tracking-widest hover:bg-purple-100"
+                >
+                  {loadingLesson ? (
+                    <Loader2 size={14} className="mr-2 animate-spin" />
+                  ) : lessonVisible ? (
+                    <ChevronUp size={14} className="mr-2" />
+                  ) : (
+                    <BookOpen size={14} className="mr-2" />
+                  )}
+                  {lessonVisible ? "Masquer la leçon" : "Voir la leçon"}
+                </Button>
+              )}
               <div className="text-right">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Précision</div>
                 <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
@@ -545,20 +620,41 @@ export function PracticeContent() {
                 className="space-y-12"
               >
                 {/* Question Text */}
-                <div className="bg-white p-16 lg:p-24 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-purple-200 rotate-3 group">
-                      <Target size={32} className="group-hover:scale-110 transition-transform" />
+                <div className="bg-white p-10 lg:p-16 rounded-[5rem] shadow-2xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                   <div className="w-16 h-16 mx-auto bg-purple-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-3 group">
+                      <Target size={28} className="group-hover:scale-110 transition-transform" />
                    </div>
 
-                   <h3 className="text-[clamp(1.5rem,3vw+1rem,2.25rem)] font-black text-zinc-900 leading-tight tracking-tight mt-6">
+                   <h3 className="text-xl lg:text-2xl font-black text-zinc-900 leading-tight tracking-tight mt-6 relative z-10">
                     {currentQuestion?.text}
                   </h3>
                   <div className="absolute top-0 right-0 w-80 h-80 bg-purple-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
                 </div>
 
+                <AnimatePresence>
+                  {lessonVisible && currentQuestion?.lesson_id && lessonCache[currentQuestion.lesson_id] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <Card className="p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm bg-white">
+                        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
+                          <BookOpen size={14} /> Leçon associée
+                        </div>
+                        <h4 className="text-lg font-black text-zinc-900 leading-snug mb-4">
+                          {lessonCache[currentQuestion.lesson_id].title}
+                        </h4>
+                        <LessonMarkdown content={lessonCache[currentQuestion.lesson_id].content} />
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Options Grid */}
-                <div className="grid grid-cols-1 gap-5">
+                <div className="grid grid-cols-1 gap-4">
                    <p className="text-center text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-2">Sélectionnez la bonne réponse</p>
                   {currentQuestion?.options.map((option: string, i: number) => {
                     const isCorrect = i === currentQuestion.correctAnswer;
@@ -578,29 +674,29 @@ export function PracticeContent() {
                         whileHover={!isChecked ? { x: 5 } : {}}
                         whileTap={!isChecked ? { scale: 0.98 } : {}}
                         onClick={() => handleSelect(i)}
-                        className={`w-full p-6 lg:p-8 rounded-3xl border-2 transition-all text-left font-bold text-lg flex items-center justify-between group ${buttonStyle}`}
+                        className={`w-full p-5 lg:p-6 rounded-3xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
                         disabled={isChecked}
                       >
-                        <div className="flex items-center gap-6">
-                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-colors ${isSelected ? 'bg-purple-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+                        <div className="flex items-center gap-5">
+                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm transition-colors ${isSelected ? 'bg-purple-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
                               {String.fromCharCode(65 + i)}
                            </div>
                            {option}
                         </div>
-                        {isChecked && isCorrect && <CheckCircle2 className="text-emerald-500" size={24} />}
-                        {isChecked && isSelected && !isCorrect && <XCircle className="text-rose-500" size={24} />}
+                        {isChecked && isCorrect && <CheckCircle2 className="text-emerald-500" size={20} />}
+                        {isChecked && isSelected && !isCorrect && <XCircle className="text-rose-500" size={20} />}
                       </motion.button>
                     );
                   })}
                 </div>
 
                 {/* Action Bar */}
-                <div className="pt-8">
+                <div className="pt-2">
                   {!isChecked ? (
                     <Button
                       onClick={handleCheck}
                       disabled={selected === null}
-                      className="w-full h-20 bg-zinc-900 hover:bg-black text-white font-black rounded-3xl text-xl shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                      className="w-full h-14 bg-zinc-900 hover:bg-black text-white font-bold rounded-3xl text-sm shadow-2xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                     >
                       VÉRIFIER MA RÉPONSE
                     </Button>
@@ -615,13 +711,13 @@ export function PracticeContent() {
                             <div className="flex items-center gap-3 mb-3 opacity-80 text-[10px] font-black uppercase tracking-widest">
                                <Sparkles size={16} /> Note pédagogique
                             </div>
-                            <p className="text-lg font-bold leading-relaxed italic">"{currentQuestion.explanation}"</p>
+                            <p className="text-sm font-bold leading-relaxed italic">"{currentQuestion.explanation}"</p>
                          </Card>
                        )}
 
                       <Button
                         onClick={handleNext}
-                        className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white font-black rounded-3xl text-xl shadow-2xl shadow-purple-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-3xl text-sm shadow-2xl shadow-purple-200 transition-all active:scale-95 flex items-center justify-center gap-3"
                       >
                         {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
                         <ArrowRight size={24} />
