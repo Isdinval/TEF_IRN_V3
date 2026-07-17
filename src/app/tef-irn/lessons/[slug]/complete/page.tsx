@@ -3,17 +3,16 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcours, getLessonBySlug, getLessonById } from "@/lib/parcours";
+import { getParcours, getLessonBySlug, getLessonById, Exercise } from "@/lib/parcours";
+import { resolveNextExercises } from "@/lib/recommendation-resolver";
+import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ArrowRight,
   BookOpen,
-  Brain,
-  MessageSquare,
-  GraduationCap,
+  BookText,
   Loader2,
-  ChevronRight,
   Trophy,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +36,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const [lesson, setLesson] = useState<PathLesson | null>(null);
   const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
+  const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
 
   const supabase = createClient();
 
@@ -109,6 +109,14 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
       const currentParcours = allParcours.find(p => p.level === currentLesson?.level && p.category === currentLesson?.category);
       if (currentParcours) setParcoursId(currentParcours.id);
 
+      // Moteur de recommandation unifié : contexte = leçon qu'on vient de terminer
+      const nextExercises = await resolveNextExercises(
+        user.id,
+        { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id },
+        supabase
+      );
+      setRecommendedExercises(nextExercises);
+
       setLoading(false);
     }
     fetchData();
@@ -123,8 +131,6 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   }
 
   if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
-
-  const practiceBaseUrl = (page: string) => `/tef-irn/${page}?lessonId=${lesson.id}&topic=${lesson.category}&level=${lesson.level}`;
 
   return (
     <div className="max-w-6xl mx-auto p-8 py-16 min-h-screen">
@@ -215,73 +221,20 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <div className="h-px bg-zinc-100 flex-1" />
           </div>
 
-          <div className="space-y-6">
-            {/* Grammar Card */}
-            <Link href={practiceBaseUrl('grammar-check')} className="group block">
-              <Card className="relative overflow-hidden border-none shadow-2xl shadow-indigo-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-stretch">
-                  <div className="w-4 bg-indigo-600" />
-                  <div className="flex-1 p-8 flex items-center gap-8">
-                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                      <MessageSquare size={32} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 leading-tight">Corriger un texte</h4>
-                      <p className="text-slate-400 font-bold">Orthographe & Grammaire</p>
-                    </div>
-                    <div className="text-indigo-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      <span>C'est parti</span>
-                      <ChevronRight size={16} />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            {/* QCM Card */}
-            <Link href={practiceBaseUrl('practice')} className="group block">
-              <Card className="relative overflow-hidden border-none shadow-2xl shadow-violet-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-stretch">
-                  <div className="w-4 bg-violet-600" />
-                  <div className="flex-1 p-8 flex items-center gap-8">
-                    <div className="w-16 h-16 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                      <GraduationCap size={32} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 leading-tight">QCM</h4>
-                      <p className="text-slate-400 font-bold">Entraînement rapide</p>
-                    </div>
-                    <div className="text-violet-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      <span>C'est parti</span>
-                      <ChevronRight size={16} />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            {/* Vocab Card */}
-            <Link href={practiceBaseUrl('vocab')} className="group block">
-              <Card className="relative overflow-hidden border-none shadow-2xl shadow-sky-100/50 rounded-[2.5rem] bg-white transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-stretch">
-                  <div className="w-4 bg-sky-600" />
-                  <div className="flex-1 p-8 flex items-center gap-8">
-                    <div className="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-sky-600 group-hover:text-white transition-colors">
-                      <Brain size={32} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-2xl text-slate-800 leading-tight">Vocabulaire</h4>
-                      <p className="text-slate-400 font-bold">Flashcards interactives</p>
-                    </div>
-                    <div className="text-sky-600 font-black text-xs uppercase tracking-[0.2em] flex flex-col items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      <span>C'est parti</span>
-                      <ChevronRight size={16} />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          </div>
+          {recommendedExercises.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6">
+              {recommendedExercises.map((exercise) => (
+                <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcoursId ?? undefined} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
+              <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+                <BookText size={32} className="text-slate-200" />
+              </div>
+              <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
