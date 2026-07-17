@@ -1,6 +1,44 @@
 import { createClient } from './supabase-server';
 
 /**
+ * Incrémente (ou crée) le compteur d'erreurs de l'utilisateur pour une catégorie donnée.
+ * Alimente user_errors, qui est la source de données de analyzeUserErrorsAndRecommend().
+ */
+export async function trackUserError(userId: string, category: string, subCategory: string | null = null) {
+  const supabase = await createClient();
+
+  let existingQuery = supabase
+    .from('user_errors')
+    .select('id, frequency')
+    .eq('user_id', userId)
+    .eq('category', category);
+
+  existingQuery = subCategory
+    ? existingQuery.eq('sub_category', subCategory)
+    : existingQuery.is('sub_category', null);
+
+  const { data: existing } = await existingQuery.maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from('user_errors')
+      .update({
+        frequency: existing.frequency + 1,
+        last_seen_at: new Date().toISOString()
+      })
+      .eq('id', existing.id);
+  } else {
+    await supabase.from('user_errors').insert({
+      user_id: userId,
+      category,
+      sub_category: subCategory,
+      frequency: 1,
+      last_seen_at: new Date().toISOString()
+    });
+  }
+}
+
+/**
  * Analyse les erreurs récentes de l'utilisateur pour générer des recommandations intelligentes.
  */
 export async function analyzeUserErrorsAndRecommend(userId: string) {
