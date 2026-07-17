@@ -267,31 +267,34 @@ export function GrammarCheckContent() {
   };
 
   const handleNextAction = async () => {
-    if (currentIdx < questions.length - 1) {
-      setCurrentIdx(c => c + 1);
-      setSelectedWordIndex(null);
-      setSelectedNoError(false);
-      setStatus("typing");
-      setLessonVisible(false);
-    } else {
-      setMode("result");
-      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
-      const finalScore = Math.round((score / questions.length) * 100);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && exerciseIdFromParams) {
-          await supabase.from("exercise_attempts").insert({
-            exercise_id: exerciseIdFromParams,
-            score: finalScore,
-            is_completed: true,
-            user_id: user.id
-          });
+      if (currentIdx < questions.length - 1) {
+        setCurrentIdx(c => c + 1);
+        setSelectedWordIndex(null);
+        setSelectedNoError(false);
+        setStatus("typing");
+        setLessonVisible(false);
+      } else {
+        setMode("result");
+        setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
+        const finalScore = Math.round((score / questions.length) * 100);
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && exerciseIdFromParams) {
+            await fetch('/api/exercise-complete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                exerciseId: exerciseIdFromParams,
+                score: finalScore,
+                answers: { correct: score, total: questions.length }
+              })
+            });
+          }
+        } catch (err) {
+          console.error("Error saving attempt:", err);
         }
-      } catch (err) {
-        console.error("Error saving attempt:", err);
       }
-    }
-  };
+    };
 
   const toggleLesson = useCallback(async (lessonId?: string) => {
     if (!lessonId) return;
