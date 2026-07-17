@@ -224,51 +224,6 @@ export async function getLessonById(id: string, supabase: SupabaseClient = defau
   return data;
 }
 
-export async function getRecommendedExercises(userId: string, level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Exercise[]> {
-  // Try both capitalized and lower case for category matching in exercises table
-  const exerciseCategory = category.charAt(0).toUpperCase() + category.slice(1);
-
-  const { data: exercises, error: exercisesError } = await supabase
-    .from('exercises')
-    .select('id, lesson_id, type, level, instructions, category, difficulty')
-    .eq('level', level)
-    .or(`category.eq.${exerciseCategory},category.eq.${category}`)
-    .limit(50);
-
-  if (exercisesError || !exercises) return [];
-
-  const exerciseIds = exercises.map((e: { id: string }) => e.id);
-
-  const { data: attempts, error: attemptsError } = await supabase
-    .from('exercise_attempts')
-    .select('exercise_id, score, is_completed')
-    .eq('user_id', userId)
-    .in('exercise_id', exerciseIds);
-
-  if (attemptsError) return exercises.slice(0, 6);
-
-  const exerciseStats = (exercises as Exercise[]).map((ex: Exercise) => {
-    const exAttempts = (attempts || []).filter((a: any) => a.exercise_id === ex.id);
-    const completedAttempts = exAttempts.filter((a: any) => a.is_completed);
-    const successRate = completedAttempts.length > 0
-      ? Math.max(...completedAttempts.map((a: any) => a.score || 0))
-      : 0;
-
-    return {
-      ...ex,
-      success_rate: completedAttempts.length > 0 ? successRate : undefined,
-      attempts_count: exAttempts.length,
-      is_completed: completedAttempts.length > 0
-    };
-  });
-
-  const recommended = exerciseStats.sort((a: any, b: any) => {
-    // 1. Prioritize non-completed
-    if (!a.is_completed && b.is_completed) return -1;
-    if (a.is_completed && !b.is_completed) return 1;
-    // 2. Prioritize low success rate
-    return (a.success_rate || 0) - (b.success_rate || 0);
-  });
-
-  return recommended.slice(0, 6);
-}
+// getRecommendedExercises() a été retirée : remplacée par resolveNextExercises()
+// dans src/lib/recommendation-resolver.ts (Phase 2/3 de la refonte du moteur
+// de recommandation), qui ajoute les paliers SRS et contexte-leçon.

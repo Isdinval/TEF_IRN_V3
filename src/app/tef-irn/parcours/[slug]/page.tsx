@@ -4,9 +4,9 @@ import {
   getParcoursById,
   getLessonsForParcours,
   getParcoursProgress,
-  getRecommendedExercises,
   Exercise
 } from "@/lib/parcours";
+import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { notFound, redirect } from "next/navigation";
 import ParcoursInteractive from "./ParcoursInteractive";
 import JsonLd from "@/components/shared/JsonLd";
@@ -18,7 +18,6 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
 
   let parcours = await getParcoursBySlug(slug, supabase);
 
-  // Backward compatibility
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!parcours && uuidRegex.test(slug)) {
     const parcoursById = await getParcoursById(slug, supabase);
@@ -33,7 +32,6 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
 
   const allLessons = await getLessonsForParcours(parcours.level, parcours.category, supabase);
 
-  // Fetch user session
   const { data: { user } } = await supabase.auth.getUser();
 
   let progress = null;
@@ -42,13 +40,12 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
   if (user) {
     const [progressData, exercisesData] = await Promise.all([
       getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
-      getRecommendedExercises(user.id, parcours.level, parcours.category, supabase)
+      resolveNextExercises(user.id, { level: parcours.level, category: parcours.category }, supabase)
     ]);
     progress = progressData;
     recommendedExercises = exercisesData;
   }
 
-  // Fetch guide slug
   const { data: guideData } = await supabase
     .from('guides')
     .select('slug')
@@ -58,7 +55,6 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
 
   const parcoursUrl = `${siteUrl}/tef-irn/parcours/${parcours.slug}`;
 
-  // Structured Data - Course
   const courseSchema = {
     "@context": "https://schema.org",
     "@type": "Course",
@@ -81,29 +77,13 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
     "learningResourceType": "LearningPath"
   };
 
-  // Structured Data - Breadcrumb
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Accueil",
-        "item": siteUrl
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Parcours",
-        "item": `${siteUrl}/tef-irn/parcours`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": `${parcours.category} ${parcours.level}`,
-        "item": parcoursUrl
-      }
+      { "@type": "ListItem", "position": 1, "name": "Accueil", "item": siteUrl },
+      { "@type": "ListItem", "position": 2, "name": "Parcours", "item": `${siteUrl}/tef-irn/parcours` },
+      { "@type": "ListItem", "position": 3, "name": `${parcours.category} ${parcours.level}`, "item": parcoursUrl }
     ]
   };
 

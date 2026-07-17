@@ -9,8 +9,12 @@ import Link from "next/link";
 import { Exercise } from "@/lib/parcours";
 
 interface ExerciseCardProps {
-  exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean };
+  exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean; recommendation_reason?: string };
   parcoursId?: string;
+  /** "hero" = traitement mis en avant avec la raison de la recommandation affichée.
+   *  Réservé au premier exercice recommandé sur /lessons/[slug]/complete.
+   *  Par défaut "default" : comportement et rendu strictement inchangés (/parcours, /practice). */
+  variant?: 'default' | 'hero';
 }
 
 const typeIcons: Record<string, any> = {
@@ -47,7 +51,7 @@ const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string
   default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
-export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps) {
+export default function ExerciseCard({ exercise, parcoursId, variant = 'default' }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
@@ -77,6 +81,58 @@ export default function ExerciseCard({ exercise, parcoursId }: ExerciseCardProps
         return `/tef-irn/practice/${exercise.id}?${params.toString()}`;
     }
   };
+
+  if (variant === 'hero') {
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.01 }}
+        className="relative"
+      >
+        <div className={`absolute -inset-3 rounded-[3.5rem] ${theme.bg} opacity-70 blur-2xl -z-10`} />
+        <Card className={`relative overflow-hidden border-none shadow-2xl ${theme.shadow} rounded-[3rem] bg-white`}>
+          <div className="flex items-stretch">
+            <div className={`w-3 shrink-0 ${theme.button}`} />
+            <CardContent className="p-8 md:p-10 flex-1 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+              <div className={`w-20 h-20 rounded-[1.75rem] flex items-center justify-center shrink-0 shadow-inner ${theme.bg} ${theme.text}`}>
+                <Icon size={36} />
+              </div>
+
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${theme.text}`}>
+                    {typeLabels[exercise.type] || exercise.type}
+                  </span>
+                  <Badge variant="outline" className={`rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
+                    {difficulty}
+                  </Badge>
+                </div>
+
+                {exercise.recommendation_reason && (
+                  <p className={`text-xs font-black uppercase tracking-widest ${theme.text} flex items-center gap-1.5`}>
+                    <span aria-hidden="true">✦</span> {exercise.recommendation_reason}
+                  </p>
+                )}
+
+                <h3 className="text-2xl font-black text-slate-900 leading-tight">
+                  {exercise.instructions}
+                </h3>
+              </div>
+
+              <Link href={getExerciseUrl()} className="w-full md:w-auto shrink-0">
+                <Button className={`w-full md:w-auto h-16 px-10 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
+                  {isCompleted ? 'REVOIR' : 'COMMENCER'}
+                  <ChevronRight size={20} className="ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
