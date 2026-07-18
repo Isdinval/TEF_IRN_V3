@@ -83,6 +83,7 @@ export default function DashboardPage() {
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
   const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
+  const pending_corrections = data.pending_corrections || 0;
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -103,7 +104,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-12 lg:col-span-8">
-            <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={0} />
+            <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections} />
             {in_progress_parcours.length > 0 && (
               <section className="space-y-6">
                 <div className="flex items-center justify-between">
