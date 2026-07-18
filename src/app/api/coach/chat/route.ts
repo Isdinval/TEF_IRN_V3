@@ -118,10 +118,11 @@ LOGIQUE DE RESSOURCES & CONTRAINTES:
 - PROACTIVITÉ: Une fois toutes les 3 interactions (interactionCount: ${interactionCount}), si c'est pertinent, propose une activité directe (ex: "Veux-tu un petit exercice sur ce point ?").
 
 MASCOTTE (obligatoire):
-- À LA TOUTE FIN de chaque tour (après ton message texte), appelle systématiquement l'outil 'set_coach_mood' pour indiquer ton état :
-  - 'victorieux' si l'utilisateur vient de réussir, a une bonne réponse, ou mérite une célébration.
-  - 'perplexe' si l'utilisateur s'est trompé, est confus, ou si tu refuses une question hors-sujet.
-  - 'neutre' dans tous les autres cas (explication neutre, question générale).
+- À LA TOUTE FIN de ta réponse, sur une nouvelle ligne, ajoute EXACTEMENT une de ces balises, sans aucun texte autour :
+  [[mood:victorieux]] si l'utilisateur vient de réussir, a une bonne réponse, ou mérite une célébration.
+  [[mood:perplexe]] si l'utilisateur s'est trompé, est confus, ou si tu refuses une question hors-sujet.
+  [[mood:neutre]] dans tous les autres cas.
+- N'explique JAMAIS cette balise à l'utilisateur, ne la commente pas, contente-toi de l'ajouter.
 
 CONTRAINTES TECHNIQUES:
 - Uniquement du TEXTE et du MARKDOWN. Pas de pièces jointes.
@@ -181,15 +182,6 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
                     content: random.content,
                     type: random.type
                 };
-            }
-        }),
-        set_coach_mood: tool({
-            description: 'Signale l\'état émotionnel de la mascotte du Coach TEF pour ce tour de conversation. À appeler systématiquement à la fin de chaque réponse.',
-            parameters: z.object({
-                mood: z.enum(['victorieux', 'perplexe', 'neutre']).describe('victorieux = réussite/célébration, perplexe = erreur/confusion/hors-sujet, neutre = sinon')
-            }),
-            execute: async ({ mood }) => {
-                return { mood };
             }
         }),
         get_tef_info: tool({

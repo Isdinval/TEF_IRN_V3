@@ -29,12 +29,21 @@ const MASCOT_URLS_BY_MOOD: Record<CoachMood, string[]> = {
   reflechit: THINKING_MASCOT_URLS,
 };
 
-/** Dernier appel à l'outil set_coach_mood dans un message assistant, si présent. */
-function extractMood(message: any): CoachMood | null {
-  const invocations = message?.toolInvocations as any[] | undefined;
-  if (!invocations) return null;
-  const moodCall = [...invocations].reverse().find((t) => t.toolName === 'set_coach_mood');
-  return moodCall?.result?.mood ?? null;
+/**
+ * Le modèle ajoute une balise [[mood:...]] à la toute fin de sa réponse (voir system prompt).
+ * On l'extrait ici et on la retire de ce qui est affiché/copié — l'utilisateur ne doit jamais la voir.
+ * On masque aussi une balise partielle en cours de streaming (ex: "[[mood:ne") pour éviter un flash de texte brut.
+ */
+function stripMoodTag(content: string): { cleanContent: string; mood: CoachMood | null } {
+  const complete = content.match(/\[\[mood:(victorieux|perplexe|neutre)\]\]\s*$/i);
+  if (complete) {
+    return { cleanContent: content.slice(0, complete.index).trimEnd(), mood: complete[1].toLowerCase() as CoachMood };
+  }
+  const partial = content.match(/\[\[mood:?[a-zé]*\]?\]?$/i);
+  if (partial) {
+    return { cleanContent: content.slice(0, partial.index).trimEnd(), mood: null };
+  }
+  return { cleanContent: content, mood: null };
 }
 
 /** Suggestions dynamiques quand un contexte de page structuré est disponible. */
@@ -123,7 +132,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = chat as any;
 
   const lastAssistantMessage = [...messages].reverse().find((m: any) => m.role === 'assistant');
-  const currentMood: CoachMood = isLoading ? 'reflechit' : (extractMood(lastAssistantMessage) || 'neutre');
+  const currentMood: CoachMood = isLoading ? 'reflechit' : (stripMoodTag(lastAssistantMessage?.content || '').mood || 'neutre');
 
   const [mascotUrl, setMascotUrl] = useState(idleMascotUrl);
   const previousMoodRef = useRef<CoachMood>('neutre');
@@ -170,7 +179,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {/* Fixed Header */}
       <div className="p-4 bg-indigo-600 text-white flex justify-between items-center shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-white/20 rounded-xl w-9 h-9 overflow-hidden shrink-0">
+          <div className="bg-white/20 rounded-xl w-12 h-12 overflow-hidden shrink-0">
             <img src={mascotUrl} alt="Mascotte LlamaKusi" className="w-full h-full object-contain object-bottom" />
           </div>
           <div>
@@ -190,7 +199,9 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {/* Scrollable Area */}
       <ScrollArea className="flex-1 bg-zinc-50/50 h-0">
         <div className="p-4 space-y-6">
-          {messages.filter((m: any) => m.content || m.role === 'user').map((m: any, idx: number) => (
+          {messages.filter((m: any) => m.content || m.role === 'user').map((m: any, idx: number) => {
+            const displayContent = m.role === 'assistant' ? stripMoodTag(m.content || '').cleanContent : m.content;
+            return (
             <motion.div
               key={m.id}
               initial={{ opacity: 0, y: 10 }}
@@ -207,13 +218,13 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                     ? 'prose-invert text-white'
                     : 'text-zinc-800 prose-headings:text-indigo-900 prose-strong:text-indigo-700'
                 }`}>
-                  <ReactMarkdown>{m.content || ''}</ReactMarkdown>
+                  <ReactMarkdown>{displayContent || ''}</ReactMarkdown>
                 </div>
 
                 {m.role === 'assistant' && m.id !== 'welcome' && (
                   <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                        onClick={() => copyToClipboard(m.content, m.id)}
+                        onClick={() => copyToClipboard(displayContent, m.id)}
                         className="p-1 hover:bg-zinc-100 rounded text-zinc-400 hover:text-indigo-600 transition-colors"
                         title="Copier"
                     >
@@ -235,7 +246,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                 )}
               </div>
             </motion.div>
-          ))}
+            );
+          })}
 
           {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
@@ -256,7 +268,10 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
           )}
 
           {messages.length === 1 && !isLoading && (
-            <div className="pt-2 space-y-2">
+            <div className="pt-2 space-y-3">
+                <div className="flex justify-center">
+                  <img src={idleMascotUrl} alt="Mascotte LlamaKusi" className="w-28 h-28 object-contain" />
+                </div>
                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest pl-1">Suggestions</p>
                 <div className="grid grid-cols-1 gap-2">
                     {currentSuggestions.map((s, i) => (
