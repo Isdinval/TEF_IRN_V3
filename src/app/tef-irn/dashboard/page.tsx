@@ -21,6 +21,9 @@ import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
 import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
+import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBanner";
+import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
+import { WeakPointsCard } from "@/components/features/dashboard/new/WeakPointsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -84,12 +87,15 @@ export default function DashboardPage() {
   const reviews_count = data.reviews_count || 0;
   const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
   const pending_corrections = data.pending_corrections || 0;
+  const vocab_reviews_due = data.vocab_reviews_due || 0;
+  const exercise_reviews_due = data.exercise_reviews_due || 0;
+  const vocab_stats = data.vocab_stats || null;
+  const weak_points = Array.isArray(data.weak_points) ? data.weak_points : [];
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
     ? Math.round(competency_radar.reduce((acc: number, curr: any) => acc + (curr?.A || 0), 0) / radarLen)
     : 0;
-  const estimatedScore = avgScore > 0 ? Math.min(Math.round(avgScore * 6.9), 699) : 0;
 
   return (
     <div className="min-h-screen bg-slate-50/30 pb-20">
@@ -101,6 +107,8 @@ export default function DashboardPage() {
           xpGoal={50}
           level={profile.current_level || 'A1'}
         />
+
+        <SrsReviewBanner vocabReviewsDue={vocab_reviews_due} exerciseReviewsDue={exercise_reviews_due} />
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-12 lg:col-span-8">
@@ -146,9 +154,11 @@ export default function DashboardPage() {
           </div>
 
           <aside className="space-y-8 lg:col-span-4">
-            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} estimatedScore={estimatedScore} />
+            <WeakPointsCard weakPoints={weak_points} />
+            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
             <PerformanceRadar data={competency_radar} />
             <XPChart data={xp_last_7_days} />
+            {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
             <SubSkillHeatmap data={sub_competencies} />
           </aside>
         </div>

@@ -13,11 +13,9 @@ interface CompetencyData {
 
 export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
   const defaultData = [
-    { subject: 'ÉCRIT', A: 0, fullMark: 100 },
-    { subject: 'ORAL', A: 0, fullMark: 100 },
-    { subject: 'RÉDACTION', A: 0, fullMark: 100 },
-    { subject: 'PARLER', A: 0, fullMark: 100 },
-    { subject: 'GRAMMAIRE', A: 0, fullMark: 100 },
+    { subject: 'CE', A: 0, fullMark: 100 },
+    { subject: 'EE', A: 0, fullMark: 100 },
+    { subject: 'EO', A: 0, fullMark: 100 },
   ];
 
   const chartData = data && data.length > 0 ? data : defaultData;
