@@ -94,7 +94,7 @@ export function WritingCoachContent() {
     if (!text.trim()) return;
     setIsAnalyzing(true);
     try {
-      const response = await fetch("/api/tef-irn/writing/correct", {
+      const response = await fetch("/api/writing/correct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +119,8 @@ export function WritingCoachContent() {
               text,
               subject: exercise.instructions,
               feedback: data
-            }
+            },
+            aiFeedback: data
           })
         });
 

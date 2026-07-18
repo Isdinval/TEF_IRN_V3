@@ -10,10 +10,10 @@ export async function POST(req: Request) {
 
     if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-    const { exerciseId, score, answers } = await req.json();
+    const { exerciseId, score, answers, aiFeedback } = await req.json();
 
     // 1. Enregistrer la tentative
-    const { error: attemptError } = await supabase
+    const { data: attempt, error: attemptError } = await supabase
       .from('exercise_attempts')
       .insert({
         user_id: user.id,
@@ -21,9 +21,26 @@ export async function POST(req: Request) {
         score,
         answers,
         is_completed: true
-      });
+      })
+      .select('id')
+      .single();
 
     if (attemptError) throw attemptError;
+
+    // 1b. Enregistrer le feedback IA détaillé (écrit), si fourni
+    if (aiFeedback && attempt?.id) {
+      const { error: feedbackError } = await supabase
+        .from('ai_feedback')
+        .insert({
+          attempt_id: attempt.id,
+          overall_score: aiFeedback.score_global,
+          global_comment: aiFeedback.conseil_general,
+          detailed_annotations: aiFeedback.liste_des_erreurs,
+          improved_version: aiFeedback.texte_corrige_complet
+        });
+
+      if (feedbackError) console.error("AI feedback insert error:", feedbackError);
+    }
 
     // 2. Mettre à jour les XP du profil
     const xpGain = Math.round(score);

@@ -82,6 +82,8 @@ export default function DashboardPage() {
   const in_progress_parcours = Array.isArray(data.in_progress_parcours) ? data.in_progress_parcours : [];
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
+  const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
+  const pending_corrections = data.pending_corrections || 0;
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -102,7 +104,32 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-12 lg:col-span-8">
-            <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={0} />
+            <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections} />
+            {in_progress_parcours.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
+                    <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
+                    Mes parcours
+                  </h2>
+                  <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
+                    Tout voir
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {in_progress_parcours.map((p: any) => (
+                    <ParcoursCard
+                      key={p.id}
+                      id={p.id}
+                      slug={p.slug || p.id}
+                      level={p.level}
+                      category={p.category}
+                      progress={p.progress}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
             <section className="space-y-6">
               <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
                 <Badge className="bg-indigo-600 text-white rounded-full">IA Coach</Badge>
@@ -121,7 +148,7 @@ export default function DashboardPage() {
           <aside className="space-y-8 lg:col-span-4">
             <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} estimatedScore={estimatedScore} />
             <PerformanceRadar data={competency_radar} />
-            <XPChart />
+            <XPChart data={xp_last_7_days} />
             <SubSkillHeatmap data={sub_competencies} />
           </aside>
         </div>

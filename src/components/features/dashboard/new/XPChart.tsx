@@ -4,17 +4,14 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 
-const dummyData = [
-  { day: "Lun", xp: 120 },
-  { day: "Mar", xp: 450 },
-  { day: "Mer", xp: 300 },
-  { day: "Jeu", xp: 600 },
-  { day: "Ven", xp: 200 },
-  { day: "Sam", xp: 800 },
-  { day: "Dim", xp: 50 },
-];
+interface XPChartData {
+  day: string;
+  xp: number;
+}
 
-export function XPChart() {
+export function XPChart({ data }: { data: XPChartData[] }) {
+  const hasActivity = data.some((d) => d.xp > 0);
+
   return (
     <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
       <CardContent className="p-8">
@@ -26,8 +23,14 @@ export function XPChart() {
         </div>
 
         <div className="h-[200px] w-full">
+          {!hasActivity ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-center">
+              <p className="text-sm font-bold text-zinc-400">Pas encore d'activité cette semaine</p>
+              <p className="text-xs text-zinc-300">Fais un exercice pour voir ta progression ici</p>
+            </div>
+          ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dummyData}>
+            <AreaChart data={data}>
               <defs>
                 <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -55,6 +58,7 @@ export function XPChart() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>
