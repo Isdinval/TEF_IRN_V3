@@ -1,67 +1,67 @@
-# Base de Données & SRS - LlamaKusi
+# Catalogue de Simulations d'Examen (Oral & Écrit) - Décision d'architecture
 
-LlamaKusi utilise Supabase pour la persistance des données et implémente un système de répétition espacée (SRS) pour optimiser l'apprentissage.
+Ce doc explique **pourquoi** les modules "simulation d'examen" (`/tef-irn/oral`, `/tef-irn/writing`)
+utilisent des tables séparées du système SRS/parcours (`exercises`), et comment ne pas les recasser
+par erreur en y touchant plus tard.
 
-## 1. Schéma de la Base de Données
+## Le principe : deux produits pédagogiques différents, deux pools de contenu
 
-Le schéma est structuré pour supporter la progression utilisateur et le contenu pédagogique.
+| | `exercises` (SRS / parcours) | `oral_exam_scenarios` / `writing_exam_scenarios` |
+|---|---|---|
+| Objectif | Micro-apprentissage : ancrer un point précis (grammaire, conjugaison...) | Simulation d'examen en conditions réelles, choisie librement |
+| Déclenché par | Moteur de recommandation (`resolveNextExercises`), rattaché à une leçon | Choix libre de l'utilisateur dans un catalogue (+ bouton "Surprends-moi") |
+| Rythme | Répétition espacée (SM-2), revient selon l'algorithme SRS | Pas de notion de répétition — c'est un entraînement à la demande |
+| Suivi historique | `exercise_attempts`, `user_reviews`, `user_errors`, XP/gamification | Table dédiée par module (ex: `oral_session_results`) ou pas de suivi SRS |
+| Entrée dans le produit | `/parcours/[slug]`, `/lessons/[slug]/complete`, retry depuis `/correction` | Clic direct nav/bottom-nav sur `/tef-irn/oral` ou `/tef-irn/writing` (sans id) |
 
-### Tables Principales
-- **`profiles`** : Informations utilisateur, XP total, niveau, ligue actuelle, et préférences.
-- **`lessons`** : Contenu théorique organisé par niveau (A1-B2) et catégorie.
-- **`exercises`** : Trois types actifs — `qcm` (pratique générale), `trous` (texte à trous), `qcm_centre_entrainement` (mini-quiz de fin de leçon, un par leçon via `lesson_id`). `reformulage`, `ecrit` et `oral` existent dans le schéma mais ne sont pas consommés par le moteur de recommandation.
-- **`oral_exam_scenarios`** / **`writing_exam_scenarios`** : catalogues de simulation d'examen (oral/écrit), volontairement séparés de `exercises` et du moteur SRS — voir `docs/EXAM_SCENARIOS_CATALOGUE.md` pour la justification de cette séparation et ne pas les fusionner.
-- **`exercise_attempts`** : Historique des tentatives (score, complétion), alimenté exclusivement via `POST /api/exercise-complete`.
-- **`user_errors`** : Compteur de fréquence d'erreur par catégorie (`category`, `sub_category`), alimenté à chaque échec (`score < 50`). Source de données du moteur de recommandation.
-- **`recommendations`** : Recommandations de leçons/exercices avec une raison textuelle, générées à partir de `user_errors`.
-- **`exams` & `exam_questions`** : Structure et contenu des simulations d'examen TEF IRN.
-- **`user_reviews`** : Suivi SRS pour les exercices généraux (tous types confondus).
-- **`user_vocabulary_reviews`** : Suivi SRS spécifique au module vocabulaire.
+**Ces deux pools ne se mélangent jamais.** Une table `*_exam_scenarios` n'hérite d'aucune donnée de
+`exercises`, et inversement. Ajouter un sujet dans l'un n'alimente pas l'autre — ce sont deux banques
+de contenu à écrire séparément, avec des schémas différents (voir `exercises.content` JSONB libre vs
+colonnes structurées `section`/`level`/`min_words`/`duration_seconds` ci-dessous).
 
-## 2. Spaced Repetition System (SRS)
+## Pourquoi cette séparation (et pas une fusion)
 
-LlamaKusi implémente une variante de l'algorithme **SM-2** pour déterminer la date idéale de révision.
+`exercises` est le cœur du moteur de recommandation SRS (`src/lib/recommendation-resolver.ts`),
+avec une FK stricte `exercise_attempts.exercise_id → exercises.id`. Faire porter les scénarios
+d'examen par cette même table obligerait à :
+- réécrire `resolveNextExercises()` pour fusionner deux pools hétérogènes dans un même système de tiers,
+- gérer une FK polymorphe (ou une table d'attempts séparée) pour `exercise_attempts`,
+- adapter `ExerciseCard.tsx`, `correction/page.tsx`, `coach/chat/route.ts` pour deux formes d'exercice.
 
-### Paramètres SRS
-- **Ease Factor (Facilité)** : Un multiplicateur (défaut: 2.5) qui ajuste l'intervalle selon la difficulté ressentie.
-- **Intervalle** : Nombre de jours avant la prochaine révision.
-- **Consecutive Correct** : Nombre de fois que l'utilisateur a réussi l'item d'affilée.
+Pour un bénéfice quasi nul : une simulation d'examen chronométrée n'a pas vocation à être "spacée"
+comme un point de grammaire. Le pattern oral (en place depuis le début, jamais rattaché à `exercises`)
+valide déjà cette séparation en prod — le writing suit le même chemin.
 
-### Logique de mise à jour
-1. **Réussite** : L'intervalle augmente de manière exponentielle (`interval * ease`). L'ease factor augmente légèrement (+0.1).
-2. **Échec** : L'intervalle est réinitialisé à 1 jour. L'ease factor diminue (-0.2).
+> Note historique : `docs/DATABASE_AND_SRS.md` mentionne que les types `ecrit` et `oral` existent
+> dans le schéma `exercises` mais **ne sont pas consommés par le moteur de recommandation**. C'est
+> volontaire et à préserver : `ecrit` reste utilisé par le parcours/SRS pour des drills courts,
+> indépendamment du catalogue décrit ici.
 
-### Implémentation
+## État par module
 
-La logique SM-2 est dupliquée volontairement dans deux fichiers séparés par frontière client/serveur :
-- **`src/lib/srs-engine.ts`** — `updateVocabularySRS()`, appelée côté client depuis `vocab/page.tsx`.
-- **`src/lib/srs-engine-server.ts`** — `updateSRS()`, appelée côté serveur depuis `api/exercise-complete/route.ts`.
+### Oral (`/tef-irn/oral`) — référence
 
-Ne pas les fusionner dans un seul fichier : un composant client qui importerait une fonction serveur (laquelle dépend de `next/headers` via `@/lib/supabase-server`) casse le build Next.js.
+- Table `oral_exam_scenarios` (`section`, `level`, `role_interlocuteur`, `sujet`, `objectifs`, `contraintes`, `voice`).
+- `GET /api/oral/scenarios` → liste pour le catalogue (`ScenarioCatalogue.tsx`).
+- `GET /api/oral/session?scenarioId=...` ou `?section=&level=` (tirage aléatoire = "Surprends-moi").
+- Aucune ligne `type='oral'` n'existe dans `exercises` — le module est 100% indépendant du SRS.
 
-## 3. Moteur de Recommandation
+### Écrit (`/tef-irn/writing`) — nouveau, même pattern
 
-### Écriture (déclenchée à chaque tentative d'exercice)
+- Table `writing_exam_scenarios` (`section` A/B, `level`, `type_texte`, `sujet`, `min_words`, `duration_seconds`, `contraintes`).
+- `GET /api/writing/scenarios` → liste pour `WritingScenarioCatalogue.tsx`.
+- `WritingTimer` se cale sur `duration_seconds` du scénario choisi (au lieu de sniffer le texte des instructions).
+- **4 points d'entrée sur `/tef-irn/writing`, seul le 1er change de comportement :**
+  1. Nav directe sans paramètre → **nouveau** : affiche le catalogue (`writing_exam_scenarios`).
+  2. Parcours SRS (`ExerciseCard.tsx`) → `/writing/[id]` avec un exercice `exercises` (type='ecrit') — **inchangé**.
+  3. Retry depuis `/correction` → `/writing/[id]` — **inchangé**.
+  4. Lien contextuel du coach chat → `/writing/[id]` — **inchangé**.
+- `exercises` (type='ecrit') continue d'être alimenté séparément si on veut plus de drills SRS — ce n'est pas lié à ce chantier et n'alimente jamais `writing_exam_scenarios`.
 
-`POST /api/exercise-complete` orchestre, dans l'ordre :
-1. Enregistrement de la tentative dans `exercise_attempts`.
-2. Mise à jour de l'XP (`profiles.total_xp`), proportionnelle au score.
-3. Si `score < 50` : `trackUserError()` incrémente `user_errors` pour la catégorie de l'exercice.
-4. `analyzeUserErrorsAndRecommend()` (`src/lib/recommendation-engine.ts`) : identifie la catégorie la plus fréquente dans `user_errors`, cherche une leçon correspondante, et upsert une entrée dans `recommendations` (plafonnée à 3 recommandations `pending` par utilisateur).
-5. `updateSRS()` : met à jour `user_reviews` pour l'exercice tenté.
+## Règle à suivre pour tout futur module de simulation (CE, CO...)
 
-### Lecture (côté UI)
-
-`resolveNextExercises()` (`src/lib/recommendation-resolver.ts`) est le point d'entrée unique consommé par `/parcours/[slug]` et `/lessons/[slug]/complete`. Il construit un pool candidat (`exercises` filtré par `level`, et par `category` si fourni), puis classe chaque exercice par palier de priorité stricte — pas de formule pondérée :
-
-0. **Dû au sens SRS** (`user_reviews.next_review_at <= maintenant`)
-1. **Même leçon que le contexte fourni** (`lessonId`), pas encore réussi
-2. **Jamais tenté**
-3. **Déjà tenté**, trié par score croissant (le moins bien réussi en premier)
-
-La "catégorie faible" (`user_errors`) agit comme un critère de tri secondaire, pas comme un palier : dans un pool mono-catégorie (cas de `/parcours/[slug]`, filtré sur la catégorie du parcours), elle n'a mécaniquement aucun effet observable. Elle ne redevient utile que si `resolveNextExercises` est appelée sans `category` (pool multi-catégories sur tout le niveau).
-
-Chaque exercice retourné porte un champ `recommendation_reason` dérivé de son palier, affiché côté UI sur la carte mise en avant (`ExerciseCard` variant `hero`, utilisé sur `/lessons/[slug]/complete`).
+Répliquer ce même pattern : une table `*_exam_scenarios` dédiée, jamais de lien avec `exercises`
+ni avec le moteur SRS. Ça scale proprement sans jamais toucher au cœur du système de recommandation.
 
 ---
 © 2025 LlamaKusi AI
