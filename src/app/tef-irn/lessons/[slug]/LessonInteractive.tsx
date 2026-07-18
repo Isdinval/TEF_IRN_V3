@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 import { splitTitle, parseObjective } from "@/lib/lessons";
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -55,6 +56,20 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    setPageContext({
+      type: "lesson",
+      title: lesson.title,
+      level: lesson.level,
+      category: lesson.category,
+      difficulty: lesson.difficulty,
+      objective: lesson.objective,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id]);
 
   useEffect(() => {
     if (step !== "reading") return;

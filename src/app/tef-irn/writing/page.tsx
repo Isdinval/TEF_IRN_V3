@@ -16,6 +16,7 @@ import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
 import { WritingTimer } from "./components/WritingTimer";
 import { useParcours } from "@/contexts/ParcoursContext";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 const fallbackExercise: WritingExercise = {
   instructions: "Rédigez un court message pour expliquer pourquoi vous souhaitez apprendre le français et vivre en France. (Section A)",
@@ -37,6 +38,14 @@ export function WritingCoachContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { activeParcours } = useParcours();
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    if (loading) return;
+    setPageContext({ type: "writing", instructions: exercise.instructions, level: exercise.level });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, exercise.instructions, exercise.level]);
 
   useEffect(() => {
     async function fetchData() {

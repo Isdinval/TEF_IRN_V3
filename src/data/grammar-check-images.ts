@@ -38,6 +38,25 @@ export const PERPLEXED_MASCOT_URLS: string[] = [
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/perplexe_6_transparent.webp",
 ];
 
+// Poses "neutres" (état par défaut du Coach TEF) — 5 poses seulement, c'est voulu.
+export const NEUTRAL_MASCOT_URLS: string[] = [
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_1_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_2_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_3_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_4_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_5_transparent.webp",
+];
+
+// Poses "reflechit" (état de chargement du Coach TEF, pendant que la réponse arrive).
+export const THINKING_MASCOT_URLS: string[] = [
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_1_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_2_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_3_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_4_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_5_transparent.webp",
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_6_transparent.webp",
+];
+
 // TODO(Olivier): remplacer par l'URL Supabase/CDN de l'aquarelle carrée
 // (fondateurs + llama en train de corriger un texte à table)
 export const CATALOGUE_WATERCOLOR_URL =

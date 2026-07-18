@@ -8,6 +8,7 @@ import { Mic, MicOff, Loader2, Sparkles } from "lucide-react";
 import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
 import { OralAnalysisView } from "./components/OralAnalysisView";
 import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 type Status = "catalogue" | "connecting" | "active" | "analyzing" | "done";
 
@@ -28,6 +29,7 @@ export default function OralCoach() {
   const [status, setStatus] = useState<Status>("catalogue");
   const [isListening, setIsListening] = useState(false);
   const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+  const { setPageContext } = useCoachContext();
   const scenarioRef = useRef<ScenarioInfo | null>(null);
   const [analysis, setAnalysis] = useState<OralAnalysis | null>(null);
 
@@ -45,6 +47,22 @@ export default function OralCoach() {
 
   // Force re-render pour afficher la transcription en cours (turnsRef n'est pas réactif seul)
   const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    if (!scenario) {
+      setPageContext(null);
+      return;
+    }
+    setPageContext({
+      type: "oral",
+      title: scenario.title,
+      sujet: scenario.sujet,
+      objectifs: scenario.objectifs,
+      level: scenario.level,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenario]);
 
   useEffect(() => {
     fetch("/api/oral/scenarios")

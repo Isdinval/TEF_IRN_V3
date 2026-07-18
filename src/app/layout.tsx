@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppLayout } from "@/components/shared/AppLayout";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
+import { CoachProvider } from "@/contexts/CoachContext";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { createClient } from "@/lib/supabase-server";
@@ -125,7 +126,9 @@ export default async function RootLayout({
           <QueryProvider>
             <AuthProvider initialUser={user}>
               <ParcoursWrapper>
-                <AppLayout>{children}</AppLayout>
+                <CoachProvider>
+                  <AppLayout>{children}</AppLayout>
+                </CoachProvider>
               </ParcoursWrapper>
             </AuthProvider>
           </QueryProvider>
