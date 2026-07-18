@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const in_progress_parcours = Array.isArray(data.in_progress_parcours) ? data.in_progress_parcours : [];
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
+  const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -146,7 +147,7 @@ export default function DashboardPage() {
           <aside className="space-y-8 lg:col-span-4">
             <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} estimatedScore={estimatedScore} />
             <PerformanceRadar data={competency_radar} />
-            <XPChart />
+            <XPChart data={xp_last_7_days} />
             <SubSkillHeatmap data={sub_competencies} />
           </aside>
         </div>
