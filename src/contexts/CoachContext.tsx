@@ -26,6 +26,17 @@ export type CoachPageContext =
       level: string;
     }
   | {
+      type: "guide";
+      title: string;
+      level?: string;
+      category?: string;
+      description?: string;
+    }
+  | {
+      type: "browsing";
+      section: "lessons" | "guides";
+    }
+  | {
       type: "oral";
       title: string;
       sujet: string;

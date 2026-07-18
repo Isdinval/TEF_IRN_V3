@@ -3,13 +3,14 @@ import { cookies } from 'next/headers';
 import { streamText, tool } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { resolveNextExercises } from '@/lib/recommendation-resolver';
 
 export const runtime = 'edge';
 
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing';
   title?: string;
   level?: string;
   category?: string;
@@ -18,6 +19,8 @@ interface CoachPageContext {
   instructions?: string;
   sujet?: string;
   objectifs?: string[];
+  description?: string;
+  section?: 'lessons' | 'guides';
   progress?: { completed: number; total: number; percent: number };
   nextExercise?: { type: string; instructions: string } | null;
 }
@@ -39,6 +42,12 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       return `L'utilisateur est en train de rédiger un exercice d'expression écrite (niveau ${pageContext.level}). Sujet : "${pageContext.instructions}".`;
     case 'oral':
       return `L'utilisateur est en pleine simulation d'expression orale : "${pageContext.title}" (niveau ${pageContext.level}). Sujet : ${pageContext.sujet}.${pageContext.objectifs?.length ? ` Objectifs : ${pageContext.objectifs.join(', ')}.` : ''}`;
+    case 'guide':
+      return `L'utilisateur lit le guide "${pageContext.title}"${pageContext.level ? ` (niveau ${pageContext.level})` : ''}${pageContext.category ? `, catégorie ${pageContext.category}` : ''}.${pageContext.description ? ` Résumé : ${pageContext.description}` : ''}`;
+    case 'browsing':
+      return pageContext.section === 'guides'
+        ? `L'utilisateur parcourt la liste des guides TEF IRN, à la recherche d'un guide à lire.`
+        : `L'utilisateur parcourt la liste des leçons, à la recherche d'une leçon à faire.`;
     default:
       return 'Dashboard';
   }
@@ -115,6 +124,7 @@ LOGIQUE DE RESSOURCES & CONTRAINTES:
     - /tef -> utilise 'get_tef_info' pour expliquer les épreuves.
     - /grammaire -> explique un point de grammaire directement.
     - /vocab -> utilise 'get_vocab_list' pour donner une liste thématique.
+- SI l'utilisateur demande "que dois-je faire ensuite ?", "quel est mon prochain parcours/ma prochaine leçon ?", ou toute question sur SA progression personnelle -> utilise 'get_next_recommendation' (ne PAS deviner, cette info dépend de son historique réel).
 - PROACTIVITÉ: Une fois toutes les 3 interactions (interactionCount: ${interactionCount}), si c'est pertinent, propose une activité directe (ex: "Veux-tu un petit exercice sur ce point ?").
 
 MASCOTTE (obligatoire):
@@ -158,6 +168,25 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
             }
             return { resources: results };
           }
+        }),
+        get_next_recommendation: tool({
+            description: 'Donne la ou les prochaines leçons/exercices recommandés pour l\'utilisateur, tous parcours confondus, basé sur son vrai historique (SRS, erreurs, leçons non terminées). À utiliser quand l\'utilisateur demande "que dois-je faire ensuite ?", "quel est mon prochain parcours/leçon ?", etc.',
+            parameters: z.object({}),
+            execute: async () => {
+                console.log('Tool get_next_recommendation called');
+                const recommended = await resolveNextExercises(user.id, { level: userLevel }, supabase, 3);
+                if (recommended.length === 0) {
+                    return { message: "Je n'ai pas encore assez de données pour te faire une recommandation personnalisée. Commence par un exercice et je pourrai mieux te guider ensuite !" };
+                }
+                return {
+                    recommendations: (recommended as any[]).map((ex) => ({
+                        category: ex.category,
+                        type: ex.type,
+                        instructions: ex.instructions,
+                        reason: ex.recommendation_reason
+                    }))
+                };
+            }
         }),
         get_random_exercise: tool({
             description: 'Donne un exercice adapté au niveau de l\'utilisateur. Si l\'utilisateur est sur un parcours, privilégie la recommandation déjà calculée pour lui plutôt qu\'un tirage aléatoire.',
