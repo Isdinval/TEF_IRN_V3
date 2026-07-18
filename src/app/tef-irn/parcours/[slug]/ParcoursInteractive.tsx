@@ -59,7 +59,10 @@ export default function ParcoursInteractive({
         : undefined,
       nextExercise: next
         ? {
+            id: next.id,
             type: next.type,
+            category: next.category,
+            level: next.level,
             instructions: next.instructions,
             lessonId: next.lesson_id ?? undefined,
             lessonTitle: nextLesson?.title,

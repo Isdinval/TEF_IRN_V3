@@ -21,7 +21,10 @@ export type CoachPageContext =
       objective?: string;
       progress?: { completed: number; total: number; percent: number };
       nextExercise?: {
+        id: string;
         type: string;
+        category: string;
+        level: string;
         instructions: string;
         lessonId?: string;
         lessonTitle?: string;

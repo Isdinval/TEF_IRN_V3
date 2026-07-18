@@ -25,12 +25,42 @@ interface CoachPageContext {
   slug?: string;
   nomParcours?: string;
   nextExercise?: {
+    id: string;
     type: string;
+    category: string;
+    level: string;
     instructions: string;
     lessonId?: string;
     lessonTitle?: string;
     lessonSlug?: string;
   } | null;
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
+
+/**
+ * Reproduit EXACTEMENT la logique de src/app/tef-irn/parcours/[slug]/components/ExerciseCard.tsx
+ * (getExerciseUrl) — dupliqué volontairement (edge function isolée, pas d'import cross-runtime
+ * d'un composant client). Si le routing des exercices change côté ExerciseCard, penser à répercuter ici.
+ */
+function buildExerciseUrl(ex: { id: string; type: string; category: string; level: string }): string {
+  const params = new URLSearchParams({ topic: ex.category, level: ex.level });
+  let path: string;
+  switch (ex.type) {
+    case 'trous':
+      path = `/tef-irn/grammar-check/${ex.id}`;
+      break;
+    case 'ecrit':
+      path = `/tef-irn/writing/${ex.id}`;
+      break;
+    case 'qcm':
+    case 'association':
+    case 'qcm_centre_entrainement':
+    default:
+      path = `/tef-irn/practice/${ex.id}`;
+      break;
+  }
+  return `${SITE_URL}${path}?${params.toString()}`;
 }
 
 function describePageContext(pageContext: CoachPageContext | string | undefined): string {
@@ -44,7 +74,7 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       const progressLine = pageContext.progress
         ? ` Progression actuelle : ${pageContext.progress.completed}/${pageContext.progress.total} leçons (${pageContext.progress.percent}%).`
         : '';
-      const linkLine = pageContext.slug ? ` Lien vers ce parcours : /tef-irn/parcours/${pageContext.slug}` : '';
+      const linkLine = pageContext.slug ? ` Lien vers ce parcours : ${SITE_URL}/tef-irn/parcours/${pageContext.slug}` : '';
       return `L'utilisateur est sur le parcours "${pageContext.nomParcours || `${pageContext.category} ${pageContext.level}`}"${pageContext.objective ? ` — objectif : ${pageContext.objective}` : ''}.${progressLine}${linkLine}`;
     }
     case 'writing':
@@ -145,7 +175,7 @@ MASCOTTE (obligatoire):
 
 CONTRAINTES TECHNIQUES:
 - Uniquement du TEXTE et du MARKDOWN. Pas de pièces jointes.
-- INTERDICTION FORMELLE DE DONNER DES LIENS OU DES URLS, SAUF exception unique : si tu as utilisé 'get_next_recommendation', le résultat contient des champs "url" réels et vérifiés (leçon, parcours, exercice) — dans ce cas UNIQUEMENT, cite le nom de la leçon/du parcours sous forme de lien markdown en utilisant EXACTEMENT l'url fournie, par exemple [Nom de la leçon](/tef-irn/lessons/le-slug-fourni). Ne construis JAMAIS une URL toi-même, n'utilise que celles renvoyées par l'outil, et si un champ (lesson/parcours/exercise) est absent ou null, ne l'invente pas, ignore-le simplement.
+- INTERDICTION FORMELLE DE DONNER DES LIENS OU DES URLS, SAUF exception unique : si tu as utilisé 'get_next_recommendation', le résultat contient des champs "url" déjà COMPLETS et ABSOLUS (ex: "https://llamakusi.com/tef-irn/lessons/xxx") — dans ce cas UNIQUEMENT, cite le nom de la leçon/du parcours/de l'exercice sous forme de lien markdown [texte](url) en RECOPIANT L'URL FOURNIE CARACTÈRE PAR CARACTÈRE, sans en changer le début, la fin, ou le domaine. Ne reconstruis JAMAIS une URL toi-même à partir de morceaux, ne raccourcis rien, ne devine rien. Si un champ (lesson/parcours/exercise) est absent ou null, ignore-le simplement, ne comble jamais un champ manquant en inventant une URL plausible.
 - IMPORTANT: Si tu utilises un outil (tool), tu DOIS toujours accompagner le résultat d'un message explicatif ou d'un conseil. Ne laisse jamais une réponse vide.
 
 Contexte de la page actuelle : ${describePageContext(pageContext)}`;
@@ -190,13 +220,13 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
                     const next = pageContext.nextExercise;
                     return {
                         parcours: pageContext.slug
-                            ? { title: pageContext.nomParcours || `${pageContext.category} ${pageContext.level}`, url: `/tef-irn/parcours/${pageContext.slug}` }
+                            ? { title: pageContext.nomParcours || `${pageContext.category} ${pageContext.level}`, url: `${SITE_URL}/tef-irn/parcours/${pageContext.slug}` }
                             : null,
-                        lesson: next.lessonSlug ? { title: next.lessonTitle, url: `/tef-irn/lessons/${next.lessonSlug}` } : null,
+                        lesson: next.lessonSlug ? { title: next.lessonTitle, url: `${SITE_URL}/tef-irn/lessons/${next.lessonSlug}` } : null,
                         exercises: [{
                             instructions: next.instructions,
                             type: next.type,
-                            practiceUrl: next.lessonId ? `/tef-irn/practice?lessonId=${next.lessonId}` : null
+                            practiceUrl: buildExerciseUrl(next)
                         }]
                     };
                 }
@@ -226,13 +256,13 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
                 ]);
 
                 return {
-                    lesson: lesson ? { title: lesson.title, url: `/tef-irn/lessons/${lesson.slug}` } : null,
-                    parcours: parcoursMatch ? { title: parcoursMatch.nom_parcours || `${parcoursMatch.category} ${parcoursMatch.level}`, url: `/tef-irn/parcours/${parcoursMatch.slug}` } : null,
+                    lesson: lesson ? { title: lesson.title, url: `${SITE_URL}/tef-irn/lessons/${lesson.slug}` } : null,
+                    parcours: parcoursMatch ? { title: parcoursMatch.nom_parcours || `${parcoursMatch.category} ${parcoursMatch.level}`, url: `${SITE_URL}/tef-irn/parcours/${parcoursMatch.slug}` } : null,
                     exercises: deduped.map((ex) => ({
                         instructions: ex.instructions,
                         type: ex.type,
                         reason: ex.recommendation_reason,
-                        practiceUrl: ex.lesson_id ? `/tef-irn/practice?lessonId=${ex.lesson_id}` : null
+                        practiceUrl: buildExerciseUrl(ex)
                     }))
                 };
             }
