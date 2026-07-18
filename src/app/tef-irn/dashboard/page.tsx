@@ -103,6 +103,31 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-12 lg:col-span-8">
             <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={0} />
+            {in_progress_parcours.length > 0 && (
+              <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
+                    <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
+                    Mes parcours
+                  </h2>
+                  <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
+                    Tout voir
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {in_progress_parcours.map((p: any) => (
+                    <ParcoursCard
+                      key={p.id}
+                      id={p.id}
+                      slug={p.slug || p.id}
+                      level={p.level}
+                      category={p.category}
+                      progress={p.progress}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
             <section className="space-y-6">
               <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
                 <Badge className="bg-indigo-600 text-white rounded-full">IA Coach</Badge>
