@@ -23,6 +23,7 @@ import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBanner";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
+import { WeakPointsCard } from "@/components/features/dashboard/new/WeakPointsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -89,6 +90,7 @@ export default function DashboardPage() {
   const vocab_reviews_due = data.vocab_reviews_due || 0;
   const exercise_reviews_due = data.exercise_reviews_due || 0;
   const vocab_stats = data.vocab_stats || null;
+  const weak_points = Array.isArray(data.weak_points) ? data.weak_points : [];
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -153,6 +155,7 @@ export default function DashboardPage() {
           </div>
 
           <aside className="space-y-8 lg:col-span-4">
+            <WeakPointsCard weakPoints={weak_points} />
             <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} estimatedScore={estimatedScore} />
             <PerformanceRadar data={competency_radar} />
             <XPChart data={xp_last_7_days} />
