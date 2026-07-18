@@ -96,7 +96,6 @@ export default function DashboardPage() {
   const avgScore = radarLen > 0
     ? Math.round(competency_radar.reduce((acc: number, curr: any) => acc + (curr?.A || 0), 0) / radarLen)
     : 0;
-  const estimatedScore = avgScore > 0 ? Math.min(Math.round(avgScore * 6.9), 699) : 0;
 
   return (
     <div className="min-h-screen bg-slate-50/30 pb-20">
@@ -156,7 +155,7 @@ export default function DashboardPage() {
 
           <aside className="space-y-8 lg:col-span-4">
             <WeakPointsCard weakPoints={weak_points} />
-            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} estimatedScore={estimatedScore} />
+            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
             <PerformanceRadar data={competency_radar} />
             <XPChart data={xp_last_7_days} />
             {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
