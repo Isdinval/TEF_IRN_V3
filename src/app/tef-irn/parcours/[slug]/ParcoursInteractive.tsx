@@ -46,19 +46,30 @@ export default function ParcoursInteractive({
 
   useEffect(() => {
     const next = recommendedExercises[0];
+    const nextLesson = next?.lesson_id ? allLessons.find((l) => l.id === next.lesson_id) : undefined;
     setPageContext({
       type: "parcours",
       category: parcours.category,
       level: parcours.level,
+      slug: parcours.slug,
+      nomParcours: parcours.nom_parcours ?? undefined,
       objective: parcours.objective,
       progress: progress
         ? { completed: progress.completed, total: progress.total, percent: progress.percent }
         : undefined,
-      nextExercise: next ? { type: next.type, instructions: next.instructions } : null,
+      nextExercise: next
+        ? {
+            type: next.type,
+            instructions: next.instructions,
+            lessonId: next.lesson_id ?? undefined,
+            lessonTitle: nextLesson?.title,
+            lessonSlug: nextLesson?.slug,
+          }
+        : null,
     });
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parcours.id, progress, recommendedExercises]);
+  }, [parcours.id, progress, recommendedExercises, allLessons]);
 
   const lessonsWithStatus = useMemo(() => {
     if (!user || !progress) return allLessons.map(l => ({ ...l, status: 'open' as const }));
