@@ -3,13 +3,14 @@ import { cookies } from 'next/headers';
 import { streamText, tool } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { resolveNextExercises } from '@/lib/recommendation-resolver';
 
 export const runtime = 'edge';
 
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing';
   title?: string;
   level?: string;
   category?: string;
@@ -18,8 +19,48 @@ interface CoachPageContext {
   instructions?: string;
   sujet?: string;
   objectifs?: string[];
+  description?: string;
+  section?: 'lessons' | 'guides';
   progress?: { completed: number; total: number; percent: number };
-  nextExercise?: { type: string; instructions: string } | null;
+  slug?: string;
+  nomParcours?: string;
+  nextExercise?: {
+    id: string;
+    type: string;
+    category: string;
+    level: string;
+    instructions: string;
+    lessonId?: string;
+    lessonTitle?: string;
+    lessonSlug?: string;
+  } | null;
+}
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
+
+/**
+ * Reproduit EXACTEMENT la logique de src/app/tef-irn/parcours/[slug]/components/ExerciseCard.tsx
+ * (getExerciseUrl) — dupliqué volontairement (edge function isolée, pas d'import cross-runtime
+ * d'un composant client). Si le routing des exercices change côté ExerciseCard, penser à répercuter ici.
+ */
+function buildExerciseUrl(ex: { id: string; type: string; category: string; level: string }): string {
+  const params = new URLSearchParams({ topic: ex.category, level: ex.level });
+  let path: string;
+  switch (ex.type) {
+    case 'trous':
+      path = `/tef-irn/grammar-check/${ex.id}`;
+      break;
+    case 'ecrit':
+      path = `/tef-irn/writing/${ex.id}`;
+      break;
+    case 'qcm':
+    case 'association':
+    case 'qcm_centre_entrainement':
+    default:
+      path = `/tef-irn/practice/${ex.id}`;
+      break;
+  }
+  return `${SITE_URL}${path}?${params.toString()}`;
 }
 
 function describePageContext(pageContext: CoachPageContext | string | undefined): string {
@@ -33,12 +74,19 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       const progressLine = pageContext.progress
         ? ` Progression actuelle : ${pageContext.progress.completed}/${pageContext.progress.total} leçons (${pageContext.progress.percent}%).`
         : '';
-      return `L'utilisateur est sur le parcours "${pageContext.category} ${pageContext.level}"${pageContext.objective ? ` — objectif : ${pageContext.objective}` : ''}.${progressLine}`;
+      const linkLine = pageContext.slug ? ` Lien vers ce parcours : ${SITE_URL}/tef-irn/parcours/${pageContext.slug}` : '';
+      return `L'utilisateur est sur le parcours "${pageContext.nomParcours || `${pageContext.category} ${pageContext.level}`}"${pageContext.objective ? ` — objectif : ${pageContext.objective}` : ''}.${progressLine}${linkLine}`;
     }
     case 'writing':
       return `L'utilisateur est en train de rédiger un exercice d'expression écrite (niveau ${pageContext.level}). Sujet : "${pageContext.instructions}".`;
     case 'oral':
       return `L'utilisateur est en pleine simulation d'expression orale : "${pageContext.title}" (niveau ${pageContext.level}). Sujet : ${pageContext.sujet}.${pageContext.objectifs?.length ? ` Objectifs : ${pageContext.objectifs.join(', ')}.` : ''}`;
+    case 'guide':
+      return `L'utilisateur lit le guide "${pageContext.title}"${pageContext.level ? ` (niveau ${pageContext.level})` : ''}${pageContext.category ? `, catégorie ${pageContext.category}` : ''}.${pageContext.description ? ` Résumé : ${pageContext.description}` : ''}`;
+    case 'browsing':
+      return pageContext.section === 'guides'
+        ? `L'utilisateur parcourt la liste des guides TEF IRN, à la recherche d'un guide à lire.`
+        : `L'utilisateur parcourt la liste des leçons, à la recherche d'une leçon à faire.`;
     default:
       return 'Dashboard';
   }
@@ -115,6 +163,7 @@ LOGIQUE DE RESSOURCES & CONTRAINTES:
     - /tef -> utilise 'get_tef_info' pour expliquer les épreuves.
     - /grammaire -> explique un point de grammaire directement.
     - /vocab -> utilise 'get_vocab_list' pour donner une liste thématique.
+- SI l'utilisateur demande "que dois-je faire ensuite ?", "quel est mon prochain parcours/ma prochaine leçon ?", ou toute question sur SA progression personnelle -> utilise 'get_next_recommendation' (ne PAS deviner, cette info dépend de son historique réel).
 - PROACTIVITÉ: Une fois toutes les 3 interactions (interactionCount: ${interactionCount}), si c'est pertinent, propose une activité directe (ex: "Veux-tu un petit exercice sur ce point ?").
 
 MASCOTTE (obligatoire):
@@ -126,7 +175,7 @@ MASCOTTE (obligatoire):
 
 CONTRAINTES TECHNIQUES:
 - Uniquement du TEXTE et du MARKDOWN. Pas de pièces jointes.
-- INTERDICTION FORMELLE DE DONNER DES LIENS OU DES URLS.
+- INTERDICTION FORMELLE DE DONNER DES LIENS OU DES URLS, SAUF exception unique : si tu as utilisé 'get_next_recommendation', le résultat contient des champs "url" déjà COMPLETS et ABSOLUS (ex: "https://llamakusi.com/tef-irn/lessons/xxx") — dans ce cas UNIQUEMENT, cite le nom de la leçon/du parcours/de l'exercice sous forme de lien markdown [texte](url) en RECOPIANT L'URL FOURNIE CARACTÈRE PAR CARACTÈRE, sans en changer le début, la fin, ou le domaine. Ne reconstruis JAMAIS une URL toi-même à partir de morceaux, ne raccourcis rien, ne devine rien. Si un champ (lesson/parcours/exercise) est absent ou null, ignore-le simplement, ne comble jamais un champ manquant en inventant une URL plausible.
 - IMPORTANT: Si tu utilises un outil (tool), tu DOIS toujours accompagner le résultat d'un message explicatif ou d'un conseil. Ne laisse jamais une réponse vide.
 
 Contexte de la page actuelle : ${describePageContext(pageContext)}`;
@@ -158,6 +207,65 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
             }
             return { resources: results };
           }
+        }),
+        get_next_recommendation: tool({
+            description: 'Donne la prochaine leçon, le prochain parcours et quelques exercices recommandés pour l\'utilisateur, avec leurs liens réels vers le site. À utiliser quand l\'utilisateur demande "que dois-je faire ensuite ?", "quel est mon prochain parcours/leçon ?", etc.',
+            parameters: z.object({}),
+            execute: async () => {
+                console.log('Tool get_next_recommendation called');
+
+                // Si on est déjà sur /parcours/[slug], la page a déjà calculé sa propre recommandation
+                // (même moteur) — on la réutilise telle quelle plutôt que de relancer une recherche globale.
+                if (pageContext && typeof pageContext === 'object' && pageContext.type === 'parcours' && pageContext.nextExercise) {
+                    const next = pageContext.nextExercise;
+                    return {
+                        parcours: pageContext.slug
+                            ? { title: pageContext.nomParcours || `${pageContext.category} ${pageContext.level}`, url: `${SITE_URL}/tef-irn/parcours/${pageContext.slug}` }
+                            : null,
+                        lesson: next.lessonSlug ? { title: next.lessonTitle, url: `${SITE_URL}/tef-irn/lessons/${next.lessonSlug}` } : null,
+                        exercises: [{
+                            instructions: next.instructions,
+                            type: next.type,
+                            practiceUrl: buildExerciseUrl(next)
+                        }]
+                    };
+                }
+
+                const recommended = (await resolveNextExercises(user.id, { level: userLevel }, supabase, 6)) as any[];
+                if (recommended.length === 0) {
+                    return { message: "Je n'ai pas encore assez de données pour te faire une recommandation personnalisée. Commence par un exercice et je pourrai mieux te guider ensuite !" };
+                }
+
+                // Des doublons de contenu existent en base (mêmes instructions, ids différents) — on les filtre.
+                const seenInstructions = new Set<string>();
+                const deduped = recommended.filter((ex) => {
+                    if (seenInstructions.has(ex.instructions)) return false;
+                    seenInstructions.add(ex.instructions);
+                    return true;
+                }).slice(0, 3);
+
+                const top = deduped[0];
+                const [{ data: lesson }, { data: parcoursMatch }] = await Promise.all([
+                    top.lesson_id
+                        ? supabase.from('lessons').select('title, slug').eq('id', top.lesson_id).maybeSingle()
+                        : Promise.resolve({ data: null }),
+                    supabase.from('parcours').select('slug, nom_parcours, category, level')
+                        .eq('level', userLevel)
+                        .eq('category', String(top.category).toLowerCase())
+                        .maybeSingle()
+                ]);
+
+                return {
+                    lesson: lesson ? { title: lesson.title, url: `${SITE_URL}/tef-irn/lessons/${lesson.slug}` } : null,
+                    parcours: parcoursMatch ? { title: parcoursMatch.nom_parcours || `${parcoursMatch.category} ${parcoursMatch.level}`, url: `${SITE_URL}/tef-irn/parcours/${parcoursMatch.slug}` } : null,
+                    exercises: deduped.map((ex) => ({
+                        instructions: ex.instructions,
+                        type: ex.type,
+                        reason: ex.recommendation_reason,
+                        practiceUrl: buildExerciseUrl(ex)
+                    }))
+                };
+            }
         }),
         get_random_exercise: tool({
             description: 'Donne un exercice adapté au niveau de l\'utilisateur. Si l\'utilisateur est sur un parcours, privilégie la recommandation déjà calculée pour lui plutôt qu\'un tirage aléatoire.',

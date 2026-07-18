@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Sparkles, Clock, ChevronRight, BookOpen } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Guide } from '@/types/guides';
 import GuideCard from '@/components/features/guides/GuideCard';
 import Link from 'next/link';
+import { useCoachContext } from '@/contexts/CoachContext';
 
 export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }) {
   const [guides] = useState<Guide[]>(initialGuides);
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    setPageContext({ type: "browsing", section: "guides" });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeLevel, setActiveLevel] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);

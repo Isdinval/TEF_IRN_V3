@@ -65,6 +65,21 @@ function getContextualSuggestions(pageContext: ReturnType<typeof useCoachContext
         { label: "Conseils pour ce sujet", prompt: `Donne-moi des conseils pour bien répondre à ce sujet d'expression écrite : "${pageContext.instructions}"`, icon: PenTool },
         { label: "Vocabulaire utile", prompt: "Quel vocabulaire formel devrais-je utiliser pour ce type de rédaction ?", icon: BookOpen }
       ];
+    case 'guide':
+      return [
+        { label: "Résume ce guide", prompt: `Peux-tu me résumer les points essentiels du guide "${pageContext.title}" ?`, icon: BookOpen },
+        { label: "Quelle est ma prochaine étape ?", prompt: "Vu ma progression, quelle leçon ou quel parcours me recommandes-tu de faire ensuite ?", icon: Sparkles }
+      ];
+    case 'browsing':
+      return pageContext.section === 'guides'
+        ? [
+            { label: "Quel guide me conseilles-tu ?", prompt: "Parmi les guides disponibles, lequel me conseilles-tu de lire en priorité vu mon niveau et ma progression ?", icon: Sparkles },
+            { label: "C'est quoi le TEF IRN ?", prompt: "Peux-tu m'expliquer le format de l'examen TEF IRN ?", icon: GraduationCap }
+          ]
+        : [
+            { label: "Quelle est ma prochaine leçon ?", prompt: "Vu ma progression, quelle leçon me recommandes-tu de faire ensuite ?", icon: Sparkles },
+            { label: "Comment choisir une leçon ?", prompt: "Comment savoir quelle leçon correspond le mieux à mon niveau actuel ?", icon: GraduationCap }
+          ];
     case 'oral':
       return [
         { label: "Aide-moi à préparer ce scénario", prompt: `Comment aborder ce scénario oral : "${pageContext.title}" (${pageContext.sujet}) ?`, icon: GraduationCap },
@@ -92,7 +107,8 @@ const SUGGESTIONS_BY_PATH: Record<string, { label: string; prompt: string; icon:
 
 const DEFAULT_SUGGESTIONS = [
   { label: "C'est quoi le TEF IRN ?", prompt: "Peux-tu m'expliquer le format de l'examen TEF IRN ?", icon: GraduationCap },
-  { label: "Génère un exercice", prompt: "Génère-moi un petit exercice de grammaire rapide pour m'entraîner.", icon: Sparkles }
+  { label: "Quelle est ma prochaine étape ?", prompt: "Vu ma progression, quelle leçon ou quel parcours me recommandes-tu de faire ensuite ?", icon: Sparkles },
+  { label: "Génère un exercice", prompt: "Génère-moi un petit exercice de grammaire rapide pour m'entraîner.", icon: PenTool }
 ];
 
 export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' | 'full', initialMessage?: string }) {
@@ -268,10 +284,13 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
           )}
 
           {messages.length === 1 && !isLoading && (
-            <div className="pt-2 space-y-3">
-                <div className="flex justify-center">
-                  <img src={idleMascotUrl} alt="Mascotte LlamaKusi" className="w-28 h-28 object-contain" />
-                </div>
+            <div className="flex justify-center pt-2">
+              <img src={idleMascotUrl} alt="Mascotte LlamaKusi" className="w-28 h-28 object-contain" />
+            </div>
+          )}
+
+          {!isLoading && !error && messages[messages.length - 1]?.role === 'assistant' && (
+            <div className="pt-1 space-y-2">
                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest pl-1">Suggestions</p>
                 <div className="grid grid-cols-1 gap-2">
                     {currentSuggestions.map((s, i) => (

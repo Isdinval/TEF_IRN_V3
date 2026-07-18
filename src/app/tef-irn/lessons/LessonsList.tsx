@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Sparkles, Target } from "lucide-react";
 import Link from "next/link";
 import { splitTitle, parseObjective } from "@/lib/lessons";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 interface Lesson {
   slug: string;
@@ -27,6 +28,14 @@ const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string
 };
 
 export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    setPageContext({ type: "browsing", section: "lessons" });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [selectedLevel, setSelectedLevel] = useState("A2");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
 

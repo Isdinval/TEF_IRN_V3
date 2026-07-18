@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +20,23 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Guide } from "@/types/guides";
 import GuideContent from "@/components/features/guides/GuideContent";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 export default function GuideDetail({ guide }: { guide: Guide }) {
   const router = useRouter();
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    setPageContext({
+      type: "guide",
+      title: guide.title,
+      level: guide.level ?? undefined,
+      category: guide.category ?? undefined,
+      description: guide.description ?? undefined,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guide.id]);
 
   const formattedDate = new Date(guide.created_at).toLocaleDateString('fr-FR', {
     day: 'numeric',

@@ -16,14 +16,36 @@ export type CoachPageContext =
       type: "parcours";
       category: string;
       level: string;
+      slug: string;
+      nomParcours?: string;
       objective?: string;
       progress?: { completed: number; total: number; percent: number };
-      nextExercise?: { type: string; instructions: string } | null;
+      nextExercise?: {
+        id: string;
+        type: string;
+        category: string;
+        level: string;
+        instructions: string;
+        lessonId?: string;
+        lessonTitle?: string;
+        lessonSlug?: string;
+      } | null;
     }
   | {
       type: "writing";
       instructions: string;
       level: string;
+    }
+  | {
+      type: "guide";
+      title: string;
+      level?: string;
+      category?: string;
+      description?: string;
+    }
+  | {
+      type: "browsing";
+      section: "lessons" | "guides";
     }
   | {
       type: "oral";
