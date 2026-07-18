@@ -1,28 +1,60 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Target, ChevronRight } from "lucide-react";
+import { TrendingUp, Target, ChevronRight, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+
+interface CompetencyScore {
+  subject: string; // 'CE' | 'EE' | 'EO'
+  A: number; // score moyen 0-100
+}
 
 interface ScoreProjectionProps {
   currentLevel: string;
   goalLevel: string;
-  estimatedScore: number;
+  skills: CompetencyScore[];
 }
 
-export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: ScoreProjectionProps) {
+const SKILL_LABELS: Record<string, string> = {
+  CE: "Compréhension Écrite",
+  EE: "Expression Écrite",
+  EO: "Expression Orale",
+  CO: "Compréhension Orale",
+};
+
+const SKILL_ORDER = ["CO", "CE", "EO", "EE"];
+
+// Convertit un score moyen (0-100%) en estimation de points TEF IRN (0-699)
+function toEstimatedPoints(percentScore: number): number {
+  return Math.min(Math.round(percentScore * 6.99), 699);
+}
+
+function levelFromScore(estimatedScore: number): string {
+  if (estimatedScore >= 500) return "B2+";
+  if (estimatedScore >= 400) return "B1+";
+  if (estimatedScore >= 300) return "B1";
+  if (estimatedScore >= 200) return "A2";
+  return "A2+";
+}
+
+export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjectionProps) {
   const router = useRouter();
 
-  // Logic to map score to level string
-  let levelDisplay = "A2+";
-  if (estimatedScore >= 500) levelDisplay = "B2+";
-  else if (estimatedScore >= 400) levelDisplay = "B1+";
-  else if (estimatedScore >= 300) levelDisplay = "B1";
-  else if (estimatedScore >= 200) levelDisplay = "A2";
+  const bySubject: Record<string, number> = {};
+  skills.forEach((s) => { bySubject[s.subject] = s.A; });
 
-  // Calculate progress percentage for the bar (0-699 scale)
-  const progressPercent = Math.min(Math.max((estimatedScore / 699) * 100, 5), 100);
+  const availableScores = SKILL_ORDER
+    .filter((subj) => subj !== "CO" && bySubject[subj] !== undefined)
+    .map((subj) => toEstimatedPoints(bySubject[subj]));
+
+  const globalEstimate = availableScores.length > 0
+    ? Math.round(availableScores.reduce((a, b) => a + b, 0) / availableScores.length)
+    : null;
+
+  const progressPercent = globalEstimate !== null
+    ? Math.min(Math.max((globalEstimate / 699) * 100, 5), 100)
+    : 0;
 
   return (
     <Card className="overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-200/50 rounded-[2.5rem] relative">
@@ -35,14 +67,21 @@ export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: Sco
         <div className="space-y-6">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-4xl font-black">{estimatedScore}<span className="text-lg opacity-60 ml-1">pts</span></p>
-              <p className="text-sm font-bold text-indigo-100 italic">Estimation actuelle</p>
+              <p className="text-4xl font-black">
+                {globalEstimate !== null ? globalEstimate : "-"}
+                <span className="text-lg opacity-60 ml-1">pts</span>
+              </p>
+              <p className="text-sm font-bold text-indigo-100 italic">
+                {globalEstimate !== null ? "Estimation actuelle" : "Pratiquez pour voir votre estimation"}
+              </p>
             </div>
-            <div className="text-right">
-              <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                Niveau {levelDisplay}
+            {globalEstimate !== null && (
+              <div className="text-right">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                  Niveau {levelFromScore(globalEstimate)}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -57,6 +96,30 @@ export function ScoreProjection({ currentLevel, goalLevel, estimatedScore }: Sco
                  className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                />
             </div>
+          </div>
+
+          {/* Détail par compétence officielle TEF IRN */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            {SKILL_ORDER.map((subj) => {
+              const score = bySubject[subj];
+              const hasData = subj !== "CO" && score !== undefined;
+              const points = hasData ? toEstimatedPoints(score) : null;
+
+              return (
+                <div key={subj} className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-indigo-100">{SKILL_LABELS[subj]}</span>
+                  {subj === "CO" ? (
+                    <span className="flex items-center gap-1 text-indigo-200/70 font-bold">
+                      <Lock size={12} /> Bientôt disponible
+                    </span>
+                  ) : hasData ? (
+                    <span className="font-black">{points} pts</span>
+                  ) : (
+                    <span className="text-indigo-200/70 font-bold italic">Pas encore de données</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <button
