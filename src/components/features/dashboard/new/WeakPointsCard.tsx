@@ -42,7 +42,13 @@ export function WeakPointsCard({ weakPoints }: { weakPoints: WeakPoint[] }) {
         </div>
 
         <Button
-          onClick={() => router.push("/tef-irn/coach")}
+          onClick={() => {
+            const details = weakPoints
+              .map((wp) => `${wp.category}${wp.sub_category ? ` (${wp.sub_category})` : ""} — ${wp.frequency} erreurs`)
+              .join(", ");
+            const prompt = `J'ai des difficultés sur : ${details}. Peux-tu m'expliquer ces erreurs et me proposer un exercice ciblé ?`;
+            router.push(`/tef-irn/coach?prompt=${encodeURIComponent(prompt)}`);
+          }}
           className="h-14 w-full rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center justify-center gap-2"
         >
           <MessageCircle size={18} /> En discuter avec le Coach IA <ArrowRight size={18} />

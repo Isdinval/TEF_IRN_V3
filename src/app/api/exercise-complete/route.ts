@@ -62,12 +62,13 @@ export async function POST(req: Request) {
       try {
         const { data: exerciseData } = await supabase
           .from('exercises')
-          .select('category')
+          .select('category, tags')
           .eq('id', exerciseId)
           .single();
 
         if (exerciseData?.category) {
-          await trackUserError(user.id, exerciseData.category);
+          const subCategory = exerciseData.tags?.find((t: string) => t !== exerciseData.category) ?? null;
+          await trackUserError(user.id, exerciseData.category, subCategory);
         }
       } catch (errorTrackingError) {
         console.error("Error tracking failed:", errorTrackingError);
