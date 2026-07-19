@@ -15,6 +15,7 @@ import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
 import { WritingTimer } from "./components/WritingTimer";
+import { WritingScenarioCatalogue, WritingScenarioListItem, Section, Level } from "./components/WritingScenarioCatalogue";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { useCoachContext } from "@/contexts/CoachContext";
 
@@ -23,6 +24,8 @@ const fallbackExercise: WritingExercise = {
   level: "B1",
   content: { min_words: 100 },
 };
+
+type Status = "catalogue" | "writing";
 
 export function WritingCoachContent() {
   const params = useParams();
@@ -33,6 +36,14 @@ export function WritingCoachContent() {
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
   const [leftWidth, setLeftWidth] = useState(58);
+  const [status, setStatus] = useState<Status>("catalogue");
+  const [durationSeconds, setDurationSeconds] = useState<number | undefined>(undefined);
+
+  const [allScenarios, setAllScenarios] = useState<WritingScenarioListItem[]>([]);
+  const [loadingScenarios, setLoadingScenarios] = useState(true);
+  const [filterSection, setFilterSection] = useState<Section | "all">("all");
+  const [filterLevel, setFilterLevel] = useState<Level | "all">("all");
+  const [filterTypeTexte, setFilterTypeTexte] = useState<string | "all">("all");
 
   const supabase = createClient();
   const router = useRouter();
@@ -41,11 +52,22 @@ export function WritingCoachContent() {
   const { setPageContext } = useCoachContext();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || status !== "writing") return;
     setPageContext({ type: "writing", instructions: exercise.instructions, level: exercise.level });
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, exercise.instructions, exercise.level]);
+  }, [loading, status, exercise.instructions, exercise.level]);
+
+  // Charge le catalogue de sujets (entrée libre uniquement, mais chargement léger et inoffensif dans tous les cas).
+  useEffect(() => {
+    fetch("/api/writing/scenarios")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.scenarios) setAllScenarios(data.scenarios);
+      })
+      .catch((err) => console.error("Erreur chargement des sujets:", err))
+      .finally(() => setLoadingScenarios(false));
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,20 +82,25 @@ export function WritingCoachContent() {
           level: levelParam || "B1",
           content: { min_words: 100 }
         });
+        setStatus("writing");
         setLoading(false);
         return;
       }
 
-      let query = supabase
-        .from("exercises")
-        .select("*")
-        .eq("type", "ecrit");
-
-      if (exerciseId) {
-        query = query.eq("id", exerciseId);
+      if (!exerciseId) {
+        // Entrée libre (nav directe, sans id ni subject) : on affiche le catalogue
+        // au lieu d'imposer un exercice. Les entrées parcours/correction/coach-chat
+        // passent toujours un id et ne sont donc pas concernées par cette branche.
+        setStatus("catalogue");
+        setLoading(false);
+        return;
       }
 
-      const { data: exerciseData } = await query
+      const { data: exerciseData } = await supabase
+        .from("exercises")
+        .select("*")
+        .eq("type", "ecrit")
+        .eq("id", exerciseId)
         .limit(1)
         .maybeSingle();
 
@@ -85,10 +112,40 @@ export function WritingCoachContent() {
           content: exerciseData.content || fallbackExercise.content,
         });
       }
+      setStatus("writing");
       setLoading(false);
     }
     fetchData();
   }, [params?.id, searchParams, supabase]);
+
+  const handleSelectScenario = useCallback((scenarioId: string) => {
+    const scenario = allScenarios.find((s) => s.id === scenarioId);
+    if (!scenario) return;
+
+    setExercise({
+      id: scenario.id,
+      instructions: scenario.sujet,
+      level: scenario.level,
+      content: { min_words: scenario.min_words },
+    });
+    setDurationSeconds(scenario.duration_seconds);
+    setText("");
+    setFeedback(null);
+    setActiveErrorIndex(null);
+    setStatus("writing");
+  }, [allScenarios]);
+
+  const handleSurpriseMe = useCallback(() => {
+    const filtered = allScenarios.filter(
+      (s) =>
+        (filterSection === "all" || s.section === filterSection) &&
+        (filterLevel === "all" || s.level === filterLevel) &&
+        (filterTypeTexte === "all" || s.type_texte === filterTypeTexte)
+    );
+    if (filtered.length === 0) return;
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    handleSelectScenario(random.id);
+  }, [allScenarios, filterSection, filterLevel, filterTypeTexte, handleSelectScenario]);
 
   const handleCorrection = useCallback(async () => {
     if (!text.trim()) return;
@@ -164,6 +221,39 @@ export function WritingCoachContent() {
     );
   }
 
+  if (status === "catalogue") {
+    return (
+      <div className="h-[100dvh] overflow-y-auto bg-zinc-50/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-8 p-6 pt-10 lg:p-10">
+          <header>
+            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+              Expression Écrite
+            </Badge>
+            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+              COACH D&apos;EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
+            </h1>
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+              Choisissez un sujet dans le catalogue, ou laissez-vous surprendre.
+            </p>
+          </header>
+
+          <WritingScenarioCatalogue
+            scenarios={allScenarios}
+            loading={loadingScenarios}
+            section={filterSection}
+            level={filterLevel}
+            typeTexte={filterTypeTexte}
+            onSectionChange={setFilterSection}
+            onLevelChange={setFilterLevel}
+            onTypeTexteChange={setFilterTypeTexte}
+            onSelectScenario={handleSelectScenario}
+            onSurpriseMe={handleSurpriseMe}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[100dvh] overflow-hidden bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <div className="flex h-full relative">
@@ -199,7 +289,7 @@ export function WritingCoachContent() {
               </div>
             </div>
 
-            <WritingTimer instructions={exercise.instructions} />
+            <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
           </header>
 
           <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">

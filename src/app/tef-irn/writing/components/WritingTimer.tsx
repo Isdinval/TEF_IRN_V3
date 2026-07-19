@@ -8,18 +8,23 @@ import { Progress } from "@/components/ui/progress";
 interface WritingTimerProps {
   exerciseId?: string;
   instructions: string;
+  durationSeconds?: number;
 }
 
-export const WritingTimer = ({ exerciseId, instructions }: WritingTimerProps) => {
+export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: WritingTimerProps) => {
   const [duration, setDuration] = useState(25 * 60);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
 
-  // Détection de la section
+  // Détection de la durée : priorité à durationSeconds (sujet du catalogue, section
+  // connue avec certitude), sinon fallback sur le sniffing du texte des instructions
+  // (exercices "exercises"/parcours qui n'ont pas cette donnée structurée).
   useEffect(() => {
     let newDuration = 25 * 60;
-    if (instructions.toLowerCase().includes("section b")) {
+    if (durationSeconds) {
+      newDuration = durationSeconds;
+    } else if (instructions.toLowerCase().includes("section b")) {
       newDuration = 45 * 60;
     } else if (instructions.toLowerCase().includes("section a")) {
       newDuration = 25 * 60;
@@ -47,7 +52,7 @@ export const WritingTimer = ({ exerciseId, instructions }: WritingTimerProps) =>
       setIsActive(false);
       setIsStarted(false);
     }
-  }, [exerciseId, instructions]);
+  }, [exerciseId, instructions, durationSeconds]);
 
   // Sauvegarder l'état
   useEffect(() => {
