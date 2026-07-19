@@ -162,10 +162,10 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   }, [currentMood, idleMascotUrl]);
 
   useEffect(() => {
-    if (isMounted && initialMessage && isOpen && messages.length <= 1) {
+    if (isMounted && initialMessage && (isOpen || mode === 'full') && messages.length <= 1) {
       append({ role: 'user', content: initialMessage });
     }
-  }, [isMounted, initialMessage, isOpen, messages.length, append]);
+  }, [isMounted, initialMessage, isOpen, mode, messages.length, append]);
 
   useEffect(() => {
     if (isMounted && messagesEndRef.current) {
