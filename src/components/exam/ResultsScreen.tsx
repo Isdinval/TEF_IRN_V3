@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import {
   Accordion,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/accordion";
 import { Progress } from '@/components/ui/progress';
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
+import { WritingFeedback } from '@/types/writing';
 
 export function ResultsScreen() {
   const { sessionResults, resetExam, allQuestions } = useExam();
@@ -72,6 +74,13 @@ export function ResultsScreen() {
                     <div className="px-4 py-1 bg-[var(--exam-paper)] rounded-full font-[family-name:var(--exam-font-mono)] font-bold text-[var(--exam-ink)]/70">
                       {result.score} / {result.total}
                     </div>
+                  ) : result.section === 'EE' && result.writingFeedbacks && Object.keys(result.writingFeedbacks).length > 0 ? (
+                    <div className="px-4 py-1 bg-[var(--exam-blue)]/5 rounded-full font-[family-name:var(--exam-font-mono)] font-bold text-[var(--exam-blue)]">
+                      {Math.round(
+                        Object.values(result.writingFeedbacks).reduce((sum, f) => sum + f.score_global, 0) /
+                        Object.values(result.writingFeedbacks).length
+                      )}/100 (IA)
+                    </div>
                   ) : (
                     <div className="px-4 py-1 bg-[var(--exam-blue)]/5 rounded-full font-bold text-[var(--exam-blue)] text-xs">
                       AUTO-ÉVALUATION
@@ -117,20 +126,75 @@ export function ResultsScreen() {
 
                 {result.section === 'EE' && result.writingProductions && (
                   <div className="space-y-4">
-                    {Object.entries(result.writingProductions).map(([qId, text]: [string, string], idx: number) => (
-                      <div key={qId} className="p-6 bg-white border border-[var(--exam-line)] rounded-sm shadow-sm">
-                        <div className="flex items-center gap-2 mb-4 text-[var(--exam-blue)]">
-                          <FileText size={20} />
-                          <span className="font-bold">Production {idx + 1}</span>
+                    {Object.entries(result.writingProductions).map(([qId, text]: [string, string], idx: number) => {
+                      const feedback: WritingFeedback | undefined = result.writingFeedbacks?.[qId];
+                      return (
+                        <div key={qId} className="p-6 bg-white border border-[var(--exam-line)] rounded-sm shadow-sm space-y-5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                              <FileText size={20} />
+                              <span className="font-[family-name:var(--exam-font-display)] font-semibold">Production {idx + 1}</span>
+                            </div>
+                            {feedback && (
+                              <div className="font-[family-name:var(--exam-font-mono)] text-sm font-bold text-[var(--exam-blue)]">
+                                {feedback.score_global}/100
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-[var(--exam-ink)]/70 whitespace-pre-wrap italic">
+                            "{text || "Aucun texte rédigé."}"
+                          </div>
+
+                          {feedback ? (
+                            <div className="space-y-4 pt-4 border-t border-dashed border-[var(--exam-line)]">
+                              <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                                <Sparkles size={16} />
+                                <span className="font-[family-name:var(--exam-font-mono)] text-xs font-bold uppercase tracking-widest">Correction IA</span>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-[family-name:var(--exam-font-mono)] text-xs">
+                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
+                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.grammaire}</div>
+                                  <div className="text-[var(--exam-ink)]/45">Grammaire</div>
+                                </div>
+                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
+                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.vocabulaire}</div>
+                                  <div className="text-[var(--exam-ink)]/45">Vocabulaire</div>
+                                </div>
+                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
+                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.coherence}</div>
+                                  <div className="text-[var(--exam-ink)]/45">Cohérence</div>
+                                </div>
+                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
+                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.orthographe}</div>
+                                  <div className="text-[var(--exam-ink)]/45">Orthographe</div>
+                                </div>
+                              </div>
+
+                              <p className="text-sm italic text-[var(--exam-ink)]/70">"{feedback.conseil_general}"</p>
+
+                              {feedback.liste_des_erreurs?.length > 0 && (
+                                <div className="space-y-2">
+                                  {feedback.liste_des_erreurs.map((err, i) => (
+                                    <div key={i} className="text-sm p-3 bg-[var(--exam-paper)] rounded-sm">
+                                      <span className="line-through text-[var(--exam-seal)]/70">{err.texte_original}</span>
+                                      {' → '}
+                                      <span className="font-bold text-[var(--exam-success)]">{err.texte_corrige}</span>
+                                      <p className="text-xs text-[var(--exam-ink)]/50 mt-1">{err.explication}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-xs font-[family-name:var(--exam-font-mono)] text-[var(--exam-ink)]/40">
+                              Correction IA indisponible pour cette production.
+                            </div>
+                          )}
                         </div>
-                        <div className="text-[var(--exam-ink)]/70 whitespace-pre-wrap italic">
-                          "{text || "Aucun texte rédigé."}"
-                        </div>
-                      </div>
-                    ))}
-                    <div className="bg-[var(--exam-seal)]/5 p-6 rounded-sm border border-[var(--exam-seal)]/20 text-[var(--exam-seal)] text-sm font-medium">
-                      Note : Les productions écrites ne sont pas corrigées automatiquement dans cette simulation. Nous vous conseillons de les partager avec un tuteur pour une évaluation précise.
-                    </div>
+                      );
+                    })}
                   </div>
                 )}
 

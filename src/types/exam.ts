@@ -35,6 +35,7 @@ export interface SpeakingQuestion extends BaseQuestion {
   prepTime: number; // in minutes
   speakTime: number; // in minutes
   modelAnswer?: string;
+  oralScenarioId?: string;
 }
 
 export type Question = QCMQuestion | WritingQuestion | SpeakingQuestion;
@@ -61,5 +62,7 @@ export interface ExamResult {
     correctAnswer: string;
   }>;
   writingProductions?: Record<string, string>;
+  writingFeedbacks?: Record<string, import('./writing').WritingFeedback>;
+  oralAnalyses?: Record<string, import('../lib/oral-criteria').OralAnalysis>;
   date: number;
 }

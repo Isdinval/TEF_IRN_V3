@@ -11,7 +11,7 @@ import { ArrowRight, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function QuestionCard() {
-  const { state, questions, currentQuestion, setAnswer, nextQuestion } = useExam();
+  const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting } = useExam();
   const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
@@ -180,9 +180,14 @@ export function QuestionCard() {
                </div>
                <Button
                  onClick={nextQuestion}
-                 className="h-16 px-12 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-lg font-bold shadow-xl shadow-[var(--exam-blue)]/10"
+                 disabled={isCorrecting}
+                 className="h-16 px-12 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-lg font-bold shadow-xl shadow-[var(--exam-blue)]/10 disabled:opacity-60"
                >
-                 {state.currentQuestionIndex < questions.length - 1 ? "Question suivante" : "Terminer la section"}
+                 {isCorrecting
+                   ? "Correction IA en cours..."
+                   : state.currentQuestionIndex < questions.length - 1
+                     ? "Question suivante"
+                     : "Terminer la section"}
                  <ArrowRight className="ml-2" />
                </Button>
             </div>
