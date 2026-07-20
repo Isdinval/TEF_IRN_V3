@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronRight, ChevronLeft, Loader2, Rocket, Headphones, BookOpen, Mic, PenLine } from "lucide-react";
+import { ChevronRight, ChevronLeft, Loader2, Rocket, Headphones, BookOpen, Mic, PenLine, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TOTAL_STEPS = 5;
+
+const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2"] as const;
 
 const WEAK_SKILLS = [
   { id: "comprehension_orale", label: "Compréhension orale", icon: Headphones },
@@ -28,10 +29,61 @@ const AVAILABILITY_OPTIONS = [
 ] as const;
 
 const GOAL_OPTIONS = [
-  { id: "A2", label: "Titre de séjour (A2)" },
-  { id: "B1", label: "Nationalité (B1)" },
-  { id: "B2", label: "Excellence (B2)" },
+  { id: "A2", label: "Titre de séjour", sub: "Carte de séjour pluriannuelle" },
+  { id: "B1", label: "Résidence", sub: "Carte de résident (10 ans)" },
+  { id: "B2", label: "Naturalisation", sub: "Nationalité française" },
 ] as const;
+
+function ProgressDots({ step }: { step: number }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-6">
+      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-1 flex-1 rounded-full transition-colors ${i < step ? "bg-indigo-600" : "bg-zinc-100"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function OptionButton({
+  selected,
+  onClick,
+  label,
+  sub,
+  icon: Icon,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  sub?: string;
+  icon?: React.ElementType;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+        selected
+          ? "border-indigo-600 bg-indigo-50/60"
+          : "border-zinc-200 hover:border-indigo-300 hover:bg-zinc-50"
+      }`}
+    >
+      {Icon && <Icon size={18} className={selected ? "text-indigo-600 shrink-0" : "text-zinc-400 shrink-0"} />}
+      <span className="flex-1">
+        <span className={`block text-sm font-bold ${selected ? "text-indigo-900" : "text-zinc-700"}`}>{label}</span>
+        {sub && <span className="block text-xs text-zinc-400 font-medium">{sub}</span>}
+      </span>
+      <span
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
+          selected ? "border-indigo-600 bg-indigo-600" : "border-zinc-300"
+        }`}
+      >
+        {selected && <Check size={12} className="text-white" strokeWidth={3} />}
+      </span>
+    </button>
+  );
+}
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -85,201 +137,158 @@ export default function Onboarding() {
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-indigo-600" size={32} />
+        <Loader2 className="animate-spin text-indigo-600" size={28} />
       </div>
     );
   }
 
+  const stepTransition = { duration: 0.2 };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
-      <div className="max-w-xl w-full">
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2 font-black text-3xl text-indigo-600">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">M</div>
-            LlamaKusi
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+      <div className="max-w-sm w-full">
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-2">
+            <div className="relative w-8 h-8 overflow-hidden rounded-lg shadow-sm">
+              <Image src="/logo.png" alt="LlamaKusi" fill className="object-cover" />
+            </div>
+            <span className="font-black text-lg tracking-tight text-zinc-900">LlamaKusi</span>
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {step === 1 && (
-            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
-                <CardHeader className="p-0 mb-8">
-                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 1/{TOTAL_STEPS}</Badge>
-                  <CardTitle className="text-3xl font-black">Quel est votre niveau actuel ?</CardTitle>
-                </CardHeader>
-                <div className="grid grid-cols-1 gap-4">
-                  {['A1', 'A2', 'B1', 'B2'].map(l => (
-                    <button
-                      key={l}
-                      onClick={() => setLevel(l)}
-                      className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all ${level === l ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
-                    >
-                      Niveau {l}
-                    </button>
+        <div className="bg-white rounded-2xl border border-zinc-100 shadow-xl shadow-zinc-200/50 p-6">
+          <ProgressDots step={step} />
+
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div key="step1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Quel est votre niveau actuel ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Une estimation suffit, on affinera ensuite.</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {LEVEL_OPTIONS.map(l => (
+                    <OptionButton key={l} selected={level === l} onClick={() => setLevel(l)} label={`Niveau ${l}`} />
                   ))}
                 </div>
                 <Button
                   disabled={!level}
                   onClick={() => setStep(2)}
-                  className="w-full mt-8 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                  className="w-full mt-6 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                 >
-                  Continuer <ChevronRight className="ml-2" />
+                  Continuer <ChevronRight size={16} className="ml-1" />
                 </Button>
-              </Card>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {step === 2 && (
-            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
-                <CardHeader className="p-0 mb-8">
-                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 2/{TOTAL_STEPS}</Badge>
-                  <CardTitle className="text-3xl font-black">Quel objectif visez-vous ?</CardTitle>
-                </CardHeader>
-                <div className="grid grid-cols-1 gap-4">
+            {step === 2 && (
+              <motion.div key="step2" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Quel objectif visez-vous ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Le niveau requis a changé au 1er janvier 2026.</p>
+                <div className="grid grid-cols-1 gap-2">
                   {GOAL_OPTIONS.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => setGoal(g.id)}
-                      className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all ${goal === g.id ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
-                    >
-                      {g.label}
-                    </button>
+                    <OptionButton key={g.id} selected={goal === g.id} onClick={() => setGoal(g.id)} label={g.label} sub={g.sub} />
                   ))}
                 </div>
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" onClick={() => setStep(1)} className="h-16 px-6 rounded-2xl">
-                    <ChevronLeft />
+                <div className="flex gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setStep(1)} className="h-11 px-4 rounded-xl border-zinc-200">
+                    <ChevronLeft size={16} />
                   </Button>
                   <Button
                     disabled={!goal}
                     onClick={() => setStep(3)}
-                    className="flex-1 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
-                    Continuer <ChevronRight className="ml-2" />
+                    Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
                 </div>
-              </Card>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {step === 3 && (
-            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
-                <CardHeader className="p-0 mb-8">
-                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 3/{TOTAL_STEPS}</Badge>
-                  <CardTitle className="text-3xl font-black">Quelle compétence vous inquiète le plus ?</CardTitle>
-                  <p className="text-slate-500 font-medium mt-2">On adaptera vos premières recommandations en priorité sur ce point.</p>
-                </CardHeader>
-                <div className="grid grid-cols-1 gap-4">
-                  {WEAK_SKILLS.map(s => {
-                    const Icon = s.icon;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setWeakSkill(s.id)}
-                        className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all flex items-center gap-4 ${weakSkill === s.id ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
-                      >
-                        <Icon size={24} className={weakSkill === s.id ? 'text-indigo-600' : 'text-slate-400'} />
-                        {s.label}
-                      </button>
-                    );
-                  })}
+            {step === 3 && (
+              <motion.div key="step3" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Quelle compétence vous inquiète le plus ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">On priorise vos premières recommandations dessus.</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {WEAK_SKILLS.map(s => (
+                    <OptionButton key={s.id} selected={weakSkill === s.id} onClick={() => setWeakSkill(s.id)} label={s.label} icon={s.icon} />
+                  ))}
                 </div>
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" onClick={() => setStep(2)} className="h-16 px-6 rounded-2xl">
-                    <ChevronLeft />
+                <div className="flex gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setStep(2)} className="h-11 px-4 rounded-xl border-zinc-200">
+                    <ChevronLeft size={16} />
                   </Button>
                   <Button
                     disabled={!weakSkill}
                     onClick={() => setStep(4)}
-                    className="flex-1 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
-                    Continuer <ChevronRight className="ml-2" />
+                    Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
                 </div>
-              </Card>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {step === 4 && (
-            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
-                <CardHeader className="p-0 mb-8">
-                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 4/{TOTAL_STEPS}</Badge>
-                  <CardTitle className="text-3xl font-black">Avez-vous une date d'examen ?</CardTitle>
-                  <p className="text-slate-500 font-medium mt-2">Ça nous permet de calibrer le rythme de votre parcours.</p>
-                </CardHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
+            {step === 4 && (
+              <motion.div key="step4" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Avez-vous une date d'examen ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Ça calibre le rythme de votre parcours.</p>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
                     <Label htmlFor="exam-date" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Date visée</Label>
                     <Input
                       id="exam-date"
                       type="date"
-                      className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
+                      className="h-11 border-zinc-200 focus:border-indigo-600 rounded-xl text-sm font-bold"
                       value={examDate}
                       disabled={noExamDateYet}
                       onChange={(e) => setExamDate(e.target.value)}
                     />
                   </div>
-                  <button
+                  <OptionButton
+                    selected={noExamDateYet}
                     onClick={() => { setNoExamDateYet(!noExamDateYet); setExamDate(""); }}
-                    className={`w-full p-4 rounded-2xl border-2 text-left font-bold transition-all ${noExamDateYet ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
-                  >
-                    Je n'ai pas encore fixé de date
-                  </button>
+                    label="Je n'ai pas encore fixé de date"
+                  />
                 </div>
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" onClick={() => setStep(3)} className="h-16 px-6 rounded-2xl">
-                    <ChevronLeft />
+                <div className="flex gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setStep(3)} className="h-11 px-4 rounded-xl border-zinc-200">
+                    <ChevronLeft size={16} />
                   </Button>
                   <Button
                     disabled={!noExamDateYet && !examDate}
                     onClick={() => setStep(5)}
-                    className="flex-1 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
-                    Continuer <ChevronRight className="ml-2" />
+                    Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
                 </div>
-              </Card>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {step === 5 && (
-            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Card className="p-8 rounded-3xl border-none shadow-2xl shadow-slate-200">
-                <CardHeader className="p-0 mb-8">
-                  <Badge className="bg-indigo-600 mb-2">ÉTAPE 5/{TOTAL_STEPS}</Badge>
-                  <CardTitle className="text-3xl font-black">Combien de temps par semaine ?</CardTitle>
-                </CardHeader>
-                <div className="grid grid-cols-1 gap-4">
+            {step === 5 && (
+              <motion.div key="step5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Combien de temps par semaine ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Dernière étape, promis.</p>
+                <div className="grid grid-cols-1 gap-2">
                   {AVAILABILITY_OPTIONS.map(a => (
-                    <button
-                      key={a.id}
-                      onClick={() => setAvailability(a.id)}
-                      className={`p-6 rounded-2xl border-2 text-left font-bold text-xl transition-all ${availability === a.id ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-slate-100 hover:border-indigo-200 text-slate-600'}`}
-                    >
-                      {a.label}
-                    </button>
+                    <OptionButton key={a.id} selected={availability === a.id} onClick={() => setAvailability(a.id)} label={a.label} />
                   ))}
                 </div>
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" onClick={() => setStep(4)} className="h-16 px-6 rounded-2xl" disabled={loading}>
-                    <ChevronLeft />
+                <div className="flex gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setStep(4)} className="h-11 px-4 rounded-xl border-zinc-200" disabled={loading}>
+                    <ChevronLeft size={16} />
                   </Button>
                   <Button
                     disabled={!availability || loading}
                     onClick={handleFinish}
-                    className="flex-1 h-16 text-xl font-bold bg-indigo-600 rounded-2xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
-                    {loading ? <Loader2 className="animate-spin" /> : <><Rocket className="mr-2" /> C'est parti !</>}
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <><Rocket size={16} className="mr-1.5" /> C'est parti</>}
                   </Button>
                 </div>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
