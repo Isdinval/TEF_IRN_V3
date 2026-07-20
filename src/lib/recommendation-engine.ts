@@ -38,6 +38,83 @@ export async function trackUserError(userId: string, category: string, subCatego
   }
 }
 
+/**
+ * Fait baisser (ou supprime) le compteur d'erreurs de l'utilisateur pour une
+ * catégorie donnée, en réaction à une réussite (score >= 50). Symétrique de
+ * trackUserError. Un seul succès suffit à faire baisser frequency de 1 ; la
+ * ligne user_errors est supprimée quand frequency atteint 0 (le point faible
+ * disparaît alors du widget "Points faibles" du dashboard).
+ */
+export async function resolveUserError(userId: string, category: string, subCategory: string | null = null) {
+  const supabase = await createClient();
+
+  let existingQuery = supabase
+    .from('user_errors')
+    .select('id, frequency')
+    .eq('user_id', userId)
+    .eq('category', category);
+
+  existingQuery = subCategory
+    ? existingQuery.eq('sub_category', subCategory)
+    : existingQuery.is('sub_category', null);
+
+  const { data: existing } = await existingQuery.maybeSingle();
+
+  if (!existing) return;
+
+  if (existing.frequency <= 1) {
+    await supabase.from('user_errors').delete().eq('id', existing.id);
+  } else {
+    await supabase
+      .from('user_errors')
+      .update({ frequency: existing.frequency - 1 })
+      .eq('id', existing.id);
+  }
+}
+
+/**
+ * Marque une recommandation de type 'lesson' comme 'completed' si, ET
+ * SEULEMENT SI, les deux conditions sont réunies :
+ *   1. La leçon recommandée vient d'être terminée (appelé depuis
+ *      exercise-complete/route.ts quand le mini-quiz de cette leçon est
+ *      réussi, score >= 50).
+ *   2. Le point faible (category/sub_category) qui avait généré cette
+ *      recommandation n'existe plus dans user_errors (résolu, éventuellement
+ *      par un tout autre exercice avant même que la leçon soit terminée).
+ * Si le point faible existe encore, la recommandation reste 'pending' —
+ * terminer la leçon ne suffit pas à elle seule.
+ */
+export async function completeRecommendationIfResolved(userId: string, lessonId: string) {
+  const supabase = await createClient();
+
+  const { data: reco } = await supabase
+    .from('recommendations')
+    .select('id, category, sub_category')
+    .eq('user_id', userId)
+    .eq('type', 'lesson')
+    .eq('reference_id', lessonId)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (!reco || !reco.category) return;
+
+  let stillWeakQuery = supabase
+    .from('user_errors')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('category', reco.category);
+
+  stillWeakQuery = reco.sub_category
+    ? stillWeakQuery.eq('sub_category', reco.sub_category)
+    : stillWeakQuery.is('sub_category', null);
+
+  const { data: stillWeak } = await stillWeakQuery.maybeSingle();
+
+  if (!stillWeak) {
+    await supabase.from('recommendations').update({ status: 'completed' }).eq('id', reco.id);
+  }
+}
+
 const MAX_PENDING_RECOMMENDATIONS = 3;
 
 /**
@@ -46,15 +123,17 @@ const MAX_PENDING_RECOMMENDATIONS = 3;
  * une par catégorie/sous-catégorie d'erreur la plus critique (triées par
  * fréquence décroissante).
  *
- * Fix (2026-07) : filtre par niveau utilisateur + matching sur sous-catégorie
- * (voir historique).
+ * Fix (2026-07) : filtre par niveau utilisateur + matching sur sous-catégorie.
  *
- * Fix (2026-07 bis) : avant ce fix, seule errors[0] (l'erreur la plus
- * fréquente) était jamais transformée en recommandation, malgré le plafond
- * MAX_PENDING_RECOMMENDATIONS = 3 — un utilisateur avec 3 points faibles
- * distincts ne voyait donc qu'une seule recommandation, toujours la même.
- * On boucle maintenant sur le top des erreurs, dans la limite des slots
- * "pending" encore disponibles.
+ * Fix (2026-07 bis) : boucle sur le top des erreurs au lieu de la seule
+ * errors[0], dans la limite des slots "pending" encore disponibles — sinon
+ * un utilisateur avec 3 points faibles distincts ne voyait qu'une seule
+ * recommandation, toujours la même.
+ *
+ * Fix (2026-07 ter) : chaque recommandation de leçon stocke désormais
+ * category/sub_category (voir migration 20260720000001), nécessaire à
+ * completeRecommendationIfResolved() pour détecter la résolution du point
+ * faible qui l'a générée.
  */
 export async function analyzeUserErrorsAndRecommend(userId: string) {
   const supabase = await createClient();
@@ -132,6 +211,8 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
         user_id: userId,
         type: 'lesson',
         reference_id: lesson.id,
+        category: topError.category.toLowerCase(),
+        sub_category: topError.sub_category,
         reason: `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`,
         status: 'pending'
       }, { onConflict: 'user_id, reference_id' });
@@ -140,6 +221,8 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       await supabase.from('recommendations').insert({
         user_id: userId,
         type: 'exercise',
+        category: topError.category.toLowerCase(),
+        sub_category: topError.sub_category,
         reason: `Besoin d'entraînement en ${topError.category} ? Faire 10 exercices de type QCM pour renforcer vos bases.`,
         status: 'pending'
       });

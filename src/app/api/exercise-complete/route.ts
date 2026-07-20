@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { analyzeUserErrorsAndRecommend, trackUserError } from '@/lib/recommendation-engine';
+import { analyzeUserErrorsAndRecommend, trackUserError, resolveUserError, completeRecommendationIfResolved } from '@/lib/recommendation-engine';
 import { updateSRS } from '@/lib/srs-engine-server';
 
 export async function POST(req: Request) {
@@ -57,18 +57,28 @@ export async function POST(req: Request) {
 
     if (profileError) console.error("Profile update error:", profileError);
 
-    // 3. Tracker l'erreur si l'exercice est raté (prérequis du moteur de recommandation)
-    if (exerciseId && score < 50) {
+    // 3. Tracker ou résoudre l'erreur selon le résultat (prérequis du moteur
+    // de recommandation), puis vérifier si une recommandation en cours peut
+    // être clôturée (leçon terminée + point faible résolu).
+    if (exerciseId) {
       try {
         const { data: exerciseData } = await supabase
           .from('exercises')
-          .select('category, tags')
+          .select('category, tags, lesson_id')
           .eq('id', exerciseId)
           .single();
 
         if (exerciseData?.category) {
           const subCategory = exerciseData.tags?.find((t: string) => t !== exerciseData.category) ?? null;
-          await trackUserError(user.id, exerciseData.category, subCategory);
+
+          if (score < 50) {
+            await trackUserError(user.id, exerciseData.category, subCategory);
+          } else {
+            await resolveUserError(user.id, exerciseData.category, subCategory);
+            if (exerciseData.lesson_id) {
+              await completeRecommendationIfResolved(user.id, exerciseData.lesson_id);
+            }
+          }
         }
       } catch (errorTrackingError) {
         console.error("Error tracking failed:", errorTrackingError);
