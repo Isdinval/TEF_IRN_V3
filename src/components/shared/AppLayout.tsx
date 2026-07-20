@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { ParcoursTopBar } from "./ParcoursTopBar";
+import { StudyHeartbeat } from "./StudyHeartbeat";
 import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -36,7 +37,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Case 1: Pure public landing/auth routes or Exam
   if (isPublic || isExam) {
-    return <main className="h-full">{children}</main>;
+    return (
+      <main className="h-full">
+        {mounted && user && <StudyHeartbeat />}
+        {children}
+      </main>
+    );
   }
 
   // Case 2: Anonymous visitor on public content (Lessons, Parcours hub)
@@ -80,6 +86,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
              </Suspense>
            </div>
         )}
+        {mounted && user && <StudyHeartbeat />}
         <BottomNav />
       </div>
     </div>
