@@ -55,10 +55,10 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] rounded-sm p-8 bg-[var(--exam-paper)] border border-[var(--exam-line)]">
         <DialogHeader className="mb-6">
-          <span className="font-[family-name:var(--exam-font-mono)] text-[11px] tracking-[0.2em] uppercase text-[var(--exam-seal)] font-bold text-center block mb-2">
+          <span className="font-[family-name:var(--exam-font-mono,monospace)] text-[11px] tracking-[0.2em] uppercase text-[var(--exam-seal)] font-bold text-center block mb-2">
             Convocation
           </span>
-          <DialogTitle className="font-[family-name:var(--exam-font-display)] text-3xl font-semibold text-center text-[var(--exam-ink)]">
+          <DialogTitle className="font-[family-name:var(--exam-font-display,serif)] text-3xl font-semibold text-center text-[var(--exam-ink)]">
             {targetExam?.label || 'Prêt pour l\'entraînement ?'}
           </DialogTitle>
           <DialogDescription className="text-center text-lg mt-2 text-[var(--exam-ink)]/60">
@@ -77,11 +77,11 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
                 <Award size={24} />
               </div>
               <div className="text-left">
-                <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
-                <div className="font-[family-name:var(--exam-font-mono)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
+                <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
+                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
               </div>
             </div>
-            <div className="font-[family-name:var(--exam-font-mono)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
+            <div className="font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
           </Button>
 
           <div className="relative my-4">
@@ -89,7 +89,7 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
               <span className="w-full border-t border-dashed border-[var(--exam-line)]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-[var(--exam-paper)] px-2 font-[family-name:var(--exam-font-mono)] text-[var(--exam-ink)]/40 font-bold tracking-widest">Ou par épreuve</span>
+              <span className="bg-[var(--exam-paper)] px-2 font-[family-name:var(--exam-font-mono,monospace)] text-[var(--exam-ink)]/40 font-bold tracking-widest">Ou par épreuve</span>
             </div>
           </div>
 
@@ -104,8 +104,8 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
                   <opt.icon size={24} />
                 </div>
                 <div>
-                  <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] text-sm leading-tight">{opt.name}</div>
-                  <div className="font-[family-name:var(--exam-font-mono)] text-xs text-[var(--exam-ink)]/45 font-medium mt-1 flex items-center justify-center gap-1">
+                  <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-sm leading-tight">{opt.name}</div>
+                  <div className="font-[family-name:var(--exam-font-mono,monospace)] text-xs text-[var(--exam-ink)]/45 font-medium mt-1 flex items-center justify-center gap-1">
                     <Clock size={10} /> {opt.duration}
                   </div>
                 </div>

@@ -58,6 +58,20 @@
   --background: oklch(0.985 0 0); /* F8FAFC */
   --foreground: oklch(0.145 0 0);
 
+  /* Tokens de la page /exam ("convocation officielle").
+     Déclarés ici (en plus du wrapper de src/app/tef-irn/exam/layout.tsx) car les
+     éléments montés via un Portal (Dialog, etc.) sortent de cet arbre DOM et ne
+     peuvent pas hériter d'une variable posée uniquement en style inline sur un
+     ancêtre. Ces noms sont dédiés à /exam, ils ne sont utilisés par aucune autre
+     page — cette déclaration n'affecte rien d'autre sur le site. */
+  --exam-ink: #14213D;
+  --exam-blue: #002654;
+  --exam-paper: #F6F3EC;
+  --exam-paper-dark: #EDE8DA;
+  --exam-seal: #B23A2E;
+  --exam-line: #D8D2C4;
+  --exam-success: #2F6F4E;
+
   /* Brand Colors */
   --brand-blue: #002395;
   --brand-purple: #6C5CE7;
