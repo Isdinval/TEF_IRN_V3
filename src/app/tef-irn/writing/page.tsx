@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useState, useCallback, Suspense, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,7 @@ export function WritingCoachContent() {
   const [leftWidth, setLeftWidth] = useState(58);
   const [status, setStatus] = useState<Status>("catalogue");
   const [durationSeconds, setDurationSeconds] = useState<number | undefined>(undefined);
+  const sessionStartRef = useRef<number | null>(null);
 
   const [allScenarios, setAllScenarios] = useState<WritingScenarioListItem[]>([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -118,6 +119,12 @@ export function WritingCoachContent() {
     fetchData();
   }, [params?.id, searchParams, supabase]);
 
+  useEffect(() => {
+    if (status === "writing") {
+      sessionStartRef.current = Date.now();
+    }
+  }, [status]);
+
   const handleSelectScenario = useCallback((scenarioId: string) => {
     const scenario = allScenarios.find((s) => s.id === scenarioId);
     if (!scenario) return;
@@ -166,6 +173,9 @@ export function WritingCoachContent() {
       // Save to database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const studyTimeMinutes = sessionStartRef.current
+          ? Math.round((Date.now() - sessionStartRef.current) / 60000)
+          : 0;
         const completeRes = await fetch("/api/exercise-complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -177,7 +187,8 @@ export function WritingCoachContent() {
               subject: exercise.instructions,
               feedback: data
             },
-            aiFeedback: data
+            aiFeedback: data,
+            studyTimeMinutes
           })
         });
 

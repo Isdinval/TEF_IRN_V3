@@ -114,6 +114,7 @@ export function GrammarCheckContent() {
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
+  const sessionStartRef = useRef<number | null>(null);
 
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
@@ -161,6 +162,12 @@ export function GrammarCheckContent() {
       fetchCatalogue();
     }
   }, [fetchCatalogue, mode, exerciseIdFromParams]);
+
+  useEffect(() => {
+    if (mode === "training") {
+      sessionStartRef.current = Date.now();
+    }
+  }, [mode]);
 
   const startTraining = useCallback(async (id: string) => {
     if (!id) return;
@@ -279,6 +286,9 @@ export function GrammarCheckContent() {
           setMode("result");
           setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
           const finalScore = Math.round((score / questions.length) * 100);
+          const studyTimeMinutes = sessionStartRef.current
+            ? Math.round((Date.now() - sessionStartRef.current) / 60000)
+            : 0;
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && activeExerciseId) {
@@ -288,7 +298,8 @@ export function GrammarCheckContent() {
                 body: JSON.stringify({
                   exerciseId: activeExerciseId,
                   score: finalScore,
-                  answers: { correct: score, total: questions.length }
+                  answers: { correct: score, total: questions.length },
+                  studyTimeMinutes
                 })
               });
             }

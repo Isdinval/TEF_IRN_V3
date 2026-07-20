@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const quizStartRef = useRef<number | null>(null);
   const { setPageContext } = useCoachContext();
 
   useEffect(() => {
@@ -102,6 +103,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     }
 
     if (exercise) {
+      quizStartRef.current = Date.now();
       setStep("quiz");
     } else {
       setLoading(true);
@@ -121,6 +123,9 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
       if (initialUser && exercise) {
         const totalQuestions = exercise.content.questions.length;
         const finalScore = (score / totalQuestions) * 100;
+        const studyTimeMinutes = quizStartRef.current
+          ? Math.round((Date.now() - quizStartRef.current) / 60000)
+          : 0;
   
         await fetch('/api/exercise-complete', {
           method: 'POST',
@@ -128,7 +133,8 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
           body: JSON.stringify({
             exerciseId: exercise.id,
             score: finalScore,
-            answers: { correct: score, total: totalQuestions }
+            answers: { correct: score, total: totalQuestions },
+            studyTimeMinutes
           })
         });
   
