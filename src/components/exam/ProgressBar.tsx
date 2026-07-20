@@ -10,9 +10,9 @@ export function ProgressBar() {
   const progress = ((state.currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="w-full bg-white px-4 py-3 border-b shadow-sm">
+    <div className="w-full bg-white px-4 py-3 border-b border-[var(--exam-line)] shadow-sm">
       <div className="container mx-auto flex items-center gap-4">
-        <span className="text-xs font-black text-slate-400 whitespace-nowrap">
+        <span className="font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/50 whitespace-nowrap">
           Question {state.currentQuestionIndex + 1} / {questions.length}
         </span>
         <div className="flex-1">

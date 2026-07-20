@@ -24,10 +24,10 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
   const targetExam = exam || activeExam;
 
   const options = [
-    { id: 'CO', name: 'Compréhension orale', duration: `${targetExam?.duration_co || 20} min`, icon: Headset, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { id: 'CE', name: 'Compréhension écrite', duration: `${targetExam?.duration_ce || 30} min`, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { id: 'EE', name: 'Expression écrite', duration: `${targetExam?.duration_ee || 30} min`, icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { id: 'EO', name: 'Expression orale', duration: `${targetExam?.duration_eo || 10} min`, icon: Mic, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { id: 'CO', name: 'Compréhension orale', duration: `${targetExam?.duration_co || 20} min`, icon: Headset },
+    { id: 'CE', name: 'Compréhension écrite', duration: `${targetExam?.duration_ce || 30} min`, icon: BookOpen },
+    { id: 'EE', name: 'Expression écrite', duration: `${targetExam?.duration_ee || 30} min`, icon: PenTool },
+    { id: 'EO', name: 'Expression orale', duration: `${targetExam?.duration_eo || 10} min`, icon: Mic },
   ];
 
   const totalDuration = (targetExam?.duration_co || 20) +
@@ -53,12 +53,15 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-3xl p-8">
+      <DialogContent className="sm:max-w-[500px] rounded-sm p-8 bg-[var(--exam-paper)] border border-[var(--exam-line)]">
         <DialogHeader className="mb-6">
-          <DialogTitle className="text-3xl font-black text-center text-[#002654]">
+          <span className="font-[family-name:var(--exam-font-mono)] text-[11px] tracking-[0.2em] uppercase text-[var(--exam-seal)] font-bold text-center block mb-2">
+            Convocation
+          </span>
+          <DialogTitle className="font-[family-name:var(--exam-font-display)] text-3xl font-semibold text-center text-[var(--exam-ink)]">
             {targetExam?.label || 'Prêt pour l\'entraînement ?'}
           </DialogTitle>
-          <DialogDescription className="text-center text-lg mt-2">
+          <DialogDescription className="text-center text-lg mt-2 text-[var(--exam-ink)]/60">
             Choisissez une épreuve spécifique ou lancez l'examen complet.
           </DialogDescription>
         </DialogHeader>
@@ -66,27 +69,27 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
         <div className="grid gap-4">
           <Button
             variant="outline"
-            className="h-20 flex items-center justify-between px-6 rounded-2xl border-2 border-indigo-100 hover:border-indigo-600 hover:bg-indigo-50 transition-all group"
+            className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-blue)]/20 bg-white hover:border-[var(--exam-blue)] hover:bg-[var(--exam-blue)]/5 transition-all group"
             onClick={handleFullExam}
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+              <div className="w-12 h-12 bg-[var(--exam-blue)] rounded-sm flex items-center justify-center text-white shadow-md">
                 <Award size={24} />
               </div>
               <div className="text-left">
-                <div className="font-black text-[#002654] text-lg">Examen Complet</div>
-                <div className="text-sm text-slate-500 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
+                <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
+                <div className="font-[family-name:var(--exam-font-mono)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
               </div>
             </div>
-            <div className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-black">POPULAIRE</div>
+            <div className="font-[family-name:var(--exam-font-mono)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
           </Button>
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-100" />
+              <span className="w-full border-t border-dashed border-[var(--exam-line)]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-400 font-bold tracking-widest">Ou par section</span>
+              <span className="bg-[var(--exam-paper)] px-2 font-[family-name:var(--exam-font-mono)] text-[var(--exam-ink)]/40 font-bold tracking-widest">Ou par épreuve</span>
             </div>
           </div>
 
@@ -95,14 +98,14 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
               <button
                 key={opt.id}
                 onClick={() => handleSelect(opt.id)}
-                className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-slate-50 hover:border-slate-200 hover:bg-slate-50 transition-all text-center group"
+                className="flex flex-col items-center gap-3 p-6 rounded-sm border border-[var(--exam-line)] bg-white hover:border-[var(--exam-blue)]/40 hover:bg-[var(--exam-blue)]/5 transition-all text-center group"
               >
-                <div className={`w-12 h-12 ${opt.bg} ${opt.color} rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform`}>
+                <div className="w-12 h-12 bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] rounded-sm flex items-center justify-center group-hover:scale-105 transition-transform">
                   <opt.icon size={24} />
                 </div>
                 <div>
-                  <div className="font-bold text-[#002654] text-sm leading-tight">{opt.name}</div>
-                  <div className="text-xs text-slate-400 font-medium mt-1 flex items-center justify-center gap-1">
+                  <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] text-sm leading-tight">{opt.name}</div>
+                  <div className="font-[family-name:var(--exam-font-mono)] text-xs text-[var(--exam-ink)]/45 font-medium mt-1 flex items-center justify-center gap-1">
                     <Clock size={10} /> {opt.duration}
                   </div>
                 </div>

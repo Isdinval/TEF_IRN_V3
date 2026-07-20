@@ -31,19 +31,19 @@ export function QuestionCard() {
         )}
 
         {q.texte && (
-          <div className="p-8 bg-slate-50 rounded-3xl border-2 border-slate-100 text-lg leading-relaxed text-slate-700 italic">
+          <div className="p-8 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)] text-lg leading-relaxed text-[var(--exam-ink)]/80 italic">
             {q.texte}
           </div>
         )}
 
         {q.imageUrl && (
           <div className="flex justify-center">
-            <img src={q.imageUrl} alt="Context" className="rounded-2xl shadow-lg border-4 border-white max-w-full h-auto" />
+            <img src={q.imageUrl} alt="Context" className="rounded-sm shadow-lg border border-[var(--exam-line)] max-w-full h-auto" />
           </div>
         )}
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-black text-[#002654] leading-tight">
+          <h2 className="font-[family-name:var(--exam-font-display)] text-2xl font-semibold text-[var(--exam-ink)] leading-tight">
             {q.question}
           </h2>
 
@@ -57,19 +57,19 @@ export function QuestionCard() {
                   key={opt}
                   onClick={() => setAnswer(q.id, letter)}
                   className={`
-                    w-full p-5 rounded-2xl border-2 text-left transition-all flex items-center gap-4
+                    w-full p-5 rounded-sm border text-left transition-all flex items-center gap-4
                     ${isSelected
-                      ? 'border-[#002654] bg-[#002654] text-white shadow-xl scale-[1.02]'
-                      : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50'}
+                      ? 'border-[var(--exam-blue)] bg-[var(--exam-blue)] text-white shadow-lg'
+                      : 'border-[var(--exam-line)] bg-white text-[var(--exam-ink)]/75 hover:border-[var(--exam-ink)]/30 hover:bg-[var(--exam-paper)]'}
                   `}
                 >
                   <div className={`
-                    w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg
-                    ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}
+                    w-10 h-10 rounded-sm flex items-center justify-center font-[family-name:var(--exam-font-mono)] font-bold text-lg
+                    ${isSelected ? 'bg-white/15 text-white' : 'bg-[var(--exam-paper)] text-[var(--exam-ink)]/40'}
                   `}>
                     {letter}
                   </div>
-                  <span className="font-bold text-lg">{opt.substring(3)}</span>
+                  <span className="font-medium text-lg">{opt.substring(3)}</span>
                   {isSelected && <CheckCircle2 className="ml-auto text-white" size={24} />}
                 </button>
               );
@@ -86,11 +86,11 @@ export function QuestionCard() {
 
     return (
       <div className="space-y-6">
-        <div className="p-6 bg-indigo-50 rounded-2xl border-l-4 border-[#002654]">
-          <h3 className="font-black text-[#002654] flex items-center gap-2 mb-2">
+        <div className="p-6 bg-[var(--exam-paper)] rounded-sm border-l-4 border-[var(--exam-blue)]">
+          <h3 className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] flex items-center gap-2 mb-2">
             <Info size={18} /> Sujet
           </h3>
-          <p className="text-slate-700 leading-relaxed font-medium">
+          <p className="text-[var(--exam-ink)]/80 leading-relaxed font-medium">
             {q.prompt}
           </p>
         </div>
@@ -100,9 +100,9 @@ export function QuestionCard() {
             value={value}
             onChange={(e) => setAnswer(q.id, e.target.value)}
             placeholder="Saisissez votre texte ici..."
-            className="min-h-[300px] p-8 text-lg rounded-3xl border-2 border-slate-100 focus:border-[#002654] focus:ring-0 transition-all shadow-inner bg-white"
+            className="min-h-[300px] p-8 text-lg rounded-sm border border-[var(--exam-line)] focus:border-[var(--exam-blue)] focus:ring-0 transition-all shadow-inner bg-white"
           />
-          <div className={`absolute bottom-4 right-6 px-4 py-1.5 rounded-full text-xs font-black ${isMinReached ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+          <div className={`absolute bottom-4 right-6 px-4 py-1.5 rounded-full font-[family-name:var(--exam-font-mono)] text-xs font-bold ${isMinReached ? 'bg-[var(--exam-success)]/10 text-[var(--exam-success)]' : 'bg-[var(--exam-paper-dark)] text-[var(--exam-ink)]/50'}`}>
             {wordCount} mots {isMinReached ? '(Minimum atteint ✅)' : `(Min. ${q.minWords} mots)`}
           </div>
         </div>
@@ -113,31 +113,31 @@ export function QuestionCard() {
   const renderSpeaking = (q: SpeakingQuestion) => {
     return (
       <div className="flex flex-col items-center gap-8 py-8 text-center">
-        <div className="w-20 h-20 bg-indigo-100 text-[#002654] rounded-3xl flex items-center justify-center mb-4">
+        <div className="w-20 h-20 bg-[var(--exam-paper)] text-[var(--exam-blue)] rounded-sm flex items-center justify-center mb-4">
           <HelpCircle size={40} />
         </div>
 
         <div className="space-y-4 max-w-2xl">
-          <h2 className="text-3xl font-black text-[#002654]">
+          <h2 className="font-[family-name:var(--exam-font-display)] text-3xl font-semibold text-[var(--exam-ink)]">
             Épreuve d'Expression Orale
           </h2>
-          <p className="text-xl text-slate-600 font-medium leading-relaxed">
+          <p className="text-xl text-[var(--exam-ink)]/70 font-medium leading-relaxed">
             {q.prompt}
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 w-full max-w-md mt-6">
-          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="text-3xl font-black text-[#002654]">{q.prepTime} min</div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Préparation</div>
+          <div className="p-6 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)]">
+            <div className="font-[family-name:var(--exam-font-mono)] text-3xl font-bold text-[var(--exam-ink)]">{q.prepTime} min</div>
+            <div className="text-xs font-bold text-[var(--exam-ink)]/45 uppercase tracking-widest mt-1">Préparation</div>
           </div>
-          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="text-3xl font-black text-[#002654]">{q.speakTime} min</div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Échange</div>
+          <div className="p-6 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)]">
+            <div className="font-[family-name:var(--exam-font-mono)] text-3xl font-bold text-[var(--exam-ink)]">{q.speakTime} min</div>
+            <div className="text-xs font-bold text-[var(--exam-ink)]/45 uppercase tracking-widest mt-1">Échange</div>
           </div>
         </div>
 
-        <div className="mt-8 p-6 bg-amber-50 rounded-2xl border-2 border-amber-100 text-amber-800 text-sm font-medium flex items-center gap-3">
+        <div className="mt-8 p-6 bg-[var(--exam-seal)]/5 rounded-sm border border-[var(--exam-seal)]/20 text-[var(--exam-seal)] text-sm font-medium flex items-center gap-3">
            <Info className="shrink-0" />
            Dans le vrai examen, vous interagissez avec un examinateur. Entraînez-vous à voix haute.
         </div>
@@ -155,13 +155,13 @@ export function QuestionCard() {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-50 mb-20">
+          <div className="bg-white rounded-sm shadow-xl shadow-[var(--exam-ink)]/5 overflow-hidden border border-[var(--exam-line)] mb-20">
             <div className="p-8 md:p-12">
                <div className="flex justify-between items-center mb-8">
-                  <Badge variant="outline" className="px-4 py-1.5 rounded-full border-2 border-slate-100 text-slate-400 font-black tracking-widest uppercase text-[10px]">
+                  <Badge variant="outline" className="px-4 py-1.5 rounded-full border border-[var(--exam-line)] text-[var(--exam-ink)]/45 font-[family-name:var(--exam-font-mono)] font-bold tracking-widest uppercase text-[10px]">
                     {currentQuestion.instructions || "Consigne"}
                   </Badge>
-                  <div className="text-sm font-bold text-slate-400 italic">
+                  <div className="text-sm font-medium text-[var(--exam-ink)]/40 italic">
                     Sauvegarde automatique...
                   </div>
                </div>
@@ -174,13 +174,13 @@ export function QuestionCard() {
                }
             </div>
 
-            <div className="p-8 md:p-10 bg-slate-50 border-t flex justify-between items-center">
-               <div className="hidden md:block text-slate-400 font-medium">
+            <div className="p-8 md:p-10 bg-[var(--exam-paper)] border-t border-[var(--exam-line)] flex justify-between items-center">
+               <div className="hidden md:block font-[family-name:var(--exam-font-mono)] text-[var(--exam-ink)]/45 font-medium">
                   {state.currentQuestionIndex + 1} sur {questions.length}
                </div>
                <Button
                  onClick={nextQuestion}
-                 className="h-16 px-12 bg-[#002654] hover:bg-slate-800 rounded-2xl text-lg font-black shadow-xl shadow-slate-300"
+                 className="h-16 px-12 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-lg font-bold shadow-xl shadow-[var(--exam-blue)]/10"
                >
                  {state.currentQuestionIndex < questions.length - 1 ? "Question suivante" : "Terminer la section"}
                  <ArrowRight className="ml-2" />

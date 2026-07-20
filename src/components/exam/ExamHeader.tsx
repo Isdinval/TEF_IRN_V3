@@ -42,26 +42,26 @@ export function ExamHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--exam-line)] shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <span className="font-[family-name:var(--exam-font-mono)] text-[11px] font-bold text-[var(--exam-ink)]/45 uppercase tracking-wider">
             {state.examType === 'full' ? 'Examen Complet' : 'Épreuve Individuelle'}
           </span>
-          <h1 className="text-lg font-black text-[#002654]">
+          <h1 className="font-[family-name:var(--exam-font-display)] text-lg font-semibold text-[var(--exam-ink)]">
             {sectionNames[state.section]}
           </h1>
         </div>
 
         <div className="flex items-center gap-6">
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-2xl font-black transition-colors ${isLowTime ? 'bg-red-50 text-[#ED2939] animate-pulse' : 'bg-slate-50 text-slate-700'}`}>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-2xl font-bold transition-colors ${isLowTime ? 'bg-[var(--exam-seal)]/10 text-[var(--exam-seal)] animate-pulse' : 'bg-[var(--exam-paper)] text-[var(--exam-ink)]'}`}>
             <Timer size={24} className={isLowTime ? 'animate-bounce' : ''} />
             {formatTime}
           </div>
 
           <Button
             variant="ghost"
-            className="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 hover:bg-red-50"
+            className="hidden md:flex items-center gap-2 text-[var(--exam-ink)]/50 hover:text-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/5"
             onClick={handleFinishClick}
           >
             <LogOut size={20} />
