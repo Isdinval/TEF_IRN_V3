@@ -66,7 +66,7 @@ export function AudioPlayer({ url, maxPlays, questionId }: AudioPlayerProps) {
   const canPlay = plays < maxPlays || isPlaying;
 
   return (
-    <div className="w-full bg-[var(--exam-paper)] border border-[var(--exam-line)] rounded-sm p-6 flex flex-col gap-4">
+    <div className="w-full bg-[var(--exam-paper)] border border-[var(--exam-line)] rounded-sm p-4 flex flex-col gap-3">
       <audio
         ref={audioRef}
         src={url}
@@ -91,9 +91,9 @@ export function AudioPlayer({ url, maxPlays, questionId }: AudioPlayerProps) {
         <Button
           onClick={togglePlay}
           disabled={!canPlay && progress === 0}
-          className={`w-14 h-14 rounded-full shadow-lg transition-all ${isPlaying ? 'bg-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/85' : 'bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)]'}`}
+          className={`w-11 h-11 rounded-full shadow-lg transition-all ${isPlaying ? 'bg-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/85' : 'bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)]'}`}
         >
-          {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+          {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
         </Button>
       </div>
 
