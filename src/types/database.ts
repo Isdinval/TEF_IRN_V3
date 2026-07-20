@@ -11,6 +11,10 @@ export interface Profile {
   last_activity_at: string;
   subscription_tier: 'free' | 'premium' | 'pro';
   ai_credits: number;
+  onboarding_completed: boolean;
+  target_exam_date: string | null;
+  weekly_availability: 'lt_2h' | '2_5h' | '5_10h' | 'gt_10h' | null;
+  weak_skill: 'comprehension_orale' | 'comprehension_ecrite' | 'expression_orale' | 'expression_ecrite' | null;
 }
 
 export interface UserPreferences {
