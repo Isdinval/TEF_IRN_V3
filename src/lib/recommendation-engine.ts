@@ -50,6 +50,18 @@ const MAX_PENDING_RECOMMENDATIONS = 3;
  * la source fiable et agrégée pour ce signal. Son seul apport réel, le plafond
  * à MAX_PENDING_RECOMMENDATIONS pour ne pas empiler les recommandations, est
  * repris ci-dessous.
+ *
+ * Fix (2026-07) : la leçon recommandée est désormais filtrée par le niveau
+ * actuel de l'utilisateur (profiles.current_level) et, quand une sous-catégorie
+ * d'erreur existe (ex: "avoir"), on tente d'abord de matcher une leçon dont le
+ * titre la mentionne. Avant ce fix, la requête ne filtrait que sur `category`
+ * sans ORDER BY : elle pouvait renvoyer une leçon de niveau B2 sans rapport
+ * avec l'erreur précise de l'utilisateur (voir bug rapporté : leçon
+ * "Subjonctif Présent et Passé... B2" recommandée à un utilisateur A2 en
+ * difficulté sur "avoir").
+ * Note : lessons.tags est documentée comme corrompue dans
+ * 20260719000002_manual_tagging_all_exercises.sql — ne pas s'y fier, d'où le
+ * choix d'un ILIKE sur le titre plutôt qu'un filtre sur tags.
  */
 export async function analyzeUserErrorsAndRecommend(userId: string) {
   const supabase = await createClient();
@@ -82,13 +94,44 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
 
   const topError = errors[0];
 
-  // 2. Chercher une leçon qui correspond à la catégorie de l'erreur
-  const { data: lesson } = await supabase
-    .from('lessons')
-    .select('id, title, category')
-    .eq('category', topError.category.toLowerCase())
-    .limit(1)
+  // 1bis. Niveau actuel de l'utilisateur, pour ne pas recommander hors niveau
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('current_level')
+    .eq('id', userId)
     .single();
+
+  const userLevel = profile?.current_level ?? 'A2';
+
+  // 2. Chercher une leçon qui correspond à la catégorie ET au niveau de
+  // l'erreur, en priorisant une leçon dont le titre mentionne la
+  // sous-catégorie précise (ex: "avoir")
+  let lesson = null;
+
+  if (topError.sub_category) {
+    const { data } = await supabase
+      .from('lessons')
+      .select('id, title, category')
+      .eq('category', topError.category.toLowerCase())
+      .eq('level', userLevel)
+      .ilike('title', `%${topError.sub_category}%`)
+      .order('order_index', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    lesson = data;
+  }
+
+  if (!lesson) {
+    const { data } = await supabase
+      .from('lessons')
+      .select('id, title, category')
+      .eq('category', topError.category.toLowerCase())
+      .eq('level', userLevel)
+      .order('order_index', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    lesson = data;
+  }
 
   if (lesson) {
     // 3. Créer la recommandation de leçon
@@ -96,7 +139,7 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       user_id: userId,
       type: 'lesson',
       reference_id: lesson.id,
-      reason: `Nous avons remarqué des difficultés récurrentes en ${topError.category}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`,
+      reason: `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`,
       status: 'pending'
     }, { onConflict: 'user_id, reference_id' });
   } else {
