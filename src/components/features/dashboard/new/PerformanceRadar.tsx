@@ -11,14 +11,17 @@ interface CompetencyData {
   fullMark: number;
 }
 
-export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
-  const defaultData = [
-    { subject: 'CE', A: 0, fullMark: 100 },
-    { subject: 'EE', A: 0, fullMark: 100 },
-    { subject: 'EO', A: 0, fullMark: 100 },
-  ];
+const SUBJECTS = ['CE', 'EE', 'EO'] as const;
 
-  const chartData = data && data.length > 0 ? data : defaultData;
+export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
+  // Recharts a besoin d'au moins 3 axes pour dessiner un polygone lisible.
+  // Le RPC n'expose que les compétences déjà pratiquées (pas de faux "0%"),
+  // donc on complète ici les axes manquants pour l'affichage uniquement.
+  const chartData = SUBJECTS.map((subject) => {
+    const practiced = data?.find((d) => d.subject === subject);
+    return practiced || { subject, A: 0, fullMark: 100 };
+  });
+  const practicedCount = data?.length ?? 0;
 
   return (
     <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
@@ -69,6 +72,13 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Objectif B2</span>
            </div>
         </div>
+        {practicedCount < SUBJECTS.length && (
+          <p className="mt-4 text-center text-[10px] font-bold text-zinc-400 italic">
+            {practicedCount === 0
+              ? "Pratiquez des exercices pour faire apparaître votre radar."
+              : "Certaines compétences n'ont pas encore été pratiquées (affichées à 0)."}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from 'react';
+import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
@@ -90,6 +90,7 @@ export function PracticeContent() {
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
   const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
+  const sessionStartRef = useRef<number | null>(null);
 
   const toggleLesson = useCallback(async (lessonId?: string) => {
     if (!lessonId) return;
@@ -282,6 +283,12 @@ export function PracticeContent() {
   }, [supabase]);
 
   useEffect(() => {
+    if (mode === "practice") {
+      sessionStartRef.current = Date.now();
+    }
+  }, [mode]);
+
+  useEffect(() => {
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
     const level = searchParams.get('level');
@@ -380,6 +387,9 @@ export function PracticeContent() {
 
     const finalScore = Math.round((score / questions.length) * 100);
     const exerciseId = questions[0].exercise_id;
+    const studyTimeMinutes = sessionStartRef.current
+      ? Math.round((Date.now() - sessionStartRef.current) / 60000)
+      : 0;
 
     await fetch('/api/exercise-complete', {
       method: 'POST',
@@ -387,7 +397,8 @@ export function PracticeContent() {
       body: JSON.stringify({
         exerciseId,
         score: finalScore,
-        answers: { correct: score, total: questions.length }
+        answers: { correct: score, total: questions.length },
+        studyTimeMinutes
       })
     });
   };
