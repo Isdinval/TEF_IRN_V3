@@ -99,7 +99,7 @@ export default function ParcoursInteractive({
         <ParcoursBreadcrumb />
       </div>
 
-      <div className="relative overflow-hidden bg-zinc-900 py-24 lg:py-32">
+      <div className="relative overflow-hidden bg-zinc-900 py-12 lg:py-16">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-blue/20 rounded-full blur-[120px]" />
@@ -125,7 +125,7 @@ export default function ParcoursInteractive({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[0.95]"
+                className="text-2xl lg:text-3xl font-black text-white tracking-tighter leading-tight"
               >
                 {parcours.nom_parcours?.toUpperCase() || `${parcours.category.toUpperCase()} ${parcours.level}`}
               </motion.h1>
@@ -134,7 +134,7 @@ export default function ParcoursInteractive({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-xl text-zinc-400 max-w-2xl font-medium leading-relaxed italic"
+                className="text-sm text-zinc-400 max-w-2xl font-medium leading-relaxed italic"
               >
                 {parcours.objective}
               </motion.p>
@@ -145,14 +145,14 @@ export default function ParcoursInteractive({
                 <div className="bg-white/10 backdrop-blur-xl rounded-[3rem] p-10 border border-white/10 shadow-2xl space-y-8">
                   <div className="text-center space-y-2">
                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Prêt pour la suite ?</p>
-                    <h3 className="text-3xl font-black text-white">Continuez !</h3>
+                    <h3 className="text-lg font-black text-white">Continuez !</h3>
                   </div>
                   <Link href={`/tef-irn/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}>
                     <Button
                       size="lg"
-                      className="h-20 px-10 rounded-[2rem] bg-indigo-600 text-white font-black text-xl hover:bg-indigo-700 shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      className="h-12 px-8 rounded-2xl bg-indigo-600 text-white font-black text-sm hover:bg-indigo-700 shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      Démarrer la leçon <ArrowRight className="ml-3" size={24} />
+                      Démarrer la leçon <ArrowRight className="ml-2" size={18} />
                     </Button>
                   </Link>
                 </div>
@@ -162,7 +162,7 @@ export default function ParcoursInteractive({
                 <Link href="/tef-irn/login">
                   <Button
                     size="lg"
-                    className="h-20 px-10 rounded-[2rem] bg-brand-blue text-white font-black text-xl hover:bg-brand-blue/90 shadow-2xl shadow-brand-blue/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="h-12 px-8 rounded-2xl bg-brand-blue text-white font-black text-sm hover:bg-brand-blue/90 shadow-2xl shadow-brand-blue/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Essai Gratuit
                   </Button>
@@ -173,8 +173,8 @@ export default function ParcoursInteractive({
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 mt-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+      <div className="max-w-6xl mx-auto px-6 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <Card className="md:col-span-2 rounded-[3rem] border-none bg-white p-10 shadow-xl shadow-slate-200/40 border border-slate-50 relative overflow-hidden">
             {user ? (
               <div className="space-y-8">
@@ -185,7 +185,7 @@ export default function ParcoursInteractive({
                       key={progress?.percent}
                       initial={{ opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="text-5xl font-black text-indigo-600 tracking-tighter"
+                      className="text-2xl font-black text-indigo-600 tracking-tighter"
                     >
                       {progress?.percent}%
                     </motion.div>
@@ -212,7 +212,7 @@ export default function ParcoursInteractive({
                   <Target size={32} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Suivez votre progression</h3>
+                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Suivez votre progression</h3>
                   <p className="text-slate-500 font-medium max-w-sm">Connectez-vous pour enregistrer votre avancée et accéder aux exercices personnalisés.</p>
                 </div>
                 <Link href="/tef-irn/login">
@@ -230,7 +230,7 @@ export default function ParcoursInteractive({
                 <Target size={24} />
                 <span className="text-xs font-black uppercase tracking-widest">Niveau Visé</span>
               </div>
-              <div className="text-6xl font-black tracking-tighter mb-2">{parcours.level}</div>
+              <div className="text-3xl font-black tracking-tighter mb-2">{parcours.level}</div>
               <p className="text-sm font-bold opacity-70 leading-tight">
                 Maîtrisez les concepts essentiels du {parcours.category}
               </p>
@@ -245,7 +245,7 @@ export default function ParcoursInteractive({
           <section className="space-y-10">
             <div className="flex items-center justify-between px-4">
               <div className="space-y-1">
-                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
+                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
                   Programme d'études
                 </h2>
                 <p className="text-slate-400 font-medium italic">Suivez l'ordre recommandé pour une progression optimale.</p>
@@ -277,7 +277,7 @@ export default function ParcoursInteractive({
                     <div className="w-12 h-12 rounded-[1.25rem] bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-inner">
                       <Sparkles size={24} />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
                       Entraînement Recommandé
                     </h2>
                   </div>
@@ -298,8 +298,8 @@ export default function ParcoursInteractive({
                       <BookText size={48} className="text-slate-200" />
                     </div>
                     <div className="space-y-2">
-                       <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Pas encore de recommandations</h3>
-                       <p className="text-lg font-medium text-slate-400 max-w-md mx-auto">
+                       <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Pas encore de recommandations</h3>
+                       <p className="text-sm font-medium text-slate-400 max-w-md mx-auto">
                         Terminez quelques leçons pour que notre IA puisse vous proposer des exercices adaptés !
                        </p>
                     </div>
@@ -310,25 +310,25 @@ export default function ParcoursInteractive({
           )}
 
           <section>
-            <Card className="rounded-[4rem] border-none bg-zinc-900 p-12 md:p-24 text-white overflow-hidden relative group">
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <Card className="rounded-[4rem] border-none bg-zinc-900 p-8 md:p-14 text-white overflow-hidden relative group">
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                 <div className="space-y-8">
                   <Badge className="bg-white/10 text-white border-white/20 rounded-full px-6 py-2 text-xs font-black uppercase tracking-widest">
                     Ressource d'Expert
                   </Badge>
                   <div className="space-y-4">
-                    <h3 className="font-black text-4xl md:text-6xl leading-[0.95] tracking-tighter">
-                      BESOIN <br />
-                      <span className="text-indigo-500">D'AIDE ?</span>
+                    <h3 className="font-black text-2xl md:text-3xl leading-tight tracking-tighter">
+                      Besoin <br />
+                      <span className="text-indigo-500">d'aide ?</span>
                     </h3>
-                    <p className="text-xl text-zinc-400 leading-relaxed max-w-lg font-medium">
+                    <p className="text-sm text-zinc-400 leading-relaxed max-w-lg font-medium">
                       Accédez à notre guide complet sur la <span className="text-white underline decoration-indigo-500 underline-offset-4 capitalize">{parcours.category} {parcours.level}</span> pour maîtriser toutes les subtilités de l'examen.
                     </p>
                   </div>
                   <Link href={initialGuideSlug ? `/tef-irn/guides/${initialGuideSlug}` : "/tef-irn/guides"} className="block w-fit">
-                    <Button variant="outline" className="h-20 px-12 border-zinc-700 text-white hover:bg-white hover:text-black rounded-[2rem] font-black text-lg transition-all group shadow-2xl">
-                      {initialGuideSlug ? "VOIR LE GUIDE COMPLET" : "PARCOURIR LES GUIDES"}
-                      <ArrowRight className="ml-3 transition-transform group-hover:translate-x-2" size={24} />
+                    <Button variant="outline" className="h-12 px-8 border-zinc-700 text-white hover:bg-white hover:text-black rounded-2xl font-black text-sm transition-all group shadow-2xl">
+                      {initialGuideSlug ? "Voir le guide complet" : "Parcourir les guides"}
+                      <ArrowRight className="ml-2 transition-transform group-hover:translate-x-2" size={18} />
                     </Button>
                   </Link>
                 </div>

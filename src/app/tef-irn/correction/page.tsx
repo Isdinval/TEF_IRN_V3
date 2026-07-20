@@ -169,7 +169,7 @@ export default function CorrectionHistoryPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50/30 selection:bg-indigo-100">
-      <div className="mx-auto max-w-6xl p-6 pt-12 lg:p-12">
+      <div className="mx-auto max-w-6xl p-6 pt-8 lg:p-10">
         <AnimatePresence mode="wait">
           {!selectedAttempt ? (
             <motion.div
@@ -177,24 +177,24 @@ export default function CorrectionHistoryPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-12"
+              className="space-y-8"
             >
-              <header className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-                <div className="space-y-4">
+              <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-2">
                   <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 text-white">
                     Progression
                   </Badge>
-                  <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-zinc-900 leading-tight">
-                    HISTORIQUE <br /> DES <span className="text-indigo-600">CORRECTIONS</span>
+                  <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-zinc-900 leading-tight uppercase">
+                    Historique des <span className="text-indigo-600">corrections</span>
                   </h1>
-                  <p className="max-w-xl text-lg font-medium leading-relaxed text-zinc-500">
+                  <p className="max-w-xl text-sm font-medium leading-relaxed text-zinc-500">
                     Analysez vos performances, identifiez vos erreurs récurrentes et progressez vers votre certification TEF IRN.
                   </p>
                 </div>
                 <Link href="/tef-irn/writing">
-                  <Button className="h-16 rounded-[2rem] bg-zinc-900 px-8 font-black text-white shadow-2xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
+                  <Button className="h-11 rounded-2xl bg-zinc-900 px-6 font-black text-sm text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
                     Nouvelle rédaction
-                    <Sparkles className="ml-3 group-hover:rotate-12 transition-transform" size={20} />
+                    <Sparkles className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
                   </Button>
                 </Link>
               </header>

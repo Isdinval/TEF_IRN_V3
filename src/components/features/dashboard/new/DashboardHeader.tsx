@@ -19,7 +19,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
   const progress = Math.min((xpToday / xpGoal) * 100, 100);
 
   return (
-    <div className="relative mb-10 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-8 shadow-2xl md:p-12">
+    <div className="relative mb-6 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6 shadow-2xl md:p-8">
       {/* Decorative Elements */}
       <div className="absolute right-0 top-0 h-64 w-64 translate-x-1/4 -translate-y-1/4 rounded-full bg-indigo-500/10 blur-3xl" />
       <div className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/4 translate-y-1/4 rounded-full bg-violet-500/10 blur-3xl" />
@@ -44,7 +44,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl font-black tracking-tight text-white md:text-5xl"
+            className="text-2xl font-black tracking-tight text-white md:text-3xl"
           >
             Bonjour, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">{firstName}</span> 👋
           </motion.h1>
@@ -99,7 +99,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
       </div>
 
       {/* Daily Progress Bar */}
-      <div className="mt-12 space-y-3">
+      <div className="mt-8 space-y-3">
         <div className="flex items-center justify-between px-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
           <span className="flex items-center gap-2"><Sparkles size={12} className="text-indigo-400" /> Objectif quotidien</span>
           <span>{xpToday} / {xpGoal} XP</span>

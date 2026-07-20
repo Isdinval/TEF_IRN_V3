@@ -192,8 +192,8 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                   </div>
 
                   <div className="space-y-2">
-                    <h1 className="text-5xl font-black tracking-tight text-slate-900 leading-[1.1]">{mainTitle}</h1>
-                    {subtitle && <p className="text-lg font-medium text-indigo-500 leading-tight">{subtitle}</p>}
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 leading-tight">{mainTitle}</h1>
+                    {subtitle && <p className="text-sm font-medium text-indigo-500 leading-tight">{subtitle}</p>}
                   </div>
 
                   {lesson.objective && (
@@ -214,7 +214,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                 <div className="pt-6">
                   <Button
                     size="lg"
-                    className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full h-14 text-base font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     onClick={handleFinishLesson}
                   >
                     {exercise ? <span className="flex items-center gap-3">Valider & Passer au Quiz <ArrowRight /></span> : "Terminer la leçon"}
@@ -232,8 +232,8 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                       <GraduationCap size={48} />
                    </div>
                    <div className="space-y-4">
-                      <h2 className="text-4xl font-black text-slate-900">Teste tes connaissances !</h2>
-                      <p className="text-xl text-slate-500 font-medium max-w-md mx-auto">
+                      <h2 className="text-xl font-black text-slate-900">Teste tes connaissances !</h2>
+                      <p className="text-sm text-slate-500 font-medium max-w-md mx-auto">
                         Connecte-toi gratuitement pour accéder au quiz, tester tes acquis et gagner de l'XP.
                       </p>
                    </div>
@@ -263,7 +263,7 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                   <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[2.5rem] overflow-hidden">
                     <CardContent className="p-12 text-center space-y-10">
                       <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto"><GraduationCap size={32} /></div>
-                      <h3 className="text-3xl font-black text-slate-800 leading-tight">{exercise.content.questions[currentQ]}</h3>
+                      <h3 className="text-xl font-black text-slate-800 leading-tight">{exercise.content.questions[currentQ]}</h3>
                       <div className="grid grid-cols-1 gap-4 text-left max-w-2xl mx-auto">
                         {exercise.content.options[currentQ].map((opt: string, i: number) => (
                           <button
@@ -318,20 +318,20 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                 <div className="absolute inset-0 bg-indigo-200 blur-3xl opacity-20 -z-10" />
               </div>
               <div className="space-y-4">
-                <h2 className="text-5xl font-black text-slate-900">Bien joué !</h2>
-                <p className="text-2xl text-slate-500 font-medium italic">Vous avez complété la leçon avec succès.</p>
+                <h2 className="text-2xl font-black text-slate-900">Bien joué !</h2>
+                <p className="text-sm text-slate-500 font-medium italic">Vous avez complété la leçon avec succès.</p>
               </div>
               <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
                   <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Score</p>
-                  <p className="text-4xl font-black text-indigo-600">{(exercise && exercise.content.questions.length > 0) ? Math.round((score / exercise.content.questions.length) * 100) : 100}%</p>
+                  <p className="text-3xl font-black text-indigo-600">{(exercise && exercise.content.questions.length > 0) ? Math.round((score / exercise.content.questions.length) * 100) : 100}%</p>
                 </div>
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
                   <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Récompense</p>
-                  <p className="text-4xl font-black text-amber-500">+100 XP</p>
+                  <p className="text-3xl font-black text-amber-500">+100 XP</p>
                 </div>
               </div>
-              <Button size="lg" className="px-16 h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/tef-irn/lessons/${lesson.slug}/complete`)}>
+              <Button size="lg" className="px-12 h-14 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-base font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/tef-irn/lessons/${lesson.slug}/complete`)}>
                 Retour au Dashboard
               </Button>
             </motion.div>

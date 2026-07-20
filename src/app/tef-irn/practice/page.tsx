@@ -429,18 +429,18 @@ export function PracticeContent() {
           <img
             src={resultMascotUrl}
             alt="Mascotte LlamaKusi célébrant la réussite du QCM"
-            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
+            className="w-28 h-28 mx-auto object-contain drop-shadow-xl"
           />
           <div className="space-y-2">
-            <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
-            <p className="text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
+            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
           </div>
-          <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
-            <div className="w-px h-12 bg-zinc-100" />
+            <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
               <div className="text-2xl font-black text-purple-600">{score} / {questions.length}</div>
@@ -449,10 +449,10 @@ export function PracticeContent() {
           <div className="flex flex-col gap-3">
             <Button
               onClick={handleBackToCatalogue}
-              className="h-16 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
-            >RETOURNER AU CATALOGUE</Button>
+              className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+            >Retourner au catalogue</Button>
             {nextLesson && (
-              <Button onClick={() => nextLesson()} variant="outline" className="h-16 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">LEÇON SUIVANTE</Button>
+              <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
             <Button
               variant="ghost"
@@ -471,7 +471,7 @@ export function PracticeContent() {
   if (mode === "selection") {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12 lg:px-12">
+        <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10">
           <ExerciseLayout
             title="CENTRE D’ENTRAÎNEMENT QCM"
             badge="Coach QCM"
@@ -522,7 +522,7 @@ export function PracticeContent() {
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
                    <Zap size={14} /> Flash QCM
                 </div>
-                <h4 className="text-xl font-black leading-tight">Lancer une session rapide</h4>
+                <h4 className="text-base font-black leading-tight">Lancer une session rapide</h4>
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
                     <Calendar size={16} /> Entraînement Quotidien
                  </div>
@@ -530,9 +530,9 @@ export function PracticeContent() {
             </div>
 
             {/* Catalogue Section */}
-            <section className="mt-12">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+            <section className="mt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                   <Badge className="bg-purple-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
                   <span className="text-zinc-400">•</span>
                   <span className="capitalize text-zinc-500">{filters.category}</span>
