@@ -56,7 +56,13 @@ export default function DashboardPage() {
     enabled: isMounted,
   });
 
-  if (!isMounted || isLoading) {
+  useEffect(() => {
+    if (data?.profile && data.profile.onboarding_completed === false) {
+      router.replace("/tef-irn/onboarding");
+    }
+  }, [data, router]);
+
+  if (!isMounted || isLoading || data?.profile?.onboarding_completed === false) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-slate-50/30">
         <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
