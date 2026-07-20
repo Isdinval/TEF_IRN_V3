@@ -68,19 +68,19 @@ export function ExerciseLayout({
 
   return (
     <div className="w-full">
-      <section className="mb-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+      <section className="mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-4 max-w-2xl"
+            className="space-y-2 max-w-2xl"
           >
             <Badge className={badgeClass}>{badge}</Badge>
-            <h1 className="text-4xl md:text-5xl font-black text-zinc-900 tracking-tighter uppercase leading-none">
+            <h1 className="text-2xl md:text-3xl font-black text-zinc-900 tracking-tighter uppercase leading-tight">
               {title}
             </h1>
             {description && (
-              <p className="text-zinc-500 text-lg font-medium leading-relaxed italic">
+              <p className="text-zinc-500 text-sm font-medium leading-relaxed italic">
                 "{description}"
               </p>
             )}
@@ -94,7 +94,7 @@ export function ExerciseLayout({
             </motion.div>
           )}
         </div>
-        <div className="h-px w-full bg-gradient-to-r from-zinc-200 via-zinc-100 to-transparent mb-12" />
+        <div className="h-px w-full bg-gradient-to-r from-zinc-200 via-zinc-100 to-transparent mb-8" />
         {children}
       </section>
     </div>

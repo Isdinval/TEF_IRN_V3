@@ -76,9 +76,9 @@ export default function ParcoursList({
     if (items.length === 0) return null;
 
     return (
-      <section className="mb-16">
-        <div className="flex items-center gap-4 mb-8 px-1">
-          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+      <section className="mb-10">
+        <div className="flex items-center gap-4 mb-6 px-1">
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
             <Badge className={`${badgeColor} rounded-full px-4 py-1 border-none shadow-lg shadow-zinc-100`}>{title}</Badge>
             <span className="text-zinc-300">•</span>
             {items.length} parcours
@@ -118,7 +118,7 @@ export default function ParcoursList({
                           </Badge>
                         </div>
                         <div>
-                          <h3 className="text-2xl font-black text-zinc-900 capitalize leading-tight mb-1">
+                          <h3 className="text-base font-black text-zinc-900 capitalize leading-tight mb-1">
                             {p.nom_parcours || `${p.category} ${p.level}`}
                           </h3>
                           {p.justification_reference_au_referentiel && p.justification_reference_au_referentiel.trim() !== "" && (
@@ -177,20 +177,20 @@ export default function ParcoursList({
 
   return (
     <PageTransition>
-      <article className="min-h-screen bg-zinc-50/50 p-6 pt-16 lg:p-16" aria-label="Liste des parcours TEF IRN">
+      <article className="min-h-screen bg-zinc-50/50 p-6 pt-10 lg:p-12" aria-label="Liste des parcours TEF IRN">
         <div className="max-w-7xl mx-auto">
-          <header className="mb-16">
-            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+          <header className="mb-10">
+            <Badge className="mb-3 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
               {user ? "Mes Parcours" : "Parcours de formation"}
             </Badge>
-            <h1 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter mb-6">
+            <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tighter mb-2 uppercase">
               {user ? (
-                <>VOTRE <span className="text-indigo-600">APPRENTISSAGE</span> <br />SUR MESURE</>
+                <>Votre <span className="text-indigo-600">apprentissage</span> sur mesure</>
               ) : (
-                <>DES PARCOURS <span className="text-indigo-600">D'APPRENTISSAGE</span> <br />OPTIMISÉS</>
+                <>Des parcours <span className="text-indigo-600">d'apprentissage</span> optimisés</>
               )}
             </h1>
-            <p className="max-w-2xl text-xl font-medium text-slate-500 leading-relaxed">
+            <p className="max-w-2xl text-sm font-medium text-slate-500 leading-relaxed">
               Suivez votre progression étape par étape à travers nos modules spécialisés pour réussir le TEF IRN.
             </p>
           </header>
@@ -208,7 +208,7 @@ export default function ParcoursList({
           {allParcours.length === 0 && (
             <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-zinc-200">
               <Sparkles className="mx-auto text-zinc-200 mb-6" size={64} />
-              <h2 className="text-2xl font-black text-zinc-900 mb-2">Aucun parcours disponible</h2>
+              <h2 className="text-lg font-black text-zinc-900 mb-2">Aucun parcours disponible</h2>
               <p className="text-zinc-400 font-bold">Les leçons arrivent bientôt !</p>
             </div>
           )}

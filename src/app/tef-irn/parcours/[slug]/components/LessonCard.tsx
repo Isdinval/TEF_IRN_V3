@@ -124,12 +124,12 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
                 </div>
               </div>
 
-              <h3 className={`text-2xl md:text-3xl font-black tracking-tight text-slate-900 ${isLocked ? '' : theme.hoverText} transition-colors`}>
+              <h3 className={`text-lg md:text-xl font-black tracking-tight text-slate-900 ${isLocked ? '' : theme.hoverText} transition-colors`}>
                 {mainTitle}
               </h3>
 
               {description && (
-                <p className="text-base font-medium text-slate-500 max-w-xl italic line-clamp-2">
+                <p className="text-sm font-medium text-slate-500 max-w-xl italic line-clamp-2">
                   {description}
                 </p>
               )}
