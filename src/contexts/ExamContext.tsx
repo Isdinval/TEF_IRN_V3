@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { ExamSectionType, ExamSessionState, Question, ExamResult } from '../types/exam';
+import { WritingFeedback } from '../types/writing';
 import { createClient } from '@/lib/supabase';
 
 export interface ExamMetadata {
@@ -29,12 +30,13 @@ interface ExamContextType {
   prevQuestion: () => void;
   setQuestionIndex: (index: number) => void;
   setAnswer: (questionId: string, answer: string) => void;
-  finishSection: () => void;
+  finishSection: () => Promise<void>;
   startNextSection: () => void;
   finishExam: () => void;
   resetExam: () => void;
   sessionResults: ExamResult[];
   isLoading: boolean;
+  isCorrecting: boolean;
 }
 
 const STORAGE_KEY = 'tef_irn_exam_state';
@@ -59,6 +61,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const [isLoadingExams, setIsLoadingExams] = useState(true);
   const [sessionResults, setSessionResults] = useState<ExamResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCorrecting, setIsCorrecting] = useState(false);
 
   const supabase = createClient();
 
@@ -129,6 +132,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         maxTime: q.max_time,
         prepTime: q.prep_time,
         speakTime: q.speak_time,
+        oralScenarioId: q.oral_scenario_id,
       }));
 
       setAllQuestions(mappedQuestions);
@@ -297,8 +301,46 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     };
   };
 
-  const finishSection = () => {
+  const correctWritingSection = async (section: ExamSectionType, answers: Record<string, string>) => {
+    if (section !== 'EE') return undefined;
+
+    const writingQuestions = allQuestions.filter((q): q is Question & { type: 'writing' } => q.type === 'writing');
+    const feedbacks: Record<string, WritingFeedback> = {};
+
+    for (const q of writingQuestions) {
+      const text = (answers[q.id] || '').trim();
+      if (!text) continue;
+
+      try {
+        const response = await fetch('/api/writing/correct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            subject: (q as any).prompt,
+            targetLevel: activeExam?.level,
+          }),
+        });
+        if (response.ok) {
+          feedbacks[q.id] = await response.json();
+        }
+      } catch (error) {
+        console.error(`EE correction failed for question ${q.id}:`, error);
+      }
+    }
+
+    return Object.keys(feedbacks).length > 0 ? feedbacks : undefined;
+  };
+
+  const finishSection = async () => {
     const currentResult = calculateSectionResults(state.section, state.answers);
+
+    if (state.section === 'EE') {
+      setIsCorrecting(true);
+      currentResult.writingFeedbacks = await correctWritingSection(state.section, state.answers);
+      setIsCorrecting(false);
+    }
+
     setSessionResults(prev => [...prev, currentResult]);
 
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
@@ -375,6 +417,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       resetExam,
       sessionResults,
       isLoading,
+      isCorrecting,
     }}>
       {children}
     </ExamContext.Provider>

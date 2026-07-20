@@ -15,7 +15,7 @@ const sectionNames: Record<ExamSectionType, string> = {
 };
 
 export function ExamHeader() {
-  const { state, finishSection, activeExam } = useExam();
+  const { state, finishSection, activeExam, isCorrecting } = useExam();
 
   const getDuration = () => {
     if (!activeExam) return 20 * 60;
@@ -61,11 +61,12 @@ export function ExamHeader() {
 
           <Button
             variant="ghost"
-            className="hidden md:flex items-center gap-2 text-[var(--exam-ink)]/50 hover:text-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/5"
+            disabled={isCorrecting}
+            className="hidden md:flex items-center gap-2 text-[var(--exam-ink)]/50 hover:text-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/5 disabled:opacity-50"
             onClick={handleFinishClick}
           >
             <LogOut size={20} />
-            Terminer l'épreuve
+            {isCorrecting ? "Correction IA..." : "Terminer l'épreuve"}
           </Button>
         </div>
       </div>
