@@ -23,6 +23,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
+import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
 
 export function ResultsScreen() {
   const { sessionResults, resetExam, allQuestions } = useExam();
@@ -199,11 +200,38 @@ export function ResultsScreen() {
                 )}
 
                 {result.section === 'EO' && (
-                  <div className="p-6 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)] text-center">
-                    <MessageSquare className="mx-auto mb-3 text-[var(--exam-blue)]" size={32} />
-                    <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] mb-2">Simulation orale terminée</div>
-                    <p className="text-[var(--exam-ink)]/60 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
-                  </div>
+                  result.oralAnalyses && Object.keys(result.oralAnalyses).length > 0 ? (
+                    <div className="space-y-4">
+                      {Object.entries(result.oralAnalyses).map(([qId, analysis], idx) => (
+                        <div key={qId} className="p-6 bg-white border border-[var(--exam-line)] rounded-sm shadow-sm space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                              <MessageSquare size={20} />
+                              <span className="font-[family-name:var(--exam-font-display)] font-semibold">Échange {idx + 1}</span>
+                            </div>
+                            <div className="font-[family-name:var(--exam-font-mono)] text-sm font-bold text-[var(--exam-blue)]">
+                              Niveau {analysis.estimated_level}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-[family-name:var(--exam-font-mono)] text-xs">
+                            {Object.entries(analysis.scores).map(([key, value]) => (
+                              <div key={key} className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
+                                <div className="font-bold text-[var(--exam-ink)]">{value}</div>
+                                <div className="text-[var(--exam-ink)]/45">{ORAL_CRITERIA_LABELS[key as keyof typeof ORAL_CRITERIA_LABELS]}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-sm italic text-[var(--exam-ink)]/70">"{analysis.general_comment}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)] text-center">
+                      <MessageSquare className="mx-auto mb-3 text-[var(--exam-blue)]" size={32} />
+                      <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] mb-2">Simulation orale terminée</div>
+                      <p className="text-[var(--exam-ink)]/60 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
+                    </div>
+                  )
                 )}
               </div>
             ))}

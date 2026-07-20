@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { QCMQuestion, WritingQuestion, SpeakingQuestion } from '@/types/exam';
 import { AudioPlayer } from './AudioPlayer';
+import { SpeakingSession } from './SpeakingSession';
+import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +13,7 @@ import { ArrowRight, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function QuestionCard() {
-  const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting } = useExam();
+  const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting, submitOralAnalysis, oralAnalyses } = useExam();
   const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
@@ -111,6 +113,63 @@ export function QuestionCard() {
   };
 
   const renderSpeaking = (q: SpeakingQuestion) => {
+    const analysis = oralAnalyses[q.id];
+
+    if (q.oralScenarioId && !analysis) {
+      return (
+        <div className="space-y-6">
+          <div className="p-6 bg-[var(--exam-paper)] rounded-sm border-l-4 border-[var(--exam-blue)]">
+            <h3 className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] flex items-center gap-2 mb-2">
+              <Info size={18} /> Sujet
+            </h3>
+            <p className="text-[var(--exam-ink)]/80 leading-relaxed font-medium">{q.prompt}</p>
+            <div className="flex gap-4 mt-4 font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/50">
+              <span>Préparation {q.prepTime} min</span>
+              <span>Échange {q.speakTime} min</span>
+            </div>
+          </div>
+
+          <SpeakingSession
+            scenarioId={q.oralScenarioId}
+            prepTime={q.prepTime}
+            speakTime={q.speakTime}
+            onComplete={(result) => submitOralAnalysis(q.id, result)}
+          />
+        </div>
+      );
+    }
+
+    if (q.oralScenarioId && analysis) {
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-[family-name:var(--exam-font-display)] text-2xl font-semibold text-[var(--exam-ink)]">
+              Échange terminé
+            </h2>
+            <div className="font-[family-name:var(--exam-font-mono)] text-sm font-bold text-[var(--exam-blue)]">
+              Niveau estimé {analysis.estimated_level}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Object.entries(analysis.scores).map(([key, value]) => (
+              <div key={key} className="p-4 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)] text-center">
+                <div className="font-[family-name:var(--exam-font-mono)] font-bold text-xl text-[var(--exam-ink)]">{value}</div>
+                <div className="text-[10px] font-bold text-[var(--exam-ink)]/45 uppercase tracking-wide mt-1">
+                  {ORAL_CRITERIA_LABELS[key as keyof typeof ORAL_CRITERIA_LABELS]}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[var(--exam-ink)]/70 italic">"{analysis.general_comment}"</p>
+        </div>
+      );
+    }
+
+    // Repli : aucun scénario Realtime lié à cette question (ne devrait pas arriver
+    // pour les 3 examens actuels, mais évite un écran cassé si un futur examen
+    // est créé sans oral_scenario_id).
     return (
       <div className="flex flex-col items-center gap-8 py-8 text-center">
         <div className="w-20 h-20 bg-[var(--exam-paper)] text-[var(--exam-blue)] rounded-sm flex items-center justify-center mb-4">
@@ -180,7 +239,7 @@ export function QuestionCard() {
                </div>
                <Button
                  onClick={nextQuestion}
-                 disabled={isCorrecting}
+                 disabled={isCorrecting || (currentQuestion.type === 'speaking' && !!(currentQuestion as SpeakingQuestion).oralScenarioId && !oralAnalyses[currentQuestion.id])}
                  className="h-16 px-12 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-lg font-bold shadow-xl shadow-[var(--exam-blue)]/10 disabled:opacity-60"
                >
                  {isCorrecting
