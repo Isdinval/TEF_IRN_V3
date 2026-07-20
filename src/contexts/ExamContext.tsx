@@ -7,6 +7,9 @@ import { createClient } from '@/lib/supabase';
 export interface ExamMetadata {
   id: string;
   label: string;
+  slug?: string;
+  description?: string;
+  level?: string;
   duration_co: number;
   duration_ce: number;
   duration_ee: number;
@@ -19,7 +22,9 @@ interface ExamContextType {
   allQuestions: Question[];
   currentQuestion: Question;
   activeExam: ExamMetadata | null;
-  startExam: (type: 'single' | 'full', section?: ExamSectionType) => void;
+  exams: ExamMetadata[];
+  isLoadingExams: boolean;
+  startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
   setQuestionIndex: (index: number) => void;
@@ -50,17 +55,40 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
 
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [activeExam, setActiveExam] = useState<ExamMetadata | null>(null);
+  const [exams, setExams] = useState<ExamMetadata[]>([]);
+  const [isLoadingExams, setIsLoadingExams] = useState(true);
   const [sessionResults, setSessionResults] = useState<ExamResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createClient();
+
+  const fetchAllExams = useCallback(async () => {
+    setIsLoadingExams(true);
+    try {
+      const { data, error } = await supabase
+        .from('exams')
+        .select('id, label, slug, description, level, duration_co, duration_ce, duration_ee, duration_eo')
+        .order('slug', { ascending: true });
+
+      if (error) throw error;
+      setExams((data || []) as ExamMetadata[]);
+    } catch (error) {
+      console.error('Failed to fetch exams list:', error);
+    } finally {
+      setIsLoadingExams(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchAllExams();
+  }, [fetchAllExams]);
 
   const fetchExamContent = useCallback(async (examId?: string) => {
     setIsLoading(true);
     try {
       let query = supabase
         .from('exams')
-        .select('id, label, duration_co, duration_ce, duration_ee, duration_eo');
+        .select('id, label, slug, description, level, duration_co, duration_ce, duration_ee, duration_eo');
 
       if (examId) {
         query = query.eq('id', examId);
@@ -184,12 +212,12 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const questions = allQuestions.filter((q: Question) => q.section === state.section);
   const currentQuestion = questions[state.currentQuestionIndex] || ({} as Question);
 
-  const startExam = async (type: 'single' | 'full', section?: ExamSectionType) => {
-    let currentExamId = activeExam?.id;
+  const startExam = async (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => {
+    let currentExamId = examId || activeExam?.id;
     let currentQuestions = allQuestions;
 
-    if (!currentExamId) {
-      const result = await fetchExamContent();
+    if (!currentExamId || examId) {
+      const result = await fetchExamContent(examId);
       currentExamId = result.examId || undefined;
       currentQuestions = result.questions;
     }
@@ -334,6 +362,8 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       allQuestions,
       currentQuestion,
       activeExam,
+      exams,
+      isLoadingExams,
       startExam,
       nextQuestion,
       prevQuestion,

@@ -10,28 +10,30 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Headset, BookOpen, PenTool, Mic, Award, Clock } from 'lucide-react';
-import { useExam } from '@/contexts/ExamContext';
+import { useExam, ExamMetadata } from '@/contexts/ExamContext';
 import { ExamSectionType } from '@/types/exam';
 
 interface TimerModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  exam: ExamMetadata | null;
 }
 
-export function TimerModal({ isOpen, onOpenChange }: TimerModalProps) {
+export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
   const { startExam, activeExam } = useExam();
+  const targetExam = exam || activeExam;
 
   const options = [
-    { id: 'CO', name: 'Compréhension orale', duration: `${activeExam?.duration_co || 20} min`, icon: Headset, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { id: 'CE', name: 'Compréhension écrite', duration: `${activeExam?.duration_ce || 30} min`, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { id: 'EE', name: 'Expression écrite', duration: `${activeExam?.duration_ee || 30} min`, icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { id: 'EO', name: 'Expression orale', duration: `${activeExam?.duration_eo || 10} min`, icon: Mic, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { id: 'CO', name: 'Compréhension orale', duration: `${targetExam?.duration_co || 20} min`, icon: Headset, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'CE', name: 'Compréhension écrite', duration: `${targetExam?.duration_ce || 30} min`, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'EE', name: 'Expression écrite', duration: `${targetExam?.duration_ee || 30} min`, icon: PenTool, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { id: 'EO', name: 'Expression orale', duration: `${targetExam?.duration_eo || 10} min`, icon: Mic, color: 'text-purple-600', bg: 'bg-purple-50' },
   ];
 
-  const totalDuration = (activeExam?.duration_co || 20) +
-                        (activeExam?.duration_ce || 30) +
-                        (activeExam?.duration_ee || 30) +
-                        (activeExam?.duration_eo || 10);
+  const totalDuration = (targetExam?.duration_co || 20) +
+                        (targetExam?.duration_ce || 30) +
+                        (targetExam?.duration_ee || 30) +
+                        (targetExam?.duration_eo || 10);
 
   const formatTotalTime = (mins: number) => {
     const h = Math.floor(mins / 60);
@@ -40,12 +42,12 @@ export function TimerModal({ isOpen, onOpenChange }: TimerModalProps) {
   };
 
   const handleSelect = (sectionId: string) => {
-    startExam('single', sectionId as ExamSectionType);
+    startExam('single', sectionId as ExamSectionType, targetExam?.id);
     onOpenChange(false);
   };
 
   const handleFullExam = () => {
-    startExam('full');
+    startExam('full', undefined, targetExam?.id);
     onOpenChange(false);
   };
 
@@ -54,7 +56,7 @@ export function TimerModal({ isOpen, onOpenChange }: TimerModalProps) {
       <DialogContent className="sm:max-w-[500px] rounded-3xl p-8">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-3xl font-black text-center text-[#002654]">
-            Prêt pour l'entraînement ?
+            {targetExam?.label || 'Prêt pour l\'entraînement ?'}
           </DialogTitle>
           <DialogDescription className="text-center text-lg mt-2">
             Choisissez une épreuve spécifique ou lancez l'examen complet.
