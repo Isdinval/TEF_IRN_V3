@@ -186,9 +186,9 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
 
   if (status === 'idle') {
     return (
-      <div className="flex flex-col items-center gap-6 py-4 text-center">
-        <div className="w-20 h-20 bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] rounded-sm flex items-center justify-center">
-          <PhoneCall size={36} />
+      <div className="flex flex-col items-center gap-4 py-3 text-center">
+        <div className="w-14 h-14 bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] rounded-sm flex items-center justify-center">
+          <PhoneCall size={26} />
         </div>
         <p className="max-w-md text-[var(--exam-ink)]/60 text-sm font-medium">
           Vous allez échanger en direct, à l'oral, avec le coach IA — exactement comme le jour de l'examen.
@@ -196,17 +196,17 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
         </p>
         <Button
           onClick={startSession}
-          className="h-14 px-8 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-base font-bold"
+          className="h-11 px-6 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-sm font-bold"
         >
-          <Mic className="mr-2" size={20} /> Démarrer l'échange
+          <Mic className="mr-2" size={18} /> Démarrer l'échange
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="relative flex flex-col items-center justify-center gap-6 py-10 rounded-sm bg-[var(--exam-ink)] overflow-hidden">
+    <div className="flex flex-col gap-3">
+      <div className="relative flex flex-col items-center justify-center gap-4 py-5 rounded-sm bg-[var(--exam-ink)] overflow-hidden">
         {status === 'active' && isListening && (
           <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-15">
             {[...Array(12)].map((_, index) => (
@@ -223,23 +223,23 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
           </div>
         )}
 
-        <div className="z-10 flex flex-col items-center gap-4">
+        <div className="z-10 flex flex-col items-center gap-3">
           <div
-            className={`flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500 ${
+            className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-500 ${
               status === 'active'
                 ? isListening
-                  ? 'bg-[var(--exam-blue)] shadow-[0_0_40px_rgba(0,38,84,0.5)]'
+                  ? 'bg-[var(--exam-blue)] shadow-[0_0_30px_rgba(0,38,84,0.5)]'
                   : 'bg-white/10'
                 : 'bg-white/10'
             }`}
           >
             {status === 'connecting' || status === 'analyzing' ? (
-              <Loader2 className="animate-spin text-white" size={36} />
+              <Loader2 className="animate-spin text-white" size={26} />
             ) : (
-              <Mic className="text-white" size={36} />
+              <Mic className="text-white" size={26} />
             )}
           </div>
-          <div className="text-center font-[family-name:var(--exam-font-mono)] text-white/90 text-sm font-bold uppercase tracking-widest">
+          <div className="text-center font-[family-name:var(--exam-font-mono,monospace)] text-white/90 text-xs font-bold uppercase tracking-widest">
             {status === 'connecting' && 'Connexion au coach...'}
             {status === 'active' && (isListening ? 'Le coach vous écoute' : 'Micro coupé')}
             {status === 'analyzing' && 'Analyse de votre passage...'}
@@ -250,28 +250,30 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
         </div>
 
         {status === 'active' && (
-          <div className="z-10 flex gap-3">
+          <div className="z-10 flex gap-2">
             <Button
               variant="outline"
-              className="h-11 rounded-sm border-white/20 bg-white/5 text-white hover:bg-white/10"
+              size="sm"
+              className="h-9 rounded-sm border-white/20 bg-white/5 text-white hover:bg-white/10"
               onClick={() => finishSession()}
             >
               Terminer
             </Button>
             <Button
-              className={`h-11 rounded-sm ${isListening ? 'bg-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/85' : 'bg-white/20 hover:bg-white/30'}`}
+              size="sm"
+              className={`h-9 rounded-sm ${isListening ? 'bg-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/85' : 'bg-white/20 hover:bg-white/30'}`}
               onClick={toggleMic}
             >
-              {isListening ? <><MicOff className="mr-2" size={16} /> Couper le micro</> : <><Mic className="mr-2" size={16} /> Réactiver</>}
+              {isListening ? <><MicOff className="mr-1.5" size={14} /> Couper</> : <><Mic className="mr-1.5" size={14} /> Réactiver</>}
             </Button>
           </div>
         )}
       </div>
 
       {status === 'active' && liveTranscript.length > 0 && (
-        <div className="bg-[var(--exam-paper)] border border-[var(--exam-line)] rounded-sm p-4 max-h-[180px] overflow-y-auto space-y-2">
+        <div className="bg-[var(--exam-paper)] border border-[var(--exam-line)] rounded-sm p-3 max-h-[110px] overflow-y-auto space-y-1.5">
           {liveTranscript.map((t, i) => (
-            <p key={i} className="text-sm leading-relaxed">
+            <p key={i} className="text-xs leading-relaxed">
               <span className={`font-bold ${t.role === 'candidat' ? 'text-[var(--exam-blue)]' : 'text-[var(--exam-ink)]/50'}`}>
                 {t.role === 'candidat' ? 'Vous : ' : 'Coach : '}
               </span>

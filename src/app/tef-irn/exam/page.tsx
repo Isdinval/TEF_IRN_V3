@@ -26,11 +26,11 @@ function ExamContent() {
 
   if (state.status === 'in_progress') {
     return (
-      <div className="flex flex-col min-h-screen bg-[var(--exam-paper)]">
+      <div className="flex flex-col h-screen overflow-hidden bg-[var(--exam-paper)]">
         <ExamHeader />
         <ProgressBar />
-        <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-12">
+        <main className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 md:p-5">
             <QuestionCard />
           </div>
           <QuestionNavigator />
