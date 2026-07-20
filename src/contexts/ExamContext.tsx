@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { ExamSectionType, ExamSessionState, Question, ExamResult } from '../types/exam';
 import { WritingFeedback } from '../types/writing';
+import { OralAnalysis } from '@/lib/oral-criteria';
 import { createClient } from '@/lib/supabase';
 
 export interface ExamMetadata {
@@ -30,6 +31,8 @@ interface ExamContextType {
   prevQuestion: () => void;
   setQuestionIndex: (index: number) => void;
   setAnswer: (questionId: string, answer: string) => void;
+  submitOralAnalysis: (questionId: string, analysis: OralAnalysis) => void;
+  oralAnalyses: Record<string, OralAnalysis>;
   finishSection: () => Promise<void>;
   startNextSection: () => void;
   finishExam: () => void;
@@ -62,6 +65,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const [sessionResults, setSessionResults] = useState<ExamResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrecting, setIsCorrecting] = useState(false);
+  const [oralAnalyses, setOralAnalyses] = useState<Record<string, OralAnalysis>>({});
 
   const supabase = createClient();
 
@@ -269,6 +273,11 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const submitOralAnalysis = (questionId: string, analysis: OralAnalysis) => {
+    setOralAnalyses(prev => ({ ...prev, [questionId]: analysis }));
+    setAnswer(questionId, 'done');
+  };
+
   const calculateSectionResults = (section: ExamSectionType, answers: Record<string, string>): ExamResult => {
     const sectionQuestions = allQuestions.filter((q: Question) => q.section === section);
     let score = 0;
@@ -341,6 +350,16 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       setIsCorrecting(false);
     }
 
+    if (state.section === 'EO') {
+      const sectionQuestionIds = allQuestions.filter(q => q.section === 'EO').map(q => q.id);
+      const relevantAnalyses = Object.fromEntries(
+        Object.entries(oralAnalyses).filter(([qId]) => sectionQuestionIds.includes(qId))
+      );
+      if (Object.keys(relevantAnalyses).length > 0) {
+        currentResult.oralAnalyses = relevantAnalyses;
+      }
+    }
+
     setSessionResults(prev => [...prev, currentResult]);
 
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
@@ -411,6 +430,8 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       prevQuestion,
       setQuestionIndex,
       setAnswer,
+      submitOralAnalysis,
+      oralAnalyses,
       finishSection,
       startNextSection,
       finishExam,
