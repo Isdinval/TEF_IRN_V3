@@ -65,7 +65,6 @@ const RadarGraphic = () => (
         }}
       />
     ))}
-    <div className="relative z-10 w-3 h-3 bg-indigo-400 rounded-full shadow-lg shadow-indigo-400/50" />
     {/* Animated scanning line */}
     <motion.div
       className="absolute w-20 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent blur-sm"
@@ -279,7 +278,7 @@ export default function AuthPage() {
             alt=""
             fill
             priority
-            className="object-cover"
+            className="object-cover object-top"
           />
         )}
         {/* Dark overlay for text legibility over the illustration */}
