@@ -7,10 +7,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Chrome, Star, Quote, ShieldCheck, Sparkles } from "lucide-react";
+import { Loader2, Star, Quote, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { Profile } from "@/types/database";
+import { Logo } from "@/components/landing/Logo";
+import {
+  LOGIN_WATERCOLOR_URLS,
+  GOOGLE_LOGO_URL,
+} from "@/data/login-images";
+import { pickRandomImage } from "@/data/grammar-check-images";
+
+// Témoignages orientés résultat, un par palier CECRL du TEF IRN.
+// Barème officiel : chaque épreuve notée sur 0-499. Seuils de niveau global :
+// A2 >= 200 (3 épreuves) + >= 167 (4e) | B1 >= 300 + >= 267 | B2 >= 400 + >= 367.
+const TESTIMONIALS = [
+  {
+    initials: "YB",
+    name: "Youssef B.",
+    role: "Niveau A2 · Carte de séjour pluriannuelle",
+    score: "214/499",
+    text: "En 6 semaines de coaching avec LlamaKusi, j'ai obtenu mon niveau A2. Ma carte de séjour pluriannuelle est signée.",
+  },
+  {
+    initials: "AD",
+    name: "Amina D.",
+    role: "Niveau B1 · Carte de résident",
+    score: "312/499",
+    text: "L'entraînement à l'oral m'a débloquée. J'ai décroché mon B1 du premier coup et ma carte de résident de 10 ans.",
+  },
+  {
+    initials: "CM",
+    name: "Carlos M.",
+    role: "Niveau B2 · Naturalisation",
+    score: "428/499",
+    text: "La correction détaillée de mes écrits a fait toute la différence. B2 obtenu, dossier de naturalisation déposé.",
+  },
+] as const;
 
 const RadarGraphic = () => (
   <div className="relative w-64 h-64 flex items-center justify-center">
@@ -32,8 +66,8 @@ const RadarGraphic = () => (
         }}
       />
     ))}
-    <div className="relative z-10 w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-indigo-500/50">
-      M
+    <div className="relative z-10 w-20 h-20 rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/50">
+      <Image src="/logo.png" alt="LlamaKusi" fill className="object-cover" />
     </div>
     {/* Animated scanning line */}
     <motion.div
@@ -113,11 +147,15 @@ function AuthForm() {
 
       <Button
         variant="outline"
-        className="w-full h-14 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-700 font-bold rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
+        className="w-full h-14 bg-white border border-zinc-300 hover:bg-zinc-50 hover:shadow-md text-zinc-700 font-semibold text-[15px] rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
         onClick={handleGoogleSignIn}
         disabled={googleLoading}
       >
-        {googleLoading ? <Loader2 className="animate-spin" size={20} /> : <Chrome size={20} className="text-indigo-600" />}
+        {googleLoading ? (
+          <Loader2 className="animate-spin" size={18} />
+        ) : (
+          <Image src={GOOGLE_LOGO_URL} alt="" width={18} height={18} unoptimized />
+        )}
         Continuer avec Google
       </Button>
 
@@ -227,17 +265,31 @@ function AuthForm() {
 }
 
 export default function AuthPage() {
+  // Tirés une fois au montage : une aquarelle et un témoignage par chargement de page.
+  const [backgroundUrl] = useState(() => pickRandomImage(LOGIN_WATERCOLOR_URLS));
+  const [testimonial] = useState(
+    () => TESTIMONIALS[Math.floor(Math.random() * TESTIMONIALS.length)]
+  );
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-white selection:bg-indigo-100">
       {/* Left Side: Brand Visuals */}
       <div className="hidden lg:flex flex-col justify-between p-16 bg-[#050505] relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/3" />
+        {/* Rotating watercolor background */}
+        {backgroundUrl && (
+          <Image
+            src={backgroundUrl}
+            alt=""
+            fill
+            priority
+            className="object-cover"
+          />
+        )}
+        {/* Dark overlay for text legibility over the illustration */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/60" />
 
-        <Link href="/tef-irn" className="relative z-10 flex items-center gap-3 text-white">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black">M</div>
-          <span className="font-bold text-xl tracking-tighter">LlamaKusi</span>
+        <Link href="/tef-irn" className="relative z-10">
+          <Logo dark />
         </Link>
 
         <div className="relative z-10 flex flex-col items-center">
@@ -246,28 +298,41 @@ export default function AuthPage() {
             <h2 className="text-4xl font-black text-white mb-6 leading-[1.1] tracking-tight">
               L'excellence du TEF IRN guidée par l'IA.
             </h2>
-            <p className="text-zinc-500 text-lg font-medium leading-relaxed">
+            <p className="text-zinc-300 text-lg font-medium leading-relaxed">
               Rejoignez des milliers de candidats qui ont réussi grâce à notre coaching adaptatif.
             </p>
           </div>
         </div>
 
         <div className="relative z-10">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl">
-            <div className="flex gap-1 text-amber-500 mb-6">
-              {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
-            </div>
-            <p className="text-white text-xl font-bold leading-relaxed mb-6 italic">
-              "LlamaKusi a été la clé de mon succès. L'expression orale m'inquiétait, mais l'IA m'a coaché jusqu'au niveau B2 en quelques semaines seulement."
-            </p>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-lg">JD</div>
-              <div>
-                <p className="text-white font-bold">Jean D.</p>
-                <p className="text-zinc-500 text-xs font-medium">Candidat Naturalisation • Score 580/600</p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={testimonial.initials}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl"
+            >
+              <div className="flex gap-1 text-amber-500 mb-6">
+                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
               </div>
-            </div>
-          </div>
+              <p className="text-white text-xl font-bold leading-relaxed mb-6 italic">
+                "{testimonial.text}"
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-lg">
+                  {testimonial.initials}
+                </div>
+                <div>
+                  <p className="text-white font-bold">{testimonial.name}</p>
+                  <p className="text-zinc-400 text-xs font-medium">
+                    {testimonial.role} • Score {testimonial.score}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
@@ -279,10 +344,7 @@ export default function AuthPage() {
 
         {/* Mobile Logo */}
         <div className="mt-12 lg:hidden">
-          <Link href="/tef-irn" className="flex items-center gap-2 text-zinc-300 font-bold opacity-50 grayscale hover:opacity-100 transition-opacity">
-            <div className="w-6 h-6 bg-zinc-200 rounded-md flex items-center justify-center text-zinc-900 text-[10px]">M</div>
-            <span className="text-sm">LlamaKusi</span>
-          </Link>
+          <Logo />
         </div>
       </div>
     </div>
