@@ -12,8 +12,8 @@ interface ParcoursContextType {
   progress: ParcoursProgress | null;
   isLoading: boolean;
   refreshProgress: () => Promise<void>;
-  exitParcours: () => void;
-  nextLesson: (currentLessonId?: string) => Promise<void>;
+  exitParcours: () => Promise<void>;
+  nextLesson: () => Promise<void>;
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -119,57 +119,73 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     setProgress(prog);
   };
 
-  const exitParcours = () => {
+  // Filet de sécurité : la progress bar de la TopBar doit toujours refléter
+  // l'état réel, même quand une navigation ne change ni parcoursId ni lessonId
+  // (ex: complétion d'un exercice depuis /lessons/[slug]/complete).
+  useEffect(() => {
+    if (activeParcours) {
+      refreshProgress();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  const exitParcours = async () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("parcoursId");
     params.delete("lessonId");
     setActiveParcours(null);
     setActiveLesson(null);
     setProgress(null);
+
+    // Persist the exit, otherwise the auto-resume effect below brings the
+    // parcours (and the TopBar) right back on the next navigation.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('profiles').update({ last_active_parcours_id: null }).eq('id', user.id);
+    }
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const nextLesson = async (currentLessonId?: string) => {
+  const nextLesson = async () => {
     if (!activeParcours) return;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const lessons = await getLessonsForParcours(activeParcours.level, activeParcours.category);
+    // Navigation pure : on ne marque plus rien comme complété ici.
+    // La complétion réelle est gérée par LessonInteractive (score >= 50%).
+    const [lessons, freshProgress] = await Promise.all([
+      getLessonsForParcours(activeParcours.level, activeParcours.category),
+      getParcoursProgress(user.id, activeParcours.level, activeParcours.category)
+    ]);
+    setProgress(freshProgress);
 
-    // 1. Mark current as completed if we are coming from a lesson or practice
-    const idToMark = currentLessonId || lessonId;
-    if (idToMark) {
-      await supabase.from('lesson_progress').upsert({
-        user_id: user.id,
-        lesson_id: idToMark,
-        completed_at: new Date().toISOString()
-      });
+    const completedIds = new Set(freshProgress.completedLessons);
+
+    // La leçon "courante" est déduite de l'URL (/tef-irn/lessons/[slug]),
+    // pas d'un lessonId query param (qui n'est jamais renseigné dans l'app).
+    const currentSlug = pathname?.match(/^\/tef-irn\/lessons\/([^/]+)$/)?.[1];
+    const currentLesson = currentSlug ? lessons.find(l => l.slug === currentSlug) : undefined;
+
+    // 1. Si on est sur une leçon pas encore complétée, c'est elle la cible.
+    let target = currentLesson && !completedIds.has(currentLesson.id) ? currentLesson : undefined;
+
+    // 2. Sinon, la première leçon non complétée après la leçon courante...
+    if (!target) {
+      const currentIndex = currentLesson ? lessons.findIndex(l => l.id === currentLesson.id) : -1;
+      target = currentIndex !== -1
+        ? lessons.slice(currentIndex + 1).find(l => !completedIds.has(l.id))
+        : undefined;
     }
 
-    // 2. Fetch updated completion status
-    const { data: completedData } = await supabase
-      .from('lesson_progress')
-      .select('lesson_id')
-      .eq('user_id', user.id)
-      .in('lesson_id', lessons.map((l: any) => l.id));
-
-    const completedIds = new Set((completedData || []).map((c: any) => c.lesson_id));
-
-    // 3. Find the first uncompleted lesson AFTER the current one if possible, or any uncompleted
-    const currentIndex = idToMark ? lessons.findIndex(l => l.id === idToMark) : -1;
-    let next = null;
-
-    if (currentIndex !== -1) {
-      next = lessons.slice(currentIndex + 1).find(l => !completedIds.has(l.id));
+    // 3. ...ou, à défaut, la première leçon non complétée du parcours.
+    if (!target) {
+      target = lessons.find(l => !completedIds.has(l.id));
     }
 
-    if (!next) {
-      next = lessons.find(l => !completedIds.has(l.id));
-    }
-
-    if (next) {
-      router.push(`/tef-irn/lessons/${next.slug}?parcoursId=${activeParcours.id}`);
+    if (target) {
+      router.push(`/tef-irn/lessons/${target.slug}?parcoursId=${activeParcours.id}`);
     } else {
       router.push(`/tef-irn/parcours/${activeParcours.slug}/complete`);
     }
