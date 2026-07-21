@@ -3,13 +3,13 @@
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, X, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, exitParcours, nextLesson, isLoading } = useParcours();
+  const { activeParcours, progress, nextLesson, isLoading } = useParcours();
   const pathname = usePathname();
 
   // Show TopBar even during lesson reading/quiz if it's part of a parcours context
@@ -61,16 +61,6 @@ export function ParcoursTopBar() {
               className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
             >
               Leçon suivante <ChevronRight size={14} className="ml-1" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={exitParcours}
-              className="h-10 w-10 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-              title="Sortir du mode parcours"
-            >
-              <X size={18} />
             </Button>
           </div>
         </div>
