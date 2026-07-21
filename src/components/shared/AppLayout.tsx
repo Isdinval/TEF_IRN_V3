@@ -32,9 +32,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isPublic = pathname ? (isLandingPage || publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) : true;
   const isExam = pathname === "/tef-irn/exam";
 
-  // Public content (Lessons & Parcours hub)
-  const isPublicContent = pathname?.startsWith('/tef-irn/lessons') || pathname?.startsWith('/tef-irn/parcours');
-
   // Case 1: Pure public landing/auth routes or Exam
   if (isPublic || isExam) {
     return (
@@ -45,8 +42,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Case 2: Anonymous visitor on public content (Lessons, Parcours hub)
-  if (isPublicContent && !user) {
+  // Case 2: Anonymous visitor on any non-public route (includes 404 / unmatched URLs)
+  if (!user) {
     return (
       <div className="flex flex-col h-full bg-slate-50/30">
         <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
@@ -69,7 +66,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Case 3: Logged in user OR internal routes (handled by middleware for auth)
+  // Case 3: Logged in user (guaranteed by the !user check above)
   return (
     <div className="flex h-full">
       <Sidebar />
