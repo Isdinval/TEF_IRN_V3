@@ -12,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Profile } from "@/types/database";
-import { Logo } from "@/components/landing/Logo";
 import {
   LOGIN_WATERCOLOR_URLS,
   GOOGLE_LOGO_URL,
@@ -47,15 +46,15 @@ const TESTIMONIALS = [
 ] as const;
 
 const RadarGraphic = () => (
-  <div className="relative w-64 h-64 flex items-center justify-center">
+  <div className="relative w-40 h-40 flex items-center justify-center">
     {[0, 1, 2, 3].map((i) => (
       <motion.div
         key={i}
-        className="absolute border border-indigo-500/20 rounded-full"
+        className="absolute border border-indigo-400/30 rounded-full"
         initial={{ width: 0, height: 0, opacity: 0 }}
         animate={{
-          width: (i + 1) * 80,
-          height: (i + 1) * 80,
+          width: (i + 1) * 50,
+          height: (i + 1) * 50,
           opacity: [0, 0.3, 0]
         }}
         transition={{
@@ -66,12 +65,10 @@ const RadarGraphic = () => (
         }}
       />
     ))}
-    <div className="relative z-10 w-20 h-20 rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-500/50">
-      <Image src="/logo.png" alt="LlamaKusi" fill className="object-cover" />
-    </div>
+    <div className="relative z-10 w-3 h-3 bg-indigo-400 rounded-full shadow-lg shadow-indigo-400/50" />
     {/* Animated scanning line */}
     <motion.div
-      className="absolute w-32 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent blur-sm"
+      className="absolute w-20 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent blur-sm"
       animate={{ rotate: 360 }}
       transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
       style={{ originX: "50%", originY: "0" }}
@@ -138,10 +135,10 @@ function AuthForm() {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-[400px] space-y-8"
+      className="w-full max-w-[400px] space-y-6"
     >
-      <div className="space-y-2 text-center lg:text-left">
-        <h1 className="text-4xl font-black tracking-tight text-zinc-900">Bienvenue</h1>
+      <div className="space-y-1 text-center lg:text-left">
+        <h1 className="text-3xl font-black tracking-tight text-zinc-900">Bienvenue</h1>
         <p className="text-zinc-500 font-medium italic">Le succès au TEF IRN commence ici.</p>
       </div>
 
@@ -272,9 +269,9 @@ export default function AuthPage() {
   );
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-white selection:bg-indigo-100">
+    <div className="h-screen grid lg:grid-cols-2 bg-white selection:bg-indigo-100 overflow-hidden">
       {/* Left Side: Brand Visuals */}
-      <div className="hidden lg:flex flex-col justify-between p-16 bg-[#050505] relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-between p-10 bg-[#050505] relative overflow-hidden">
         {/* Rotating watercolor background */}
         {backgroundUrl && (
           <Image
@@ -286,19 +283,19 @@ export default function AuthPage() {
           />
         )}
         {/* Dark overlay for text legibility over the illustration */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/40" />
 
         <Link href="/tef-irn" className="relative z-10">
-          <Logo dark />
+          <span className="font-black text-xl tracking-tighter text-white">LlamaKusi</span>
         </Link>
 
         <div className="relative z-10 flex flex-col items-center">
           <RadarGraphic />
-          <div className="mt-16 text-center max-w-sm">
-            <h2 className="text-4xl font-black text-white mb-6 leading-[1.1] tracking-tight">
+          <div className="mt-6 text-center max-w-sm">
+            <h2 className="text-3xl font-black text-white mb-3 leading-[1.1] tracking-tight">
               L'excellence du TEF IRN guidée par l'IA.
             </h2>
-            <p className="text-zinc-300 text-lg font-medium leading-relaxed">
+            <p className="text-zinc-300 text-base font-medium leading-relaxed">
               Rejoignez des milliers de candidats qui ont réussi grâce à notre coaching adaptatif.
             </p>
           </div>
@@ -312,20 +309,20 @@ export default function AuthPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl"
+              className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] shadow-2xl"
             >
-              <div className="flex gap-1 text-amber-500 mb-6">
-                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
+              <div className="flex gap-1 text-amber-500 mb-3">
+                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={14} fill="currentColor" />)}
               </div>
-              <p className="text-white text-xl font-bold leading-relaxed mb-6 italic">
+              <p className="text-white text-base font-bold leading-relaxed mb-4 italic">
                 "{testimonial.text}"
               </p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-sm">
                   {testimonial.initials}
                 </div>
                 <div>
-                  <p className="text-white font-bold">{testimonial.name}</p>
+                  <p className="text-white font-bold text-sm">{testimonial.name}</p>
                   <p className="text-zinc-400 text-xs font-medium">
                     {testimonial.role} • Score {testimonial.score}
                   </p>
@@ -337,14 +334,16 @@ export default function AuthPage() {
       </div>
 
       {/* Right Side: Auth Form */}
-      <div className="flex flex-col justify-center items-center p-8 lg:p-12 relative">
+      <div className="flex flex-col justify-center items-center p-6 lg:p-10 relative overflow-y-auto">
         <Suspense fallback={<Loader2 className="animate-spin text-indigo-600" size={32} />}>
           <AuthForm />
         </Suspense>
 
-        {/* Mobile Logo */}
-        <div className="mt-12 lg:hidden">
-          <Logo />
+        {/* Mobile Logo (texte seul, pas d'icône) */}
+        <div className="mt-8 lg:hidden">
+          <Link href="/tef-irn">
+            <span className="font-black text-lg tracking-tighter text-zinc-400">LlamaKusi</span>
+          </Link>
         </div>
       </div>
     </div>
