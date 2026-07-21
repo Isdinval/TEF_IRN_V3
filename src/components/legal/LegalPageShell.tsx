@@ -2,6 +2,7 @@ import React from "react";
 import { LucideIcon } from "lucide-react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
+import { BANNER_IMAGE_URL } from "@/data/notre-histoire-images";
 
 interface LegalPageShellProps {
   icon: LucideIcon;
@@ -42,6 +43,17 @@ export function LegalPageShell({
                 {intro}
               </p>
             )}
+          </div>
+        </section>
+
+        <section className="max-w-4xl mx-auto px-6 -mt-4 mb-4">
+          <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <img
+              src={BANNER_IMAGE_URL}
+              alt="Illustration aquarelle de lamas dans une prairie devant les montagnes péruviennes, univers visuel LlamaKusi"
+              className="w-full h-auto object-cover aspect-[16/9] md:aspect-[2.5/1]"
+              loading="lazy"
+            />
           </div>
         </section>
 
