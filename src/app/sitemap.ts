@@ -73,6 +73,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         MASCOT_IMAGE_URL,
       ],
     },
+    { url: `${rootPath}/conditions-utilisation`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${rootPath}/politique-de-confidentialite`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
+    // mentions-legales volontairement absente : page en noindex tant que l'identité juridique n'est pas complétée
+    { url: `${rootPath}/cookies`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
   ];
 
   return [...staticUrls, ...lessonUrls, ...guideUrls, ...parcoursUrls];

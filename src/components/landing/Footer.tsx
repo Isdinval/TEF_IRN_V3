@@ -29,10 +29,10 @@ export function Footer() {
     {
       title: "Légal",
       links: [
-        { name: "Conditions d'utilisation", href: "#" },
-        { name: "Politique de confidentialité", href: "#" },
-        { name: "Mentions légales", href: "#" },
-        { name: "Cookies", href: "#" },
+        { name: "Conditions d'utilisation", href: "/tef-irn/conditions-utilisation" },
+        { name: "Politique de confidentialité", href: "/tef-irn/politique-de-confidentialite" },
+        { name: "Mentions légales", href: "/tef-irn/mentions-legales" },
+        { name: "Cookies", href: "/tef-irn/cookies" },
       ]
     }
   ];
