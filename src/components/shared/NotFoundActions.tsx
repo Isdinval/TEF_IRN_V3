@@ -14,24 +14,24 @@ export function NotFoundActions() {
   if (user) {
     return (
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button asChild size="lg">
-          <Link href="/tef-irn/dashboard">Retour au tableau de bord</Link>
-        </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/tef-irn/guides">Voir les guides TEF IRN</Link>
-        </Button>
+        <Link href="/tef-irn/dashboard">
+          <Button size="lg">Retour au tableau de bord</Button>
+        </Link>
+        <Link href="/tef-irn/guides">
+          <Button variant="outline" size="lg">Voir les guides TEF IRN</Button>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
-      <Button asChild size="lg">
-        <Link href="/tef-irn/">Découvrir LlamaKusi</Link>
-      </Button>
-      <Button asChild variant="outline" size="lg">
-        <Link href="/tef-irn/guides">Voir les guides gratuits</Link>
-      </Button>
+      <Link href="/tef-irn/">
+        <Button size="lg">Découvrir LlamaKusi</Button>
+      </Link>
+      <Link href="/tef-irn/guides">
+        <Button variant="outline" size="lg">Voir les guides gratuits</Button>
+      </Link>
     </div>
   );
 }
