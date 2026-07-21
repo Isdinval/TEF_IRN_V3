@@ -285,16 +285,16 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/40" />
 
         <Link href="/tef-irn" className="relative z-10">
-          <span className="font-black text-xl tracking-tighter text-white">LlamaKusi</span>
+          <span className="font-black text-5xl tracking-tight text-white">LlamaKusi</span>
         </Link>
 
         <div className="relative z-10 flex flex-col items-center">
           <RadarGraphic />
-          <div className="mt-6 text-center max-w-sm">
-            <h2 className="text-3xl font-black text-white mb-3 leading-[1.1] tracking-tight">
+          <div className="mt-6 text-center max-w-md">
+            <h2 className="text-4xl font-black text-white mb-4 leading-[1.1] tracking-tight">
               L'excellence du TEF IRN guidée par l'IA.
             </h2>
-            <p className="text-zinc-300 text-base font-medium leading-relaxed">
+            <p className="text-zinc-300 text-lg font-medium leading-relaxed">
               Rejoignez des milliers de candidats qui ont réussi grâce à notre coaching adaptatif.
             </p>
           </div>
@@ -311,9 +311,9 @@ export default function AuthPage() {
               className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] shadow-2xl"
             >
               <div className="flex gap-1 text-amber-500 mb-3">
-                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={14} fill="currentColor" />)}
+                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
               </div>
-              <p className="text-white text-base font-bold leading-relaxed mb-4 italic">
+              <p className="text-white text-lg font-bold leading-relaxed mb-4 italic">
                 "{testimonial.text}"
               </p>
               <div className="flex items-center gap-3">
@@ -321,8 +321,8 @@ export default function AuthPage() {
                   {testimonial.initials}
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">{testimonial.name}</p>
-                  <p className="text-zinc-400 text-xs font-medium">
+                  <p className="text-white font-bold text-base">{testimonial.name}</p>
+                  <p className="text-zinc-400 text-sm font-medium">
                     {testimonial.role} • Score {testimonial.score}
                   </p>
                 </div>
