@@ -23,7 +23,7 @@ export const AuthProvider = ({
   initialUser: User | null;
 }) => {
   const [user, setUser] = useState<User | null>(initialUser);
-  const [isLoading, setIsLoading] = useState(!initialUser);
+  const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
   const router = useRouter();
 
