@@ -69,6 +69,15 @@ interface CivicExamAttempt {
 const EXAM_QUESTION_COUNT = 40;
 const EXAM_DURATION_SECONDS = 45 * 60;
 const EXAM_PASS_THRESHOLD = 32;
+const EXAM_STORAGE_KEY = "civic_exam_session_v1";
+
+interface PersistedExamSession {
+  mention: string;
+  questions: CivicQuestion[];
+  examAnswers: Record<number, string>;
+  examEndAt: number;
+  examStartedAt: number;
+}
 
 type Mode = "selection" | "training" | "exam" | "exam_finished";
 type TrainingStep = "learn" | "quiz";
@@ -117,14 +126,78 @@ function CivicExamContent() {
   const [examModalOpen, setExamModalOpen] = useState(false);
   const [examAnswers, setExamAnswers] = useState<Record<number, string>>({});
   const [examTimeLeft, setExamTimeLeft] = useState(EXAM_DURATION_SECONDS);
+  const [examEndAt, setExamEndAt] = useState<number | null>(null);
   const [examStartedAt, setExamStartedAt] = useState<number | null>(null);
   const [examResult, setExamResult] = useState<{ score: number; passed: boolean } | null>(null);
+  const [resumableSession, setResumableSession] = useState<PersistedExamSession | null>(null);
+  const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const answersRef = useRef(examAnswers);
   const questionsRef = useRef<CivicQuestion[]>([]);
 
   useEffect(() => { answersRef.current = examAnswers; }, [examAnswers]);
   useEffect(() => { questionsRef.current = questions; }, [questions]);
+
+  // Détecte une session d'examen blanc interrompue (refresh, crash d'onglet...)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(EXAM_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const saved: PersistedExamSession = JSON.parse(raw);
+      if (!saved?.questions?.length || !saved?.examEndAt) {
+        window.localStorage.removeItem(EXAM_STORAGE_KEY);
+        return;
+      }
+      if (Date.now() >= saved.examEndAt) {
+        // Temps écoulé pendant l'absence : on soumet automatiquement avec les réponses sauvegardées.
+        (async () => {
+          const score = saved.questions.reduce(
+            (acc, q, i) => acc + (saved.examAnswers[i] === q.correct_answer ? 1 : 0), 0
+          );
+          const passed = score >= EXAM_PASS_THRESHOLD;
+          const duration = Math.round((saved.examEndAt - saved.examStartedAt) / 1000);
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("civic_exam_attempts").insert({
+              user_id: user.id,
+              mention: saved.mention,
+              score,
+              total_questions: saved.questions.length,
+              passed,
+              duration_seconds: duration,
+            });
+            fetchAttempts();
+          }
+          window.localStorage.removeItem(EXAM_STORAGE_KEY);
+        })();
+      } else {
+        setResumableSession(saved);
+      }
+    } catch {
+      window.localStorage.removeItem(EXAM_STORAGE_KEY);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persiste la session en cours à chaque changement (réponses, index...)
+  useEffect(() => {
+    if (mode !== "exam" || !examEndAt || !examStartedAt) return;
+    const payload: PersistedExamSession = { mention, questions, examAnswers, examEndAt, examStartedAt };
+    window.localStorage.setItem(EXAM_STORAGE_KEY, JSON.stringify(payload));
+  }, [mode, mention, questions, examAnswers, examEndAt, examStartedAt]);
+
+  // Avertit avant de quitter/rafraîchir la page pendant un examen blanc en cours
+  useEffect(() => {
+    if (mode !== "exam") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [mode]);
 
   const fetchDueCount = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -153,6 +226,7 @@ function CivicExamContent() {
 
   const startTraining = useCallback(async (review: boolean) => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -182,15 +256,19 @@ function CivicExamContent() {
       let query = supabase.from("civic_questions").select("*");
       if (mention !== "toutes") query = query.contains("mentions", [mention]);
       if (theme !== "Toutes") query = query.eq("theme", theme);
-      const { data } = await query.limit(15);
+      const { data, error } = await query.limit(15);
+      if (error) throw error;
 
       if (data && data.length > 0) {
         setQuestions(shuffle(data as CivicQuestion[]));
         setMode("training");
         setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
+      } else {
+        setErrorMsg("Aucune question ne correspond à ces filtres. Essayez une autre mention ou thématique.");
       }
     } catch (err) {
       console.error("Error starting civic training:", err);
+      setErrorMsg("Impossible de charger les questions. Vérifiez votre connexion et réessayez.");
     } finally {
       setLoading(false);
     }
@@ -242,61 +320,93 @@ function CivicExamContent() {
     if (timerRef.current) clearInterval(timerRef.current);
     const qs = questionsRef.current;
     const ans = answersRef.current;
+    if (qs.length === 0) return; // déjà soumis ou rien à soumettre
     const score = qs.reduce((acc, q, i) => acc + (ans[i] === q.correct_answer ? 1 : 0), 0);
     const passed = score >= EXAM_PASS_THRESHOLD;
     const duration = examStartedAt ? Math.round((Date.now() - examStartedAt) / 1000) : null;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("civic_exam_attempts").insert({
-        user_id: user.id,
-        mention,
-        score,
-        total_questions: qs.length,
-        passed,
-        duration_seconds: duration,
-      });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("civic_exam_attempts").insert({
+          user_id: user.id,
+          mention,
+          score,
+          total_questions: qs.length,
+          passed,
+          duration_seconds: duration,
+        });
+      }
+    } catch (err) {
+      console.error("Error submitting civic exam:", err);
     }
+    window.localStorage.removeItem(EXAM_STORAGE_KEY);
     setExamResult({ score, passed });
     setMode("exam_finished");
     fetchAttempts();
   }, [examStartedAt, mention, supabase, fetchAttempts]);
 
   useEffect(() => {
-    if (mode !== "exam") return;
-    timerRef.current = setInterval(() => {
-      setExamTimeLeft((prev) => {
-        if (prev <= 1) {
-          submitExam();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (mode !== "exam" || !examEndAt) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.round((examEndAt - Date.now()) / 1000));
+      setExamTimeLeft(remaining);
+      if (remaining <= 0) submitExam();
+    };
+    tick();
+    timerRef.current = setInterval(tick, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  }, [mode, examEndAt]);
 
   const startExam = useCallback(async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       let query = supabase.from("civic_questions").select("*");
       if (mention !== "toutes") query = query.contains("mentions", [mention]);
-      const { data } = await query;
-      if (!data || data.length === 0) return;
+      const { data, error } = await query;
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        setErrorMsg("Aucune question disponible pour cette sélection. Réessayez plus tard.");
+        return;
+      }
       const picked = shuffle(data as CivicQuestion[]).slice(0, EXAM_QUESTION_COUNT);
+      const startedAt = Date.now();
       setQuestions(picked);
       setExamAnswers({});
       setIndex(0);
+      setExamEndAt(startedAt + EXAM_DURATION_SECONDS * 1000);
       setExamTimeLeft(EXAM_DURATION_SECONDS);
-      setExamStartedAt(Date.now());
+      setExamStartedAt(startedAt);
       setExamModalOpen(false);
       setExamResult(null);
       setMode("exam");
+    } catch (err) {
+      console.error("Error starting civic exam:", err);
+      setErrorMsg("Impossible de démarrer l'examen. Vérifiez votre connexion et réessayez.");
     } finally {
       setLoading(false);
     }
   }, [mention, supabase]);
+
+  const resumeExam = () => {
+    if (!resumableSession) return;
+    setMention(resumableSession.mention);
+    setQuestions(resumableSession.questions);
+    setExamAnswers(resumableSession.examAnswers);
+    setIndex(0);
+    setExamEndAt(resumableSession.examEndAt);
+    setExamStartedAt(resumableSession.examStartedAt);
+    setExamTimeLeft(Math.max(0, Math.round((resumableSession.examEndAt - Date.now()) / 1000)));
+    setResumableSession(null);
+    setMode("exam");
+  };
+
+  const abandonResumableExam = () => {
+    window.localStorage.removeItem(EXAM_STORAGE_KEY);
+    setResumableSession(null);
+  };
 
   const handleBackToSelection = () => {
     setMode("selection");
@@ -361,14 +471,34 @@ function CivicExamContent() {
   if (mode === "exam") {
     const current = questions[index];
     const answeredCount = Object.keys(examAnswers).length;
+    const unansweredCount = questions.length - answeredCount;
+
+    const handleAbandonExam = () => {
+      if (!window.confirm("Abandonner l'examen en cours ? Votre progression ne sera pas enregistrée.")) return;
+      if (timerRef.current) clearInterval(timerRef.current);
+      window.localStorage.removeItem(EXAM_STORAGE_KEY);
+      setMode("selection");
+      setQuestions([]);
+      setExamAnswers({});
+      setExamEndAt(null);
+      setExamStartedAt(null);
+    };
 
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col">
         <header className="bg-white border-b border-zinc-100 px-6 py-3 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
-              Examen blanc • {mentionLabel(mention)}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
+                Examen blanc • {mentionLabel(mention)}
+              </Badge>
+              <button
+                onClick={handleAbandonExam}
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-rose-600 transition-colors"
+              >
+                Abandonner
+              </button>
+            </div>
             <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? 'text-rose-600' : 'text-zinc-900'}`}>
               <Clock size={16} /> {formatTime(examTimeLeft)}
             </div>
@@ -425,12 +555,36 @@ function CivicExamContent() {
                 Suivant
               </Button>
             ) : (
-              <Button onClick={submitExam} className="h-12 bg-emerald-600 text-white font-black rounded-2xl text-sm">
+              <Button onClick={() => setConfirmSubmitOpen(true)} className="h-12 bg-emerald-600 text-white font-black rounded-2xl text-sm">
                 Terminer l'examen
               </Button>
             )}
           </div>
         </main>
+
+        <Dialog open={confirmSubmitOpen} onOpenChange={setConfirmSubmitOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Terminer l'examen ?</DialogTitle>
+              <DialogDescription>
+                {unansweredCount > 0
+                  ? `Il vous reste ${unansweredCount} question${unansweredCount > 1 ? 's' : ''} sans réponse. Elles seront comptées comme incorrectes. Voulez-vous vraiment terminer ?`
+                  : "Vous avez répondu à toutes les questions. Voir votre score ?"}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setConfirmSubmitOpen(false)} className="rounded-2xl font-black text-sm">
+                Continuer l'examen
+              </Button>
+              <Button
+                onClick={() => { setConfirmSubmitOpen(false); submitExam(); }}
+                className="bg-emerald-600 text-white rounded-2xl font-black text-sm"
+              >
+                Terminer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -591,6 +745,31 @@ function CivicExamContent() {
           badgeColor="indigo"
           description="Préparez l'entretien civique avec les questions officielles du gouvernement, une révision quotidienne intelligente et des examens blancs chronométrés."
         >
+          {resumableSession && (
+            <div className="mb-6 p-5 rounded-[2rem] bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-black text-amber-900">Un examen blanc est en cours ({mentionLabel(resumableSession.mention)})</p>
+                <p className="text-xs text-amber-700 font-medium">
+                  Interrompu, il reste {formatTime(Math.max(0, Math.round((resumableSession.examEndAt - Date.now()) / 1000)))} avant la fin du temps imparti.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={abandonResumableExam} className="h-10 bg-white text-amber-700 font-black rounded-xl text-xs border border-amber-200">
+                  Abandonner
+                </Button>
+                <Button onClick={resumeExam} className="h-10 bg-amber-600 text-white font-black rounded-xl text-xs">
+                  Reprendre l'examen
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold">
+              {errorMsg}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm lg:col-span-2">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
