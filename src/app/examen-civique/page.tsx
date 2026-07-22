@@ -53,7 +53,18 @@ const MENTIONS = [
   { value: "naturalisation", label: "Naturalisation" },
   { value: "csp", label: "CSP" },
   { value: "cr", label: "CR" },
+  { value: "toutes", label: "Toutes (mixte)" },
 ];
+
+interface CivicExamAttempt {
+  id: string;
+  mention: string;
+  score: number;
+  total_questions: number;
+  passed: boolean;
+  duration_seconds: number | null;
+  created_at: string;
+}
 
 const EXAM_QUESTION_COUNT = 40;
 const EXAM_DURATION_SECONDS = 45 * 60;
@@ -72,6 +83,14 @@ function formatTime(totalSeconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function formatAttemptDate(iso: string) {
+  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function mentionLabel(value: string) {
+  return MENTIONS.find((m) => m.value === value)?.label || value;
+}
+
 export function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
 
@@ -80,6 +99,7 @@ export function CivicExamContent() {
   const [mode, setMode] = useState<Mode>("selection");
   const [loading, setLoading] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
 
   // Training (révision quotidienne SRS)
   const [questions, setQuestions] = useState<CivicQuestion[]>([]);
@@ -115,7 +135,19 @@ export function CivicExamContent() {
     setDueCount(count || 0);
   }, [supabase]);
 
-  useEffect(() => { fetchDueCount(); }, [fetchDueCount]);
+  const fetchAttempts = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setAttempts([]); return; }
+    const { data } = await supabase
+      .from("civic_exam_attempts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    setAttempts((data as CivicExamAttempt[]) || []);
+  }, [supabase]);
+
+  useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
 
   const startTraining = useCallback(async (review: boolean) => {
     setLoading(true);
@@ -145,7 +177,8 @@ export function CivicExamContent() {
         }
       }
 
-      let query = supabase.from("civic_questions").select("*").contains("mentions", [mention]);
+      let query = supabase.from("civic_questions").select("*");
+      if (mention !== "toutes") query = query.contains("mentions", [mention]);
       if (theme !== "Toutes") query = query.eq("theme", theme);
       const { data } = await query.limit(15);
 
@@ -212,7 +245,8 @@ export function CivicExamContent() {
     }
     setExamResult({ score, passed });
     setMode("exam_finished");
-  }, [examStartedAt, mention, supabase]);
+    fetchAttempts();
+  }, [examStartedAt, mention, supabase, fetchAttempts]);
 
   useEffect(() => {
     if (mode !== "exam") return;
@@ -232,7 +266,9 @@ export function CivicExamContent() {
   const startExam = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase.from("civic_questions").select("*").contains("mentions", [mention]);
+      let query = supabase.from("civic_questions").select("*");
+      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      const { data } = await query;
       if (!data || data.length === 0) return;
       const picked = shuffle(data as CivicQuestion[]).slice(0, EXAM_QUESTION_COUNT);
       setQuestions(picked);
@@ -600,6 +636,36 @@ export function CivicExamContent() {
               </div>
             </div>
           </div>
+          {attempts.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight mb-4">
+                Historique de mes examens blancs
+              </h2>
+              <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+                {attempts.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        {a.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-zinc-900">
+                          {a.score} / {a.total_questions} — {mentionLabel(a.mention)}
+                        </p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          {formatAttemptDate(a.created_at)}
+                          {a.duration_seconds ? ` • ${formatTime(a.duration_seconds)}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      {a.passed ? "Réussi" : "Échoué"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </ExerciseLayout>
       </div>
 
