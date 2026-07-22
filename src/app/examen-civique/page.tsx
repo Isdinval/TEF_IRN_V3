@@ -204,6 +204,18 @@ function CivicExamContent() {
     setStep("quiz");
   };
 
+  const handleSkip = () => {
+    if (index < questions.length - 1) {
+      setIndex(index + 1);
+      setStep("learn");
+      setSelectedOption(null);
+      setChecked(false);
+    } else {
+      setFinished(true);
+      fetchDueCount();
+    }
+  };
+
   const handleCheck = async () => {
     if (!selectedOption) return;
     setChecked(true);
@@ -500,9 +512,18 @@ function CivicExamContent() {
                     </a>
                   )}
                 </Card>
-                <Button onClick={handleReadyForQuiz} className="w-full h-12 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 text-sm">
-                  Je suis prêt(e), tester ma mémoire <ArrowRight className="ml-2" size={16} />
-                </Button>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={handleSkip}
+                    variant="secondary"
+                    className="h-12 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl text-sm hover:bg-zinc-200"
+                  >
+                    Passer
+                  </Button>
+                  <Button onClick={handleReadyForQuiz} className="h-12 flex-[2] bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 text-sm">
+                    Je suis prêt(e), tester ma mémoire <ArrowRight className="ml-2" size={16} />
+                  </Button>
+                </div>
               </motion.div>
             )}
 
