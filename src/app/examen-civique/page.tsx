@@ -91,7 +91,7 @@ function mentionLabel(value: string) {
   return MENTIONS.find((m) => m.value === value)?.label || value;
 }
 
-export function CivicExamContent() {
+function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
 
   const [mention, setMention] = useState("naturalisation");
