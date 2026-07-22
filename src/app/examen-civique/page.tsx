@@ -51,8 +51,8 @@ const THEMES = [
 
 const MENTIONS = [
   { value: "naturalisation", label: "Naturalisation" },
-  { value: "csp", label: "CSP" },
-  { value: "cr", label: "CR" },
+  { value: "csp", label: "CSP", subtitle: "Carte de séjour pluriannuelle" },
+  { value: "cr", label: "CR", subtitle: "Carte de résident" },
   { value: "toutes", label: "Toutes (mixte)" },
 ];
 
@@ -88,7 +88,9 @@ function formatAttemptDate(iso: string) {
 }
 
 function mentionLabel(value: string) {
-  return MENTIONS.find((m) => m.value === value)?.label || value;
+  const m = MENTIONS.find((m) => m.value === value);
+  if (!m) return value;
+  return m.subtitle ? `${m.label} (${m.subtitle})` : m.label;
 }
 
 function CivicExamContent() {
@@ -353,7 +355,7 @@ function CivicExamContent() {
         <header className="bg-white border-b border-zinc-100 px-6 py-3 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
-              Examen blanc • {MENTIONS.find(m => m.value === mention)?.label}
+              Examen blanc • {mentionLabel(mention)}
             </Badge>
             <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? 'text-rose-600' : 'text-zinc-900'}`}>
               <Clock size={16} /> {formatTime(examTimeLeft)}
@@ -578,9 +580,15 @@ function CivicExamContent() {
                   <button
                     key={m.value}
                     onClick={() => setMention(m.value)}
-                    className={`flex-1 h-12 rounded-2xl font-black text-sm transition-all ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
+                    title={m.subtitle}
+                    className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
                   >
-                    {m.label}
+                    <div>{m.label}</div>
+                    {m.subtitle && (
+                      <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
+                        {m.subtitle}
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -674,7 +682,7 @@ function CivicExamContent() {
           <DialogHeader>
             <DialogTitle>Démarrer l'examen blanc</DialogTitle>
             <DialogDescription>
-              {EXAM_QUESTION_COUNT} questions officielles, mention « {MENTIONS.find(m => m.value === mention)?.label} ». Vous avez 45 minutes, sans possibilité de mettre en pause. Le score de réussite est de {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
+              {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». Vous avez 45 minutes, sans possibilité de mettre en pause. Le score de réussite est de {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
