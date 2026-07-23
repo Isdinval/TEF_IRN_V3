@@ -166,6 +166,9 @@ function CivicExamContent() {
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [mention, setMention] = useState("naturalisation");
+  // Calculé à chaque rendu : vrai pour les anonymes ET les connectés sans abonnement premium.
+  // Déclaré ici (pas dans le bloc exam_finished) pour être accessible dans tous les modes de rendu.
+  const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
   const [loading, setLoading] = useState(false);
@@ -1233,8 +1236,6 @@ function CivicExamContent() {
   const avgSuccessRate = attempts.length > 0
     ? Math.round(attempts.reduce((sum, a) => sum + a.score / a.total_questions, 0) / attempts.length * 100)
     : null;
-  // Afficher le CTA TEF IRN pour : anonymes ET connectés sans abonnement premium.
-  const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
 
   return (
     <div className="min-h-screen bg-zinc-50">
