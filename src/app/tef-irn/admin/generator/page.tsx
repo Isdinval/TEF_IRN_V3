@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, BookOpen, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function ContentGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,6 +37,9 @@ export default function ContentGenerator() {
           <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
           <h1 className="text-4xl font-black tracking-tight">Générateur de Contenu IA</h1>
           <p className="text-muted-foreground text-lg">Enrichissez la bibliothèque d'exercices en un clic.</p>
+          <Link href="/tef-irn/admin/civic-questions" className="text-sm font-bold text-indigo-600 hover:underline">
+            Gérer les questions de l'examen civique →
+          </Link>
         </div>
         <Button
           size="lg"
