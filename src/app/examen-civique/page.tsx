@@ -161,7 +161,6 @@ function CivicExamContent() {
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
-  const [selectorTab, setSelectorTab] = useState<"training" | "exam">("training");
   const [loading, setLoading] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
@@ -260,7 +259,6 @@ function CivicExamContent() {
         })();
       } else {
         setResumableSession(saved);
-        setSelectorTab("exam");
       }
     } catch {
       window.localStorage.removeItem(EXAM_STORAGE_KEY);
@@ -1140,219 +1138,262 @@ function CivicExamContent() {
   }
 
   // === ÉCRAN DE SÉLECTION ===
+  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
+  const totalAttempts = attempts.length;
+
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10">
-        <ExerciseLayout
-          title="EXAMEN CIVIQUE"
-          badge="CSP • CR • Naturalisation"
-          badgeColor="indigo"
-          description="Préparez l'entretien civique avec les questions officielles du gouvernement, une révision quotidienne intelligente et des examens blancs chronométrés."
-        >
-          {resumableSession && (
-            <div className="mb-6 p-5 rounded-[2rem] bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <p className="text-sm font-black text-amber-900">Un examen blanc est en cours ({mentionLabel(resumableSession.mention)})</p>
-                <p className="text-xs text-amber-700 font-medium">
-                  Interrompu, il reste {formatTime(Math.max(0, Math.round((resumableSession.examEndAt - Date.now()) / 1000)))} avant la fin du temps imparti.
+      <div className="max-w-3xl mx-auto px-5 py-8 lg:px-8 space-y-5">
+
+        {/* En-tête */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center">
+              <Landmark size={16} className="text-white" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Examen Civique — 100 % gratuit</span>
+          </div>
+          <h1 className="text-2xl font-black text-zinc-900 tracking-tighter leading-tight">
+            Préparez votre entretien civique
+          </h1>
+          <p className="text-sm text-zinc-500 font-medium leading-relaxed">
+            Obligatoire depuis janvier 2026 (CSP, carte de résident, naturalisation).
+            Questions officielles, révision adaptative et examens blancs chronométrés.
+          </p>
+        </div>
+
+        {/* Résumé de progression — visible uniquement quand il y a des données */}
+        {(bestScore !== null || (dueCount ?? 0) > 0) && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {bestScore !== null && (
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                <p className="text-2xl font-black text-zinc-900">
+                  {bestScore}<span className="text-sm text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>
+                </p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+              </div>
+            )}
+            {(dueCount ?? 0) > 0 && (
+              <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
+                <p className="text-2xl font-black text-indigo-700">{dueCount}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
+              </div>
+            )}
+            {totalAttempts > 0 && (
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                <p className="text-2xl font-black text-zinc-900">{totalAttempts}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                  Examen{totalAttempts > 1 ? "s" : ""} passé{totalAttempts > 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={abandonResumableExam} className="h-10 bg-white text-amber-700 font-black rounded-xl text-xs border border-amber-200">
-                  Abandonner
-                </Button>
-                <Button onClick={resumeExam} className="h-10 bg-amber-600 text-white font-black rounded-xl text-xs">
-                  Reprendre l'examen
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {errorMsg && (
-            <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold">
-              {errorMsg}
+        {/* Bannière session interrompue */}
+        {resumableSession && (
+          <div className="p-5 rounded-[2rem] bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm font-black text-amber-900">Examen blanc en cours — {mentionLabel(resumableSession.mention)}</p>
+              <p className="text-xs text-amber-700 font-medium">
+                Il reste {formatTime(Math.max(0, Math.round((resumableSession.examEndAt - Date.now()) / 1000)))} avant la fin du temps imparti.
+              </p>
             </div>
-          )}
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={abandonResumableExam} className="h-10 bg-white text-amber-700 font-black rounded-xl text-xs border border-amber-200">
+                Abandonner
+              </Button>
+              <Button onClick={resumeExam} className="h-10 bg-amber-600 text-white font-black rounded-xl text-xs">
+                Reprendre
+              </Button>
+            </div>
+          </div>
+        )}
 
-          {/* Distinction principale : 2 modes, un choix à faire avant tout le reste */}
-          <div className="flex gap-2 p-1.5 bg-zinc-100 rounded-2xl w-fit mb-6">
+        {errorMsg && (
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Sélecteur de mention */}
+        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+              <Landmark size={12} className="text-indigo-600" /> Votre démarche
+            </p>
             <button
-              onClick={() => setSelectorTab("training")}
-              className={`flex items-center gap-2 h-11 px-5 rounded-xl font-black text-sm transition-all ${selectorTab === "training" ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400'}`}
+              onClick={() => setMentionHelpOpen(true)}
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
             >
-              <Brain size={16} /> S'entraîner
-            </button>
-            <button
-              onClick={() => setSelectorTab("exam")}
-              className={`flex items-center gap-2 h-11 px-5 rounded-xl font-black text-sm transition-all ${selectorTab === "exam" ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400'}`}
-            >
-              <Clock size={16} /> Examen blanc
+              Aide au choix →
             </button>
           </div>
-
-          {selectorTab === "training" ? (
-            <>
-              <p className="text-sm text-zinc-500 font-medium mb-6 -mt-2">
-                Apprenez à votre rythme : les questions s'adaptent à ce que vous savez déjà et reviennent au bon moment pour mémoriser durablement.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm lg:col-span-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                      <Landmark size={14} className="text-indigo-600" /> Mention visée
-                    </div>
-                    <button
-                      onClick={() => setMentionHelpOpen(true)}
-                      className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
-                    >
-                      Quelle mention me concerne ?
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
-                    {MENTIONS.map((m) => (
-                      <button
-                        key={m.value}
-                        onClick={() => setMention(m.value)}
-                        title={m.subtitle}
-                        className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
-                      >
-                        <div>{m.label}</div>
-                        {m.subtitle && (
-                          <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
-                            {m.subtitle}
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                    <Target size={14} className="text-indigo-600" /> Thématique
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => setTheme(val)}
-                        className={`px-4 h-10 rounded-2xl font-black text-xs transition-all ${theme === val ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
-                      >
-                        {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
-                      </button>
-                    ))}
-                  </div>
-                  {filteredCount !== null && (
-                    <p className="text-[10px] font-bold text-zinc-400">
-                      {filteredCount} question{filteredCount > 1 ? "s" : ""} disponible{filteredCount > 1 ? "s" : ""} pour cette sélection —{" "}
-                      <button onClick={openCatalogue} disabled={catalogueLoading} className="text-indigo-500 hover:underline font-black disabled:opacity-50">
-                        {catalogueLoading ? "Chargement..." : "parcourir le catalogue"}
-                      </button>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div
-                onClick={() => startTraining(true)}
-                className="mt-4 bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-2 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform"
+          <div className="grid grid-cols-3 gap-2">
+            {MENTIONS.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setMention(m.value)}
+                className={`py-3 px-3 rounded-2xl font-black text-sm transition-all leading-tight text-center ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                  <Brain size={14} /> Mode Intelligent (SRS)
-                </div>
-                <h4 className="text-lg font-black leading-tight">
-                  {dueCount ? `${dueCount} question${dueCount > 1 ? 's' : ''} à réviser` : "Lancer une session de révision"}
-                </h4>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-zinc-500 font-medium mb-6 -mt-2">
-                En conditions réelles, chronométré, sans indice ni pause : le format exact du jour J.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                      <Landmark size={14} className="text-indigo-600" /> Mention visée
-                    </div>
-                    <button
-                      onClick={() => setMentionHelpOpen(true)}
-                      className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
-                    >
-                      Quelle mention me concerne ?
-                    </button>
+                <div>{m.label}</div>
+                {m.subtitle && (
+                  <div className={`text-[9px] font-bold normal-case tracking-normal mt-0.5 ${mention === m.value ? 'text-indigo-200' : 'text-zinc-400'}`}>
+                    {m.subtitle}
                   </div>
-                  <div className="flex gap-2">
-                    {MENTIONS.map((m) => (
-                      <button
-                        key={m.value}
-                        onClick={() => setMention(m.value)}
-                        title={m.subtitle}
-                        className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
-                      >
-                        <div>{m.label}</div>
-                        {m.subtitle && (
-                          <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
-                            {m.subtitle}
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                <div
-                  onClick={() => setExamModalOpen(true)}
-                  className="bg-zinc-900 p-6 rounded-[2.5rem] text-white space-y-2 shadow-2xl shadow-zinc-200 relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform"
+        {/* Parcours 3 étapes numérotées */}
+        <div className="space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Comment se préparer</p>
+
+          {/* Étape 1 — Parcourir le catalogue */}
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-4">
+            <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-xs font-black text-zinc-500">1</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-black text-zinc-900 flex items-center gap-2">
+                    <BookOpen size={14} className="text-zinc-400 shrink-0" /> Parcourir les questions
+                  </p>
+                  <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                    Lisez les {filteredCount ?? "…"} questions officielles et leurs réponses.
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={openCatalogue}
+                  disabled={catalogueLoading}
+                  className="h-9 px-4 bg-zinc-100 text-zinc-700 rounded-xl font-black text-xs shrink-0 hover:bg-zinc-200"
                 >
-                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Clock size={14} /> Conditions réelles
-                  </div>
-                  <h4 className="text-lg font-black leading-tight">
-                    {EXAM_QUESTION_COUNT} questions • 45 minutes
-                  </h4>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-400">
-                    Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT} — Démarrer l'examen blanc
-                  </div>
+                  {catalogueLoading ? <Loader2 className="animate-spin" size={14} /> : "Voir →"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Étape 2 — S'entraîner avec SRS */}
+          <div
+            onClick={() => startTraining(true)}
+            className="bg-indigo-600 p-5 rounded-[2rem] text-white cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs font-black text-white">2</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black text-white flex items-center gap-2">
+                  <Brain size={14} className="shrink-0" />
+                  {(dueCount ?? 0) > 0
+                    ? `Réviser — ${dueCount} question${dueCount! > 1 ? "s" : ""} dues aujourd'hui`
+                    : "S'entraîner question par question"}
+                </p>
+                <p className="text-xs text-indigo-200 font-medium mt-0.5">
+                  Chaque réponse ajuste le calendrier de révision. Le SRS fait mémoriser durablement.
+                </p>
+                {/* Filtre thématique inline */}
+                <div className="flex flex-wrap gap-1.5 mt-3" onClick={(e) => e.stopPropagation()}>
+                  {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
+                    <button
+                      key={val}
+                      onClick={(e) => { e.stopPropagation(); setTheme(val); }}
+                      className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? 'bg-white text-indigo-700' : 'bg-white/20 text-indigo-200 hover:bg-white/30'}`}
+                    >
+                      {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </>
-          )}
-          {attempts.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight mb-4">
-                Historique de mes examens blancs
-              </h2>
-              <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-                {attempts.map((a) => (
-                  <div key={a.id} className="flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                        {a.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-zinc-900">
-                          {a.score} / {a.total_questions} — {mentionLabel(a.mention)}
-                        </p>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          {formatAttemptDate(a.created_at)}
-                          {a.duration_seconds ? ` • ${formatTime(a.duration_seconds)}` : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                      {a.passed ? "Réussi" : "Échoué"}
-                    </Badge>
-                  </div>
-                ))}
+              <ArrowRight size={16} className="text-indigo-200 shrink-0 mt-1" />
+            </div>
+          </div>
+
+          {/* Étape 3 — Examen blanc */}
+          <div
+            onClick={() => setExamModalOpen(true)}
+            className="bg-zinc-900 p-5 rounded-[2rem] text-white cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs font-black text-zinc-300">3</span>
               </div>
-            </section>
-          )}
-        </ExerciseLayout>
+              <div className="flex-1">
+                <p className="text-sm font-black text-white flex items-center gap-2">
+                  <Clock size={14} className="shrink-0" /> Examen blanc — conditions réelles
+                </p>
+                <p className="text-xs text-zinc-400 font-medium mt-0.5">
+                  {EXAM_QUESTION_COUNT} questions, 45 min, sans pause. Seuil : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
+                  {bestScore !== null && ` Votre meilleur : ${bestScore}/${EXAM_QUESTION_COUNT}.`}
+                </p>
+              </div>
+              <ArrowRight size={16} className="text-zinc-500 shrink-0 mt-1" />
+            </div>
+          </div>
+        </div>
+
+        {/* Historique */}
+        {attempts.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Historique des examens blancs</p>
+            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+              {attempts.slice(0, 5).map((a) => (
+                <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                      {a.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-zinc-900">
+                        {a.score}/{a.total_questions}
+                        <span className="ml-2 text-zinc-400 font-bold text-xs">{mentionLabel(a.mention)}</span>
+                      </p>
+                      <p className="text-[10px] font-bold text-zinc-400">
+                        {formatAttemptDate(a.created_at)}
+                        {a.duration_seconds ? ` • ${formatTime(a.duration_seconds)}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                    {a.passed ? "Réussi" : "Échoué"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CTA TEF IRN — anonymes uniquement */}
+        {!currentUser && (
+          <div className="rounded-[2rem] border border-zinc-200 bg-white p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <p className="text-sm font-black text-zinc-900">Vous devez aussi passer le TEF IRN ?</p>
+              <p className="text-xs text-zinc-500 font-medium">
+                Niveau {MENTION_TO_LEVEL[mention] || "B1"} requis • Coach IA oral &amp; écrit • dès 55 €/mois
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Link href="/tef-irn/pricing">
+                <Button variant="secondary" className="h-9 px-4 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl font-black text-xs hover:bg-zinc-100">
+                  Tarifs
+                </Button>
+              </Link>
+              <Link href="/tef-irn/login?from=examen_civique">
+                <Button className="h-9 px-4 bg-indigo-600 text-white rounded-xl font-black text-xs">
+                  Essayer gratuitement <ArrowRight className="ml-1" size={12} />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
       </div>
 
       <Dialog open={examModalOpen} onOpenChange={setExamModalOpen}>
