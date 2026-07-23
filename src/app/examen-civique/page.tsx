@@ -93,6 +93,28 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => 0.5 - Math.random());
 }
 
+// Tire `total` questions en répartissant équitablement entre les thématiques présentes dans `pool`,
+// plutôt qu'un tirage aléatoire pur qui pourrait sur-représenter la thématique la plus fournie
+// (les thématiques n'ont pas le même nombre de questions officielles disponibles).
+function pickStratifiedByTheme(pool: CivicQuestion[], total: number): CivicQuestion[] {
+  const themeValues = Array.from(new Set(pool.map((q) => q.theme)));
+  if (themeValues.length === 0) return [];
+  const perTheme = Math.floor(total / themeValues.length);
+
+  const selected: CivicQuestion[] = [];
+  const remainder: CivicQuestion[] = [];
+  themeValues.forEach((themeVal) => {
+    const themePool = shuffle(pool.filter((q) => q.theme === themeVal));
+    selected.push(...themePool.slice(0, perTheme));
+    remainder.push(...themePool.slice(perTheme));
+  });
+
+  const stillNeeded = total - selected.length;
+  if (stillNeeded > 0) selected.push(...shuffle(remainder).slice(0, stillNeeded));
+
+  return shuffle(selected).slice(0, total);
+}
+
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -505,8 +527,7 @@ function CivicExamContent() {
         }
       }
 
-      const picked = shuffle(pool)
-        .slice(0, EXAM_QUESTION_COUNT)
+      const picked = pickStratifiedByTheme(pool, EXAM_QUESTION_COUNT)
         .map((q) => ({ ...q, options: shuffle(q.options) }));
       const startedAt = Date.now();
       setQuestions(picked);
@@ -548,6 +569,8 @@ function CivicExamContent() {
     setMode("selection");
     setQuestions([]);
     setIndex(0);
+    setFinished(false);
+    setSessionCorrect(0);
   };
 
   if (loading && mode === "selection") {
@@ -769,7 +792,7 @@ function CivicExamContent() {
   }
 
   // === FIN DE SESSION SRS ===
-  if (finished) {
+  if (mode === "training" && finished) {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
@@ -805,13 +828,23 @@ function CivicExamContent() {
       mastered: { label: "Maîtrisé", className: "bg-emerald-50 text-emerald-600" },
     };
 
+    // Regroupe les questions par thématique (l'ordre des groupes suit THEMES pour rester stable).
+    const groupedByTheme = THEMES.map((t) => ({
+      theme: t,
+      items: catalogueQuestions.filter((q) => q.theme === t.value),
+    })).filter((g) => g.items.length > 0);
+
     return (
       <div className="min-h-screen bg-zinc-50">
         <div className="max-w-4xl mx-auto px-6 py-8 lg:px-10">
           <ExerciseLayout
             variant="compact"
             title="CATALOGUE"
-            badge={`${catalogueQuestions.length} question${catalogueQuestions.length > 1 ? "s" : ""}`}
+            badge={
+              theme !== "Toutes"
+                ? `${THEMES.find((t) => t.value === theme)?.label} — ${catalogueQuestions.length} question${catalogueQuestions.length > 1 ? "s" : ""}`
+                : `${catalogueQuestions.length} question${catalogueQuestions.length > 1 ? "s" : ""}`
+            }
             badgeColor="indigo"
             onBack={handleBackToSelection}
           />
@@ -821,37 +854,46 @@ function CivicExamContent() {
               Aucune question ne correspond à ces filtres.
             </div>
           ) : (
-            <Accordion className="mt-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
-              {catalogueQuestions.map((q) => {
-                const status = catalogueStatus[q.id] || "new";
-                return (
-                  <AccordionItem key={q.id} value={q.id} className="border-none">
-                    <AccordionTrigger className="hover:no-underline py-4 gap-4">
-                      <div className="flex items-center gap-3 text-left flex-1">
-                        <Badge className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${statusConfig[status].className}`}>
-                          {statusConfig[status].label}
-                        </Badge>
-                        <span className="text-sm font-bold text-zinc-800">{q.question}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-5 space-y-3 pl-1">
-                      <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
-                        {THEMES.find((t) => t.value === q.theme)?.label || q.theme}
-                      </p>
-                      <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
-                        {q.correct_answer}
-                      </div>
-                      {q.explanation && <p className="text-xs text-zinc-500 italic leading-relaxed">{q.explanation}</p>}
-                      {q.source_url && (
-                        <a href={q.source_url} target="_blank" rel="noopener noreferrer" className="inline-block text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
-                          Source officielle →
-                        </a>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
+            <div className="mt-6 space-y-8">
+              {groupedByTheme.map((group) => (
+                <section key={group.theme.value}>
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900">{group.theme.label}</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      {group.items.length} question{group.items.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
+                    {group.items.map((q) => {
+                      const status = catalogueStatus[q.id] || "new";
+                      return (
+                        <AccordionItem key={q.id} value={q.id} className="border-none">
+                          <AccordionTrigger className="hover:no-underline py-4 gap-4">
+                            <div className="flex items-center gap-3 text-left flex-1">
+                              <Badge className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${statusConfig[status].className}`}>
+                                {statusConfig[status].label}
+                              </Badge>
+                              <span className="text-sm font-bold text-zinc-800">{q.question}</span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-5 space-y-3 pl-1">
+                            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
+                              {q.correct_answer}
+                            </div>
+                            {q.explanation && <p className="text-xs text-zinc-500 italic leading-relaxed">{q.explanation}</p>}
+                            {q.source_url && (
+                              <a href={q.source_url} target="_blank" rel="noopener noreferrer" className="inline-block text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                                Source officielle →
+                              </a>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                </section>
+              ))}
+            </div>
           )}
         </div>
       </div>
