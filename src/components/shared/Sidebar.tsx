@@ -19,7 +19,8 @@ import {
   Sparkles,
   History,
   Shield,
-  Flag
+  Flag,
+  Landmark
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -71,6 +72,7 @@ function SidebarContent() {
     { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
     { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
     { label: "Corrections", icon: History, href: "/tef-irn/correction" },
+    { label: "Examen Civique", icon: Landmark, href: "/examen-civique" },
   ];
 
   const isActive = (href: string) => pathname === href;

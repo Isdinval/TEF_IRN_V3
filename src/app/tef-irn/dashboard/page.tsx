@@ -23,6 +23,7 @@ import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBanner";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
+import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { WeakPointsCard } from "@/components/features/dashboard/new/WeakPointsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -165,6 +166,7 @@ export default function DashboardPage() {
             <PerformanceRadar data={competency_radar} />
             <XPChart data={xp_last_7_days} />
             {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
+            <CivicExamCard />
             <SubSkillHeatmap data={sub_competencies} />
           </aside>
         </div>
