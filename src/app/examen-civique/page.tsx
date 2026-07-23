@@ -44,6 +44,8 @@ import {
   getLastLocalAttemptForMention,
   hasLocalCivicData,
   migrateLocalCivicDataToSupabase,
+  getCivicStreakData,
+  recordCivicSession,
 } from "@/lib/civic-local-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -158,6 +160,7 @@ function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
 
   const { user: currentUser } = useAuth();
+  const [civicStreak, setCivicStreak] = useState(0);
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
@@ -309,6 +312,11 @@ function CivicExamContent() {
 
   useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
 
+  // Initialise le streak depuis le store local au premier rendu.
+  useEffect(() => {
+    setCivicStreak(getCivicStreakData().currentStreak);
+  }, []);
+
   // Un visiteur anonyme avait de la progression locale (SRS + tentatives) et vient de se connecter
   // ou créer un compte : on la bascule vers Supabase avant qu'elle ne soit silencieusement perdue.
   useEffect(() => {
@@ -402,6 +410,7 @@ function CivicExamContent() {
             .in("id", reviews.map((r: any) => r.question_id));
           if (data && data.length > 0) {
             setQuestions(shuffle(data as CivicQuestion[]));
+            setCivicStreak(recordCivicSession().currentStreak);
             setMode("training");
             setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
             setLoading(false);
@@ -416,6 +425,7 @@ function CivicExamContent() {
           const { data } = await supabase.from("civic_questions").select("*").in("id", dueIds);
           if (data && data.length > 0) {
             setQuestions(shuffle(data as CivicQuestion[]));
+            setCivicStreak(recordCivicSession().currentStreak);
             setMode("training");
             setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
             setLoading(false);
@@ -432,6 +442,7 @@ function CivicExamContent() {
 
       if (data && data.length > 0) {
         setQuestions(shuffle(data as CivicQuestion[]));
+        setCivicStreak(recordCivicSession().currentStreak);
         setMode("training");
         setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
       } else {
@@ -614,6 +625,7 @@ function CivicExamContent() {
       setExamStartedAt(startedAt);
       setExamModalOpen(false);
       setExamResult(null);
+      setCivicStreak(recordCivicSession().currentStreak);
       setMode("exam");
     } catch (err) {
       console.error("Error starting civic exam:", err);
@@ -1163,7 +1175,7 @@ function CivicExamContent() {
         </div>
 
         {/* Résumé de progression — visible uniquement quand il y a des données */}
-        {(bestScore !== null || (dueCount ?? 0) > 0) && (
+        {(bestScore !== null || (dueCount ?? 0) > 0 || civicStreak > 0) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {bestScore !== null && (
               <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
@@ -1173,13 +1185,21 @@ function CivicExamContent() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
               </div>
             )}
+            {civicStreak > 0 && (
+              <div className="bg-orange-50 rounded-2xl border border-orange-100 p-4 text-center">
+                <p className="text-2xl font-black text-orange-600">🔥 {civicStreak}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mt-0.5">
+                  Jour{civicStreak > 1 ? "s" : ""} de suite
+                </p>
+              </div>
+            )}
             {(dueCount ?? 0) > 0 && (
               <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
                 <p className="text-2xl font-black text-indigo-700">{dueCount}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
               </div>
             )}
-            {totalAttempts > 0 && (
+            {totalAttempts > 0 && civicStreak === 0 && (
               <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
                 <p className="text-2xl font-black text-zinc-900">{totalAttempts}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
