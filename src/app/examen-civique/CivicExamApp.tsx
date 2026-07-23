@@ -169,6 +169,14 @@ function CivicExamContent() {
   // Calculé à chaque rendu : vrai pour les anonymes ET les connectés sans abonnement premium.
   // Déclaré ici (pas dans le bloc exam_finished) pour être accessible dans tous les modes de rendu.
   const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
+  // Constantes dérivées des états — déclarées ici pour être accessibles dans tous les modes de rendu.
+  const hasDue = (dueCount ?? 0) > 0;
+  const hasSeenQuestions = localStats.seen > 0;
+  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
+  const totalAttempts = attempts.length;
+  const avgSuccessRate = attempts.length > 0
+    ? Math.round(attempts.reduce((sum, a) => sum + a.score / a.total_questions, 0) / attempts.length * 100)
+    : null;
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
   const [loading, setLoading] = useState(false);
@@ -1229,13 +1237,6 @@ function CivicExamContent() {
   }
 
   // === ÉCRAN DE SÉLECTION ===
-  const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
-  const totalAttempts = attempts.length;
-  const hasDue = (dueCount ?? 0) > 0;
-  const hasSeenQuestions = localStats.seen > 0;
-  const avgSuccessRate = attempts.length > 0
-    ? Math.round(attempts.reduce((sum, a) => sum + a.score / a.total_questions, 0) / attempts.length * 100)
-    : null;
 
   return (
     <div className="min-h-screen bg-zinc-50">
