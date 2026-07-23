@@ -46,6 +46,9 @@ import {
   migrateLocalCivicDataToSupabase,
   getCivicStreakData,
   recordCivicSession,
+  getLocalSeenCount,
+  getLocalMasteredCount,
+  getLocalScheduledCount,
 } from "@/lib/civic-local-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -161,6 +164,7 @@ function CivicExamContent() {
 
   const { user: currentUser } = useAuth();
   const [civicStreak, setCivicStreak] = useState(0);
+  const [localStats, setLocalStats] = useState({ seen: 0, mastered: 0, scheduled: 0 });
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
@@ -312,17 +316,21 @@ function CivicExamContent() {
 
   useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
 
-  // Initialise le streak depuis le store local au premier rendu.
+  // Initialise streak + métriques locales au premier rendu.
   useEffect(() => {
     setCivicStreak(getCivicStreakData().currentStreak);
+    setLocalStats({ seen: getLocalSeenCount(), mastered: getLocalMasteredCount(), scheduled: getLocalScheduledCount() });
   }, []);
+
+  const refreshLocalStats = () =>
+    setLocalStats({ seen: getLocalSeenCount(), mastered: getLocalMasteredCount(), scheduled: getLocalScheduledCount() });
 
   // Un visiteur anonyme avait de la progression locale (SRS + tentatives) et vient de se connecter
   // ou créer un compte : on la bascule vers Supabase avant qu'elle ne soit silencieusement perdue.
   useEffect(() => {
     if (!currentUser || !hasLocalCivicData()) return;
     migrateLocalCivicDataToSupabase(currentUser.id)
-      .then(() => { fetchDueCount(); fetchAttempts(); })
+      .then(() => { fetchDueCount(); fetchAttempts(); refreshLocalStats(); })
       .catch((err) => console.error("Error migrating local civic data:", err));
   }, [currentUser, fetchDueCount, fetchAttempts]);
 
@@ -494,7 +502,7 @@ function CivicExamContent() {
     if (isCorrect) setSessionCorrect((prev) => prev + 1);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) await updateCivicSRS(user.id, current.id, isCorrect);
-    else updateLocalCivicSRS(current.id, isCorrect);
+    else { updateLocalCivicSRS(current.id, isCorrect); refreshLocalStats(); }
   };
 
   const handleNext = () => {
@@ -506,6 +514,7 @@ function CivicExamContent() {
     } else {
       setFinished(true);
       fetchDueCount();
+      refreshLocalStats();
     }
   };
 
@@ -971,7 +980,6 @@ function CivicExamContent() {
             </div>
           )}
           <div className="flex flex-col gap-3">
-            {/* Suggestion contextuelle : si bon score → proposer l'examen blanc, sinon → continuer à apprendre */}
             {sessionCorrect / questions.length >= 0.8 ? (
               <Button
                 onClick={() => setExamModalOpen(true)}
@@ -1086,7 +1094,7 @@ function CivicExamContent() {
         <ExerciseLayout
           variant="compact"
           title="EXAMEN CIVIQUE"
-          badge="Révision SRS"
+          badge="Révision programmée"
           badgeColor="indigo"
           onBack={handleBackToSelection}
           rightElement={
@@ -1197,7 +1205,10 @@ function CivicExamContent() {
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
   const totalAttempts = attempts.length;
   const hasDue = (dueCount ?? 0) > 0;
-  const isUpToDate = dueCount === 0 && bestScore !== null;
+  const hasSeenQuestions = localStats.seen > 0;
+  const avgSuccessRate = attempts.length > 0
+    ? Math.round(attempts.reduce((sum, a) => sum + a.score / a.total_questions, 0) / attempts.length * 100)
+    : null;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -1205,54 +1216,75 @@ function CivicExamContent() {
 
         {/* En-tête */}
         <div className="space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <Landmark size={16} className="text-white" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Examen Civique — 100 % gratuit</span>
-          </div>
           <h1 className="text-2xl font-black text-zinc-900 tracking-tighter leading-tight">
             Préparez votre entretien civique
           </h1>
           <p className="text-sm text-zinc-500 font-medium leading-relaxed">
             Obligatoire depuis janvier 2026 (CSP, carte de résident, naturalisation).
-            Questions officielles, révision adaptative et examens blancs chronométrés.
           </p>
         </div>
 
-        {/* Résumé de progression */}
-        {(bestScore !== null || hasDue || civicStreak > 0) && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {bestScore !== null && (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
-                <p className="text-2xl font-black text-zinc-900">
-                  {bestScore}<span className="text-sm text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>
-                </p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
-              </div>
-            )}
-            {civicStreak > 0 && (
-              <div className="bg-orange-50 rounded-2xl border border-orange-100 p-4 text-center">
-                <p className="text-2xl font-black text-orange-600">🔥 {civicStreak}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mt-0.5">
-                  Jour{civicStreak > 1 ? "s" : ""} de suite
-                </p>
-              </div>
-            )}
-            {hasDue && (
-              <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
-                <p className="text-2xl font-black text-indigo-700">{dueCount}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
-              </div>
-            )}
-            {totalAttempts > 0 && civicStreak === 0 && (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
-                <p className="text-2xl font-black text-zinc-900">{totalAttempts}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
-                  Examen{totalAttempts > 1 ? "s" : ""} passé{totalAttempts > 1 ? "s" : ""}
-                </p>
-              </div>
-            )}
+        {/* Réassurance — gratuité + source officielle */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+            <p className="text-lg">🆓</p>
+            <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
+            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+            <p className="text-lg">🏛️</p>
+            <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
+            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+            <p className="text-lg">🧠</p>
+            <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
+            <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
+          </div>
+        </div>
+
+        {/* Résumé de progression — affiché dès qu'il y a des données */}
+        {(hasSeenQuestions || bestScore !== null || civicStreak > 0) && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre progression</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {localStats.seen > 0 && (
+                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                  <p className="text-xl font-black text-zinc-900">{localStats.seen}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Question{localStats.seen > 1 ? "s" : ""} vues</p>
+                </div>
+              )}
+              {localStats.mastered > 0 && (
+                <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-4 text-center">
+                  <p className="text-xl font-black text-emerald-700">{localStats.mastered}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-0.5">Maîtrisée{localStats.mastered > 1 ? "s" : ""}</p>
+                </div>
+              )}
+              {civicStreak > 0 && (
+                <div className="bg-orange-50 rounded-2xl border border-orange-100 p-4 text-center">
+                  <p className="text-xl font-black text-orange-600">🔥 {civicStreak}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+                </div>
+              )}
+              {bestScore !== null && (
+                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                  <p className="text-xl font-black text-zinc-900">{bestScore}<span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span></p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+                </div>
+              )}
+              {avgSuccessRate !== null && totalAttempts >= 2 && (
+                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                  <p className="text-xl font-black text-zinc-900">{avgSuccessRate}%</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Taux de réussite</p>
+                </div>
+              )}
+              {hasDue && (
+                <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
+                  <p className="text-xl font-black text-indigo-700">{dueCount}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1288,10 +1320,7 @@ function CivicExamContent() {
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
               <Landmark size={12} className="text-indigo-600" /> Votre démarche
             </p>
-            <button
-              onClick={() => setMentionHelpOpen(true)}
-              className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
-            >
+            <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
               Aide au choix →
             </button>
           </div>
@@ -1313,7 +1342,7 @@ function CivicExamContent() {
           </div>
         </div>
 
-        {/* ── Parcours ─────────────────────────────────── */}
+        {/* ── Comment se préparer ───────────────────────── */}
         <div className="space-y-2">
           <h2 className="text-base font-black text-zinc-900 px-1">Comment se préparer</h2>
           <p className="text-xs text-zinc-400 font-medium px-1 pb-1">
@@ -1329,7 +1358,7 @@ function CivicExamContent() {
                   <Target size={14} className="text-zinc-400 shrink-0" /> Choisir une thématique
                 </p>
                 <p className="text-xs text-zinc-500 font-medium mt-0.5">
-                  Filtrez les questions par thème, ou travaillez sur toutes les thématiques à la fois.
+                  Filtrez les questions par thème, ou travaillez sur toutes à la fois.
                 </p>
               </div>
             </div>
@@ -1376,7 +1405,7 @@ function CivicExamContent() {
             </div>
           </div>
 
-          {/* Étape 2 — Apprendre (nouvelles questions) */}
+          {/* Étape 2 — Apprendre */}
           <div
             onClick={() => startTraining(false)}
             className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all group"
@@ -1393,7 +1422,7 @@ function CivicExamContent() {
             <ArrowRight size={15} className="text-zinc-300 group-hover:text-indigo-500 shrink-0 mt-1 transition-colors" />
           </div>
 
-          {/* Étape 3 — Réviser (SRS) */}
+          {/* Étape 3 — Mémoriser (révisions programmées) */}
           {hasDue ? (
             <div
               onClick={() => startTraining(true)}
@@ -1403,26 +1432,37 @@ function CivicExamContent() {
               <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-black text-white shrink-0 mt-0.5">3</span>
               <div className="flex-1">
                 <p className="text-sm font-black text-white flex items-center gap-2">
-                  <Brain size={14} className="shrink-0" /> Mémoriser — {dueCount} révision{dueCount! > 1 ? "s" : ""} dues
+                  <Brain size={14} className="shrink-0" /> Mémoriser — {dueCount} révision{dueCount! > 1 ? "s" : ""} prévue{dueCount! > 1 ? "s" : ""}
                 </p>
                 <p className="text-xs text-indigo-200 font-medium mt-0.5 leading-relaxed">
-                  Questions déjà vues qui reviennent au bon moment. L'algorithme adapte la fréquence à ce que vous savez.
+                  Questions déjà vues qui reviennent au bon moment. L'algorithme planifie chaque révision selon vos réponses.
                 </p>
               </div>
               <ArrowRight size={15} className="text-indigo-200 shrink-0 mt-1" />
             </div>
           ) : (
-            <div className="bg-white rounded-[2rem] border border-zinc-100 p-5 flex items-start gap-3 opacity-60">
+            <div className="bg-white rounded-[2rem] border border-dashed border-zinc-200 p-5 flex items-start gap-3">
               <span className="w-6 h-6 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 shrink-0 mt-0.5">3</span>
               <div className="flex-1">
-                <p className="text-sm font-black text-zinc-600 flex items-center gap-2">
-                  <Brain size={14} className="shrink-0 text-zinc-400" /> Mémoriser (SRS)
+                <p className="text-sm font-black text-zinc-400 flex items-center gap-2">
+                  <Brain size={14} className="shrink-0" /> Mémoriser
                 </p>
-                <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
-                  {isUpToDate
-                    ? "Tout est à jour — revenez demain pour vos révisions."
-                    : "Faites d'abord quelques sessions d'apprentissage. Vos révisions apparaîtront ici."}
-                </p>
+                {hasSeenQuestions ? (
+                  <>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
+                      {localStats.scheduled > 0
+                        ? `${localStats.scheduled} révision${localStats.scheduled > 1 ? "s" : ""} programmée${localStats.scheduled > 1 ? "s" : ""} — revenez demain pour les retrouver ici.`
+                        : "Tout est à jour — revenez demain pour vos prochaines révisions."}
+                    </p>
+                    <p className="text-[10px] text-zinc-400 font-medium mt-2 leading-relaxed">
+                      💡 Comment ça marche : après chaque bonne réponse, l'algorithme planifie la question dans 1, 6, puis X jours. Plus vous répondez juste, plus l'intervalle s'allonge. C'est ce qui fait mémoriser durablement.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
+                    Disponible après vos premières sessions Apprendre. L'algorithme planifiera vos révisions au moment le plus efficace.
+                  </p>
+                )}
               </div>
             </div>
           )}
