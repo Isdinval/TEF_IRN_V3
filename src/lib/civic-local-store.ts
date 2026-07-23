@@ -227,3 +227,29 @@ export function recordCivicSession(): CivicStreakData {
   window.localStorage.setItem(STREAK_KEY, JSON.stringify(updated));
   return updated;
 }
+
+// ─── Métriques locales ─────────────────────────────────────────────────────────
+
+/** Nombre de questions déjà vues (au moins une fois dans le SRS). */
+export function getLocalSeenCount(): number {
+  if (typeof window === "undefined") return 0;
+  return Object.keys(readReviews()).length;
+}
+
+/** Nombre de questions maîtrisées (consecutive_correct >= 2). */
+export function getLocalMasteredCount(): number {
+  if (typeof window === "undefined") return 0;
+  return Object.values(readReviews()).filter((r) => r.consecutive_correct >= 2).length;
+}
+
+/**
+ * Nombre de questions planifiées dans le futur (vues mais pas encore dues).
+ * Utile pour expliquer à l'utilisateur que ses révisions arrivent bientôt.
+ */
+export function getLocalScheduledCount(): number {
+  if (typeof window === "undefined") return 0;
+  const now = Date.now();
+  return Object.values(readReviews()).filter(
+    (r) => new Date(r.next_review_at).getTime() > now
+  ).length;
+}
