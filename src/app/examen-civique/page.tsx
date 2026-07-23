@@ -372,7 +372,16 @@ function CivicExamContent() {
     setStep("quiz");
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    const current = questions[index];
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      // "Je connais déjà" est traité comme une bonne réponse : planifie la question à plus long terme
+      // plutôt que de la laisser réapparaître indéfiniment dans le pool des nouvelles questions.
+      if (user) await updateCivicSRS(user.id, current.id, true);
+    } catch (err) {
+      console.error("Error recording skipped civic question:", err);
+    }
     if (index < questions.length - 1) {
       setIndex(index + 1);
       setStep("learn");
