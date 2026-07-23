@@ -684,6 +684,11 @@ function CivicExamContent() {
       setMode("training");
     };
 
+    const handleReviewTheme = (targetTheme: string) => {
+      setTheme(targetTheme);
+      startTraining(false);
+    };
+
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-xl w-full">
@@ -709,11 +714,22 @@ function CivicExamContent() {
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Résultat par thématique</p>
             {Object.entries(examResult.themeBreakdown).map(([themeVal, stats]) => {
               const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+              const isWeak = pct < 80;
               return (
                 <div key={themeVal} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
                     <span>{THEMES.find((t) => t.value === themeVal)?.label || themeVal}</span>
-                    <span>{stats.correct}/{stats.total}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{stats.correct}/{stats.total}</span>
+                      {isWeak && (
+                        <button
+                          onClick={() => handleReviewTheme(themeVal)}
+                          className="text-[10px] font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                        >
+                          Réviser →
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                     <div
