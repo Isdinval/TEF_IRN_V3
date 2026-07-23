@@ -341,7 +341,9 @@ function CivicExamContent() {
       .select("subscription_tier")
       .eq("id", currentUser.id)
       .single()
-      .then(({ data }) => { if (data) setSubscriptionTier(data.subscription_tier as string); });
+      .then(({ data }: { data: { subscription_tier: string } | null }) => {
+        if (data) setSubscriptionTier(data.subscription_tier);
+      });
   }, [currentUser, supabase]);
 
   // Compte les questions disponibles pour les filtres courants (affiché sur l'écran de sélection).
