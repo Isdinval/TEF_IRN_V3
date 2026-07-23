@@ -61,7 +61,6 @@ export async function middleware(request: NextRequest) {
     '/tef-irn/correction',
     '/tef-irn/settings',
     '/tef-irn/profile',
-    '/examen-civique'
   ]
 
   const isProtectedRoute = protectedRoutes.some(route => 
