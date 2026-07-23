@@ -128,7 +128,11 @@ function CivicExamContent() {
   const [examTimeLeft, setExamTimeLeft] = useState(EXAM_DURATION_SECONDS);
   const [examEndAt, setExamEndAt] = useState<number | null>(null);
   const [examStartedAt, setExamStartedAt] = useState<number | null>(null);
-  const [examResult, setExamResult] = useState<{ score: number; passed: boolean } | null>(null);
+  const [examResult, setExamResult] = useState<{
+    score: number;
+    passed: boolean;
+    themeBreakdown: Record<string, { correct: number; total: number }>;
+  } | null>(null);
   const [resumableSession, setResumableSession] = useState<PersistedExamSession | null>(null);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -167,7 +171,11 @@ function CivicExamContent() {
               total_questions: saved.questions.length,
               passed,
               duration_seconds: duration,
+              question_ids: saved.questions.map((q) => q.id),
             });
+            await Promise.all(saved.questions.map((q, i) =>
+              updateCivicSRS(user.id, q.id, saved.examAnswers[i] === q.correct_answer)
+            ));
             fetchAttempts();
           }
           window.localStorage.removeItem(EXAM_STORAGE_KEY);
@@ -325,6 +333,14 @@ function CivicExamContent() {
     const passed = score >= EXAM_PASS_THRESHOLD;
     const duration = examStartedAt ? Math.round((Date.now() - examStartedAt) / 1000) : null;
 
+    const themeBreakdown: Record<string, { correct: number; total: number }> = {};
+    qs.forEach((q, i) => {
+      const isCorrect = ans[i] === q.correct_answer;
+      if (!themeBreakdown[q.theme]) themeBreakdown[q.theme] = { correct: 0, total: 0 };
+      themeBreakdown[q.theme].total += 1;
+      if (isCorrect) themeBreakdown[q.theme].correct += 1;
+    });
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -335,13 +351,16 @@ function CivicExamContent() {
           total_questions: qs.length,
           passed,
           duration_seconds: duration,
+          question_ids: qs.map((q) => q.id),
         });
+        // L'examen blanc est aussi un signal d'apprentissage : on alimente le SRS.
+        await Promise.all(qs.map((q, i) => updateCivicSRS(user.id, q.id, ans[i] === q.correct_answer)));
       }
     } catch (err) {
       console.error("Error submitting civic exam:", err);
     }
     window.localStorage.removeItem(EXAM_STORAGE_KEY);
-    setExamResult({ score, passed });
+    setExamResult({ score, passed, themeBreakdown });
     setMode("exam_finished");
     fetchAttempts();
   }, [examStartedAt, mention, supabase, fetchAttempts]);
@@ -371,7 +390,27 @@ function CivicExamContent() {
         setErrorMsg("Aucune question disponible pour cette sélection. Réessayez plus tard.");
         return;
       }
-      const picked = shuffle(data as CivicQuestion[]).slice(0, EXAM_QUESTION_COUNT);
+
+      let pool = data as CivicQuestion[];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: lastAttempt } = await supabase
+          .from("civic_exam_attempts")
+          .select("question_ids")
+          .eq("user_id", user.id)
+          .eq("mention", mention)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const lastIds: string[] = lastAttempt?.question_ids || [];
+        if (lastIds.length > 0) {
+          const filtered = pool.filter((q) => !lastIds.includes(q.id));
+          // On n'exclut que si assez de questions restent pour composer l'examen complet.
+          if (filtered.length >= EXAM_QUESTION_COUNT) pool = filtered;
+        }
+      }
+
+      const picked = shuffle(pool).slice(0, EXAM_QUESTION_COUNT);
       const startedAt = Date.now();
       setQuestions(picked);
       setExamAnswers({});
@@ -428,6 +467,15 @@ function CivicExamContent() {
       .map((q, i) => ({ q, given: examAnswers[i] }))
       .filter(({ q, given }) => given !== q.correct_answer);
 
+    const handleReviewMistakes = () => {
+      setQuestions(shuffle(wrongAnswers.map((w) => w.q)));
+      setIndex(0);
+      setStep("learn");
+      setFinished(false);
+      setSessionCorrect(0);
+      setMode("training");
+    };
+
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-xl w-full">
@@ -441,6 +489,27 @@ function CivicExamContent() {
             <p className="text-sm text-zinc-500 font-medium">
               Score : {examResult.score} / {questions.length} (seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT})
             </p>
+          </div>
+
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-6 space-y-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Résultat par thématique</p>
+            {Object.entries(examResult.themeBreakdown).map(([themeVal, stats]) => {
+              const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+              return (
+                <div key={themeVal} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
+                    <span>{THEMES.find((t) => t.value === themeVal)?.label || themeVal}</span>
+                    <span>{stats.correct}/{stats.total}</span>
+                  </div>
+                  <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {wrongAnswers.length > 0 && (
@@ -459,9 +528,16 @@ function CivicExamContent() {
             </div>
           )}
 
-          <Button onClick={handleBackToSelection} className="w-full h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm">
-            Retour à l'accueil
-          </Button>
+          <div className="flex flex-col gap-3">
+            {wrongAnswers.length > 0 && (
+              <Button onClick={handleReviewMistakes} className="w-full h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm">
+                Réviser mes {wrongAnswers.length} erreur{wrongAnswers.length > 1 ? "s" : ""} <ArrowRight className="ml-2" size={16} />
+              </Button>
+            )}
+            <Button onClick={handleBackToSelection} variant={wrongAnswers.length > 0 ? "secondary" : undefined} className={`w-full h-12 rounded-2xl font-black text-sm ${wrongAnswers.length > 0 ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-900 text-white'}`}>
+              Retour à l'accueil
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
