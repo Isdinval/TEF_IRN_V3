@@ -230,26 +230,40 @@ export function recordCivicSession(): CivicStreakData {
 
 // ─── Métriques locales ─────────────────────────────────────────────────────────
 
-/** Nombre de questions déjà vues (au moins une fois dans le SRS). */
-export function getLocalSeenCount(): number {
-  if (typeof window === "undefined") return 0;
-  return Object.keys(readReviews()).length;
-}
-
-/** Nombre de questions maîtrisées (consecutive_correct >= 2). */
-export function getLocalMasteredCount(): number {
-  if (typeof window === "undefined") return 0;
-  return Object.values(readReviews()).filter((r) => r.consecutive_correct >= 2).length;
+export interface LocalCivicStats {
+  seen: number;
+  mastered: number;
+  scheduled: number;
 }
 
 /**
- * Nombre de questions planifiées dans le futur (vues mais pas encore dues).
- * Utile pour expliquer à l'utilisateur que ses révisions arrivent bientôt.
+ * Lit localStorage une seule fois et calcule les 3 métriques en une passe.
+ * Remplace les anciens getLocalSeenCount / getLocalMasteredCount / getLocalScheduledCount
+ * qui faisaient chacun un JSON.parse séparé.
  */
-export function getLocalScheduledCount(): number {
-  if (typeof window === "undefined") return 0;
+export function getLocalStats(): LocalCivicStats {
+  if (typeof window === "undefined") return { seen: 0, mastered: 0, scheduled: 0 };
+  const reviews = readReviews();
   const now = Date.now();
-  return Object.values(readReviews()).filter(
-    (r) => new Date(r.next_review_at).getTime() > now
-  ).length;
+  let mastered = 0;
+  let scheduled = 0;
+  const entries = Object.values(reviews);
+  for (const r of entries) {
+    if (r.consecutive_correct >= 2) mastered++;
+    if (new Date(r.next_review_at).getTime() > now) scheduled++;
+  }
+  return { seen: entries.length, mastered, scheduled };
+}
+
+/** @deprecated Utiliser getLocalStats().seen */
+export function getLocalSeenCount(): number {
+  return getLocalStats().seen;
+}
+/** @deprecated Utiliser getLocalStats().mastered */
+export function getLocalMasteredCount(): number {
+  return getLocalStats().mastered;
+}
+/** @deprecated Utiliser getLocalStats().scheduled */
+export function getLocalScheduledCount(): number {
+  return getLocalStats().scheduled;
 }
