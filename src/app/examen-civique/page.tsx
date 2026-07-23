@@ -14,6 +14,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import {
   Loader2,
   Trophy,
   Brain,
@@ -24,6 +30,7 @@ import {
   Landmark,
   CheckCircle2,
   XCircle,
+  BookOpen,
 } from "lucide-react";
 import { updateCivicSRS } from "@/lib/civic-srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -79,7 +86,7 @@ interface PersistedExamSession {
   examStartedAt: number;
 }
 
-type Mode = "selection" | "training" | "exam" | "exam_finished";
+type Mode = "selection" | "training" | "exam" | "exam_finished" | "catalogue";
 type TrainingStep = "learn" | "quiz";
 
 function shuffle<T>(arr: T[]): T[] {
@@ -111,6 +118,10 @@ function CivicExamContent() {
   const [loading, setLoading] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
+  const [filteredCount, setFilteredCount] = useState<number | null>(null);
+  const [catalogueQuestions, setCatalogueQuestions] = useState<CivicQuestion[]>([]);
+  const [catalogueStatus, setCatalogueStatus] = useState<Record<string, "new" | "learning" | "mastered">>({});
+  const [catalogueLoading, setCatalogueLoading] = useState(false);
 
   // Training (révision quotidienne SRS)
   const [questions, setQuestions] = useState<CivicQuestion[]>([]);
@@ -231,6 +242,54 @@ function CivicExamContent() {
   }, [supabase]);
 
   useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
+
+  // Compte les questions disponibles pour les filtres courants (affiché sur l'écran de sélection).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      let query = supabase.from("civic_questions").select("id", { count: "exact", head: true });
+      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      if (theme !== "Toutes") query = query.eq("theme", theme);
+      const { count } = await query;
+      if (active) setFilteredCount(count ?? null);
+    })();
+    return () => { active = false; };
+  }, [mention, theme, supabase]);
+
+  const openCatalogue = useCallback(async () => {
+    setCatalogueLoading(true);
+    setErrorMsg(null);
+    try {
+      let query = supabase.from("civic_questions").select("*").order("theme");
+      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      if (theme !== "Toutes") query = query.eq("theme", theme);
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const questionsData = (data as CivicQuestion[]) || [];
+      setCatalogueQuestions(questionsData);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const statusMap: Record<string, "new" | "learning" | "mastered"> = {};
+      if (user && questionsData.length > 0) {
+        const { data: reviews } = await supabase
+          .from("user_civic_reviews")
+          .select("question_id, consecutive_correct")
+          .eq("user_id", user.id)
+          .in("question_id", questionsData.map((q) => q.id));
+        (reviews || []).forEach((r: any) => {
+          statusMap[r.question_id] = (r.consecutive_correct || 0) >= 2 ? "mastered" : "learning";
+        });
+      }
+      setCatalogueStatus(statusMap);
+      setMode("catalogue");
+    } catch (err) {
+      console.error("Error loading civic catalogue:", err);
+      setErrorMsg("Impossible de charger le catalogue. Réessayez.");
+    } finally {
+      setCatalogueLoading(false);
+    }
+  }, [mention, theme, supabase]);
 
   const startTraining = useCallback(async (review: boolean) => {
     setLoading(true);
@@ -694,6 +753,67 @@ function CivicExamContent() {
     );
   }
 
+  // === CATALOGUE NAVIGABLE ===
+  if (mode === "catalogue") {
+    const statusConfig = {
+      new: { label: "Nouveau", className: "bg-zinc-100 text-zinc-500" },
+      learning: { label: "En cours", className: "bg-amber-50 text-amber-600" },
+      mastered: { label: "Maîtrisé", className: "bg-emerald-50 text-emerald-600" },
+    };
+
+    return (
+      <div className="min-h-screen bg-zinc-50">
+        <div className="max-w-4xl mx-auto px-6 py-8 lg:px-10">
+          <ExerciseLayout
+            variant="compact"
+            title="CATALOGUE"
+            badge={`${catalogueQuestions.length} question${catalogueQuestions.length > 1 ? "s" : ""}`}
+            badgeColor="indigo"
+            onBack={handleBackToSelection}
+          />
+
+          {catalogueQuestions.length === 0 ? (
+            <div className="mt-8 p-12 text-center border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-zinc-400 font-bold text-sm">
+              Aucune question ne correspond à ces filtres.
+            </div>
+          ) : (
+            <Accordion className="mt-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
+              {catalogueQuestions.map((q) => {
+                const status = catalogueStatus[q.id] || "new";
+                return (
+                  <AccordionItem key={q.id} value={q.id} className="border-none">
+                    <AccordionTrigger className="hover:no-underline py-4 gap-4">
+                      <div className="flex items-center gap-3 text-left flex-1">
+                        <Badge className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${statusConfig[status].className}`}>
+                          {statusConfig[status].label}
+                        </Badge>
+                        <span className="text-sm font-bold text-zinc-800">{q.question}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-5 space-y-3 pl-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+                        {THEMES.find((t) => t.value === q.theme)?.label || q.theme}
+                      </p>
+                      <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
+                        {q.correct_answer}
+                      </div>
+                      {q.explanation && <p className="text-xs text-zinc-500 italic leading-relaxed">{q.explanation}</p>}
+                      {q.source_url && (
+                        <a href={q.source_url} target="_blank" rel="noopener noreferrer" className="inline-block text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                          Source officielle →
+                        </a>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // === MODE ENTRAÎNEMENT (learn -> quiz) ===
   if (mode === "training") {
     const current = questions[index];
@@ -885,6 +1005,14 @@ function CivicExamContent() {
                   </button>
                 ))}
               </div>
+              {filteredCount !== null && (
+                <p className="text-[10px] font-bold text-zinc-400">
+                  {filteredCount} question{filteredCount > 1 ? "s" : ""} disponible{filteredCount > 1 ? "s" : ""} pour cette sélection —{" "}
+                  <button onClick={openCatalogue} disabled={catalogueLoading} className="text-indigo-500 hover:underline font-black disabled:opacity-50">
+                    {catalogueLoading ? "Chargement..." : "parcourir le catalogue"}
+                  </button>
+                </p>
+              )}
             </div>
           </div>
 
