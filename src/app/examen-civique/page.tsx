@@ -103,6 +103,10 @@ function formatAttemptDate(iso: string) {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function passThresholdFor(totalQuestions: number) {
+  return Math.round(totalQuestions * (EXAM_PASS_THRESHOLD / EXAM_QUESTION_COUNT));
+}
+
 function mentionLabel(value: string) {
   const m = MENTIONS.find((m) => m.value === value);
   if (!m) return value;
@@ -119,6 +123,7 @@ function CivicExamContent() {
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
+  const [examPoolCount, setExamPoolCount] = useState<number | null>(null);
   const [catalogueQuestions, setCatalogueQuestions] = useState<CivicQuestion[]>([]);
   const [catalogueStatus, setCatalogueStatus] = useState<Record<string, "new" | "learning" | "mastered">>({});
   const [catalogueLoading, setCatalogueLoading] = useState(false);
@@ -143,6 +148,7 @@ function CivicExamContent() {
     score: number;
     passed: boolean;
     themeBreakdown: Record<string, { correct: number; total: number }>;
+    saveFailed?: boolean;
   } | null>(null);
   const [resumableSession, setResumableSession] = useState<PersistedExamSession | null>(null);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
@@ -168,28 +174,33 @@ function CivicExamContent() {
       if (Date.now() >= saved.examEndAt) {
         // Temps écoulé pendant l'absence : on soumet automatiquement avec les réponses sauvegardées.
         (async () => {
-          const score = saved.questions.reduce(
-            (acc, q, i) => acc + (saved.examAnswers[i] === q.correct_answer ? 1 : 0), 0
-          );
-          const passed = score >= EXAM_PASS_THRESHOLD;
-          const duration = Math.round((saved.examEndAt - saved.examStartedAt) / 1000);
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from("civic_exam_attempts").insert({
-              user_id: user.id,
-              mention: saved.mention,
-              score,
-              total_questions: saved.questions.length,
-              passed,
-              duration_seconds: duration,
-              question_ids: saved.questions.map((q) => q.id),
-            });
-            await Promise.all(saved.questions.map((q, i) =>
-              updateCivicSRS(user.id, q.id, saved.examAnswers[i] === q.correct_answer)
-            ));
-            fetchAttempts();
+          try {
+            const score = saved.questions.reduce(
+              (acc, q, i) => acc + (saved.examAnswers[i] === q.correct_answer ? 1 : 0), 0
+            );
+            const passed = score >= passThresholdFor(saved.questions.length);
+            const duration = Math.round((saved.examEndAt - saved.examStartedAt) / 1000);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              await supabase.from("civic_exam_attempts").insert({
+                user_id: user.id,
+                mention: saved.mention,
+                score,
+                total_questions: saved.questions.length,
+                passed,
+                duration_seconds: duration,
+                question_ids: saved.questions.map((q) => q.id),
+              });
+              await Promise.all(saved.questions.map((q, i) =>
+                updateCivicSRS(user.id, q.id, saved.examAnswers[i] === q.correct_answer)
+              ));
+              fetchAttempts();
+            }
+          } catch (err) {
+            console.error("Error auto-submitting expired civic exam session:", err);
+          } finally {
+            window.localStorage.removeItem(EXAM_STORAGE_KEY);
           }
-          window.localStorage.removeItem(EXAM_STORAGE_KEY);
         })();
       } else {
         setResumableSession(saved);
@@ -255,6 +266,18 @@ function CivicExamContent() {
     })();
     return () => { active = false; };
   }, [mention, theme, supabase]);
+
+  // Compte le pool disponible pour l'examen blanc (toutes thématiques, mention seule) — sert au garde-fou "moins de 40 questions".
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      let query = supabase.from("civic_questions").select("id", { count: "exact", head: true });
+      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      const { count } = await query;
+      if (active) setExamPoolCount(count ?? null);
+    })();
+    return () => { active = false; };
+  }, [mention, supabase]);
 
   const openCatalogue = useCallback(async () => {
     setCatalogueLoading(true);
@@ -389,7 +412,7 @@ function CivicExamContent() {
     const ans = answersRef.current;
     if (qs.length === 0) return; // déjà soumis ou rien à soumettre
     const score = qs.reduce((acc, q, i) => acc + (ans[i] === q.correct_answer ? 1 : 0), 0);
-    const passed = score >= EXAM_PASS_THRESHOLD;
+    const passed = score >= passThresholdFor(qs.length);
     const duration = examStartedAt ? Math.round((Date.now() - examStartedAt) / 1000) : null;
 
     const themeBreakdown: Record<string, { correct: number; total: number }> = {};
@@ -400,10 +423,11 @@ function CivicExamContent() {
       if (isCorrect) themeBreakdown[q.theme].correct += 1;
     });
 
+    let saveFailed = false;
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("civic_exam_attempts").insert({
+        const { error: insertError } = await supabase.from("civic_exam_attempts").insert({
           user_id: user.id,
           mention,
           score,
@@ -412,14 +436,16 @@ function CivicExamContent() {
           duration_seconds: duration,
           question_ids: qs.map((q) => q.id),
         });
+        if (insertError) throw insertError;
         // L'examen blanc est aussi un signal d'apprentissage : on alimente le SRS.
         await Promise.all(qs.map((q, i) => updateCivicSRS(user.id, q.id, ans[i] === q.correct_answer)));
       }
     } catch (err) {
       console.error("Error submitting civic exam:", err);
+      saveFailed = true;
     }
     window.localStorage.removeItem(EXAM_STORAGE_KEY);
-    setExamResult({ score, passed, themeBreakdown });
+    setExamResult({ score, passed, themeBreakdown, saveFailed });
     setMode("exam_finished");
     fetchAttempts();
   }, [examStartedAt, mention, supabase, fetchAttempts]);
@@ -469,7 +495,9 @@ function CivicExamContent() {
         }
       }
 
-      const picked = shuffle(pool).slice(0, EXAM_QUESTION_COUNT);
+      const picked = shuffle(pool)
+        .slice(0, EXAM_QUESTION_COUNT)
+        .map((q) => ({ ...q, options: shuffle(q.options) }));
       const startedAt = Date.now();
       setQuestions(picked);
       setExamAnswers({});
@@ -546,9 +574,15 @@ function CivicExamContent() {
               {examResult.passed ? "Examen réussi !" : "Pas encore, réessayez"}
             </h2>
             <p className="text-sm text-zinc-500 font-medium">
-              Score : {examResult.score} / {questions.length} (seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT})
+              Score : {examResult.score} / {questions.length} (seuil de réussite : {passThresholdFor(questions.length)}/{questions.length})
             </p>
           </div>
+
+          {examResult.saveFailed && (
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold text-center">
+              ⚠️ Votre résultat n'a pas pu être enregistré (problème de connexion). Notez votre score, il n'apparaîtra pas dans votre historique.
+            </div>
+          )}
 
           <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-6 space-y-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Résultat par thématique</p>
@@ -1089,6 +1123,11 @@ function CivicExamContent() {
               {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». Vous avez 45 minutes, sans possibilité de mettre en pause. Le score de réussite est de {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
             </DialogDescription>
           </DialogHeader>
+          {examPoolCount !== null && examPoolCount < EXAM_QUESTION_COUNT && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
+              Seulement {examPoolCount} question{examPoolCount > 1 ? "s" : ""} disponible{examPoolCount > 1 ? "s" : ""} pour cette mention : l'examen en comptera {examPoolCount} au lieu de {EXAM_QUESTION_COUNT} (seuil de réussite ajusté à {passThresholdFor(examPoolCount)}/{examPoolCount}).
+            </div>
+          )}
           <DialogFooter>
             <Button variant="secondary" onClick={() => setExamModalOpen(false)} className="rounded-2xl font-black text-sm">
               Annuler
