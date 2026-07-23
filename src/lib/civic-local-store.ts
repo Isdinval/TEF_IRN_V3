@@ -175,3 +175,81 @@ export async function migrateLocalCivicDataToSupabase(userId: string) {
 
   clearLocalCivicData();
 }
+
+// ─── Streak civique ────────────────────────────────────────────────────────────
+// Stocke la date ISO de la dernière session (YYYY-MM-DD) et calcule le nombre
+// de jours consécutifs d'activité. Complètement local — fonctionne pour les
+// anonymes et les connectés (le streak TEF IRN est dans profiles.streak_count,
+// celui-ci est propre au module civique et ne nécessite pas de colonne supplémentaire).
+
+const STREAK_KEY = "civic_streak_v1";
+
+interface CivicStreakData {
+  currentStreak: number;
+  lastSessionDate: string; // YYYY-MM-DD
+}
+
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function getCivicStreakData(): CivicStreakData {
+  if (typeof window === "undefined") return { currentStreak: 0, lastSessionDate: "" };
+  try {
+    const raw = window.localStorage.getItem(STREAK_KEY);
+    if (!raw) return { currentStreak: 0, lastSessionDate: "" };
+    return JSON.parse(raw) as CivicStreakData;
+  } catch {
+    return { currentStreak: 0, lastSessionDate: "" };
+  }
+}
+
+/**
+ * À appeler en début de session (SRS ou examen blanc).
+ * Si la dernière session date d'hier → incrémente le streak.
+ * Si c'est aujourd'hui → ne change rien (déjà compté).
+ * Sinon → réinitialise à 1.
+ */
+export function recordCivicSession(): CivicStreakData {
+  const today = todayISO();
+  const data = getCivicStreakData();
+
+  if (data.lastSessionDate === today) return data; // déjà enregistré aujourd'hui
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayISO = yesterday.toISOString().slice(0, 10);
+
+  const newStreak =
+    data.lastSessionDate === yesterdayISO ? data.currentStreak + 1 : 1;
+
+  const updated: CivicStreakData = { currentStreak: newStreak, lastSessionDate: today };
+  window.localStorage.setItem(STREAK_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+// ─── Métriques locales ─────────────────────────────────────────────────────────
+
+/** Nombre de questions déjà vues (au moins une fois dans le SRS). */
+export function getLocalSeenCount(): number {
+  if (typeof window === "undefined") return 0;
+  return Object.keys(readReviews()).length;
+}
+
+/** Nombre de questions maîtrisées (consecutive_correct >= 2). */
+export function getLocalMasteredCount(): number {
+  if (typeof window === "undefined") return 0;
+  return Object.values(readReviews()).filter((r) => r.consecutive_correct >= 2).length;
+}
+
+/**
+ * Nombre de questions planifiées dans le futur (vues mais pas encore dues).
+ * Utile pour expliquer à l'utilisateur que ses révisions arrivent bientôt.
+ */
+export function getLocalScheduledCount(): number {
+  if (typeof window === "undefined") return 0;
+  const now = Date.now();
+  return Object.values(readReviews()).filter(
+    (r) => new Date(r.next_review_at).getTime() > now
+  ).length;
+}
