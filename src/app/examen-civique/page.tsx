@@ -733,21 +733,32 @@ function CivicExamContent() {
           )}
 
           {!currentUser && (
-            <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 space-y-3 text-center">
-              <p className="text-sm font-black text-indigo-900">
-                Vous préparez aussi votre dossier {mentionLabel(mention)} ?
-              </p>
-              <p className="text-xs text-indigo-700 font-medium leading-relaxed">
-                Le niveau de français généralement requis pour cette démarche est {MENTION_TO_LEVEL[mention] || "B1"}.
-                LlamaKusi vous entraîne aussi pour le TEF IRN, avec un coach IA à l'oral et à l'écrit.
-              </p>
-              <Link href="/tef-irn/login?from=examen_civique" className="block">
-                <Button className="w-full h-11 bg-indigo-600 text-white rounded-2xl font-black text-sm">
-                  Découvrir la préparation TEF IRN <ArrowRight className="ml-2" size={16} />
-                </Button>
-              </Link>
-              <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
-                Créez un compte gratuit pour aussi sauvegarder votre progression civique
+            <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-4">
+              <div className="space-y-1">
+                <p className="text-sm font-black text-white">
+                  {examResult.passed
+                    ? "L'examen civique est fait. Et le TEF IRN ?"
+                    : "Préparez aussi votre niveau de français."}
+                </p>
+                <p className="text-xs text-indigo-200 font-medium leading-relaxed">
+                  Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention] || "B1"} (TEF IRN).
+                  Coach IA oral &amp; écrit, exercices adaptatifs — dès 55 €/mois.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Link href="/tef-irn/login?from=examen_civique_result" className="flex-1">
+                  <Button className="w-full h-11 bg-white text-indigo-700 rounded-2xl font-black text-sm hover:bg-indigo-50">
+                    Essayer gratuitement <ArrowRight className="ml-2" size={15} />
+                  </Button>
+                </Link>
+                <Link href="/tef-irn/pricing">
+                  <Button variant="secondary" className="h-11 px-4 bg-indigo-500 border-none text-white rounded-2xl font-black text-sm hover:bg-indigo-400">
+                    Tarifs
+                  </Button>
+                </Link>
+              </div>
+              <p className="text-[10px] text-indigo-300 font-bold text-center">
+                Votre progression civique sera automatiquement sauvegardée à la création de compte.
               </p>
             </div>
           )}
@@ -902,12 +913,15 @@ function CivicExamContent() {
             <p className="text-sm text-zinc-500 font-medium">{sessionCorrect} / {questions.length} bonnes réponses.</p>
           </div>
           {!currentUser && (
-            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-center space-y-1.5">
-              <p className="text-xs text-indigo-700 font-bold leading-relaxed">
-                Créez un compte gratuit pour sauvegarder votre progression et découvrir la préparation TEF IRN.
+            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-center space-y-2">
+              <p className="text-xs text-indigo-800 font-bold leading-relaxed">
+                Créez un compte gratuit pour ne pas perdre cette progression.
               </p>
-              <Link href="/tef-irn/login?from=examen_civique" className="inline-block text-xs font-black text-indigo-600 hover:underline">
-                Créer mon compte →
+              <p className="text-[11px] text-indigo-500 font-medium">
+                Vous préparez aussi le TEF IRN ? Découvrez LlamaKusi.
+              </p>
+              <Link href="/tef-irn/login?from=examen_civique_srs" className="inline-block text-xs font-black text-indigo-600 hover:underline">
+                Créer mon compte gratuitement →
               </Link>
             </div>
           )}
