@@ -153,6 +153,7 @@ function CivicExamContent() {
   const [resumableSession, setResumableSession] = useState<PersistedExamSession | null>(null);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const answersRef = useRef(examAnswers);
   const questionsRef = useRef<CivicQuestion[]>([]);
@@ -1011,8 +1012,16 @@ function CivicExamContent() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm lg:col-span-2">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <Landmark size={14} className="text-indigo-600" /> Mention visée
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <Landmark size={14} className="text-indigo-600" /> Mention visée
+                </div>
+                <button
+                  onClick={() => setMentionHelpOpen(true)}
+                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                >
+                  Quelle mention me concerne ?
+                </button>
               </div>
               <div className="flex gap-2">
                 {MENTIONS.map((m) => (
@@ -1143,6 +1152,49 @@ function CivicExamContent() {
             </Button>
             <Button onClick={startExam} disabled={loading} className="bg-indigo-600 text-white rounded-2xl font-black text-sm">
               {loading ? <Loader2 className="animate-spin" size={16} /> : "C'est parti"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Quelle mention me concerne ?</DialogTitle>
+            <DialogDescription>
+              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de titre de séjour pluriannuel ou de naturalisation (les renouvellements ne sont pas concernés). Il existe 3 versions, de difficulté croissante :
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-1">
+              <p className="text-sm font-black text-zinc-900">CSP — Carte de séjour pluriannuelle</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Pour votre <strong>première</strong> carte de séjour pluriannuelle (2 à 4 ans), par exemple après une carte de séjour temporaire. Niveau de français requis : A2.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-1">
+              <p className="text-sm font-black text-zinc-900">CR — Carte de résident</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Pour votre <strong>première</strong> carte de résident (10 ans). Niveau de français requis : B1, plus exigeant que pour la CSP.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-1">
+              <p className="text-sm font-black text-zinc-900">Naturalisation</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Pour une demande de nationalité française par décret ou par mariage. Niveau de français requis : B2. Ne remplace pas l'entretien en préfecture, qui reste nécessaire.
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-400 leading-relaxed">
+            Certaines situations sont exemptées (protection internationale, plus de 65 ans, certains accords bilatéraux...). En cas de doute sur votre situation personnelle, vérifiez sur{" "}
+            <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
+              service-public.gouv.fr
+            </a>{" "}
+            ou avec votre préfecture.
+          </p>
+          <DialogFooter>
+            <Button onClick={() => setMentionHelpOpen(false)} className="bg-zinc-900 text-white rounded-2xl font-black text-sm">
+              Compris
             </Button>
           </DialogFooter>
         </DialogContent>
