@@ -1187,10 +1187,12 @@ function CivicExamContent() {
   // === ÉCRAN DE SÉLECTION ===
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
   const totalAttempts = attempts.length;
+  const hasDue = (dueCount ?? 0) > 0;
+  const isUpToDate = dueCount === 0 && bestScore !== null;
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-3xl mx-auto px-5 py-8 lg:px-8 space-y-5">
+      <div className="max-w-2xl mx-auto px-5 py-8 lg:px-6 space-y-6">
 
         {/* En-tête */}
         <div className="space-y-1">
@@ -1209,8 +1211,8 @@ function CivicExamContent() {
           </p>
         </div>
 
-        {/* Résumé de progression — visible uniquement quand il y a des données */}
-        {(bestScore !== null || (dueCount ?? 0) > 0 || civicStreak > 0) && (
+        {/* Résumé de progression */}
+        {(bestScore !== null || hasDue || civicStreak > 0) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {bestScore !== null && (
               <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
@@ -1228,7 +1230,7 @@ function CivicExamContent() {
                 </p>
               </div>
             )}
-            {(dueCount ?? 0) > 0 && (
+            {hasDue && (
               <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
                 <p className="text-2xl font-black text-indigo-700">{dueCount}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
@@ -1271,7 +1273,7 @@ function CivicExamContent() {
           </div>
         )}
 
-        {/* Sélecteur de mention */}
+        {/* Votre démarche */}
         <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
@@ -1302,23 +1304,55 @@ function CivicExamContent() {
           </div>
         </div>
 
-        {/* Parcours 3 étapes numérotées */}
-        <div className="space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Comment se préparer</p>
+        {/* ── Parcours ─────────────────────────────────── */}
+        <div className="space-y-2">
+          <h2 className="text-base font-black text-zinc-900 px-1">Comment se préparer</h2>
+          <p className="text-xs text-zinc-400 font-medium px-1 pb-1">
+            Suivez les étapes dans l'ordre la première fois. Revenez ensuite directement à l'étape qui vous correspond.
+          </p>
 
-          {/* Étape 1 — Parcourir le catalogue */}
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-4">
-            <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-xs font-black text-zinc-500">1</span>
+          {/* Étape 0 — Choisir la thématique */}
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 shrink-0 mt-0.5">0</span>
+              <div>
+                <p className="text-sm font-black text-zinc-900 flex items-center gap-2">
+                  <Target size={14} className="text-zinc-400 shrink-0" /> Choisir une thématique
+                </p>
+                <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                  Filtrez les questions par thème, ou travaillez sur toutes les thématiques à la fois.
+                </p>
+              </div>
             </div>
+            <div className="flex flex-wrap gap-1.5 pl-9">
+              {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
+                <button
+                  key={val}
+                  onClick={() => setTheme(val)}
+                  className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+                >
+                  {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
+                </button>
+              ))}
+            </div>
+            {filteredCount !== null && (
+              <p className="text-[10px] font-bold text-zinc-400 pl-9">
+                {filteredCount} question{filteredCount > 1 ? "s" : ""} pour cette sélection
+              </p>
+            )}
+          </div>
+
+          {/* Étape 1 — Parcourir */}
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500 shrink-0 mt-0.5">1</span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-black text-zinc-900 flex items-center gap-2">
                     <BookOpen size={14} className="text-zinc-400 shrink-0" /> Parcourir les questions
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-0.5">
-                    Lisez les {filteredCount ?? "…"} questions officielles et leurs réponses.
+                  <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                    Lisez les Q&R avant de vous tester. Idéal pour découvrir une thématique ou vérifier rapidement une réponse.
                   </p>
                 </div>
                 <Button
@@ -1327,76 +1361,80 @@ function CivicExamContent() {
                   disabled={catalogueLoading}
                   className="h-9 px-4 bg-zinc-100 text-zinc-700 rounded-xl font-black text-xs shrink-0 hover:bg-zinc-200"
                 >
-                  {catalogueLoading ? <Loader2 className="animate-spin" size={14} /> : "Voir →"}
+                  {catalogueLoading ? <Loader2 className="animate-spin" size={14} /> : "Ouvrir →"}
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Étape 2 — S'entraîner avec SRS */}
+          {/* Étape 2 — Apprendre (nouvelles questions) */}
           <div
-            onClick={() => startTraining(true)}
-            className="bg-indigo-600 p-5 rounded-[2rem] text-white cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+            onClick={() => startTraining(false)}
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all group"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-xs font-black text-white">2</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-black text-white flex items-center gap-2">
-                  <Brain size={14} className="shrink-0" />
-                  {(dueCount ?? 0) > 0
-                    ? `Réviser — ${dueCount} question${dueCount! > 1 ? "s" : ""} dues aujourd'hui`
-                    : dueCount === 0 && bestScore !== null
-                      ? "Tout est à jour ✓"
-                      : "S'entraîner question par question"}
-                </p>
-                <p className="text-xs text-indigo-200 font-medium mt-0.5">
-                  {(dueCount ?? 0) > 0
-                    ? "On vous montre d'abord la réponse, puis on vous teste. Pas de quiz à l'aveugle."
-                    : dueCount === 0 && bestScore !== null
-                      ? "Revenez demain pour vos révisions, ou apprenez de nouvelles questions maintenant."
-                      : "On vous montre d'abord la réponse, puis on vous teste. Pas de quiz à l'aveugle."}
-                </p>
-                {/* Filtre thématique inline */}
-                <div className="flex flex-wrap gap-1.5 mt-3" onClick={(e) => e.stopPropagation()}>
-                  {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
-                    <button
-                      key={val}
-                      onClick={(e) => { e.stopPropagation(); setTheme(val); }}
-                      className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? 'bg-white text-indigo-700' : 'bg-white/20 text-indigo-200 hover:bg-white/30'}`}
-                    >
-                      {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <ArrowRight size={16} className="text-indigo-200 shrink-0 mt-1" />
+            <span className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600 shrink-0 mt-0.5 group-hover:bg-indigo-600 group-hover:text-white transition-colors">2</span>
+            <div className="flex-1">
+              <p className="text-sm font-black text-zinc-900 flex items-center gap-2">
+                <BookOpen size={14} className="text-indigo-500 shrink-0" /> Apprendre
+              </p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                Nouvelles questions de la thématique choisie. On vous montre la réponse, puis on vous teste immédiatement. Pas de quiz à l'aveugle.
+              </p>
             </div>
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-indigo-500 shrink-0 mt-1 transition-colors" />
           </div>
 
-          {/* Étape 3 — Examen blanc */}
-          <div
-            onClick={() => setExamModalOpen(true)}
-            className="bg-zinc-900 p-5 rounded-[2rem] text-white cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-xs font-black text-zinc-300">3</span>
-              </div>
+          {/* Étape 3 — Réviser (SRS) */}
+          {hasDue ? (
+            <div
+              onClick={() => startTraining(true)}
+              className="bg-indigo-600 rounded-[2rem] p-5 flex items-start gap-3 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
+              <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-black text-white shrink-0 mt-0.5">3</span>
               <div className="flex-1">
                 <p className="text-sm font-black text-white flex items-center gap-2">
-                  <Clock size={14} className="shrink-0" /> Examen blanc — conditions réelles
+                  <Brain size={14} className="shrink-0" /> Mémoriser — {dueCount} révision{dueCount! > 1 ? "s" : ""} dues
                 </p>
-                <p className="text-xs text-zinc-400 font-medium mt-0.5">
-                  {EXAM_QUESTION_COUNT} questions, 45 min, sans pause. Seuil : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
-                  {bestScore !== null && ` Votre meilleur : ${bestScore}/${EXAM_QUESTION_COUNT}.`}
+                <p className="text-xs text-indigo-200 font-medium mt-0.5 leading-relaxed">
+                  Questions déjà vues qui reviennent au bon moment. L'algorithme adapte la fréquence à ce que vous savez.
                 </p>
               </div>
-              <ArrowRight size={16} className="text-zinc-500 shrink-0 mt-1" />
+              <ArrowRight size={15} className="text-indigo-200 shrink-0 mt-1" />
             </div>
+          ) : (
+            <div className="bg-white rounded-[2rem] border border-zinc-100 p-5 flex items-start gap-3 opacity-60">
+              <span className="w-6 h-6 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-400 shrink-0 mt-0.5">3</span>
+              <div className="flex-1">
+                <p className="text-sm font-black text-zinc-600 flex items-center gap-2">
+                  <Brain size={14} className="shrink-0 text-zinc-400" /> Mémoriser (SRS)
+                </p>
+                <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
+                  {isUpToDate
+                    ? "Tout est à jour — revenez demain pour vos révisions."
+                    : "Faites d'abord quelques sessions d'apprentissage. Vos révisions apparaîtront ici."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Étape 4 — Examen blanc */}
+          <div
+            onClick={() => setExamModalOpen(true)}
+            className="bg-zinc-900 rounded-[2rem] p-5 flex items-start gap-3 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
+            <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-[10px] font-black text-zinc-300 shrink-0 mt-0.5">4</span>
+            <div className="flex-1">
+              <p className="text-sm font-black text-white flex items-center gap-2">
+                <Clock size={14} className="shrink-0" /> Examen blanc
+              </p>
+              <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
+                {EXAM_QUESTION_COUNT} questions, 45 minutes, conditions réelles. Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
+                {bestScore !== null && <span className="text-zinc-300"> Votre meilleur : {bestScore}/{EXAM_QUESTION_COUNT}.</span>}
+              </p>
+            </div>
+            <ArrowRight size={15} className="text-zinc-500 shrink-0 mt-1" />
           </div>
         </div>
 
@@ -1431,28 +1469,31 @@ function CivicExamContent() {
           </div>
         )}
 
-        {/* CTA TEF IRN — anonymes uniquement */}
+        {/* ── Séparateur + CTA TEF IRN ─────────────────── */}
         {!currentUser && (
-          <div className="rounded-[2rem] border border-zinc-200 bg-white p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <p className="text-sm font-black text-zinc-900">Vous devez aussi passer le TEF IRN ?</p>
-              <p className="text-xs text-zinc-500 font-medium">
-                Niveau {MENTION_TO_LEVEL[mention] || "B1"} requis • Coach IA oral &amp; écrit • dès 55 €/mois
-              </p>
+          <>
+            <div className="border-t border-zinc-200" />
+            <div className="rounded-[2rem] bg-zinc-100 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <p className="text-sm font-black text-zinc-800">Vous devez aussi passer le TEF IRN ?</p>
+                <p className="text-xs text-zinc-500 font-medium">
+                  Niveau {MENTION_TO_LEVEL[mention] || "B1"} requis • Coach IA oral &amp; écrit • dès 55 €/mois
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Link href="/tef-irn/pricing">
+                  <Button variant="secondary" className="h-9 px-4 bg-white border border-zinc-200 text-zinc-600 rounded-xl font-black text-xs hover:bg-zinc-50">
+                    Tarifs
+                  </Button>
+                </Link>
+                <Link href="/tef-irn/login?from=examen_civique">
+                  <Button className="h-9 px-4 bg-indigo-600 text-white rounded-xl font-black text-xs">
+                    Essayer gratuitement <ArrowRight className="ml-1" size={12} />
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="flex gap-2 shrink-0">
-              <Link href="/tef-irn/pricing">
-                <Button variant="secondary" className="h-9 px-4 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl font-black text-xs hover:bg-zinc-100">
-                  Tarifs
-                </Button>
-              </Link>
-              <Link href="/tef-irn/login?from=examen_civique">
-                <Button className="h-9 px-4 bg-indigo-600 text-white rounded-xl font-black text-xs">
-                  Essayer gratuitement <ArrowRight className="ml-1" size={12} />
-                </Button>
-              </Link>
-            </div>
-          </div>
+          </>
         )}
 
       </div>
