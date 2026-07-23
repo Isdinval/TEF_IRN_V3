@@ -820,20 +820,39 @@ function CivicExamContent() {
                 Abandonner
               </button>
             </div>
-            <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? 'text-rose-600' : 'text-zinc-900'}`}>
-              <Clock size={16} /> {formatTime(examTimeLeft)}
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                {answeredCount}/{questions.length}
+              </span>
+              <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? 'text-rose-600' : 'text-zinc-900'}`}>
+                <Clock size={16} /> {formatTime(examTimeLeft)}
+              </div>
+            </div>
+          </div>
+          {/* Barre de progression globale */}
+          <div className="max-w-4xl mx-auto mt-2">
+            <div className="h-1 bg-zinc-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
+              />
             </div>
           </div>
         </header>
 
         <main className="flex-1 max-w-4xl w-full mx-auto p-4 lg:p-8 space-y-6">
+          {/* Grille de navigation — 3 états visuellement distincts */}
           <div className="flex flex-wrap gap-2">
             {questions.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIndex(i)}
                 className={`w-8 h-8 rounded-lg text-[11px] font-black transition-all ${
-                  i === index ? 'bg-zinc-900 text-white' : examAnswers[i] ? 'bg-emerald-100 text-emerald-700' : 'bg-white border border-zinc-200 text-zinc-400'
+                  i === index
+                    ? 'bg-zinc-900 text-white ring-2 ring-zinc-900 ring-offset-1'
+                    : examAnswers[i]
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
                 }`}
               >
                 {i + 1}
@@ -1313,10 +1332,16 @@ function CivicExamContent() {
                   <Brain size={14} className="shrink-0" />
                   {(dueCount ?? 0) > 0
                     ? `Réviser — ${dueCount} question${dueCount! > 1 ? "s" : ""} dues aujourd'hui`
-                    : "S'entraîner question par question"}
+                    : dueCount === 0 && bestScore !== null
+                      ? "Tout est à jour ✓"
+                      : "S'entraîner question par question"}
                 </p>
                 <p className="text-xs text-indigo-200 font-medium mt-0.5">
-                  Chaque réponse ajuste le calendrier de révision. Le SRS fait mémoriser durablement.
+                  {(dueCount ?? 0) > 0
+                    ? "On vous montre d'abord la réponse, puis on vous teste. Pas de quiz à l'aveugle."
+                    : dueCount === 0 && bestScore !== null
+                      ? "Revenez demain pour vos révisions, ou apprenez de nouvelles questions maintenant."
+                      : "On vous montre d'abord la réponse, puis on vous teste. Pas de quiz à l'aveugle."}
                 </p>
                 {/* Filtre thématique inline */}
                 <div className="flex flex-wrap gap-1.5 mt-3" onClick={(e) => e.stopPropagation()}>
