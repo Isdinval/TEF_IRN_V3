@@ -5,6 +5,16 @@ import { createClient } from '@/lib/supabase-server';
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+    const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
+    if (!profile?.is_admin) {
+      return NextResponse.json({ error: "Accès réservé aux administrateurs" }, { status: 403 });
+    }
+
     const { type, level } = await req.json(); // ex: type='qcm', level='B1'
 
     const openai = getOpenAIClient();

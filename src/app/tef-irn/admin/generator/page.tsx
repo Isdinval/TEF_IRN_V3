@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, BookOpen, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
+import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
 export default function ContentGenerator() {
+  const authState = useAdminGuard();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedExercises, setGeneratedExercises] = useState<any[]>([]);
 
@@ -30,6 +33,10 @@ export default function ContentGenerator() {
     }
   };
 
+  if (authState !== "granted") {
+    return <AdminGuardScreen state={authState} />;
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-12">
@@ -37,9 +44,14 @@ export default function ContentGenerator() {
           <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
           <h1 className="text-4xl font-black tracking-tight">Générateur de Contenu IA</h1>
           <p className="text-muted-foreground text-lg">Enrichissez la bibliothèque d'exercices en un clic.</p>
-          <Link href="/tef-irn/admin/civic-questions" className="text-sm font-bold text-indigo-600 hover:underline">
-            Gérer les questions de l'examen civique →
-          </Link>
+          <div className="flex gap-4 mt-1">
+            <Link href="/tef-irn/admin/civic-questions" className="text-sm font-bold text-indigo-600 hover:underline">
+              Gérer les questions de l'examen civique →
+            </Link>
+            <Link href="/tef-irn/admin/exercises" className="text-sm font-bold text-indigo-600 hover:underline">
+              Gérer les exercices manuellement →
+            </Link>
+          </div>
         </div>
         <Button
           size="lg"

@@ -15,8 +15,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, ShieldAlert } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useAdminGuard } from "@/hooks/useAdminGuard";
+import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
 interface CivicQuestionRow {
   id: string;
@@ -55,7 +57,7 @@ const EMPTY_FORM = {
 
 export default function CivicQuestionsAdmin() {
   const supabase = useMemo(() => createClient(), []);
-  const [authState, setAuthState] = useState<"checking" | "denied" | "granted">("checking");
+  const authState = useAdminGuard();
   const [questions, setQuestions] = useState<CivicQuestionRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [themeFilter, setThemeFilter] = useState("Toutes");
@@ -65,15 +67,6 @@ export default function CivicQuestionsAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setAuthState("denied"); return; }
-      const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-      setAuthState(profile?.is_admin ? "granted" : "denied");
-    })();
-  }, [supabase]);
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -180,22 +173,8 @@ export default function CivicQuestionsAdmin() {
     if (!error) fetchQuestions();
   };
 
-  if (authState === "checking") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-indigo-600" size={40} />
-      </div>
-    );
-  }
-
-  if (authState === "denied") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-8">
-        <ShieldAlert className="text-rose-500" size={48} />
-        <h1 className="text-xl font-black text-zinc-900">Accès réservé aux administrateurs</h1>
-        <p className="text-sm text-zinc-500">Cette page nécessite un compte marqué comme administrateur (profiles.is_admin).</p>
-      </div>
-    );
+  if (authState !== "granted") {
+    return <AdminGuardScreen state={authState} />;
   }
 
   return (
