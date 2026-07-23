@@ -60,7 +60,6 @@ const MENTIONS = [
   { value: "naturalisation", label: "Naturalisation" },
   { value: "csp", label: "CSP", subtitle: "Carte de séjour pluriannuelle" },
   { value: "cr", label: "CR", subtitle: "Carte de résident" },
-  { value: "toutes", label: "Toutes (mixte)" },
 ];
 
 interface CivicExamAttempt {
@@ -141,6 +140,7 @@ function CivicExamContent() {
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
+  const [selectorTab, setSelectorTab] = useState<"training" | "exam">("training");
   const [loading, setLoading] = useState(false);
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
@@ -227,6 +227,7 @@ function CivicExamContent() {
         })();
       } else {
         setResumableSession(saved);
+        setSelectorTab("exam");
       }
     } catch {
       window.localStorage.removeItem(EXAM_STORAGE_KEY);
@@ -282,7 +283,7 @@ function CivicExamContent() {
     let active = true;
     (async () => {
       let query = supabase.from("civic_questions").select("id", { count: "exact", head: true });
-      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      query = query.contains("mentions", [mention]);
       if (theme !== "Toutes") query = query.eq("theme", theme);
       const { count } = await query;
       if (active) setFilteredCount(count ?? null);
@@ -295,7 +296,7 @@ function CivicExamContent() {
     let active = true;
     (async () => {
       let query = supabase.from("civic_questions").select("id", { count: "exact", head: true });
-      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      query = query.contains("mentions", [mention]);
       const { count } = await query;
       if (active) setExamPoolCount(count ?? null);
     })();
@@ -307,7 +308,7 @@ function CivicExamContent() {
     setErrorMsg(null);
     try {
       let query = supabase.from("civic_questions").select("*").order("theme");
-      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      query = query.contains("mentions", [mention]);
       if (theme !== "Toutes") query = query.eq("theme", theme);
       const { data, error } = await query;
       if (error) throw error;
@@ -367,7 +368,7 @@ function CivicExamContent() {
       }
 
       let query = supabase.from("civic_questions").select("*");
-      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      query = query.contains("mentions", [mention]);
       if (theme !== "Toutes") query = query.eq("theme", theme);
       const { data, error } = await query.limit(15);
       if (error) throw error;
@@ -500,7 +501,7 @@ function CivicExamContent() {
     setErrorMsg(null);
     try {
       let query = supabase.from("civic_questions").select("*");
-      if (mention !== "toutes") query = query.contains("mentions", [mention]);
+      query = query.contains("mentions", [mention]);
       const { data, error } = await query;
       if (error) throw error;
       if (!data || data.length === 0) {
@@ -1052,96 +1053,154 @@ function CivicExamContent() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm lg:col-span-2">
-              <div className="flex items-center justify-between">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Landmark size={14} className="text-indigo-600" /> Mention visée
+          {/* Distinction principale : 2 modes, un choix à faire avant tout le reste */}
+          <div className="flex gap-2 p-1.5 bg-zinc-100 rounded-2xl w-fit mb-6">
+            <button
+              onClick={() => setSelectorTab("training")}
+              className={`flex items-center gap-2 h-11 px-5 rounded-xl font-black text-sm transition-all ${selectorTab === "training" ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400'}`}
+            >
+              <Brain size={16} /> S'entraîner
+            </button>
+            <button
+              onClick={() => setSelectorTab("exam")}
+              className={`flex items-center gap-2 h-11 px-5 rounded-xl font-black text-sm transition-all ${selectorTab === "exam" ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400'}`}
+            >
+              <Clock size={16} /> Examen blanc
+            </button>
+          </div>
+
+          {selectorTab === "training" ? (
+            <>
+              <p className="text-sm text-zinc-500 font-medium mb-6 -mt-2">
+                Apprenez à votre rythme : les questions s'adaptent à ce que vous savez déjà et reviennent au bon moment pour mémoriser durablement.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                      <Landmark size={14} className="text-indigo-600" /> Mention visée
+                    </div>
+                    <button
+                      onClick={() => setMentionHelpOpen(true)}
+                      className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                    >
+                      Quelle mention me concerne ?
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    {MENTIONS.map((m) => (
+                      <button
+                        key={m.value}
+                        onClick={() => setMention(m.value)}
+                        title={m.subtitle}
+                        className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
+                      >
+                        <div>{m.label}</div>
+                        {m.subtitle && (
+                          <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
+                            {m.subtitle}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <button
-                  onClick={() => setMentionHelpOpen(true)}
-                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+
+                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
+                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <Target size={14} className="text-indigo-600" /> Thématique
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setTheme(val)}
+                        className={`px-4 h-10 rounded-2xl font-black text-xs transition-all ${theme === val ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
+                      >
+                        {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
+                      </button>
+                    ))}
+                  </div>
+                  {filteredCount !== null && (
+                    <p className="text-[10px] font-bold text-zinc-400">
+                      {filteredCount} question{filteredCount > 1 ? "s" : ""} disponible{filteredCount > 1 ? "s" : ""} pour cette sélection —{" "}
+                      <button onClick={openCatalogue} disabled={catalogueLoading} className="text-indigo-500 hover:underline font-black disabled:opacity-50">
+                        {catalogueLoading ? "Chargement..." : "parcourir le catalogue"}
+                      </button>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div
+                onClick={() => startTraining(true)}
+                className="mt-4 bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-2 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                  <Brain size={14} /> Mode Intelligent (SRS)
+                </div>
+                <h4 className="text-lg font-black leading-tight">
+                  {dueCount ? `${dueCount} question${dueCount > 1 ? 's' : ''} à réviser` : "Lancer une session de révision"}
+                </h4>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-zinc-500 font-medium mb-6 -mt-2">
+                En conditions réelles, chronométré, sans indice ni pause : le format exact du jour J.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                      <Landmark size={14} className="text-indigo-600" /> Mention visée
+                    </div>
+                    <button
+                      onClick={() => setMentionHelpOpen(true)}
+                      className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                    >
+                      Quelle mention me concerne ?
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    {MENTIONS.map((m) => (
+                      <button
+                        key={m.value}
+                        onClick={() => setMention(m.value)}
+                        title={m.subtitle}
+                        className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
+                      >
+                        <div>{m.label}</div>
+                        {m.subtitle && (
+                          <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
+                            {m.subtitle}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setExamModalOpen(true)}
+                  className="bg-zinc-900 p-6 rounded-[2.5rem] text-white space-y-2 shadow-2xl shadow-zinc-200 relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform"
                 >
-                  Quelle mention me concerne ?
-                </button>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <Clock size={14} /> Conditions réelles
+                  </div>
+                  <h4 className="text-lg font-black leading-tight">
+                    {EXAM_QUESTION_COUNT} questions • 45 minutes
+                  </h4>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-400">
+                    Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT} — Démarrer l'examen blanc
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                {MENTIONS.map((m) => (
-                  <button
-                    key={m.value}
-                    onClick={() => setMention(m.value)}
-                    title={m.subtitle}
-                    className={`flex-1 h-14 px-2 rounded-2xl font-black text-sm transition-all leading-tight ${mention === m.value ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
-                  >
-                    <div>{m.label}</div>
-                    {m.subtitle && (
-                      <div className={`text-[9px] font-bold normal-case tracking-normal ${mention === m.value ? 'text-indigo-100' : 'text-zinc-400'}`}>
-                        {m.subtitle}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <Target size={14} className="text-indigo-600" /> Thématique (révision uniquement)
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {["Toutes", ...THEMES.map(t => t.value)].map((val) => (
-                  <button
-                    key={val}
-                    onClick={() => setTheme(val)}
-                    className={`px-4 h-10 rounded-2xl font-black text-xs transition-all ${theme === val ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400'}`}
-                  >
-                    {val === "Toutes" ? "Toutes" : THEMES.find(t => t.value === val)?.label}
-                  </button>
-                ))}
-              </div>
-              {filteredCount !== null && (
-                <p className="text-[10px] font-bold text-zinc-400">
-                  {filteredCount} question{filteredCount > 1 ? "s" : ""} disponible{filteredCount > 1 ? "s" : ""} pour cette sélection —{" "}
-                  <button onClick={openCatalogue} disabled={catalogueLoading} className="text-indigo-500 hover:underline font-black disabled:opacity-50">
-                    {catalogueLoading ? "Chargement..." : "parcourir le catalogue"}
-                  </button>
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div
-              onClick={() => startTraining(true)}
-              className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                <Brain size={14} /> Révision quotidienne
-              </div>
-              <h4 className="text-base font-black leading-tight">
-                {dueCount ? `${dueCount} question${dueCount > 1 ? 's' : ''} à réviser` : "Lancer une session de révision"}
-              </h4>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                Mode Intelligent (SRS)
-              </div>
-            </div>
-
-            <div
-              onClick={() => setExamModalOpen(true)}
-              className="bg-white border-2 border-zinc-100 p-6 rounded-[2.5rem] space-y-4 shadow-sm relative overflow-hidden group cursor-pointer hover:border-zinc-200 transition-all"
-            >
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                <Clock size={14} className="text-zinc-900" /> Examen blanc
-              </div>
-              <h4 className="text-base font-black leading-tight text-zinc-900">
-                {EXAM_QUESTION_COUNT} questions • 45 minutes
-              </h4>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-400">
-                Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
-              </div>
-            </div>
-          </div>
+            </>
+          )}
           {attempts.length > 0 && (
             <section className="mt-8">
               <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight mb-4">
