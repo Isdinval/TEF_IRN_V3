@@ -32,9 +32,22 @@ import {
   XCircle,
   BookOpen,
 } from "lucide-react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { updateCivicSRS } from "@/lib/civic-srs-engine";
+import {
+  getLocalDueCount,
+  getLocalDueQuestionIds,
+  getLocalMasteryMap,
+  updateLocalCivicSRS,
+  getLocalAttempts,
+  addLocalAttempt,
+  getLastLocalAttemptForMention,
+  hasLocalCivicData,
+  migrateLocalCivicDataToSupabase,
+} from "@/lib/civic-local-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import Link from "next/link";
 
 interface CivicQuestion {
   id: string;
@@ -61,6 +74,13 @@ const MENTIONS = [
   { value: "csp", label: "CSP", subtitle: "Carte de séjour pluriannuelle" },
   { value: "cr", label: "CR", subtitle: "Carte de résident" },
 ];
+
+// Niveau de français CECRL requis par mention — utilisé pour personnaliser le pont vers le TEF IRN.
+const MENTION_TO_LEVEL: Record<string, string> = {
+  csp: "A2",
+  cr: "B1",
+  naturalisation: "B2",
+};
 
 interface CivicExamAttempt {
   id: string;
@@ -137,6 +157,7 @@ function mentionLabel(value: string) {
 function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
 
+  const { user: currentUser } = useAuth();
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
@@ -217,8 +238,20 @@ function CivicExamContent() {
               await Promise.all(saved.questions.map((q, i) =>
                 updateCivicSRS(user.id, q.id, saved.examAnswers[i] === q.correct_answer)
               ));
-              fetchAttempts();
+            } else {
+              addLocalAttempt({
+                mention: saved.mention,
+                score,
+                total_questions: saved.questions.length,
+                passed,
+                duration_seconds: duration,
+                question_ids: saved.questions.map((q) => q.id),
+              });
+              saved.questions.forEach((q, i) =>
+                updateLocalCivicSRS(q.id, saved.examAnswers[i] === q.correct_answer)
+              );
             }
+            fetchAttempts();
           } catch (err) {
             console.error("Error auto-submitting expired civic exam session:", err);
           } finally {
@@ -255,7 +288,7 @@ function CivicExamContent() {
 
   const fetchDueCount = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setDueCount(null); return; }
+    if (!user) { setDueCount(getLocalDueCount()); return; }
     const { count } = await supabase
       .from("user_civic_reviews")
       .select("id", { count: "exact", head: true })
@@ -266,7 +299,7 @@ function CivicExamContent() {
 
   const fetchAttempts = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setAttempts([]); return; }
+    if (!user) { setAttempts(getLocalAttempts()); return; }
     const { data } = await supabase
       .from("civic_exam_attempts")
       .select("*")
@@ -277,6 +310,15 @@ function CivicExamContent() {
   }, [supabase]);
 
   useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
+
+  // Un visiteur anonyme avait de la progression locale (SRS + tentatives) et vient de se connecter
+  // ou créer un compte : on la bascule vers Supabase avant qu'elle ne soit silencieusement perdue.
+  useEffect(() => {
+    if (!currentUser || !hasLocalCivicData()) return;
+    migrateLocalCivicDataToSupabase(currentUser.id)
+      .then(() => { fetchDueCount(); fetchAttempts(); })
+      .catch((err) => console.error("Error migrating local civic data:", err));
+  }, [currentUser, fetchDueCount, fetchAttempts]);
 
   // Compte les questions disponibles pour les filtres courants (affiché sur l'écran de sélection).
   useEffect(() => {
@@ -327,6 +369,9 @@ function CivicExamContent() {
         (reviews || []).forEach((r: any) => {
           statusMap[r.question_id] = (r.consecutive_correct || 0) >= 2 ? "mastered" : "learning";
         });
+      } else if (!user && questionsData.length > 0) {
+        const localMap = getLocalMasteryMap();
+        questionsData.forEach((q) => { if (localMap[q.id]) statusMap[q.id] = localMap[q.id]; });
       }
       setCatalogueStatus(statusMap);
       setMode("catalogue");
@@ -357,6 +402,20 @@ function CivicExamContent() {
             .from("civic_questions")
             .select("*")
             .in("id", reviews.map((r: any) => r.question_id));
+          if (data && data.length > 0) {
+            setQuestions(shuffle(data as CivicQuestion[]));
+            setMode("training");
+            setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      if (review && !user) {
+        const dueIds = getLocalDueQuestionIds(20);
+        if (dueIds.length > 0) {
+          const { data } = await supabase.from("civic_questions").select("*").in("id", dueIds);
           if (data && data.length > 0) {
             setQuestions(shuffle(data as CivicQuestion[]));
             setMode("training");
@@ -403,6 +462,7 @@ function CivicExamContent() {
       // "Je connais déjà" est traité comme une bonne réponse : planifie la question à plus long terme
       // plutôt que de la laisser réapparaître indéfiniment dans le pool des nouvelles questions.
       if (user) await updateCivicSRS(user.id, current.id, true);
+      else updateLocalCivicSRS(current.id, true);
     } catch (err) {
       console.error("Error recording skipped civic question:", err);
     }
@@ -425,6 +485,7 @@ function CivicExamContent() {
     if (isCorrect) setSessionCorrect((prev) => prev + 1);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) await updateCivicSRS(user.id, current.id, isCorrect);
+    else updateLocalCivicSRS(current.id, isCorrect);
   };
 
   const handleNext = () => {
@@ -472,6 +533,16 @@ function CivicExamContent() {
         if (insertError) throw insertError;
         // L'examen blanc est aussi un signal d'apprentissage : on alimente le SRS.
         await Promise.all(qs.map((q, i) => updateCivicSRS(user.id, q.id, ans[i] === q.correct_answer)));
+      } else {
+        addLocalAttempt({
+          mention,
+          score,
+          total_questions: qs.length,
+          passed,
+          duration_seconds: duration,
+          question_ids: qs.map((q) => q.id),
+        });
+        qs.forEach((q, i) => updateLocalCivicSRS(q.id, ans[i] === q.correct_answer));
       }
     } catch (err) {
       console.error("Error submitting civic exam:", err);
@@ -524,6 +595,12 @@ function CivicExamContent() {
         if (lastIds.length > 0) {
           const filtered = pool.filter((q) => !lastIds.includes(q.id));
           // On n'exclut que si assez de questions restent pour composer l'examen complet.
+          if (filtered.length >= EXAM_QUESTION_COUNT) pool = filtered;
+        }
+      } else {
+        const lastIds = getLastLocalAttemptForMention(mention)?.question_ids || [];
+        if (lastIds.length > 0) {
+          const filtered = pool.filter((q) => !lastIds.includes(q.id));
           if (filtered.length >= EXAM_QUESTION_COUNT) pool = filtered;
         }
       }
@@ -652,6 +729,26 @@ function CivicExamContent() {
                   {q.explanation && <p className="text-xs text-zinc-500 italic">{q.explanation}</p>}
                 </div>
               ))}
+            </div>
+          )}
+
+          {!currentUser && (
+            <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 space-y-3 text-center">
+              <p className="text-sm font-black text-indigo-900">
+                Vous préparez aussi votre dossier {mentionLabel(mention)} ?
+              </p>
+              <p className="text-xs text-indigo-700 font-medium leading-relaxed">
+                Le niveau de français généralement requis pour cette démarche est {MENTION_TO_LEVEL[mention] || "B1"}.
+                LlamaKusi vous entraîne aussi pour le TEF IRN, avec un coach IA à l'oral et à l'écrit.
+              </p>
+              <Link href="/tef-irn/login?from=examen_civique" className="block">
+                <Button className="w-full h-11 bg-indigo-600 text-white rounded-2xl font-black text-sm">
+                  Découvrir la préparation TEF IRN <ArrowRight className="ml-2" size={16} />
+                </Button>
+              </Link>
+              <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
+                Créez un compte gratuit pour aussi sauvegarder votre progression civique
+              </p>
             </div>
           )}
 
@@ -804,6 +901,16 @@ function CivicExamContent() {
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Session terminée !</h2>
             <p className="text-sm text-zinc-500 font-medium">{sessionCorrect} / {questions.length} bonnes réponses.</p>
           </div>
+          {!currentUser && (
+            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-center space-y-1.5">
+              <p className="text-xs text-indigo-700 font-bold leading-relaxed">
+                Créez un compte gratuit pour sauvegarder votre progression et découvrir la préparation TEF IRN.
+              </p>
+              <Link href="/tef-irn/login?from=examen_civique" className="inline-block text-xs font-black text-indigo-600 hover:underline">
+                Créer mon compte →
+              </Link>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <Button onClick={handleBackToSelection} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm">
               Retour à l'accueil
