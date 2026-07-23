@@ -46,9 +46,7 @@ import {
   migrateLocalCivicDataToSupabase,
   getCivicStreakData,
   recordCivicSession,
-  getLocalSeenCount,
-  getLocalMasteredCount,
-  getLocalScheduledCount,
+  getLocalStats,
 } from "@/lib/civic-local-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -164,7 +162,9 @@ function CivicExamContent() {
 
   const { user: currentUser } = useAuth();
   const [civicStreak, setCivicStreak] = useState(0);
-  const [localStats, setLocalStats] = useState({ seen: 0, mastered: 0, scheduled: 0 });
+  const [localStats, setLocalStats] = useState<{ seen: number; mastered: number; scheduled: number }>({ seen: 0, mastered: 0, scheduled: 0 });
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [mention, setMention] = useState("naturalisation");
   const [theme, setTheme] = useState<string>("Toutes");
   const [mode, setMode] = useState<Mode>("selection");
@@ -319,11 +319,10 @@ function CivicExamContent() {
   // Initialise streak + métriques locales au premier rendu.
   useEffect(() => {
     setCivicStreak(getCivicStreakData().currentStreak);
-    setLocalStats({ seen: getLocalSeenCount(), mastered: getLocalMasteredCount(), scheduled: getLocalScheduledCount() });
+    setLocalStats(getLocalStats());
   }, []);
 
-  const refreshLocalStats = () =>
-    setLocalStats({ seen: getLocalSeenCount(), mastered: getLocalMasteredCount(), scheduled: getLocalScheduledCount() });
+  const refreshLocalStats = () => setLocalStats(getLocalStats());
 
   // Un visiteur anonyme avait de la progression locale (SRS + tentatives) et vient de se connecter
   // ou créer un compte : on la bascule vers Supabase avant qu'elle ne soit silencieusement perdue.
@@ -333,6 +332,17 @@ function CivicExamContent() {
       .then(() => { fetchDueCount(); fetchAttempts(); refreshLocalStats(); })
       .catch((err) => console.error("Error migrating local civic data:", err));
   }, [currentUser, fetchDueCount, fetchAttempts]);
+
+  // Charge le tier d'abonnement pour cibler les connectés sans abonnement premium.
+  useEffect(() => {
+    if (!currentUser) { setSubscriptionTier(null); return; }
+    supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", currentUser.id)
+      .single()
+      .then(({ data }) => { if (data) setSubscriptionTier(data.subscription_tier as string); });
+  }, [currentUser, supabase]);
 
   // Compte les questions disponibles pour les filtres courants (affiché sur l'écran de sélection).
   useEffect(() => {
@@ -767,7 +777,7 @@ function CivicExamContent() {
             </div>
           )}
 
-          {!currentUser && (
+          {showCTATef && (
             <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-4">
               <div className="space-y-1">
                 <p className="text-sm font-black text-white">
@@ -781,9 +791,9 @@ function CivicExamContent() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Link href="/tef-irn/login?from=examen_civique_result" className="flex-1">
+                <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_result"} className="flex-1">
                   <Button className="w-full h-11 bg-white text-indigo-700 rounded-2xl font-black text-sm hover:bg-indigo-50">
-                    Essayer gratuitement <ArrowRight className="ml-2" size={15} />
+                    {currentUser ? "Accéder au TEF IRN" : "Essayer gratuitement"} <ArrowRight className="ml-2" size={15} />
                   </Button>
                 </Link>
                 <Link href="/tef-irn/pricing">
@@ -792,9 +802,11 @@ function CivicExamContent() {
                   </Button>
                 </Link>
               </div>
-              <p className="text-[10px] text-indigo-300 font-bold text-center">
-                Votre progression civique sera automatiquement sauvegardée à la création de compte.
-              </p>
+              {!currentUser && (
+                <p className="text-[10px] text-indigo-300 font-bold text-center">
+                  Votre progression civique sera automatiquement sauvegardée à la création de compte.
+                </p>
+              )}
             </div>
           )}
 
@@ -966,7 +978,7 @@ function CivicExamContent() {
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Session terminée !</h2>
             <p className="text-sm text-zinc-500 font-medium">{sessionCorrect} / {questions.length} bonnes réponses.</p>
           </div>
-          {!currentUser && (
+          {showCTATef && (
             <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-center space-y-2">
               <p className="text-xs text-indigo-800 font-bold leading-relaxed">
                 Créez un compte gratuit pour ne pas perdre cette progression.
@@ -980,21 +992,31 @@ function CivicExamContent() {
             </div>
           )}
           <div className="flex flex-col gap-3">
-            {sessionCorrect / questions.length >= 0.8 ? (
+            {/* Priorité 1 : si des révisions sont maintenant dues (après la session Apprendre), les proposer */}
+            {hasDue && (
+              <Button
+                onClick={() => startTraining(true)}
+                className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
+              >
+                Mémoriser — {dueCount} révision{dueCount! > 1 ? "s" : ""} prévue{dueCount! > 1 ? "s" : ""} <ArrowRight className="ml-2" size={16} />
+              </Button>
+            )}
+            {/* Priorité 2 : si bon score et pas de révisions dues → examen blanc */}
+            {!hasDue && sessionCorrect / questions.length >= 0.8 ? (
               <Button
                 onClick={() => setExamModalOpen(true)}
                 className="h-12 bg-emerald-600 text-white rounded-2xl font-black text-sm"
               >
                 Tester avec un examen blanc <ArrowRight className="ml-2" size={16} />
               </Button>
-            ) : (
+            ) : !hasDue ? (
               <Button
                 onClick={() => startTraining(false)}
                 className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
               >
                 Continuer à apprendre <ArrowRight className="ml-2" size={16} />
               </Button>
-            )}
+            ) : null}
             <Button onClick={handleBackToSelection} variant="secondary" className="h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
               Retour à l'accueil
             </Button>
@@ -1209,6 +1231,8 @@ function CivicExamContent() {
   const avgSuccessRate = attempts.length > 0
     ? Math.round(attempts.reduce((sum, a) => sum + a.score / a.total_questions, 0) / attempts.length * 100)
     : null;
+  // Afficher le CTA TEF IRN pour : anonymes ET connectés sans abonnement premium.
+  const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -1221,6 +1245,9 @@ function CivicExamContent() {
           </h1>
           <p className="text-sm text-zinc-500 font-medium leading-relaxed">
             Obligatoire depuis janvier 2026 (CSP, carte de résident, naturalisation).
+            {filteredCount !== null && (
+              <> {filteredCount} questions officielles disponibles.</>
+            )}
           </p>
         </div>
 
@@ -1248,16 +1275,18 @@ function CivicExamContent() {
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre progression</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {localStats.seen > 0 && (
+              {localStats.seen > 0 && filteredCount !== null && (
+                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
+                  <p className="text-xl font-black text-zinc-900">
+                    {localStats.mastered}<span className="text-sm text-zinc-400 font-bold">/{filteredCount}</span>
+                  </p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-0.5">Maîtrisées</p>
+                </div>
+              )}
+              {localStats.seen > 0 && filteredCount === null && (
                 <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
                   <p className="text-xl font-black text-zinc-900">{localStats.seen}</p>
                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Question{localStats.seen > 1 ? "s" : ""} vues</p>
-                </div>
-              )}
-              {localStats.mastered > 0 && (
-                <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-4 text-center">
-                  <p className="text-xl font-black text-emerald-700">{localStats.mastered}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-0.5">Maîtrisée{localStats.mastered > 1 ? "s" : ""}</p>
                 </div>
               )}
               {civicStreak > 0 && (
@@ -1492,7 +1521,7 @@ function CivicExamContent() {
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Historique des examens blancs</p>
             <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-              {attempts.slice(0, 5).map((a) => (
+              {(showAllAttempts ? attempts : attempts.slice(0, 5)).map((a) => (
                 <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
@@ -1515,11 +1544,19 @@ function CivicExamContent() {
                 </div>
               ))}
             </div>
+            {attempts.length > 5 && (
+              <button
+                onClick={() => setShowAllAttempts((prev) => !prev)}
+                className="w-full text-center text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-700 py-1 transition-colors"
+              >
+                {showAllAttempts ? "Voir moins ↑" : `Voir les ${attempts.length - 5} autres examens ↓`}
+              </button>
+            )}
           </div>
         )}
 
         {/* ── Séparateur + CTA TEF IRN ─────────────────── */}
-        {!currentUser && (
+        {showCTATef && (
           <>
             <div className="border-t border-zinc-200" />
             <div className="rounded-[2rem] bg-zinc-100 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -1535,9 +1572,9 @@ function CivicExamContent() {
                     Tarifs
                   </Button>
                 </Link>
-                <Link href="/tef-irn/login?from=examen_civique">
+                <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique"}>
                   <Button className="h-9 px-4 bg-indigo-600 text-white rounded-xl font-black text-xs">
-                    Essayer gratuitement <ArrowRight className="ml-1" size={12} />
+                    {currentUser ? "Accéder au TEF IRN" : "Essayer gratuitement"} <ArrowRight className="ml-1" size={12} />
                   </Button>
                 </Link>
               </div>
