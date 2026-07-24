@@ -276,49 +276,47 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </div>
 
-        {/* Progression */}
-        {(hasSeenQuestions || bestScore !== null || civicStreak > 0) && (
-          <div className="space-y-2">
-            <h2 className="text-base font-black text-zinc-900 px-1">Votre progression</h2>
-            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-5">
-              {hasSeenQuestions && filteredCount !== null && filteredCount > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-sm font-black text-zinc-900">
-                      {localStats.mastered} / {filteredCount} questions maîtrisées
-                    </p>
-                    <p className="text-xs font-black text-emerald-600">
-                      {Math.round((localStats.mastered / filteredCount) * 100)}%
-                    </p>
-                  </div>
-                  <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${Math.min(100, Math.round((localStats.mastered / filteredCount) * 100))}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-3 divide-x divide-zinc-100">
-                <div className="text-center px-1">
-                  <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
-                </div>
-                <div className="text-center px-1">
-                  <p className="text-lg font-black text-zinc-900">
-                    {bestScore !== null ? bestScore : "—"}
-                    {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+        {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
+        <div className="space-y-2">
+          <h2 className="text-base font-black text-zinc-900 px-1">Votre progression</h2>
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-5">
+            {filteredCount !== null && filteredCount > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm font-black text-zinc-900">
+                    {localStats.mastered} / {filteredCount} questions maîtrisées
                   </p>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+                  <p className="text-xs font-black text-emerald-600">
+                    {Math.round((localStats.mastered / filteredCount) * 100)}%
+                  </p>
                 </div>
-                <div className="text-center px-1">
-                  <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">À réviser</p>
+                <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, Math.round((localStats.mastered / filteredCount) * 100))}%` }}
+                  />
                 </div>
+              </div>
+            )}
+            <div className="grid grid-cols-3 divide-x divide-zinc-100">
+              <div className="text-center px-1">
+                <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+              </div>
+              <div className="text-center px-1">
+                <p className="text-lg font-black text-zinc-900">
+                  {bestScore !== null ? bestScore : "—"}
+                  {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+                </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+              </div>
+              <div className="text-center px-1">
+                <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">À réviser</p>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Actions — une seule carte "recommandée", pas trois de front */}
         <div className="space-y-2">

@@ -342,6 +342,14 @@ function CivicExamContent() {
     setPhase("config");
   };
 
+  // Contrairement à "Abandonner", ne touche pas au localStorage : la session est déjà persistée
+  // en continu (voir l'effect de persistance ci-dessus). Le minuteur repose sur une échéance
+  // absolue (examEndAt) recalculée depuis l'horloge réelle à chaque chargement — refresh,
+  // navigation ou fermeture de l'onglet ne le remettent jamais à zéro et ne l'arrêtent pas.
+  const handlePauseExam = () => {
+    router.push("/examen-civique");
+  };
+
   const handleReviewMistakes = () => {
     const wrongIds = questions
       .filter((q, i) => examAnswers[i] !== q.correct_answer)
@@ -553,6 +561,9 @@ function CivicExamContent() {
             <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
               Examen blanc • {mentionLabel(mention)}
             </Badge>
+            <button onClick={handlePauseExam} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 transition-colors">
+              Mettre en pause
+            </button>
             <button onClick={handleAbandonExam} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-rose-600 transition-colors">
               Abandonner
             </button>
