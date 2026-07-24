@@ -7,9 +7,9 @@ export const THEMES = [
 ];
 
 export const MENTIONS = [
-  { value: "naturalisation", label: "Naturalisation" },
   { value: "csp", label: "CSP", subtitle: "Carte de séjour pluriannuelle" },
   { value: "cr", label: "CR", subtitle: "Carte de résident" },
+  { value: "naturalisation", label: "Naturalisation" },
 ];
 
 // Niveau de français CECRL requis par mention — utilisé pour personnaliser le pont vers le TEF IRN.

@@ -324,42 +324,48 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         <div className="space-y-2">
           <h2 className="text-base font-black text-zinc-900 px-1">Se préparer</h2>
 
-          {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
-          <Link
-            href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-            className="block bg-indigo-600 rounded-[2rem] p-5 flex items-start gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
-            <Brain size={20} className="text-white shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-black text-white">
-                {hasDue ? `Mémoriser — ${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}` : "Apprendre"}
-              </p>
-              <p className="text-xs text-indigo-200 font-medium mt-0.5 leading-relaxed">
-                {hasDue
-                  ? "Questions déjà vues qui reviennent au bon moment, selon vos réponses précédentes."
-                  : "Nouvelles questions de la thématique choisie. On vous montre la réponse, puis on vous teste immédiatement."}
-              </p>
-            </div>
-            <ArrowRight size={15} className="text-indigo-200 shrink-0 mt-1" />
-          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
+            <Link
+              href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
+              className="bg-indigo-600 rounded-[2rem] p-4 flex flex-col gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <Brain size={19} className="text-white shrink-0" />
+                <ArrowRight size={14} className="text-indigo-200 shrink-0" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-white leading-tight">
+                  {hasDue ? "Mémoriser" : "Apprendre"}
+                </p>
+                <p className="text-[11px] text-indigo-200 font-medium mt-1 leading-snug">
+                  {hasDue
+                    ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`
+                    : "Nouvelles questions, réponse testée immédiatement."}
+                </p>
+              </div>
+            </Link>
 
-          {/* Parcourir — neutre, utilitaire */}
-          <Link
-            href={buildHref("/examen-civique/parcourir")}
-            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
-          >
-            <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
-              <BookOpen size={17} className="text-zinc-500" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-black text-zinc-900">Parcourir les questions</p>
-              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
-                Toutes les Q&amp;R avec réponse, explication et source. Idéal pour découvrir une thématique ou vérifier une réponse.
-              </p>
-            </div>
-            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
-          </Link>
+            {/* Parcourir — neutre, utilitaire */}
+            <Link
+              href={buildHref("/examen-civique/parcourir")}
+              className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                  <BookOpen size={15} className="text-zinc-500" />
+                </div>
+                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-zinc-900 leading-tight">Parcourir</p>
+                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                  Toutes les Q&amp;R avec explication et source.
+                </p>
+              </div>
+            </Link>
+          </div>
 
           {/* Examen blanc — neutre aussi : seul le badge d'icône signale le format formel/chronométré */}
           <Link
@@ -430,6 +436,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
+        {/* Séparateur — referme l'aparté TEF IRN avant d'enchaîner sur les guides/FAQ */}
+        <div className="pt-2 border-t border-zinc-200" />
+
         {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
         {relevantGuides.length > 0 && (
           <div className="space-y-2">
@@ -482,11 +491,28 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <DialogHeader>
             <DialogTitle>Cas particuliers et exemptions</DialogTitle>
             <DialogDescription>
-              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de titre de séjour pluriannuel ou de naturalisation (les renouvellements ne sont pas concernés).
+              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de carte de séjour pluriannuelle (CSP), de carte de résident ou de naturalisation par décret. Un simple <strong>renouvellement</strong> d'un titre déjà détenu n'est jamais concerné : l'examen n'est exigé qu'une seule fois, à la première obtention.
             </DialogDescription>
           </DialogHeader>
-          <p className="text-xs text-zinc-500 leading-relaxed">
-            Certaines situations sont exemptées (protection internationale, plus de 65 ans, certains accords bilatéraux...). En cas de doute sur votre situation personnelle, vérifiez sur{" "}
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+              <p className="text-xs font-black text-zinc-900 uppercase tracking-wide">Dispenses les plus courantes</p>
+              <ul className="text-xs text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
+                <li>Bénéficiaires de la protection internationale (réfugiés, protection subsidiaire, apatrides).</li>
+                <li>Personnes âgées de 65 ans ou plus à la date de la demande.</li>
+                <li>Ressortissants de pays liés à la France par un accord bilatéral spécifique prévoyant un régime différent (par exemple l'accord franco-algérien du 27 décembre 1968).</li>
+                <li>Situation médicale ou handicap rendant l'évaluation impossible — dispense examinée au cas par cas par l'administration, sur justificatif.</li>
+              </ul>
+            </div>
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-1">
+              <p className="text-xs font-black text-zinc-900 uppercase tracking-wide">Pour la naturalisation</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Les dispenses sont plus limitées que pour les titres de séjour : en pratique, c'est surtout la dispense médicale/handicap qui s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-400 leading-relaxed">
+            Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations (accords bilatéraux propres à certaines nationalités, cas mixtes...). Les règles peuvent évoluer. En cas de doute sur votre situation personnelle, vérifiez sur{" "}
             <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
               service-public.gouv.fr
             </a>{" "}

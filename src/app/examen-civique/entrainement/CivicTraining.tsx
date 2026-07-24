@@ -338,10 +338,10 @@ function CivicTrainingContent() {
         }
       />
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 pb-28">
         <AnimatePresence mode="wait">
           {step === "learn" && (
-            <motion.div key="learn" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full max-w-xl space-y-6">
+            <motion.div key="learn" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full max-w-xl">
               <Card className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200 bg-white space-y-4">
                 <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase">
                   {THEMES.find((t) => t.value === current?.theme)?.label || current?.theme}
@@ -359,14 +359,6 @@ function CivicTrainingContent() {
                   </a>
                 )}
               </Card>
-              <div className="flex gap-4">
-                <Button onClick={handleSkip} variant="secondary" className="h-12 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl text-sm hover:bg-zinc-200">
-                  Passer
-                </Button>
-                <Button onClick={handleReadyForQuiz} className="h-12 flex-[2] bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 text-sm">
-                  Je suis prêt(e), tester ma mémoire <ArrowRight className="ml-2" size={16} />
-                </Button>
-              </div>
             </motion.div>
           )}
 
@@ -392,11 +384,7 @@ function CivicTrainingContent() {
                 ))}
               </div>
 
-              {!checked ? (
-                <Button disabled={!selectedOption} onClick={handleCheck} className="w-full h-12 bg-zinc-900 text-white font-black rounded-2xl text-sm">
-                  Vérifier
-                </Button>
-              ) : (
+              {checked && (
                 <div className="space-y-3">
                   <div className={`flex items-center gap-2 justify-center p-3 rounded-xl font-bold text-sm ${selectedOption === current?.correct_answer ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
                     {selectedOption === current?.correct_answer ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
@@ -405,15 +393,39 @@ function CivicTrainingContent() {
                   {current?.explanation && (
                     <p className="text-xs text-zinc-500 italic text-center leading-relaxed px-4">{current.explanation}</p>
                   )}
-                  <Button onClick={handleNext} className="w-full h-12 bg-indigo-600 text-white font-black rounded-2xl text-sm">
-                    Continuer <ArrowRight className="ml-2" size={16} />
-                  </Button>
                 </div>
               )}
             </motion.div>
           )}
         </AnimatePresence>
       </main>
+
+      {/* Barre d'action fixe : Vérifier / Continuer / Je suis prêt(e) apparaissent toujours au même
+          endroit, pour que l'utilisateur puisse enchaîner en cliquant sans déplacer la souris. */}
+      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-zinc-100 p-4 z-40">
+        <div className="max-w-xl mx-auto">
+          {step === "learn" && (
+            <div className="flex gap-4">
+              <Button onClick={handleSkip} variant="secondary" className="h-12 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl text-sm hover:bg-zinc-200">
+                Passer
+              </Button>
+              <Button onClick={handleReadyForQuiz} className="h-12 flex-[2] bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 text-sm">
+                Je suis prêt(e), tester ma mémoire <ArrowRight className="ml-2" size={16} />
+              </Button>
+            </div>
+          )}
+          {step === "quiz" && !checked && (
+            <Button disabled={!selectedOption} onClick={handleCheck} className="w-full h-12 bg-zinc-900 text-white font-black rounded-2xl text-sm">
+              Vérifier
+            </Button>
+          )}
+          {step === "quiz" && checked && (
+            <Button onClick={handleNext} className="w-full h-12 bg-indigo-600 text-white font-black rounded-2xl text-sm">
+              Continuer <ArrowRight className="ml-2" size={16} />
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
