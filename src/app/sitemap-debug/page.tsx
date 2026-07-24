@@ -31,34 +31,45 @@ export default async function SitemapDebug() {
   const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
   if (!profile?.is_admin) return <AccessDenied />;
 
-  // === Vue d'ensemble : comptages publié/total par table de contenu ===
+  // === Vue d'ensemble : comptages par table de contenu ===
+  // Note : lessons n'a pas de colonne de publication (confirmé par le schéma SQL) — total
+  // seul, comme parcours. civic_questions utilise "reviewed" et guides "is_published".
   const [
-    { count: lessonsTotal },
-    { count: lessonsPublished },
-    { count: civicQuestionsTotal },
-    { count: civicQuestionsReviewed },
-    { count: parcoursTotal },
-    { data: guides },
+    lessonsTotalRes,
+    civicQuestionsTotalRes,
+    civicQuestionsReviewedRes,
+    parcoursTotalRes,
+    guidesRes,
   ] = await Promise.all([
     supabase.from('lessons').select('*', { count: 'exact', head: true }),
-    supabase.from('lessons').select('*', { count: 'exact', head: true }).eq('is_published', true),
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }),
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }).eq('reviewed', true),
     supabase.from('parcours').select('*', { count: 'exact', head: true }),
     supabase.from('guides').select('category, is_published'),
   ]);
 
-  const guidesData = guides || [];
+  // On distingue explicitement "0 ligne correspond" d'une erreur de requête (mauvaise colonne,
+  // policy RLS...) — un count masqué en 0 par erreur donnerait exactement le même affichage
+  // qu'un vrai 0. C'est ce qui s'est produit avec lessons.is_published (colonne inexistante).
+  const queryErrors = [
+    lessonsTotalRes.error && `lessons (total) : ${lessonsTotalRes.error.message}`,
+    civicQuestionsTotalRes.error && `civic_questions (total) : ${civicQuestionsTotalRes.error.message}`,
+    civicQuestionsReviewedRes.error && `civic_questions (reviewed) : ${civicQuestionsReviewedRes.error.message}`,
+    parcoursTotalRes.error && `parcours (total) : ${parcoursTotalRes.error.message}`,
+    guidesRes.error && `guides : ${guidesRes.error.message}`,
+  ].filter(Boolean) as string[];
+
+  const guidesData = guidesRes.data || [];
   const civicGuides = guidesData.filter((g: any) => (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
   const tefIrnGuides = guidesData.filter((g: any) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
 
   const overview = {
-    lessons: { total: lessonsTotal || 0, published: lessonsPublished || 0 },
+    lessons: { total: lessonsTotalRes.count || 0 },
     tefIrnGuides: { total: tefIrnGuides.length, published: tefIrnGuides.filter((g: any) => g.is_published).length },
     civicGuides: { total: civicGuides.length, published: civicGuides.filter((g: any) => g.is_published).length },
-    civicQuestions: { total: civicQuestionsTotal || 0, published: civicQuestionsReviewed || 0 },
-    parcours: { total: parcoursTotal || 0 },
+    civicQuestions: { total: civicQuestionsTotalRes.count || 0, published: civicQuestionsReviewedRes.count || 0 },
+    parcours: { total: parcoursTotalRes.count || 0 },
   };
 
-  return <SitemapDebugClient overview={overview} />;
+  return <SitemapDebugClient overview={overview} queryErrors={queryErrors} />;
 }

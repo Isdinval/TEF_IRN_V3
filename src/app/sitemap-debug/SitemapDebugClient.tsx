@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2, Search, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 
 interface Overview {
-  lessons: { total: number; published: number };
+  lessons: { total: number };
   tefIrnGuides: { total: number; published: number };
   civicGuides: { total: number; published: number };
   civicQuestions: { total: number; published: number };
@@ -154,7 +154,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-export function SitemapDebugClient({ overview }: { overview: Overview }) {
+export function SitemapDebugClient({ overview, queryErrors }: { overview: Overview; queryErrors: string[] }) {
   const [path, setPath] = useState("/examen-civique/parcourir");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<InspectionResult | null>(null);
@@ -184,11 +184,22 @@ export function SitemapDebugClient({ overview }: { overview: Overview }) {
           </p>
         </div>
 
+        {queryErrors.length > 0 && (
+          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
+            <p className="text-xs font-black text-rose-700 uppercase tracking-widest">
+              ⚠️ Erreur(s) sur la vue d'ensemble — les chiffres ci-dessous peuvent être faux
+            </p>
+            {queryErrors.map((err, i) => (
+              <p key={i} className="text-xs text-rose-600 font-mono">{err}</p>
+            ))}
+          </div>
+        )}
+
         {/* Vue d'ensemble */}
         <section className="space-y-3">
           <h2 className="text-xs font-black uppercase tracking-widest text-zinc-400">Vue d'ensemble</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <StatCard label="Leçons TEF IRN" total={overview.lessons.total} published={overview.lessons.published} />
+            <StatCard label="Leçons TEF IRN" total={overview.lessons.total} />
             <StatCard label="Guides TEF IRN" total={overview.tefIrnGuides.total} published={overview.tefIrnGuides.published} />
             <StatCard label="Guides examen civique" total={overview.civicGuides.total} published={overview.civicGuides.published} />
             <StatCard label="Questions examen civique" total={overview.civicQuestions.total} published={overview.civicQuestions.published} />
