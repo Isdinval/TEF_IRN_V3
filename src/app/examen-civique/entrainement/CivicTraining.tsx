@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase";
-import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
-import { THEMES, mentionLabel } from "@/lib/civic-constants";
+import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
+import { THEMES, mentionLabel, EXAM_MISTAKES_STORAGE_KEY } from "@/lib/civic-constants";
 import { updateCivicSRS } from "@/lib/civic-srs-engine";
 import { getLocalDueQuestionIds, updateLocalCivicSRS, recordCivicSession } from "@/lib/civic-local-store";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -29,7 +29,7 @@ interface CivicQuestion {
 }
 
 type TrainingStep = "learn" | "quiz";
-type TrainingMode = "apprendre" | "memoriser";
+type TrainingMode = "apprendre" | "memoriser" | "erreurs";
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => 0.5 - Math.random());
@@ -39,10 +39,9 @@ function CivicTrainingContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: currentUser } = useAuth();
   const { mention, theme } = useCivicContext();
 
-  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const showCTATef = useShowCivicTefBridge();
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [activeMode, setActiveMode] = useState<TrainingMode>("apprendre");
 
@@ -57,7 +56,6 @@ function CivicTrainingContent() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
   const hasDue = (dueCount ?? 0) > 0;
 
   const fetchDueCount = useCallback(async () => {
@@ -72,18 +70,6 @@ function CivicTrainingContent() {
   }, [supabase]);
 
   useEffect(() => { fetchDueCount(); }, [fetchDueCount]);
-
-  useEffect(() => {
-    if (!currentUser) { setSubscriptionTier(null); return; }
-    supabase
-      .from("profiles")
-      .select("subscription_tier")
-      .eq("id", currentUser.id)
-      .single()
-      .then(({ data }: { data: { subscription_tier: string } | null }) => {
-        if (data) setSubscriptionTier(data.subscription_tier);
-      });
-  }, [currentUser, supabase]);
 
   const startTraining = useCallback(async (review: boolean) => {
     setLoading(true);
@@ -151,14 +137,45 @@ function CivicTrainingContent() {
     }
   }, [mention, theme, supabase]);
 
-  // Lance automatiquement la session au chargement, selon ?mode=apprendre|memoriser (défaut : apprendre).
+  // Révision ponctuelle des questions ratées à un examen blanc (voir handleReviewMistakes dans
+  // CivicExam.tsx) : les IDs transitent par sessionStorage, lus puis effacés ici (usage unique).
+  const startFromMistakes = useCallback(async (ids: string[]) => {
+    setLoading(true);
+    setErrorMsg(null);
+    setActiveMode("erreurs");
+    try {
+      const { data, error } = await supabase.from("civic_questions").select("*").in("id", ids);
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setQuestions(shuffle(data as CivicQuestion[]));
+        setIndex(0); setStep("learn"); setFinished(false); setSessionCorrect(0);
+      } else {
+        setErrorMsg("Impossible de retrouver ces questions. Réessayez depuis l'examen.");
+      }
+    } catch (err) {
+      console.error("Error loading civic exam mistakes:", err);
+      setErrorMsg("Impossible de charger vos erreurs. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  // Lance automatiquement la session au chargement, selon ?mode=apprendre|memoriser|erreurs
+  // (posé par le sommaire ou l'examen blanc — défaut : apprendre).
   useEffect(() => {
-    const requested = searchParams.get("mode") === "memoriser" ? "memoriser" : "apprendre";
+    const requested = searchParams.get("mode");
+    if (requested === "erreurs" && typeof window !== "undefined") {
+      const raw = window.sessionStorage.getItem(EXAM_MISTAKES_STORAGE_KEY);
+      window.sessionStorage.removeItem(EXAM_MISTAKES_STORAGE_KEY);
+      const ids: string[] = raw ? JSON.parse(raw) : [];
+      if (ids.length > 0) { startFromMistakes(ids); return; }
+      // Lien direct sans contexte d'examen (raw absent) : repli sur Apprendre.
+    }
     startTraining(requested === "memoriser");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const switchMode = (nextMode: TrainingMode) => {
+  const switchMode = (nextMode: "apprendre" | "memoriser") => {
     if (nextMode === activeMode && questions.length > 0) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set("mode", nextMode);
@@ -309,7 +326,7 @@ function CivicTrainingContent() {
     <div className="min-h-screen bg-zinc-50 flex flex-col">
       <ExerciseLayout
         variant="compact"
-        title={activeMode === "memoriser" ? "Mémoriser" : "Apprendre"}
+        title={activeMode === "memoriser" ? "Mémoriser" : activeMode === "erreurs" ? "Révision de vos erreurs" : "Apprendre"}
         badge={mentionLabel(mention)}
         badgeColor="indigo"
         onBack={() => router.push("/examen-civique")}

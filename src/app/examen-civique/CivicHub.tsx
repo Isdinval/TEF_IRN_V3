@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
+import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
 import {
   MENTIONS,
   THEMES,
@@ -79,14 +80,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
 
   const [civicStreak, setCivicStreak] = useState(0);
   const [localStats, setLocalStats] = useState({ seen: 0, mastered: 0, scheduled: 0 });
-  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const showCTATef = useShowCivicTefBridge();
   const [dueCount, setDueCount] = useState<number | null>(null);
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
 
-  const showCTATef = !currentUser || subscriptionTier === "free" || subscriptionTier === null;
   const hasDue = (dueCount ?? 0) > 0;
   const hasSeenQuestions = localStats.seen > 0;
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map((a) => a.score)) : null;
@@ -129,18 +129,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       .then(() => { fetchDueCount(); fetchAttempts(); setLocalStats(getLocalStats()); })
       .catch((err) => console.error("Error migrating local civic data:", err));
   }, [currentUser, fetchDueCount, fetchAttempts]);
-
-  useEffect(() => {
-    if (!currentUser) { setSubscriptionTier(null); return; }
-    supabase
-      .from("profiles")
-      .select("subscription_tier")
-      .eq("id", currentUser.id)
-      .single()
-      .then(({ data }: { data: { subscription_tier: string } | null }) => {
-        if (data) setSubscriptionTier(data.subscription_tier);
-      });
-  }, [currentUser, supabase]);
 
   // Compte les questions disponibles pour la démarche + thématique sélectionnées.
   useEffect(() => {

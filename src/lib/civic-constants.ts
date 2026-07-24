@@ -24,6 +24,10 @@ export const EXAM_DURATION_SECONDS = 45 * 60;
 export const EXAM_PASS_THRESHOLD = 32;
 export const EXAM_STORAGE_KEY = "civic_exam_session_v1";
 
+// sessionStorage (pas localStorage : usage ponctuel, ne doit pas survivre au-delà de l'onglet) —
+// transmet les IDs des questions ratées d'un examen blanc vers une session /entrainement?mode=erreurs.
+export const EXAM_MISTAKES_STORAGE_KEY = "civic_exam_mistakes_v1";
+
 export function mentionLabel(value: string): string {
   const m = MENTIONS.find((m) => m.value === value);
   if (!m) return value;
