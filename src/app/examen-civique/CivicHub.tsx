@@ -85,6 +85,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
+  const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
 
   const hasDue = (dueCount ?? 0) > 0;
@@ -110,7 +111,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(20);
     setAttempts((data as CivicExamAttempt[]) || []);
   }, [supabase]);
 
@@ -387,9 +388,19 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         {/* Historique récent */}
         {attempts.length > 0 && (
           <div className="space-y-2">
-            <h2 className="text-base font-black text-zinc-900 px-1">Derniers examens blancs</h2>
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-base font-black text-zinc-900">Derniers examens blancs</h2>
+              {attempts.length > 3 && (
+                <button
+                  onClick={() => setShowAllAttempts((prev) => !prev)}
+                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                >
+                  {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
+                </button>
+              )}
+            </div>
             <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-              {attempts.slice(0, 3).map((a) => (
+              {(showAllAttempts ? attempts : attempts.slice(0, 3)).map((a) => (
                 <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
@@ -409,9 +420,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 </div>
               ))}
             </div>
-            <Link href={buildHref("/examen-civique/examen-blanc")} className="block w-full text-center text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-700 py-1 transition-colors">
-              Voir l'historique complet →
-            </Link>
           </div>
         )}
 

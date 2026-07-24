@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, Trophy, Clock, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Trophy, Clock, ArrowRight, CheckCircle2, XCircle, LogOut } from "lucide-react";
 
 interface CivicQuestion {
   id: string;
@@ -346,7 +346,7 @@ function CivicExamContent() {
   // en continu (voir l'effect de persistance ci-dessus). Le minuteur repose sur une échéance
   // absolue (examEndAt) recalculée depuis l'horloge réelle à chaque chargement — refresh,
   // navigation ou fermeture de l'onglet ne le remettent jamais à zéro et ne l'arrêtent pas.
-  const handlePauseExam = () => {
+  const handleLeaveExam = () => {
     router.push("/examen-civique");
   };
 
@@ -409,7 +409,7 @@ function CivicExamContent() {
           <div className="space-y-2">
             <h1 className="text-xl font-black text-zinc-900 tracking-tighter">Examen blanc</h1>
             <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-              {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». 45 minutes, sans possibilité de mettre en pause.
+              {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». 45 minutes chronométrées en continu : vous pouvez quitter et revenir, mais le temps continue de s'écouler pendant votre absence.
               Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
             </p>
           </div>
@@ -557,23 +557,29 @@ function CivicExamContent() {
     <div className="min-h-screen bg-zinc-50 flex flex-col">
       <header className="bg-white border-b border-zinc-100 px-6 py-3 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
-              Examen blanc • {mentionLabel(mention)}
-            </Badge>
-            <button onClick={handlePauseExam} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 transition-colors">
-              Mettre en pause
+          <Badge className="bg-indigo-600 text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
+            Examen blanc • {mentionLabel(mention)}
+          </Badge>
+          <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? "text-rose-600" : "text-zinc-900"}`}>
+            <Clock size={16} /> {formatTime(examTimeLeft)}
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto mt-2.5 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLeaveExam}
+              className="h-8 px-3 rounded-lg bg-zinc-100 text-zinc-600 text-[11px] font-black flex items-center gap-1.5 hover:bg-zinc-200 transition-colors"
+            >
+              <LogOut size={13} /> Continuer plus tard
             </button>
-            <button onClick={handleAbandonExam} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-rose-600 transition-colors">
-              Abandonner
+            <button
+              onClick={handleAbandonExam}
+              className="h-8 px-3 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-black flex items-center gap-1.5 hover:bg-rose-100 transition-colors"
+            >
+              <XCircle size={13} /> Abandonner
             </button>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{answeredCount}/{questions.length}</span>
-            <div className={`flex items-center gap-2 font-black text-sm ${examTimeLeft < 300 ? "text-rose-600" : "text-zinc-900"}`}>
-              <Clock size={16} /> {formatTime(examTimeLeft)}
-            </div>
-          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{answeredCount}/{questions.length} répondues</span>
         </div>
         <div className="max-w-4xl mx-auto mt-2">
           <div className="h-1 bg-zinc-100 rounded-full overflow-hidden">
