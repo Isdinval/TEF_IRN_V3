@@ -19,7 +19,9 @@ export function AdminGuardScreen({ state }: { state: Exclude<AdminGuardState, "g
       <img
         src={ACCESS_DENIED_IMAGE_URL}
         alt="Accès refusé, zone réservée aux administrateurs"
-        className="max-w-xs w-full rounded-2xl shadow-xl"
+        width={1616}
+        height={656}
+        className="w-full max-w-3xl h-auto rounded-2xl shadow-xl"
       />
       <div className="space-y-2 max-w-md">
         <h1 className="text-xl font-black text-zinc-900">Alerte, zone top secrète !</h1>
