@@ -6,8 +6,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useCivicContext } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
+import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import {
   THEMES,
+  MENTIONS,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
   EXAM_DURATION_SECONDS,
@@ -109,7 +111,7 @@ async function recordAttempt(
 function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const { mention } = useCivicContext();
+  const { mention, setMention } = useCivicContext();
   const showCTATef = useShowCivicTefBridge();
 
   const [phase, setPhase] = useState<ExamPhase>("loading");
@@ -401,36 +403,51 @@ function CivicExamContent() {
   // === CONFIGURATION (avant démarrage) ===
   if (phase === "config") {
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-md w-full space-y-6">
-          <div className="w-16 h-16 bg-zinc-900 rounded-[1.5rem] mx-auto flex items-center justify-center text-white">
-            <Clock size={28} />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-black text-zinc-900 tracking-tighter">Examen blanc</h1>
-            <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-              {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». 45 minutes chronométrées en continu : vous pouvez quitter et revenir, mais le temps continue de s'écouler pendant votre absence.
-              Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
-            </p>
-          </div>
-          {examPoolCount !== null && examPoolCount < EXAM_QUESTION_COUNT && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold text-left">
-              Seulement {examPoolCount} question{examPoolCount > 1 ? "s" : ""} disponible{examPoolCount > 1 ? "s" : ""} pour cette mention : l'examen en comptera {examPoolCount} au lieu de {EXAM_QUESTION_COUNT} (seuil ajusté à {passThresholdFor(examPoolCount)}/{examPoolCount}).
+      <div className="min-h-screen bg-zinc-50 p-6">
+        <div className="max-w-xl mx-auto">
+          <ExerciseLayout
+            title={<>Passez un <span className="text-indigo-600">examen blanc</span></>}
+            badge="Conditions réelles"
+            description={`${EXAM_QUESTION_COUNT} questions officielles, 45 minutes chronométrées en continu. Vous pouvez quitter et revenir, mais le temps continue de s'écouler pendant votre absence. Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`}
+          >
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {MENTIONS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => setMention(m.value)}
+                      className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      <div>{m.label}</div>
+                      {m.shortLabel && (
+                        <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {examPoolCount !== null && examPoolCount < EXAM_QUESTION_COUNT && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold text-left">
+                  Seulement {examPoolCount} question{examPoolCount > 1 ? "s" : ""} disponible{examPoolCount > 1 ? "s" : ""} pour cette mention : l'examen en comptera {examPoolCount} au lieu de {EXAM_QUESTION_COUNT} (seuil ajusté à {passThresholdFor(examPoolCount)}/{examPoolCount}).
+                </div>
+              )}
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
+              )}
+              <div className="flex flex-col gap-3">
+                <Button onClick={startExam} disabled={loading} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm">
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <>C'est parti <ArrowRight className="ml-2" size={16} /></>}
+                </Button>
+                <Link href="/examen-civique">
+                  <Button variant="secondary" className="w-full h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
+                    Retour à l'accueil
+                  </Button>
+                </Link>
+              </div>
             </div>
-          )}
-          {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
-          )}
-          <div className="flex flex-col gap-3">
-            <Button onClick={startExam} disabled={loading} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm">
-              {loading ? <Loader2 className="animate-spin" size={18} /> : <>C'est parti <ArrowRight className="ml-2" size={16} /></>}
-            </Button>
-            <Link href="/examen-civique">
-              <Button variant="secondary" className="w-full h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
-                Retour à l'accueil
-              </Button>
-            </Link>
-          </div>
+          </ExerciseLayout>
         </div>
       </div>
     );

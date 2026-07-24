@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { siteUrl } from '@/lib/site';
+import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 import {
   HERO_IMAGE_URL,
   OLIVIER_PHOTO_URL,
@@ -25,8 +26,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // === GUIDES ===
   const { data: guides } = await supabase
     .from('guides')
-    .select('slug, created_at, updated_at, image_url')
+    .select('slug, created_at, updated_at, image_url, category')
     .eq('is_published', true);
+
+  const civicGuides = (guides || []).filter((g: any) => (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
+  const tefIrnGuides = (guides || []).filter((g: any) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
 
   // === PARCOURS ===
   const { data: parcours } = await supabase
@@ -40,8 +44,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  const guideUrls: MetadataRoute.Sitemap = (guides || []).map((guide: any) => ({
+  const guideUrls: MetadataRoute.Sitemap = (tefIrnGuides || []).map((guide: any) => ({
     url: `${rootPath}/guides/${guide.slug}`,
+    lastModified: new Date(guide.updated_at || guide.created_at || new Date()),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+    ...(guide.image_url ? { images: [guide.image_url] } : {}),
+  }));
+
+  const civicGuideUrls: MetadataRoute.Sitemap = (civicGuides || []).map((guide: any) => ({
+    url: `${siteUrl}/examen-civique/guides/${guide.slug}`,
     lastModified: new Date(guide.updated_at || guide.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -64,6 +76,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.95,
     },
+    {
+      url: `${siteUrl}/examen-civique/parcourir`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${siteUrl}/examen-civique/guides`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    // /examen-civique/entrainement et /examen-blanc sont volontairement absents :
+    // pages d'exercice pur (robots noindex), pas de contenu propre à indexer.
     { url: `${rootPath}/lessons`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     { url: `${rootPath}/guides`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     { url: `${rootPath}/parcours`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.85 },
@@ -86,5 +112,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${rootPath}/cookies`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
   ];
 
-  return [...staticUrls, ...lessonUrls, ...guideUrls, ...parcoursUrls];
+  return [...staticUrls, ...lessonUrls, ...guideUrls, ...civicGuideUrls, ...parcoursUrls];
 }

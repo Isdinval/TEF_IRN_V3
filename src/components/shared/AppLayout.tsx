@@ -31,9 +31,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isLandingPage = pathname === "/tef-irn" || pathname === "/tef-irn/";
   const isPublic = pathname ? (isLandingPage || publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"))) : true;
   const isExam = pathname === "/tef-irn/exam";
+  // /tef-irn/guides reste public (SEO), mais un utilisateur connecté doit voir la sidebar.
+  const isAuthedOnGuides = !!user && (pathname === "/tef-irn/guides" || pathname?.startsWith("/tef-irn/guides/"));
 
   // Case 1: Pure public landing/auth routes or Exam
-  if (isPublic || isExam) {
+  if ((isPublic || isExam) && !isAuthedOnGuides) {
     return (
       <main className="h-full">
         {mounted && user && <StudyHeartbeat />}

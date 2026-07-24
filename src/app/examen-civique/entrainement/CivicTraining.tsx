@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
-import { THEMES, mentionLabel, EXAM_MISTAKES_STORAGE_KEY } from "@/lib/civic-constants";
+import { THEMES, MENTIONS, mentionLabel, EXAM_MISTAKES_STORAGE_KEY } from "@/lib/civic-constants";
 import { updateCivicSRS } from "@/lib/civic-srs-engine";
 import { getLocalDueQuestionIds, updateLocalCivicSRS, recordCivicSession } from "@/lib/civic-local-store";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
@@ -39,7 +39,7 @@ function CivicTrainingContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { mention, theme } = useCivicContext();
+  const { mention, theme, setMention, setTheme } = useCivicContext();
 
   const showCTATef = useShowCivicTefBridge();
   const [dueCount, setDueCount] = useState<number | null>(null);
@@ -55,6 +55,7 @@ function CivicTrainingContent() {
   const [finished, setFinished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [started, setStarted] = useState(false);
 
   const hasDue = (dueCount ?? 0) > 0;
 
@@ -160,18 +161,21 @@ function CivicTrainingContent() {
     }
   }, [supabase]);
 
-  // Lance automatiquement la session au chargement, selon ?mode=apprendre|memoriser|erreurs
-  // (posé par le sommaire ou l'examen blanc — défaut : apprendre).
+  // Le mode "erreurs" (retour depuis un examen blanc) n'a pas d'ambiguïté de démarche/thématique
+  // — il porte sur des questions précises déjà déterminées, donc pas besoin de confirmation.
+  // Apprendre/Mémoriser, eux, atterrissent toujours sur l'écran de config : un accès direct à
+  // cette page (lien externe, sidebar, favori) sans être passé par le sommaire ne doit jamais
+  // lancer silencieusement une session sur la démarche/thématique par défaut.
   useEffect(() => {
     const requested = searchParams.get("mode");
     if (requested === "erreurs" && typeof window !== "undefined") {
       const raw = window.sessionStorage.getItem(EXAM_MISTAKES_STORAGE_KEY);
       window.sessionStorage.removeItem(EXAM_MISTAKES_STORAGE_KEY);
       const ids: string[] = raw ? JSON.parse(raw) : [];
-      if (ids.length > 0) { startFromMistakes(ids); return; }
-      // Lien direct sans contexte d'examen (raw absent) : repli sur Apprendre.
+      if (ids.length > 0) { setStarted(true); startFromMistakes(ids); return; }
+      // Lien direct sans contexte d'examen (raw absent) : repli sur l'écran de config normal.
     }
-    startTraining(requested === "memoriser");
+    setActiveMode(requested === "memoriser" ? "memoriser" : "apprendre");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -236,6 +240,96 @@ function CivicTrainingContent() {
     }
   };
 
+  // === CONFIGURATION (avant démarrage) — toujours affiché sauf pour le mode "erreurs" ===
+  if (!started) {
+    return (
+      <div className="min-h-screen bg-zinc-50 p-6">
+        <div className="max-w-xl mx-auto">
+          <ExerciseLayout
+            title={<>Vérifiez votre <span className="text-indigo-600">sélection</span></>}
+            badge="S'entraîner"
+            description="Confirmez votre démarche et votre thématique avant de commencer."
+          >
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {MENTIONS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => setMention(m.value)}
+                      className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      <div>{m.label}</div>
+                      {m.shortLabel && (
+                        <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Thématique</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setTheme(val)}
+                      className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Mode</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setActiveMode("apprendre")}
+                    className={`h-11 rounded-2xl font-black text-sm transition-all ${activeMode === "apprendre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                  >
+                    Apprendre
+                  </button>
+                  <button
+                    onClick={() => hasDue && setActiveMode("memoriser")}
+                    disabled={!hasDue}
+                    className={`h-11 rounded-2xl font-black text-sm transition-all ${
+                      !hasDue ? "bg-zinc-100 text-zinc-300 cursor-not-allowed" : activeMode === "memoriser" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"
+                    }`}
+                  >
+                    Mémoriser{hasDue ? ` (${dueCount})` : ""}
+                  </button>
+                </div>
+              </div>
+
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => { setStarted(true); startTraining(activeMode === "memoriser"); }}
+                  disabled={loading}
+                  className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <>Commencer <ArrowRight className="ml-2" size={16} /></>}
+                </Button>
+                <Link href="/examen-civique">
+                  <Button variant="secondary" className="w-full h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
+                    Retour à l'accueil
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </ExerciseLayout>
+        </div>
+      </div>
+    );
+  }
+
   // === CHARGEMENT INITIAL ===
   if (loading && questions.length === 0) {
     return (
@@ -250,12 +344,15 @@ function CivicTrainingContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center gap-4">
         <p className="text-sm text-zinc-500 font-bold max-w-sm">{errorMsg}</p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-center">
           {hasDue && activeMode !== "memoriser" && (
             <Button onClick={() => switchMode("memoriser")} className="h-11 bg-indigo-600 text-white rounded-2xl font-black text-sm">
               Mémoriser à la place
             </Button>
           )}
+          <Button onClick={() => { setStarted(false); setErrorMsg(null); }} variant="secondary" className="h-11 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
+            Modifier ma sélection
+          </Button>
           <Link href="/examen-civique">
             <Button variant="secondary" className="h-11 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
               Retour à l'accueil

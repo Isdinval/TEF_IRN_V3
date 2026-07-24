@@ -12,17 +12,17 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     .eq('slug', params.slug)
     .single();
 
-  if (!guide || (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
+  if (!guide || !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
     return {
       title: 'Guide non trouvé',
     };
   }
 
-  const url = `${siteUrl}/tef-irn/guides/${params.slug}`;
+  const url = `${siteUrl}/examen-civique/guides/${params.slug}`;
   const defaultImage = `${siteUrl}/og-image.png`;
 
   return {
-    title: guide.title,
+    title: `${guide.title} | Examen civique LlamaKusi`,
     description: guide.description,
     alternates: {
       canonical: url,
@@ -58,6 +58,6 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   };
 }
 
-export default function GuideLayout({ children }: { children: React.ReactNode }) {
+export default function CivicGuideLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

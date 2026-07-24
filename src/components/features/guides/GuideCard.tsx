@@ -6,8 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Clock, ArrowRight, BookOpen, Mic, FileText, Cpu, GraduationCap, Scale, Zap, Target } from 'lucide-react';
 import { Guide } from '@/types/guides';
 
+type GuideCardAccent = 'blue' | 'indigo';
+
 interface GuideCardProps {
   guide: Guide;
+  /** Route de base du guide (sans le slug). Par défaut celle des guides TEF IRN. */
+  hrefBase?: string;
+  /** Couleur d'accent (hover, lien "Lire le guide"...). Par défaut le bleu TEF IRN. */
+  accent?: GuideCardAccent;
+  /** "_blank" pour ne pas faire quitter une session en cours (ex. examen civique). */
+  target?: '_self' | '_blank';
 }
 
 const iconMap: Record<string, any> = {
@@ -21,8 +29,24 @@ const iconMap: Record<string, any> = {
   'Target': Target,
 };
 
-const GuideCard: React.FC<GuideCardProps> = ({ guide }) => {
+// Classes Tailwind complètes (pas de template littéral sur la couleur) pour rester compatibles
+// avec la détection JIT de Tailwind.
+const ACCENT_STYLES: Record<GuideCardAccent, { titleHover: string; link: string; defaultIcon: string }> = {
+  blue: {
+    titleHover: 'group-hover:text-blue-600',
+    link: 'text-blue-600 hover:text-blue-700 hover:bg-blue-50',
+    defaultIcon: 'text-blue-500 bg-blue-50',
+  },
+  indigo: {
+    titleHover: 'group-hover:text-indigo-600',
+    link: 'text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50',
+    defaultIcon: 'text-indigo-500 bg-indigo-50',
+  },
+};
+
+const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guides', accent = 'blue', target = '_self' }) => {
   const IconComponent = iconMap[guide.icon || 'BookOpen'] || BookOpen;
+  const styles = ACCENT_STYLES[accent];
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -34,7 +58,11 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide }) => {
     }
   };
 
+  // La distinction orale/écrite ne concerne que les guides TEF IRN — pour l'accent "indigo"
+  // (examen civique), on garde une icône uniforme plutôt que d'appliquer une sémantique
+  // qui ne correspond à rien pour ces catégories (naturalisation-civique, csp-civique...).
   const getCategoryIconColor = (category: string | null) => {
+    if (accent === 'indigo') return styles.defaultIcon;
     if (!category) return 'text-blue-500 bg-blue-50';
     if (category.includes('orale')) return 'text-indigo-500 bg-indigo-50';
     if (category.includes('ecrite')) return 'text-emerald-500 bg-emerald-50';
@@ -52,12 +80,12 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide }) => {
             {guide.type}
           </Badge>
           {guide.level && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              {guide.level}
-            </span>
+             <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+               {guide.level}
+             </span>
           )}
         </div>
-        <CardTitle className="text-xl group-hover:text-blue-600 transition-colors font-black">
+        <CardTitle className={`text-xl transition-colors font-black ${styles.titleHover}`}>
           {guide.title}
         </CardTitle>
       </CardHeader>
@@ -71,8 +99,8 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide }) => {
           <Clock size={14} className="mr-1" />
           {guide.reading_time} min
         </div>
-        <Link href={`/tef-irn/guides/${guide.slug}`} passHref>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 group/btn font-bold">
+        <Link href={`${hrefBase}/${guide.slug}`} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} passHref>
+          <Button variant="ghost" size="sm" className={`p-0 group/btn font-bold ${styles.link}`}>
             Lire le guide <ArrowRight size={16} className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
           </Button>
         </Link>
