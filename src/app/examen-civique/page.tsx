@@ -1,10 +1,13 @@
 /**
  * page.tsx — Server Component.
- * Injecte du contenu statique indexable par Google dans le HTML initial.
- * Le <h1> visible est dans CivicExamApp — ici on n'utilise que des <h2>/<p>
- * pour éviter le double H1.
+ * Injecte du contenu statique indexable par Google dans le HTML initial, récupère les guides
+ * civiques et le contenu FAQ, puis délègue le rendu interactif à CivicHub.
+ * Le <h1> visible est dans CivicHub — ici on n'utilise que des <h2>/<p> pour éviter le double H1.
  */
-import { CivicExamApp } from "./CivicExamApp";
+import { CivicHub } from "./CivicHub";
+import { getCivicGuides } from "@/lib/civic-guides";
+import JsonLd from "@/components/shared/JsonLd";
+import { siteUrl } from "@/lib/site";
 
 const THEMES_STATIC = [
   { label: "Vivre en société", count: "~20 questions" },
@@ -17,7 +20,7 @@ const THEMES_STATIC = [
 const FAQ = [
   {
     q: "Qu'est-ce que l'examen civique ?",
-    a: "Depuis le 1er janvier 2026, toute première demande de titre de séjour pluriannuel (CSP), de carte de résident ou de naturalisation est soumise à un examen civique. Il prend la forme d'un QCM de 40 questions sur les valeurs, les institutions et l'histoire de la France.",
+    a: "Depuis le 1er janvier 2026, toute première demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation est soumise à un examen civique. Il prend la forme d'un QCM de 40 questions sur les valeurs, les institutions et l'histoire de la France.",
   },
   {
     q: "Combien de questions à l'examen civique ?",
@@ -37,17 +40,40 @@ const FAQ = [
   },
 ];
 
-export default function ExamenCiviquePage() {
+export default async function ExamenCiviquePage() {
+  const civicGuides = await getCivicGuides();
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Examen civique", item: `${siteUrl}/examen-civique` },
+    ],
+  };
+
   return (
     <>
+      <JsonLd data={faqSchema} id="examen-civique-faq-schema" />
+      <JsonLd data={breadcrumbSchema} id="examen-civique-breadcrumb" />
+
       {/*
         Contenu SEO statique — indexable par Google.
-        PAS de <h1> ici : le <h1> visible est dans CivicExamApp pour éviter le double H1.
-        Les <section> et <h2> ci-dessous sont en sr-only pour ne pas doubler l'affichage.
+        PAS de <h1> ici : le <h1> visible est dans CivicHub pour éviter le double H1.
       */}
       <div className="sr-only">
         <p>
-          Préparez-vous gratuitement à l'examen civique (naturalisation, carte de résident, CSP)
+          Préparez-vous gratuitement à l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle)
           avec les questions officielles du Ministère de l'Intérieur. Révision adaptative,
           examens blancs chronométrés, sans inscription.
         </p>
@@ -64,19 +90,10 @@ export default function ExamenCiviquePage() {
           <p><strong>Question :</strong> Quel est le principe qui sépare les Églises et l'État en France ?</p>
           <p><strong>Réponse :</strong> La laïcité. Ce principe, inscrit dans la loi de 1905, garantit la liberté de conscience et interdit à l'État de reconnaître ou subventionner un culte.</p>
         </section>
-        <section aria-label="Questions fréquentes sur l'examen civique">
-          <h2>Questions fréquentes sur l'examen civique</h2>
-          {FAQ.map((item) => (
-            <div key={item.q}>
-              <h3>{item.q}</h3>
-              <p>{item.a}</p>
-            </div>
-          ))}
-        </section>
       </div>
 
-      {/* Interface interactive */}
-      <CivicExamApp />
+      {/* Interface interactive : démarche, action recommandée, progression, guides, FAQ visible */}
+      <CivicHub civicGuides={civicGuides} faq={FAQ} />
     </>
   );
 }
