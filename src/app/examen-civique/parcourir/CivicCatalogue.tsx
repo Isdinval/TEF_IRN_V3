@@ -112,7 +112,10 @@ function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQu
                             <span className="text-sm font-bold text-zinc-800">{q.question}</span>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-5 space-y-3 pl-1">
+                        {/* hiddenUntilFound (plutôt que le défaut, qui démonte le panneau fermé du DOM) :
+                            garde la réponse/explication dans le HTML même repliée — visible par les
+                            crawlers qui n'exécutent pas de JS, et compatible avec le Ctrl+F du navigateur. */}
+                        <AccordionContent className="pb-5 space-y-3 pl-1" hiddenUntilFound>
                           <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
                             {q.correct_answer}
                           </div>
