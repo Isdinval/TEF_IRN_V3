@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
+import { ShieldAlert } from 'lucide-react';
 import { createClient } from '@/lib/supabase-server';
+import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
+import { SitemapDebugClient } from './SitemapDebugClient';
 
 // Page de debug interne — jamais destinée aux visiteurs ni aux moteurs de recherche.
 export const metadata: Metadata = {
@@ -9,33 +12,64 @@ export const metadata: Metadata = {
   },
 };
 
+function AccessDenied() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-8">
+      <ShieldAlert className="text-rose-500" size={48} />
+      <h1 className="text-xl font-black text-zinc-900">Accès réservé aux administrateurs</h1>
+      <p className="text-sm text-zinc-500">Cette page nécessite un compte marqué comme administrateur (profiles.is_admin).</p>
+    </div>
+  );
+}
+
 export default async function SitemapDebug() {
   const supabase = await createClient();
 
-  // Count total lessons
-  const { count: totalLessons, error: countError } = await supabase
-    .from('lessons')
-    .select('*', { count: 'exact', head: true });
+  // Vrai contrôle serveur (pas juste RLS) — même pattern que /api/admin/generate-exercise.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return <AccessDenied />;
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
+  if (!profile?.is_admin) return <AccessDenied />;
 
-  // Fetch some lessons
-  const { data: lessons, error: lessonsError } = await supabase
-    .from('lessons')
-    .select('slug, is_published, created_at')
-    .limit(20);
+  // === Vue d'ensemble : comptages par table de contenu ===
+  // Note : lessons n'a pas de colonne de publication (confirmé par le schéma SQL) — total
+  // seul, comme parcours. civic_questions utilise "reviewed" et guides "is_published".
+  const [
+    lessonsTotalRes,
+    civicQuestionsTotalRes,
+    civicQuestionsReviewedRes,
+    parcoursTotalRes,
+    guidesRes,
+  ] = await Promise.all([
+    supabase.from('lessons').select('*', { count: 'exact', head: true }),
+    supabase.from('civic_questions').select('*', { count: 'exact', head: true }),
+    supabase.from('civic_questions').select('*', { count: 'exact', head: true }).eq('reviewed', true),
+    supabase.from('parcours').select('*', { count: 'exact', head: true }),
+    supabase.from('guides').select('category, is_published'),
+  ]);
 
-  return (
-    <div style={{ padding: '40px', fontFamily: 'monospace', lineHeight: '1.6' }}>
-      <h1>🔍 Sitemap Debug Page</h1>
-      
-      <p><strong>Total lessons dans la table :</strong> {totalLessons || 0}</p>
-      
-      {countError && <p style={{ color: 'red' }}>Count Error: {countError.message}</p>}
-      {lessonsError && <p style={{ color: 'red' }}>Lessons Error: {lessonsError.message}</p>}
+  // On distingue explicitement "0 ligne correspond" d'une erreur de requête (mauvaise colonne,
+  // policy RLS...) — un count masqué en 0 par erreur donnerait exactement le même affichage
+  // qu'un vrai 0. C'est ce qui s'est produit avec lessons.is_published (colonne inexistante).
+  const queryErrors = [
+    lessonsTotalRes.error && `lessons (total) : ${lessonsTotalRes.error.message}`,
+    civicQuestionsTotalRes.error && `civic_questions (total) : ${civicQuestionsTotalRes.error.message}`,
+    civicQuestionsReviewedRes.error && `civic_questions (reviewed) : ${civicQuestionsReviewedRes.error.message}`,
+    parcoursTotalRes.error && `parcours (total) : ${parcoursTotalRes.error.message}`,
+    guidesRes.error && `guides : ${guidesRes.error.message}`,
+  ].filter(Boolean) as string[];
 
-      <h2>Exemples de leçons récupérées ({lessons?.length || 0}) :</h2>
-      <pre style={{ background: '#f4f4f4', padding: '15px', overflow: 'auto' }}>
-        {JSON.stringify(lessons, null, 2)}
-      </pre>
-    </div>
-  );
+  const guidesData = guidesRes.data || [];
+  const civicGuides = guidesData.filter((g: any) => (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
+  const tefIrnGuides = guidesData.filter((g: any) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
+
+  const overview = {
+    lessons: { total: lessonsTotalRes.count || 0 },
+    tefIrnGuides: { total: tefIrnGuides.length, published: tefIrnGuides.filter((g: any) => g.is_published).length },
+    civicGuides: { total: civicGuides.length, published: civicGuides.filter((g: any) => g.is_published).length },
+    civicQuestions: { total: civicQuestionsTotalRes.count || 0, published: civicQuestionsReviewedRes.count || 0 },
+    parcours: { total: parcoursTotalRes.count || 0 },
+  };
+
+  return <SitemapDebugClient overview={overview} queryErrors={queryErrors} />;
 }
