@@ -1,4 +1,13 @@
+import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
+
+// Page de debug interne — jamais destinée aux visiteurs ni aux moteurs de recherche.
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function SitemapDebug() {
   const supabase = await createClient();

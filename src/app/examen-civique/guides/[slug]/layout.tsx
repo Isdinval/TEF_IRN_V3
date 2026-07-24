@@ -10,6 +10,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     .from('guides')
     .select('title, description, image_url, created_at, updated_at, category')
     .eq('slug', params.slug)
+    .eq('is_published', true)
     .single();
 
   if (!guide || !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {

@@ -33,9 +33,20 @@ export default async function ParcourirPage() {
     })),
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Examen civique", item: `${siteUrl}/examen-civique` },
+      { "@type": "ListItem", position: 3, name: "Parcourir les questions", item: `${siteUrl}/examen-civique/parcourir` },
+    ],
+  };
+
   return (
     <>
       <JsonLd data={faqSchema} id="civic-parcourir-faq-schema" />
+      <JsonLd data={breadcrumbSchema} id="civic-parcourir-breadcrumb" />
       <div className="sr-only">
         <p>
           Consultez gratuitement toutes les questions et réponses officielles de l'examen civique,
