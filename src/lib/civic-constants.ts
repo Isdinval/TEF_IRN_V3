@@ -7,8 +7,8 @@ export const THEMES = [
 ];
 
 export const MENTIONS = [
-  { value: "csp", label: "CSP", subtitle: "Carte de séjour pluriannuelle" },
-  { value: "cr", label: "CR", subtitle: "Carte de résident" },
+  { value: "csp", label: "Carte de séjour pluriannuelle", shortLabel: "CSP" },
+  { value: "cr", label: "Carte de résident", shortLabel: "CR" },
   { value: "naturalisation", label: "Naturalisation" },
 ];
 
@@ -31,7 +31,7 @@ export const EXAM_MISTAKES_STORAGE_KEY = "civic_exam_mistakes_v1";
 export function mentionLabel(value: string): string {
   const m = MENTIONS.find((m) => m.value === value);
   if (!m) return value;
-  return m.subtitle ? `${m.label} (${m.subtitle})` : m.label;
+  return m.shortLabel ? `${m.label} (${m.shortLabel})` : m.label;
 }
 
 export function passThresholdFor(totalQuestions: number): number {

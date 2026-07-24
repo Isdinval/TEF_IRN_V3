@@ -178,7 +178,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             Préparez votre examen civique
           </h1>
           <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-            Obligatoire depuis janvier 2026 (CSP, carte de résident, naturalisation).
+            Obligatoire depuis janvier 2026 (carte de séjour pluriannuelle, carte de résident, naturalisation).
             {filteredCount !== null && <> {filteredCount} questions officielles disponibles.</>}
           </p>
         </div>
@@ -238,12 +238,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <button
                   key={m.value}
                   onClick={() => setMention(m.value)}
-                  className={`py-3 px-3 rounded-2xl font-black text-sm transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
+                  className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
                 >
                   <div>{m.label}</div>
-                  {m.subtitle && (
+                  {m.shortLabel && (
                     <div className={`text-[9px] font-bold normal-case tracking-normal mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>
-                      {m.subtitle}
+                      ({m.shortLabel})
                     </div>
                   )}
                   <div className={`text-[9px] font-black mt-1 ${mention === m.value ? "text-white" : "text-zinc-400"}`}>
@@ -491,27 +491,27 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <DialogHeader>
             <DialogTitle>Cas particuliers et exemptions</DialogTitle>
             <DialogDescription>
-              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de carte de séjour pluriannuelle (CSP), de carte de résident ou de naturalisation par décret. Un simple <strong>renouvellement</strong> d'un titre déjà détenu n'est jamais concerné : l'examen n'est exigé qu'une seule fois, à la première obtention.
+              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation par décret. Un simple <strong>renouvellement</strong> d'un titre déjà détenu n'est jamais concerné : l'examen n'est exigé qu'une seule fois, à la première obtention.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-              <p className="text-xs font-black text-zinc-900 uppercase tracking-wide">Dispenses les plus courantes</p>
-              <ul className="text-xs text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
+              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Dispenses les plus courantes</p>
+              <ul className="text-sm text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
                 <li>Bénéficiaires de la protection internationale (réfugiés, protection subsidiaire, apatrides).</li>
                 <li>Personnes âgées de 65 ans ou plus à la date de la demande.</li>
                 <li>Ressortissants de pays liés à la France par un accord bilatéral spécifique prévoyant un régime différent (par exemple l'accord franco-algérien du 27 décembre 1968).</li>
                 <li>Situation médicale ou handicap rendant l'évaluation impossible — dispense examinée au cas par cas par l'administration, sur justificatif.</li>
               </ul>
             </div>
-            <div className="p-4 rounded-2xl bg-zinc-50 space-y-1">
-              <p className="text-xs font-black text-zinc-900 uppercase tracking-wide">Pour la naturalisation</p>
-              <p className="text-xs text-zinc-500 leading-relaxed">
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">
                 Les dispenses sont plus limitées que pour les titres de séjour : en pratique, c'est surtout la dispense médicale/handicap qui s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
               </p>
             </div>
           </div>
-          <p className="text-[10px] text-zinc-400 leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations (accords bilatéraux propres à certaines nationalités, cas mixtes...). Les règles peuvent évoluer. En cas de doute sur votre situation personnelle, vérifiez sur{" "}
             <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
               service-public.gouv.fr

@@ -20,7 +20,7 @@ const THEMES_STATIC = [
 const FAQ = [
   {
     q: "Qu'est-ce que l'examen civique ?",
-    a: "Depuis le 1er janvier 2026, toute première demande de titre de séjour pluriannuel (CSP), de carte de résident ou de naturalisation est soumise à un examen civique. Il prend la forme d'un QCM de 40 questions sur les valeurs, les institutions et l'histoire de la France.",
+    a: "Depuis le 1er janvier 2026, toute première demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation est soumise à un examen civique. Il prend la forme d'un QCM de 40 questions sur les valeurs, les institutions et l'histoire de la France.",
   },
   {
     q: "Combien de questions à l'examen civique ?",
@@ -73,7 +73,7 @@ export default async function ExamenCiviquePage() {
       */}
       <div className="sr-only">
         <p>
-          Préparez-vous gratuitement à l'examen civique (naturalisation, carte de résident, CSP)
+          Préparez-vous gratuitement à l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle)
           avec les questions officielles du Ministère de l'Intérieur. Révision adaptative,
           examens blancs chronométrés, sans inscription.
         </p>

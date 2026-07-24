@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Landmark, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { mentionLabel } from "@/lib/civic-constants";
 
 interface LastAttempt {
   score: number;
@@ -13,13 +14,6 @@ interface LastAttempt {
   passed: boolean;
   mention: string;
 }
-
-const MENTION_LABELS: Record<string, string> = {
-  naturalisation: "Naturalisation",
-  csp: "CSP",
-  cr: "CR",
-  toutes: "Toutes mentions",
-};
 
 export function CivicExamCard() {
   const router = useRouter();
@@ -84,7 +78,7 @@ export function CivicExamCard() {
                 Dernier examen blanc : {lastAttempt.score}/{lastAttempt.total_questions}
               </p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                {MENTION_LABELS[lastAttempt.mention] || lastAttempt.mention}
+                {mentionLabel(lastAttempt.mention)}
               </p>
             </div>
           </div>

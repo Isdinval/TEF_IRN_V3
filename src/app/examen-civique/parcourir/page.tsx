@@ -5,7 +5,7 @@ import { CivicCatalogue } from "./CivicCatalogue";
 export const metadata: Metadata = {
   title: "Toutes les questions de l'examen civique — Réponses & sources | LlamaKusi",
   description:
-    "Parcourez l'ensemble des questions officielles de l'examen civique (naturalisation, carte de résident, CSP) avec réponse, explication et source. Filtrez par thématique.",
+    "Parcourez l'ensemble des questions officielles de l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle) avec réponse, explication et source. Filtrez par thématique.",
   alternates: {
     canonical: `${siteUrl}/examen-civique/parcourir`,
   },
