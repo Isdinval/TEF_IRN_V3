@@ -85,6 +85,7 @@ function SidebarContent() {
         { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
         { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
         { label: "Corrections", icon: History, href: "/tef-irn/correction" },
+        { label: "Guides", icon: Sparkles, href: "/tef-irn/guides" },
       ],
     },
     {

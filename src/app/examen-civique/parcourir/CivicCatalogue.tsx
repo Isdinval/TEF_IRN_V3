@@ -1,10 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
-import { THEMES, mentionLabel } from "@/lib/civic-constants";
+import { THEMES } from "@/lib/civic-constants";
 import { getLocalMasteryMap } from "@/lib/civic-local-store";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -33,7 +32,6 @@ const STATUS_CONFIG: Record<QuestionStatus, { label: string; className: string }
 
 function CivicCatalogueContent() {
   const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
   const { mention, theme, setTheme } = useCivicContext();
 
   const [questions, setQuestions] = useState<CivicQuestion[]>([]);
@@ -92,24 +90,10 @@ function CivicCatalogueContent() {
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-4xl mx-auto px-6 py-8 lg:px-10">
         <ExerciseLayout
-          variant="compact"
-          title="Parcourir les questions"
-          badge={
-            theme !== DEFAULT_THEME
-              ? `${mentionLabel(mention)} — ${THEMES.find((t) => t.value === theme)?.label}`
-              : mentionLabel(mention)
-          }
-          badgeColor="indigo"
-          onBack={() => router.push("/examen-civique")}
+          title={<>Parcourez les <span className="text-indigo-600">questions officielles</span></>}
+          badge="Catalogue complet"
+          description="Réponse, explication et source pour chaque question, classées par thématique. Idéal pour découvrir un sujet ou vérifier une réponse."
         />
-
-        <div className="mt-6">
-          <ExerciseLayout
-            title={<>Parcourez les <span className="text-indigo-600">questions officielles</span></>}
-            badge="Catalogue complet"
-            description="Réponse, explication et source pour chaque question, classées par thématique. Idéal pour découvrir un sujet ou vérifier une réponse."
-          />
-        </div>
 
         {/* Filtre thématique — évite l'aller-retour vers le sommaire pour changer de thème */}
         <div className="flex flex-wrap gap-1.5 mt-2">

@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, Sparkles, Clock, ChevronRight, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, Filter, Sparkles, Clock, ChevronRight, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,10 +53,6 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
       {/* Hero Section */}
       <section className="bg-white border-b border-gray-100 py-16 px-6 overflow-hidden relative">
         <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          <Link href="/examen-civique" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors">
-            <ArrowLeft size={16} /> Accueil examen civique
-          </Link>
-
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
