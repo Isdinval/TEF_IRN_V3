@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { siteUrl } from "@/lib/site";
+import { getCivicQuestions } from "@/lib/civic-questions";
 import { CivicCatalogue } from "./CivicCatalogue";
 
 export const metadata: Metadata = {
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ParcourirPage() {
+export default async function ParcourirPage() {
+  const questions = await getCivicQuestions();
+
   return (
     <>
       <div className="sr-only">
@@ -20,7 +23,7 @@ export default function ParcourirPage() {
           classées par thématique, avec explication et source du Ministère de l'Intérieur.
         </p>
       </div>
-      <CivicCatalogue />
+      <CivicCatalogue initialQuestions={questions} />
     </>
   );
 }
