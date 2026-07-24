@@ -85,6 +85,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const hasDue = (dueCount ?? 0) > 0;
   const hasSeenQuestions = localStats.seen > 0;
@@ -176,6 +177,22 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     setResumableExam(null);
   };
 
+  // Fait défiler le compte à rebours affiché dans la bannière "examen en cours"
+  // (sinon il restait figé jusqu'au prochain refresh de la page).
+  useEffect(() => {
+    if (!resumableExam) return;
+    const interval = setInterval(() => {
+      const t = Date.now();
+      if (t >= resumableExam.examEndAt) {
+        window.localStorage.removeItem(EXAM_STORAGE_KEY);
+        setResumableExam(null);
+        return;
+      }
+      setNow(t);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resumableExam]);
+
   const relevantGuides = civicGuides
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
@@ -215,7 +232,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             <div>
               <p className="text-sm font-black text-amber-900">Examen blanc en cours — {mentionLabel(resumableExam.mention)}</p>
               <p className="text-xs text-amber-700 font-medium">
-                Il reste {formatTime(Math.max(0, Math.round((resumableExam.examEndAt - Date.now()) / 1000)))} avant la fin du temps imparti.
+                Il reste {formatTime(Math.max(0, Math.round((resumableExam.examEndAt - now) / 1000)))} avant la fin du temps imparti.
               </p>
             </div>
             <div className="flex gap-2">
