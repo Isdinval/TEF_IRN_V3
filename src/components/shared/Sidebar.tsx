@@ -20,7 +20,11 @@ import {
   History,
   Shield,
   Flag,
-  Landmark
+  Landmark,
+  GraduationCap,
+  ChevronDown,
+  Brain,
+  Clock
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -62,18 +66,50 @@ function SidebarContent() {
     return `${baseHref}?parcoursId=${parcoursId}`;
   };
 
-  const menuItems = [
-    { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
-    { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
-    { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
-    { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
-    { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab" },
-    { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice" },
-    { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
-    { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
-    { label: "Corrections", icon: History, href: "/tef-irn/correction" },
-    { label: "Examen Civique", icon: Landmark, href: "/examen-civique" },
+  const menuGroups = [
+    {
+      key: "tef-irn",
+      label: "TEF IRN",
+      icon: GraduationCap,
+      baseHref: "/tef-irn/dashboard",
+      activePrefix: "/tef-irn",
+      items: [
+        { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
+        { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
+        { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
+        { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
+        { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab" },
+        { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice" },
+        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
+        { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
+        { label: "Corrections", icon: History, href: "/tef-irn/correction" },
+      ],
+    },
+    {
+      key: "examen-civique",
+      label: "Examen civique",
+      icon: Landmark,
+      baseHref: "/examen-civique",
+      activePrefix: "/examen-civique",
+      items: [
+        { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir" },
+        { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement" },
+        { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc" },
+        { label: "Guides", icon: Sparkles, href: "/examen-civique/guides" },
+      ],
+    },
   ];
+
+  // Le groupe contenant la page courante s'ouvre par défaut ; l'autre reste replié.
+  // Repliage/dépliage indépendant ensuite (les deux peuvent être ouverts en même temps).
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => ({
+    "tef-irn": pathname?.startsWith("/tef-irn") ?? true,
+    "examen-civique": pathname?.startsWith("/examen-civique") ?? false,
+  }));
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const isActive = (href: string) => pathname === href;
 
@@ -93,14 +129,46 @@ function SidebarContent() {
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3 mt-4">Menu</p>
-        {menuItems.map((item) => (
-          <Link key={item.href} href={getHrefWithContext(item.href)} className={`flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${isActive(item.href) ? "bg-zinc-50 text-zinc-900 border border-zinc-100 shadow-sm" : "text-zinc-500 hover:bg-zinc-50"}`}>
-            <item.icon size={18} className={isActive(item.href) ? "text-indigo-600" : "text-zinc-400"} />
-            {item.label}
-          </Link>
-        ))}
+        {menuGroups.map((group) => {
+          const isGroupActive = pathname?.startsWith(group.activePrefix) ?? false;
+          const isOpen = openGroups[group.key];
+          return (
+            <div key={group.key} className="space-y-0.5">
+              <div className={`flex items-center rounded-xl transition-all ${isGroupActive ? "bg-zinc-50 border border-zinc-100 shadow-sm" : ""}`}>
+                <Link
+                  href={getHrefWithContext(group.baseHref)}
+                  className={`flex-1 flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl ${isGroupActive ? "text-zinc-900" : "text-zinc-500 hover:bg-zinc-50"}`}
+                >
+                  <group.icon size={18} className={isGroupActive ? "text-indigo-600" : "text-zinc-400"} />
+                  {group.label}
+                </Link>
+                <button
+                  onClick={() => toggleGroup(group.key)}
+                  aria-label={isOpen ? `Replier ${group.label}` : `Déplier ${group.label}`}
+                  className="px-3 py-2.5 text-zinc-400 hover:text-zinc-700 transition-colors"
+                >
+                  <ChevronDown size={16} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+              {isOpen && (
+                <div className="pl-4 space-y-0.5">
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={getHrefWithContext(item.href)}
+                      className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? "bg-zinc-50 text-zinc-900 border border-zinc-100 shadow-sm" : "text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      <item.icon size={16} className={isActive(item.href) ? "text-indigo-600" : "text-zinc-400"} />
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
       <div className="p-4 mt-auto border-t border-zinc-100 space-y-3 bg-zinc-50/30">
