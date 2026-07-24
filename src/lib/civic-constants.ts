@@ -12,6 +12,12 @@ export const MENTIONS = [
   { value: "naturalisation", label: "Naturalisation" },
 ];
 
+// Valeurs par défaut de la démarche/thématique sélectionnée (sommaire, /parcourir, /entrainement,
+// /examen-blanc). Défini ici (fichier server+client) plutôt que dans useCivicContext ("use client")
+// pour pouvoir générer un contenu/schema SEO cohérent depuis les Server Components.
+export const DEFAULT_MENTION = "naturalisation";
+export const DEFAULT_THEME = "Toutes";
+
 // Niveau de français CECRL requis par mention — utilisé pour personnaliser le pont vers le TEF IRN.
 export const MENTION_TO_LEVEL: Record<string, string> = {
   csp: "A2",
