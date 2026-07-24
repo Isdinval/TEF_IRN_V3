@@ -222,85 +222,100 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        {/* Votre démarche — visible en page, plus seulement en modale */}
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-              <Landmark size={12} className="text-indigo-600" /> Votre démarche
-            </p>
+        {/* Votre démarche */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
+              <Landmark size={16} className="text-indigo-600" /> Votre démarche
+            </h2>
             <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
               Cas particuliers / exemptions →
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {MENTIONS.map((m) => (
-              <button
-                key={m.value}
-                onClick={() => setMention(m.value)}
-                className={`py-3 px-3 rounded-2xl font-black text-sm transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
-              >
-                <div>{m.label}</div>
-                {m.subtitle && (
-                  <div className={`text-[9px] font-bold normal-case tracking-normal mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>
-                    {m.subtitle}
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+            <div className="grid grid-cols-3 gap-2">
+              {MENTIONS.map((m) => (
+                <button
+                  key={m.value}
+                  onClick={() => setMention(m.value)}
+                  className={`py-3 px-3 rounded-2xl font-black text-sm transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
+                >
+                  <div>{m.label}</div>
+                  {m.subtitle && (
+                    <div className={`text-[9px] font-bold normal-case tracking-normal mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>
+                      {m.subtitle}
+                    </div>
+                  )}
+                  <div className={`text-[9px] font-black mt-1 ${mention === m.value ? "text-white" : "text-zinc-400"}`}>
+                    Niveau {MENTION_TO_LEVEL[m.value]} (TEF IRN)
                   </div>
-                )}
-                <div className={`text-[9px] font-black mt-1 ${mention === m.value ? "text-white" : "text-zinc-400"}`}>
-                  Niveau {MENTION_TO_LEVEL[m.value]} (TEF IRN)
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Thématique */}
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
-          <p className="text-sm font-black text-zinc-900">Choisir une thématique</p>
-          <p className="text-xs text-zinc-500 font-medium -mt-2">
-            Filtrez les questions par thème, ou travaillez sur toutes à la fois.
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
-              <button
-                key={val}
-                onClick={() => setTheme(val)}
-                className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}
-              >
-                {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
-              </button>
-            ))}
+        <div className="space-y-2">
+          <h2 className="text-base font-black text-zinc-900 px-1">Choisir une thématique</h2>
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
+            <p className="text-xs text-zinc-500 font-medium">
+              Filtrez les questions par thème, ou travaillez sur toutes à la fois.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
+                <button
+                  key={val}
+                  onClick={() => setTheme(val)}
+                  className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}
+                >
+                  {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Progression */}
         {(hasSeenQuestions || bestScore !== null || civicStreak > 0) && (
           <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre progression</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {hasSeenQuestions && (
-                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
-                  <p className="text-xl font-black text-zinc-900">{localStats.mastered}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-0.5">Maîtrisées</p>
+            <h2 className="text-base font-black text-zinc-900 px-1">Votre progression</h2>
+            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-5">
+              {hasSeenQuestions && filteredCount !== null && filteredCount > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-sm font-black text-zinc-900">
+                      {localStats.mastered} / {filteredCount} questions maîtrisées
+                    </p>
+                    <p className="text-xs font-black text-emerald-600">
+                      {Math.round((localStats.mastered / filteredCount) * 100)}%
+                    </p>
+                  </div>
+                  <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{ width: `${Math.min(100, Math.round((localStats.mastered / filteredCount) * 100))}%` }}
+                    />
+                  </div>
                 </div>
               )}
-              {civicStreak > 0 && (
-                <div className="bg-orange-50 rounded-2xl border border-orange-100 p-4 text-center">
-                  <p className="text-xl font-black text-orange-600">🔥 {civicStreak}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-orange-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+              <div className="grid grid-cols-3 divide-x divide-zinc-100">
+                <div className="text-center px-1">
+                  <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
                 </div>
-              )}
-              {bestScore !== null && (
-                <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 text-center">
-                  <p className="text-xl font-black text-zinc-900">{bestScore}<span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span></p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+                <div className="text-center px-1">
+                  <p className="text-lg font-black text-zinc-900">
+                    {bestScore !== null ? bestScore : "—"}
+                    {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
                 </div>
-              )}
-              {hasDue && (
-                <div className="bg-indigo-50 rounded-2xl border border-indigo-100 p-4 text-center">
-                  <p className="text-xl font-black text-indigo-700">{dueCount}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">À réviser aujourd'hui</p>
+                <div className="text-center px-1">
+                  <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">À réviser</p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}
@@ -332,9 +347,11 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           {/* Parcourir — neutre, utilitaire */}
           <Link
             href={buildHref("/examen-civique/parcourir")}
-            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 transition-all group"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
           >
-            <BookOpen size={20} className="text-zinc-400 shrink-0 mt-0.5" />
+            <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+              <BookOpen size={17} className="text-zinc-500" />
+            </div>
             <div className="flex-1">
               <p className="text-sm font-black text-zinc-900">Parcourir les questions</p>
               <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
@@ -344,28 +361,29 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
           </Link>
 
-          {/* Examen blanc — axe distinct : le format réel, pas une recommandation */}
+          {/* Examen blanc — neutre aussi : seul le badge d'icône signale le format formel/chronométré */}
           <Link
             href={buildHref("/examen-civique/examen-blanc")}
-            className="bg-zinc-900 rounded-[2rem] p-5 flex items-start gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-xl pointer-events-none" />
-            <Clock size={20} className="text-zinc-300 shrink-0 mt-0.5" />
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
+              <Clock size={17} className="text-white" />
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-black text-white">Examen blanc</p>
-              <p className="text-xs text-zinc-400 font-medium mt-0.5 leading-relaxed">
+              <p className="text-sm font-black text-zinc-900">Examen blanc</p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
                 {EXAM_QUESTION_COUNT} questions, 45 minutes, conditions réelles. Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
-                {bestScore !== null && <span className="text-zinc-300"> Votre meilleur : {bestScore}/{EXAM_QUESTION_COUNT}.</span>}
+                {bestScore !== null && <span className="text-zinc-400"> Votre meilleur : {bestScore}/{EXAM_QUESTION_COUNT}.</span>}
               </p>
             </div>
-            <ArrowRight size={15} className="text-zinc-500 shrink-0 mt-1" />
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
           </Link>
         </div>
 
         {/* Historique récent */}
         {attempts.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Derniers examens blancs</p>
+            <h2 className="text-base font-black text-zinc-900 px-1">Derniers examens blancs</h2>
             <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
               {attempts.slice(0, 3).map((a) => (
                 <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
@@ -393,6 +411,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
+        {/* Séparateur — le pont TEF IRN n'est pas une étape de "Se préparer", c'est un aparté */}
+        <div className="pt-2 border-t border-zinc-200" />
+
         {/* Pont LlamaKusi — visible dès le sommaire, pas seulement en fin de session */}
         {showCTATef && (
           <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
@@ -409,15 +430,26 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        {/* Guides — pas de nouvelle route, cross-linking filtré vers /tef-irn/guides */}
+        {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
         {relevantGuides.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1 flex items-center gap-1.5">
-              <Sparkles size={12} className="text-indigo-400" /> Pour aller plus loin
-            </p>
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
+                <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
+              </h2>
+              <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                Tous les guides →
+              </Link>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {relevantGuides.map((g) => (
-                <Link key={g.slug} href={`/tef-irn/guides/${g.slug}`} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block">
+                <Link
+                  key={g.slug}
+                  href={`/tef-irn/guides/${g.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
+                >
                   <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
                   {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
                   {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
@@ -429,7 +461,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
 
         {/* FAQ */}
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Questions fréquentes</p>
+          <h2 className="text-base font-black text-zinc-900 px-1">Questions fréquentes</h2>
           <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
             {faq.map((item) => (
               <AccordionItem key={item.q} value={item.q} className="border-none">
