@@ -7,8 +7,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
 import {
-  MENTIONS,
-  THEMES,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
   EXAM_PASS_THRESHOLD,
@@ -40,7 +38,6 @@ import {
   Brain,
   Clock,
   ArrowRight,
-  Landmark,
   BookOpen,
   CheckCircle2,
   XCircle,
@@ -76,7 +73,7 @@ function formatTime(totalSeconds: number) {
 function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const supabase = useMemo(() => createClient(), []);
   const { user: currentUser } = useAuth();
-  const { mention, theme, setMention, setTheme, buildHref } = useCivicContext();
+  const { mention, theme, buildHref } = useCivicContext();
 
   const [civicStreak, setCivicStreak] = useState(0);
   const [localStats, setLocalStats] = useState({ seen: 0, mastered: 0, scheduled: 0 });
@@ -236,58 +233,15 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        {/* Votre démarche */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
-              <Landmark size={16} className="text-indigo-600" /> Votre démarche
-            </h2>
-            <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
-              Cas particuliers / exemptions →
-            </button>
-          </div>
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
-            <div className="grid grid-cols-3 gap-2">
-              {MENTIONS.map((m) => (
-                <button
-                  key={m.value}
-                  onClick={() => setMention(m.value)}
-                  className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
-                >
-                  <div>{m.label}</div>
-                  {m.shortLabel && (
-                    <div className={`text-[9px] font-bold normal-case tracking-normal mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>
-                      ({m.shortLabel})
-                    </div>
-                  )}
-                  <div className={`text-[9px] font-black mt-1 ${mention === m.value ? "text-white" : "text-zinc-400"}`}>
-                    Niveau {MENTION_TO_LEVEL[m.value]} (TEF IRN)
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Thématique */}
-        <div className="space-y-2">
-          <h2 className="text-base font-black text-zinc-900 px-1">Choisir une thématique</h2>
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-3">
-            <p className="text-xs text-zinc-500 font-medium">
-              Filtrez les questions par thème, ou travaillez sur toutes à la fois.
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
-                <button
-                  key={val}
-                  onClick={() => setTheme(val)}
-                  className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}
-                >
-                  {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Démarche — se choisit désormais sur l'écran de démarrage d'Entraînement / Examen blanc
+            (évite de la demander deux fois). Ici, juste un rappel + l'accès aux cas particuliers. */}
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-zinc-500 font-medium">
+            Démarche actuelle : <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
+          </p>
+          <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+            Cas particuliers / exemptions →
+          </button>
         </div>
 
         {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}

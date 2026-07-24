@@ -8,6 +8,7 @@ import { useCivicContext } from "@/components/features/examen-civique/useCivicCo
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
 import {
   THEMES,
+  MENTIONS,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
   EXAM_DURATION_SECONDS,
@@ -109,7 +110,7 @@ async function recordAttempt(
 function CivicExamContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const { mention } = useCivicContext();
+  const { mention, setMention } = useCivicContext();
   const showCTATef = useShowCivicTefBridge();
 
   const [phase, setPhase] = useState<ExamPhase>("loading");
@@ -409,9 +410,27 @@ function CivicExamContent() {
           <div className="space-y-2">
             <h1 className="text-xl font-black text-zinc-900 tracking-tighter">Examen blanc</h1>
             <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-              {EXAM_QUESTION_COUNT} questions officielles, mention « {mentionLabel(mention)} ». 45 minutes chronométrées en continu : vous pouvez quitter et revenir, mais le temps continue de s'écouler pendant votre absence.
+              {EXAM_QUESTION_COUNT} questions officielles. 45 minutes chronométrées en continu : vous pouvez quitter et revenir, mais le temps continue de s'écouler pendant votre absence.
               Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
             </p>
+          </div>
+
+          <div className="space-y-2 text-left">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
+            <div className="grid grid-cols-3 gap-2">
+              {MENTIONS.map((m) => (
+                <button
+                  key={m.value}
+                  onClick={() => setMention(m.value)}
+                  className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                >
+                  <div>{m.label}</div>
+                  {m.shortLabel && (
+                    <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
           {examPoolCount !== null && examPoolCount < EXAM_QUESTION_COUNT && (
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold text-left">
