@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useCivicContext } from "@/components/features/examen-civique/useCivicContext";
 import {
   BookOpen,
   PenTool,
@@ -36,6 +37,7 @@ function SidebarContent() {
   const searchParams = useSearchParams();
   const supabase = createClient();
   const { user } = useAuth();
+  const { buildHref: buildCivicHref } = useCivicContext();
 
   const parcoursId = searchParams ? searchParams.get("parcoursId") : null;
 
@@ -134,11 +136,16 @@ function SidebarContent() {
         {menuGroups.map((group) => {
           const isGroupActive = pathname?.startsWith(group.activePrefix) ?? false;
           const isOpen = openGroups[group.key];
+          // Le groupe "Examen civique" doit propager la démarche/thématique choisie par
+          // l'utilisateur (sinon un clic direct depuis la sidebar retombe sur les valeurs par
+          // défaut, différentes de celles réellement en cours). Le groupe "TEF IRN" garde le
+          // contexte parcoursId, propre à ce produit.
+          const buildItemHref = group.key === "examen-civique" ? buildCivicHref : getHrefWithContext;
           return (
             <div key={group.key} className="space-y-0.5">
               <div className={`flex items-center rounded-xl transition-all ${isGroupActive ? "bg-zinc-50 border border-zinc-100 shadow-sm" : ""}`}>
                 <Link
-                  href={getHrefWithContext(group.baseHref)}
+                  href={buildItemHref(group.baseHref)}
                   className={`flex-1 flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl ${isGroupActive ? "text-zinc-900" : "text-zinc-500 hover:bg-zinc-50"}`}
                 >
                   <group.icon size={18} className={isGroupActive ? "text-indigo-600" : "text-zinc-400"} />
@@ -157,7 +164,7 @@ function SidebarContent() {
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
-                      href={getHrefWithContext(item.href)}
+                      href={buildItemHref(item.href)}
                       className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? "bg-zinc-50 text-zinc-900 border border-zinc-100 shadow-sm" : "text-zinc-500 hover:bg-zinc-50"}`}
                     >
                       <item.icon size={16} className={isActive(item.href) ? "text-indigo-600" : "text-zinc-400"} />

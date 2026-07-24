@@ -115,21 +115,34 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     setAttempts((data as CivicExamAttempt[]) || []);
   }, [supabase]);
 
+  // "mastered" suit la même définition que dans /parcourir (consecutive_correct >= 2).
+  // Corrige un bug où localStats restait toujours lu depuis le localStorage, y compris
+  // pour un utilisateur connecté dont la vraie progression vit dans user_civic_reviews.
+  const fetchMasteryStats = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLocalStats(getLocalStats()); return; }
+    const [{ count: seenCount }, { count: masteredCount }] = await Promise.all([
+      supabase.from("user_civic_reviews").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("user_civic_reviews").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("consecutive_correct", 2),
+    ]);
+    setLocalStats({ seen: seenCount || 0, mastered: masteredCount || 0, scheduled: 0 });
+  }, [supabase]);
+
   useEffect(() => { fetchDueCount(); fetchAttempts(); }, [fetchDueCount, fetchAttempts]);
 
   useEffect(() => {
     setCivicStreak(getCivicStreakData().currentStreak);
-    setLocalStats(getLocalStats());
-  }, []);
+    fetchMasteryStats();
+  }, [fetchMasteryStats]);
 
   // Un visiteur anonyme avait de la progression locale et vient de se connecter :
   // on la bascule vers Supabase avant qu'elle ne soit silencieusement perdue.
   useEffect(() => {
     if (!currentUser || !hasLocalCivicData()) return;
     migrateLocalCivicDataToSupabase(currentUser.id)
-      .then(() => { fetchDueCount(); fetchAttempts(); setLocalStats(getLocalStats()); })
+      .then(() => { fetchDueCount(); fetchAttempts(); fetchMasteryStats(); })
       .catch((err) => console.error("Error migrating local civic data:", err));
-  }, [currentUser, fetchDueCount, fetchAttempts]);
+  }, [currentUser, fetchDueCount, fetchAttempts, fetchMasteryStats]);
 
   // Compte les questions disponibles pour la démarche + thématique sélectionnées.
   useEffect(() => {
