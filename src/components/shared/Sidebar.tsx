@@ -25,7 +25,11 @@ import {
   GraduationCap,
   ChevronDown,
   Brain,
-  Clock
+  Clock,
+  ShieldCheck,
+  Wrench,
+  Cpu,
+  HelpCircle
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -47,7 +51,7 @@ function SidebarContent() {
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, streak_count, subscription_tier')
+          .select('full_name, streak_count, subscription_tier, is_admin')
           .eq('id', user.id)
           .single();
         if (data) setProfile(data);
@@ -104,11 +108,27 @@ function SidebarContent() {
     },
   ];
 
-  // Le groupe contenant la page courante s'ouvre par défaut ; l'autre reste replié.
-  // Repliage/dépliage indépendant ensuite (les deux peuvent être ouverts en même temps).
+  if (profile?.is_admin) {
+    menuGroups.push({
+      key: "admin",
+      label: "Admin",
+      icon: ShieldCheck,
+      baseHref: "/tef-irn/admin/exercises",
+      activePrefix: "/tef-irn/admin",
+      items: [
+        { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
+        { label: "Générateur IA", icon: Cpu, href: "/tef-irn/admin/generator" },
+        { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
+      ],
+    });
+  }
+
+  // Le groupe contenant la page courante s'ouvre par défaut ; les autres restent repliés.
+  // Repliage/dépliage indépendant ensuite (plusieurs groupes peuvent être ouverts en même temps).
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => ({
-    "tef-irn": pathname?.startsWith("/tef-irn") ?? true,
+    "tef-irn": (pathname?.startsWith("/tef-irn") && !pathname?.startsWith("/tef-irn/admin")) ?? true,
     "examen-civique": pathname?.startsWith("/examen-civique") ?? false,
+    "admin": pathname?.startsWith("/tef-irn/admin") ?? false,
   }));
 
   const toggleGroup = (key: string) => {
@@ -136,7 +156,9 @@ function SidebarContent() {
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
         <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3 mt-4">Menu</p>
         {menuGroups.map((group) => {
-          const isGroupActive = pathname?.startsWith(group.activePrefix) ?? false;
+          const isGroupActive =
+            (pathname?.startsWith(group.activePrefix) ?? false) &&
+            (group.key === "tef-irn" ? !pathname?.startsWith("/tef-irn/admin") : true);
           const isOpen = openGroups[group.key];
           // Le groupe "Examen civique" doit propager la démarche/thématique choisie par
           // l'utilisateur (sinon un clic direct depuis la sidebar retombe sur les valeurs par
