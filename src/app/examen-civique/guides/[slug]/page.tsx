@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
-import GuideDetail from './GuideDetail';
+import CivicGuideDetail from './CivicGuideDetail';
 import JsonLd from '@/components/shared/JsonLd';
 import { siteUrl } from '@/lib/site';
 import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 
-export default async function GuideDetailPage(props: { params: Promise<{ slug: string }> }) {
+export default async function CivicGuideDetailPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
   const supabase = await createClient();
 
@@ -16,16 +16,17 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
     .eq('is_published', true)
     .single();
 
-  // Les guides examen civique vivent désormais sous /examen-civique/guides/[slug] —
-  // ne jamais les servir en double ici (contenu dupliqué + CTA/liens pensés pour le TEF IRN).
-  if (error || !guide || (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
+  // Un guide qui existe mais n'est pas de catégorie civique n'a rien à faire ici —
+  // sa page canonique est /tef-irn/guides/[slug].
+  if (error || !guide || !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
     notFound();
   }
 
-  // Schema Article / BlogPosting (standard 2026)
+  const url = `${siteUrl}/examen-civique/guides/${slug}`;
+
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting", // Ou "Article" si evergreen
+    "@type": "Article",
     "headline": guide.title,
     "description": guide.description,
     "image": guide.image_url ? `${siteUrl}${guide.image_url}` : `${siteUrl}/og-image.png`,
@@ -47,16 +48,16 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `${siteUrl}/tef-irn/guides/${slug}`
+      "@id": url
     },
-    "keywords": ["TEF IRN", guide.category, guide.type, "préparation examen français"].filter(Boolean),
-    "articleSection": guide.type || "Guide TEF IRN"
+    "keywords": ["examen civique", guide.category, guide.type].filter(Boolean),
+    "articleSection": guide.type || "Guide examen civique"
   };
 
   return (
     <>
-      <JsonLd data={articleSchema} id={`article-${slug}`} />
-      <GuideDetail guide={guide} />
+      <JsonLd data={articleSchema} id={`civic-article-${slug}`} />
+      <CivicGuideDetail guide={guide} />
     </>
   );
 }

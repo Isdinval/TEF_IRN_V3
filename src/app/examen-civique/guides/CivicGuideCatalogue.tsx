@@ -55,7 +55,7 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
             {filteredGuides.map((g) => (
               <Link
                 key={g.slug}
-                href={`/tef-irn/guides/${g.slug}`}
+                href={`/examen-civique/guides/${g.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-5 hover:border-indigo-200 hover:shadow-md transition-all block group"

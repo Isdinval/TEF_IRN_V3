@@ -460,7 +460,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               {relevantGuides.map((g) => (
                 <Link
                   key={g.slug}
-                  href={`/tef-irn/guides/${g.slug}`}
+                  href={`/examen-civique/guides/${g.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"

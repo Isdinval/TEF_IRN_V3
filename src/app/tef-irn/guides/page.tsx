@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import GuidesList from './GuidesList';
 import JsonLd from '@/components/shared/JsonLd';
 import { siteUrl } from '@/lib/site';
+import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 
 export default async function GuidesPage() {
   const supabase = await createClient();
@@ -15,7 +16,11 @@ export default async function GuidesPage() {
     console.error('Error fetching guides:', error);
   }
 
-  const guides = data || [];
+  // Les guides examen civique ont leur propre catalogue (/examen-civique/guides) —
+  // ne pas les dupliquer ici, avec des liens et CTA pensés pour le TEF IRN.
+  const guides = (data || []).filter(
+    (g) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category)
+  );
   const guidesUrl = `${siteUrl}/tef-irn/guides`;
 
   const collectionSchema = {
