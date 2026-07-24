@@ -504,6 +504,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             </a>{" "}
             ou avec votre préfecture.
           </p>
+          <Link href="/examen-civique/eligibilite" className="block text-sm font-black text-indigo-600 hover:underline">
+            Faire le test d'éligibilité complet →
+          </Link>
           <DialogFooter>
             <Button onClick={() => setMentionHelpOpen(false)} className="bg-zinc-900 text-white rounded-2xl font-black text-sm">
               Compris

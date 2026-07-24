@@ -1,0 +1,87 @@
+import { Metadata } from "next";
+import { siteUrl } from "@/lib/site";
+import JsonLd from "@/components/shared/JsonLd";
+import { CivicEligibility } from "./CivicEligibility";
+
+export const metadata: Metadata = {
+  title: "Suis-je concerné par l'examen civique ? Test d'éligibilité | LlamaKusi",
+  description:
+    "Vérifiez en 3 questions si vous devez passer l'examen civique pour votre carte de séjour pluriannuelle, votre carte de résident ou votre naturalisation, et si vous pouvez en être dispensé.",
+  alternates: {
+    canonical: `${siteUrl}/examen-civique/eligibilite`,
+  },
+  openGraph: {
+    title: "Suis-je concerné par l'examen civique ? Test d'éligibilité",
+    description:
+      "Répondez à 3 questions pour savoir si l'examen civique est obligatoire dans votre situation, ou si vous pouvez en être dispensé.",
+    url: `${siteUrl}/examen-civique/eligibilite`,
+    type: "website",
+    images: [
+      {
+        url: `${siteUrl}/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "LlamaKusi — Test d'éligibilité à l'examen civique",
+      },
+    ],
+  },
+  keywords: [
+    "suis-je concerné examen civique",
+    "dispense examen civique",
+    "examen civique obligatoire ou pas",
+    "éligibilité examen civique 2026",
+    "exemption examen civique naturalisation",
+  ],
+};
+
+const faqItems = [
+  {
+    q: "Qui doit passer l'examen civique ?",
+    a: "Depuis le 1er janvier 2026, toute personne effectuant une première demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation par décret doit présenter une attestation de réussite à l'examen civique.",
+  },
+  {
+    q: "Le renouvellement d'un titre de séjour est-il concerné ?",
+    a: "Non. L'examen civique n'est exigé qu'une seule fois, au moment de la toute première obtention du titre. Un simple renouvellement d'un titre déjà détenu n'est jamais concerné.",
+  },
+  {
+    q: "Qui peut être dispensé de l'examen civique ?",
+    a: "Les dispenses les plus courantes concernent les bénéficiaires de la protection internationale (réfugiés, protection subsidiaire, apatrides), les personnes de 65 ans ou plus, certains ressortissants couverts par un accord bilatéral spécifique, et les situations médicales ou de handicap rendant l'évaluation impossible, examinées au cas par cas sur justificatif.",
+  },
+  {
+    q: "Ce test d'éligibilité a-t-il une valeur officielle ?",
+    a: "Non, ce test est un outil d'orientation qui couvre les cas les plus fréquents. Il ne remplace pas une vérification auprès de votre préfecture ou sur service-public.gouv.fr, seules autorités compétentes pour statuer sur votre situation personnelle.",
+  },
+];
+
+export default function EligibilitePage() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Examen civique", item: `${siteUrl}/examen-civique` },
+      { "@type": "ListItem", position: 3, name: "Éligibilité", item: `${siteUrl}/examen-civique/eligibilite` },
+    ],
+  };
+
+  return (
+    <>
+      <JsonLd data={faqSchema} id="civic-eligibilite-faq-schema" />
+      <JsonLd data={breadcrumbSchema} id="civic-eligibilite-breadcrumb" />
+      <CivicEligibility faqItems={faqItems} />
+    </>
+  );
+}
