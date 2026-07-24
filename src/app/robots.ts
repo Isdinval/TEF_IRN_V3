@@ -30,6 +30,7 @@ export default function robots(): MetadataRoute.Robots {
           '/tef-irn/settings',
           '/tef-irn/profile',
           '/tef-irn/lessons/*/complete',
+          '/sitemap-debug',
         ],
       },
 

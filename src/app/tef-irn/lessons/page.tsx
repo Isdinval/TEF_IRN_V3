@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import LessonsList from './LessonsList';
 import { Metadata } from 'next';
 import { siteUrl } from '@/lib/site';
-import Script from 'next/script';
+import JsonLd from '@/components/shared/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Catalogue des Leçons TEF IRN - Grammaire, Vocabulaire, Expression',
@@ -78,16 +78,8 @@ export default async function LessonsPage() {
 
   return (
     <>
-      <Script
-        id="lessons-list-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
-      />
-      <Script
-        id="lessons-breadcrumb-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <JsonLd data={itemListSchema} id="lessons-list-schema" />
+      <JsonLd data={breadcrumbSchema} id="lessons-breadcrumb-schema" />
       <LessonsList
         lessons={lessonsData}
         completedLessonIds={completedIds}

@@ -5,22 +5,11 @@ import { createClient } from "@/lib/supabase";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { THEMES } from "@/lib/civic-constants";
 import { getLocalMasteryMap } from "@/lib/civic-local-store";
+import type { CivicQuestion } from "@/lib/civic-questions";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
-
-interface CivicQuestion {
-  id: string;
-  theme: string;
-  mentions: string[];
-  question: string;
-  options: string[];
-  correct_answer: string;
-  explanation: string | null;
-  source_ref: string | null;
-  source_url: string | null;
-}
 
 type QuestionStatus = "new" | "learning" | "mastered";
 
@@ -30,56 +19,42 @@ const STATUS_CONFIG: Record<QuestionStatus, { label: string; className: string }
   mastered: { label: "Maîtrisé", className: "bg-emerald-50 text-emerald-600" },
 };
 
-function CivicCatalogueContent() {
+function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQuestion[] }) {
   const supabase = useMemo(() => createClient(), []);
   const { mention, theme, setTheme } = useCivicContext();
 
-  const [questions, setQuestions] = useState<CivicQuestion[]>([]);
   const [status, setStatus] = useState<Record<string, QuestionStatus>>({});
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Les questions sont déjà chargées côté serveur (toutes démarches/thématiques confondues) —
+  // le filtre mention/thème se fait ici en mémoire, sans nouvel aller-retour réseau.
+  const questions = useMemo(
+    () => initialQuestions.filter((q) => q.mentions.includes(mention) && (theme === DEFAULT_THEME || q.theme === theme)),
+    [initialQuestions, mention, theme]
+  );
 
   useEffect(() => {
     let active = true;
     (async () => {
-      setLoading(true);
-      setErrorMsg(null);
-      try {
-        let query = supabase.from("civic_questions").select("*").order("theme");
-        query = query.contains("mentions", [mention]);
-        if (theme !== DEFAULT_THEME) query = query.eq("theme", theme);
-        const { data, error } = await query;
-        if (error) throw error;
-
-        const questionsData = (data as CivicQuestion[]) || [];
-        if (!active) return;
-        setQuestions(questionsData);
-
-        const { data: { user } } = await supabase.auth.getUser();
-        const statusMap: Record<string, QuestionStatus> = {};
-        if (user && questionsData.length > 0) {
-          const { data: reviews } = await supabase
-            .from("user_civic_reviews")
-            .select("question_id, consecutive_correct")
-            .eq("user_id", user.id)
-            .in("question_id", questionsData.map((q) => q.id));
-          (reviews || []).forEach((r: { question_id: string; consecutive_correct: number | null }) => {
-            statusMap[r.question_id] = (r.consecutive_correct || 0) >= 2 ? "mastered" : "learning";
-          });
-        } else if (!user && questionsData.length > 0) {
-          const localMap = getLocalMasteryMap();
-          questionsData.forEach((q) => { if (localMap[q.id]) statusMap[q.id] = localMap[q.id]; });
-        }
-        if (active) setStatus(statusMap);
-      } catch (err) {
-        console.error("Error loading civic catalogue:", err);
-        if (active) setErrorMsg("Impossible de charger le catalogue. Réessayez.");
-      } finally {
-        if (active) setLoading(false);
+      if (questions.length === 0) { setStatus({}); return; }
+      const { data: { user } } = await supabase.auth.getUser();
+      const statusMap: Record<string, QuestionStatus> = {};
+      if (user) {
+        const { data: reviews } = await supabase
+          .from("user_civic_reviews")
+          .select("question_id, consecutive_correct")
+          .eq("user_id", user.id)
+          .in("question_id", questions.map((q) => q.id));
+        (reviews || []).forEach((r: { question_id: string; consecutive_correct: number | null }) => {
+          statusMap[r.question_id] = (r.consecutive_correct || 0) >= 2 ? "mastered" : "learning";
+        });
+      } else {
+        const localMap = getLocalMasteryMap();
+        questions.forEach((q) => { if (localMap[q.id]) statusMap[q.id] = localMap[q.id]; });
       }
+      if (active) setStatus(statusMap);
     })();
     return () => { active = false; };
-  }, [mention, theme, supabase]);
+  }, [questions, supabase]);
 
   const groupedByTheme = THEMES.map((t) => ({
     theme: t,
@@ -108,25 +83,13 @@ function CivicCatalogueContent() {
           ))}
         </div>
 
-        {loading && (
-          <div className="mt-8 p-12 flex justify-center">
-            <Loader2 className="animate-spin text-indigo-600" size={32} />
-          </div>
-        )}
-
-        {!loading && errorMsg && (
-          <div className="mt-8 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold">
-            {errorMsg}
-          </div>
-        )}
-
-        {!loading && !errorMsg && questions.length === 0 && (
+        {questions.length === 0 && (
           <div className="mt-8 p-12 text-center border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-zinc-400 font-bold text-sm">
             Aucune question ne correspond à ces filtres.
           </div>
         )}
 
-        {!loading && !errorMsg && questions.length > 0 && (
+        {questions.length > 0 && (
           <div className="mt-6 space-y-8">
             {groupedByTheme.map((group) => (
               <section key={group.theme.value}>
@@ -149,7 +112,10 @@ function CivicCatalogueContent() {
                             <span className="text-sm font-bold text-zinc-800">{q.question}</span>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-5 space-y-3 pl-1">
+                        {/* hiddenUntilFound (plutôt que le défaut, qui démonte le panneau fermé du DOM) :
+                            garde la réponse/explication dans le HTML même repliée — visible par les
+                            crawlers qui n'exécutent pas de JS, et compatible avec le Ctrl+F du navigateur. */}
+                        <AccordionContent className="pb-5 space-y-3 pl-1" hiddenUntilFound>
                           <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
                             {q.correct_answer}
                           </div>
@@ -173,10 +139,10 @@ function CivicCatalogueContent() {
   );
 }
 
-export function CivicCatalogue() {
+export function CivicCatalogue({ initialQuestions }: { initialQuestions: CivicQuestion[] }) {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
-      <CivicCatalogueContent />
+      <CivicCatalogueContent initialQuestions={initialQuestions} />
     </Suspense>
   );
 }

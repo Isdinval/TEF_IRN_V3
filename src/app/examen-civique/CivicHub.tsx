@@ -463,7 +463,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <AccordionTrigger className="hover:no-underline py-4 gap-4">
                   <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
                 </AccordionTrigger>
-                <AccordionContent className="pb-5 pl-0">
+                <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
                   <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
                 </AccordionContent>
               </AccordionItem>

@@ -54,9 +54,21 @@ export default async function CivicGuideDetailPage(props: { params: Promise<{ sl
     "articleSection": guide.type || "Guide examen civique"
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Examen civique", item: `${siteUrl}/examen-civique` },
+      { "@type": "ListItem", position: 3, name: "Guides", item: `${siteUrl}/examen-civique/guides` },
+      { "@type": "ListItem", position: 4, name: guide.title, item: url },
+    ],
+  };
+
   return (
     <>
       <JsonLd data={articleSchema} id={`civic-article-${slug}`} />
+      <JsonLd data={breadcrumbSchema} id={`civic-guide-breadcrumb-${slug}`} />
       <CivicGuideDetail guide={guide} />
     </>
   );

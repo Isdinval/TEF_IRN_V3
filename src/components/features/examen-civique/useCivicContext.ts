@@ -2,12 +2,14 @@
 
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+// DEFAULT_MENTION/DEFAULT_THEME vivent dans civic-constants.ts (partagé server+client) pour
+// pouvoir être réutilisées depuis des Server Components (ex: schema JSON-LD sur /parcourir).
+import { DEFAULT_MENTION, DEFAULT_THEME } from "@/lib/civic-constants";
 
 const MENTION_STORAGE_KEY = "civic_mention_v1";
 const THEME_STORAGE_KEY = "civic_theme_v1";
 
-export const DEFAULT_MENTION = "naturalisation";
-export const DEFAULT_THEME = "Toutes";
+export { DEFAULT_MENTION, DEFAULT_THEME };
 
 /**
  * Source unique de vérité pour la démarche (mention) et la thématique choisies par
