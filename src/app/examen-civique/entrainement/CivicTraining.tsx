@@ -14,7 +14,7 @@ import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Trophy, ArrowRight, CheckCircle2, XCircle, Brain } from "lucide-react";
+import { Loader2, Trophy, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 
 interface CivicQuestion {
   id: string;
@@ -243,90 +243,88 @@ function CivicTrainingContent() {
   // === CONFIGURATION (avant démarrage) — toujours affiché sauf pour le mode "erreurs" ===
   if (!started) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
-        <div className="max-w-md w-full space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 bg-indigo-600 rounded-[1.5rem] mx-auto flex items-center justify-center text-white">
-              <Brain size={28} />
-            </div>
-            <h1 className="text-xl font-black text-zinc-900 tracking-tighter">S'entraîner</h1>
-            <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-              Vérifiez votre démarche et votre thématique avant de commencer.
-            </p>
-          </div>
+      <div className="min-h-screen bg-zinc-50 p-6">
+        <div className="max-w-xl mx-auto">
+          <ExerciseLayout
+            title={<>Vérifiez votre <span className="text-indigo-600">sélection</span></>}
+            badge="S'entraîner"
+            description="Confirmez votre démarche et votre thématique avant de commencer."
+          >
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {MENTIONS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => setMention(m.value)}
+                      className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      <div>{m.label}</div>
+                      {m.shortLabel && (
+                        <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
-            <div className="grid grid-cols-3 gap-2">
-              {MENTIONS.map((m) => (
-                <button
-                  key={m.value}
-                  onClick={() => setMention(m.value)}
-                  className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Thématique</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setTheme(val)}
+                      className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                    >
+                      {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Mode</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setActiveMode("apprendre")}
+                    className={`h-11 rounded-2xl font-black text-sm transition-all ${activeMode === "apprendre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                  >
+                    Apprendre
+                  </button>
+                  <button
+                    onClick={() => hasDue && setActiveMode("memoriser")}
+                    disabled={!hasDue}
+                    className={`h-11 rounded-2xl font-black text-sm transition-all ${
+                      !hasDue ? "bg-zinc-100 text-zinc-300 cursor-not-allowed" : activeMode === "memoriser" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"
+                    }`}
+                  >
+                    Mémoriser{hasDue ? ` (${dueCount})` : ""}
+                  </button>
+                </div>
+              </div>
+
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => { setStarted(true); startTraining(activeMode === "memoriser"); }}
+                  disabled={loading}
+                  className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
                 >
-                  <div>{m.label}</div>
-                  {m.shortLabel && (
-                    <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
-                  )}
-                </button>
-              ))}
+                  {loading ? <Loader2 className="animate-spin" size={18} /> : <>Commencer <ArrowRight className="ml-2" size={16} /></>}
+                </Button>
+                <Link href="/examen-civique">
+                  <Button variant="secondary" className="w-full h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
+                    Retour à l'accueil
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Thématique</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
-                <button
-                  key={val}
-                  onClick={() => setTheme(val)}
-                  className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
-                >
-                  {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Mode</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setActiveMode("apprendre")}
-                className={`h-11 rounded-2xl font-black text-sm transition-all ${activeMode === "apprendre" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
-              >
-                Apprendre
-              </button>
-              <button
-                onClick={() => hasDue && setActiveMode("memoriser")}
-                disabled={!hasDue}
-                className={`h-11 rounded-2xl font-black text-sm transition-all ${
-                  !hasDue ? "bg-zinc-100 text-zinc-300 cursor-not-allowed" : activeMode === "memoriser" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"
-                }`}
-              >
-                Mémoriser{hasDue ? ` (${dueCount})` : ""}
-              </button>
-            </div>
-          </div>
-
-          {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={() => { setStarted(true); startTraining(activeMode === "memoriser"); }}
-              disabled={loading}
-              className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
-            >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : <>Commencer <ArrowRight className="ml-2" size={16} /></>}
-            </Button>
-            <Link href="/examen-civique">
-              <Button variant="secondary" className="w-full h-12 bg-zinc-100 text-zinc-600 rounded-2xl font-black text-sm">
-                Retour à l'accueil
-              </Button>
-            </Link>
-          </div>
+          </ExerciseLayout>
         </div>
       </div>
     );

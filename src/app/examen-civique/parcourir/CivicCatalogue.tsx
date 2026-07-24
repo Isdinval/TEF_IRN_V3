@@ -103,8 +103,16 @@ function CivicCatalogueContent() {
           onBack={() => router.push("/examen-civique")}
         />
 
+        <div className="mt-6">
+          <ExerciseLayout
+            title={<>Parcourez les <span className="text-indigo-600">questions officielles</span></>}
+            badge="Catalogue complet"
+            description="Réponse, explication et source pour chaque question, classées par thématique. Idéal pour découvrir un sujet ou vérifier une réponse."
+          />
+        </div>
+
         {/* Filtre thématique — évite l'aller-retour vers le sommaire pour changer de thème */}
-        <div className="flex flex-wrap gap-1.5 mt-6">
+        <div className="flex flex-wrap gap-1.5 mt-2">
           {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
             <button
               key={val}

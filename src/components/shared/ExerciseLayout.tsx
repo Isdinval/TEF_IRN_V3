@@ -7,7 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExerciseLayoutProps {
-  title: string;
+  title: React.ReactNode;
   badge: string;
   description?: string;
   variant?: "full" | "compact";

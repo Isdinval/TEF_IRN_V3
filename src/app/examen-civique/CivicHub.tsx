@@ -22,6 +22,7 @@ import {
   hasLocalCivicData,
   migrateLocalCivicDataToSupabase,
 } from "@/lib/civic-local-store";
+import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -183,35 +184,30 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-2xl mx-auto px-5 py-8 lg:px-6 space-y-6">
 
-        {/* En-tête */}
-        <div className="space-y-1">
-          <h1 className="text-2xl font-black text-zinc-900 tracking-tighter leading-tight">
-            Préparez votre examen civique
-          </h1>
-          <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-            Obligatoire depuis janvier 2026 (carte de séjour pluriannuelle, carte de résident, naturalisation).
-            {filteredCount !== null && <> {filteredCount} questions officielles disponibles.</>}
-          </p>
-        </div>
-
-        {/* Réassurance */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🆓</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
+        <ExerciseLayout
+          title={<>Préparez votre <span className="text-indigo-600">examen civique</span></>}
+          badge="100 % gratuit"
+          description={`Obligatoire depuis janvier 2026 (carte de séjour pluriannuelle, carte de résident, naturalisation).${filteredCount !== null ? ` ${filteredCount} questions officielles disponibles.` : ""}`}
+        >
+          {/* Réassurance */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🆓</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🏛️</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🧠</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🏛️</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🧠</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
-          </div>
-        </div>
+        </ExerciseLayout>
 
         {/* Bannière examen interrompu */}
         {resumableExam && (

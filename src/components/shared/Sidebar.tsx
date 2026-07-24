@@ -94,6 +94,7 @@ function SidebarContent() {
       baseHref: "/examen-civique",
       activePrefix: "/examen-civique",
       items: [
+        { label: "Tableau de bord", icon: Landmark, href: "/examen-civique" },
         { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir" },
         { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement" },
         { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc" },
