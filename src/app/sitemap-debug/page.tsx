@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
-import { ShieldAlert } from 'lucide-react';
 import { createClient } from '@/lib/supabase-server';
 import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
+import { AdminGuardScreen } from '@/components/shared/AdminGuardScreen';
 import { SitemapDebugClient } from './SitemapDebugClient';
 
 // Page de debug interne — jamais destinée aux visiteurs ni aux moteurs de recherche.
@@ -12,24 +12,14 @@ export const metadata: Metadata = {
   },
 };
 
-function AccessDenied() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center p-8">
-      <ShieldAlert className="text-rose-500" size={48} />
-      <h1 className="text-xl font-black text-zinc-900">Accès réservé aux administrateurs</h1>
-      <p className="text-sm text-zinc-500">Cette page nécessite un compte marqué comme administrateur (profiles.is_admin).</p>
-    </div>
-  );
-}
-
 export default async function SitemapDebug() {
   const supabase = await createClient();
 
   // Vrai contrôle serveur (pas juste RLS) — même pattern que /api/admin/generate-exercise.
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return <AccessDenied />;
+  if (!user) return <AdminGuardScreen state="denied" />;
   const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
-  if (!profile?.is_admin) return <AccessDenied />;
+  if (!profile?.is_admin) return <AdminGuardScreen state="denied" />;
 
   // === Vue d'ensemble : comptages par table de contenu ===
   // Note : lessons n'a pas de colonne de publication (confirmé par le schéma SQL) — total
