@@ -43,6 +43,7 @@ import {
   CheckCircle2,
   XCircle,
   Sparkles,
+  MapPin,
 } from "lucide-react";
 import type { Guide } from "@/types/guides";
 
@@ -364,6 +365,23 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
                 {EXAM_QUESTION_COUNT} questions, 45 minutes, conditions réelles. Seuil de réussite : {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
                 {bestScore !== null && <span className="text-zinc-400"> Votre meilleur : {bestScore}/{EXAM_QUESTION_COUNT}.</span>}
+              </p>
+            </div>
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
+          </Link>
+
+          {/* Centres d'examen — utilitaire, pas de contexte démarche/thème à propager */}
+          <Link
+            href="/examen-civique/centres"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+              <MapPin size={17} className="text-zinc-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-black text-zinc-900">Trouver un centre d&apos;examen</p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                Centres agréés CCI près de chez vous, avec adresse et contact direct.
               </p>
             </div>
             <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
