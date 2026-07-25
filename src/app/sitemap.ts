@@ -88,6 +88,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.85,
     },
+    {
+      url: `${siteUrl}/examen-civique/centres`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    },
     // /examen-civique/entrainement et /examen-blanc sont volontairement absents :
     // pages d'exercice pur (robots noindex), pas de contenu propre à indexer.
     { url: `${rootPath}/lessons`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },

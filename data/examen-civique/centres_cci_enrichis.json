@@ -1,0 +1,4218 @@
+[
+  {
+    "tc_id": 1046,
+    "center_id": null,
+    "nom": "LA TECHNIQUE",
+    "adresse": "3 AVENUE CHARLES DE GAULLE , 94470, BOISSY - SAINT-LÉGER",
+    "latitude": 48.7526876,
+    "longitude": 2.499449,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1046",
+    "email": "latechniquef@gmail.com",
+    "telephone": "+33 6 08 66 93 39",
+    "site_web": null
+  },
+  {
+    "tc_id": 933,
+    "center_id": null,
+    "nom": "EMPLOI SERVICES FORMATION (ESF_ PARIS)",
+    "adresse": "65/67 Rue d'Hautpoul , 75019, PARIS",
+    "latitude": 48.8857816,
+    "longitude": 2.3868195,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/933",
+    "email": "examencivique@esf-formation.fr",
+    "telephone": "+33 3 21 15 15 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 850,
+    "center_id": null,
+    "nom": "ALZER",
+    "adresse": "18 place des Nymphéas, HQ Tropical Centre., 93420, Villepinte",
+    "latitude": 48.973858,
+    "longitude": 2.510726,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/850",
+    "email": null,
+    "telephone": "0644600865",
+    "site_web": null
+  },
+  {
+    "tc_id": 851,
+    "center_id": null,
+    "nom": "ALZER",
+    "adresse": "Tour Europa - Avenue de l’Europe - 6ème étage, 94320, Thiais",
+    "latitude": 48.7572509,
+    "longitude": 2.3691163,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/851",
+    "email": null,
+    "telephone": "0644600865",
+    "site_web": null
+  },
+  {
+    "tc_id": 666,
+    "center_id": null,
+    "nom": "SEA TRAINING",
+    "adresse": "73, boulevard de Bezons, 78500, SARTROUVILLE",
+    "latitude": 48.943186,
+    "longitude": 2.1805545,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/666",
+    "email": "contact@seatraining.fr",
+    "telephone": "+33 9 81 95 80 29",
+    "site_web": null
+  },
+  {
+    "tc_id": 248,
+    "center_id": null,
+    "nom": "ASPLEF",
+    "adresse": "52 boulevard de Magenta, 75010, PARIS",
+    "latitude": 48.8730739,
+    "longitude": 2.3591742,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/248",
+    "email": "examens@asplef.com",
+    "telephone": "+33 1 48 87 62 26",
+    "site_web": null
+  },
+  {
+    "tc_id": 858,
+    "center_id": null,
+    "nom": "FARBEE_BY_LEGALUNITE FRANCE",
+    "adresse": "18 Terrasse Bellini, 92800, Puteaux, La Défense",
+    "latitude": 48.886922,
+    "longitude": 2.2509439,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/858",
+    "email": "contact@farbee.fr",
+    "telephone": "+33 1 87 66 15 04",
+    "site_web": null
+  },
+  {
+    "tc_id": 585,
+    "center_id": null,
+    "nom": "INTERNATIONAL HOUSE - NANCY COEUR D'EUROPE",
+    "adresse": "15 RUE STE CATHERINE , 54100, NANCY",
+    "latitude": 48.6945242,
+    "longitude": 6.1862774,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/585",
+    "email": "b.perot@ihnancy.com",
+    "telephone": "+33 6 25 58 93 52",
+    "site_web": null
+  },
+  {
+    "tc_id": 624,
+    "center_id": null,
+    "nom": "MÉDITERRANÉE FORMATION",
+    "adresse": "51 rue Alexandre Blanc, 84000, AVIGNON",
+    "latitude": 43.939591,
+    "longitude": 4.821579,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/624",
+    "email": "medfo@medfo.fr",
+    "telephone": "+33 4 32 75 13 20",
+    "site_web": null
+  },
+  {
+    "tc_id": 365,
+    "center_id": null,
+    "nom": "CLOUD COM 97",
+    "adresse": "Lot 16 Les Jardins de Bellevue , 97150, SAINT-MARTIN - MARIGOT",
+    "latitude": 18.0814066,
+    "longitude": -63.0467131,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/365",
+    "email": "contact@cloudcom97.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1056,
+    "center_id": null,
+    "nom": "FARBEE_BY_LEGALUNITE FRANCE",
+    "adresse": "140/142 boulevard Macdonald, 75019, PORTE DE LA VILLETTE",
+    "latitude": 48.8986316,
+    "longitude": 2.3844458,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1056",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 415,
+    "center_id": null,
+    "nom": "C-FIL STRASBOURG",
+    "adresse": "20 Rue d'Agen, 68000, COLMAR",
+    "latitude": 48.0860761,
+    "longitude": 7.3544108,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/415",
+    "email": "f.adami@c-filfrance.com",
+    "telephone": "+33 7 77 93 75 10",
+    "site_web": null
+  },
+  {
+    "tc_id": 771,
+    "center_id": null,
+    "nom": "ZD ACADEMY",
+    "adresse": "2 boulevard Albert 1er, 94130, NOGENT-SUR-MARNE",
+    "latitude": 48.8378524,
+    "longitude": 2.4935692,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/771",
+    "email": "contact.zdacademy@gmail.com",
+    "telephone": "+33 6 51 40 15 15",
+    "site_web": null
+  },
+  {
+    "tc_id": 782,
+    "center_id": null,
+    "nom": "CLE",
+    "adresse": "44 RUE BERNARD PALISSY, 37000, TOURS",
+    "latitude": 47.3925058,
+    "longitude": 0.6936126,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/782",
+    "email": "contact@cle.fr",
+    "telephone": "+33 2 47 64 06 19",
+    "site_web": null
+  },
+  {
+    "tc_id": 1088,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - AMBÉRIEUX EN BUGEY",
+    "adresse": "14 Rue Marius Berliet , 01500 , AMBÉRIEUX EN BUGEY",
+    "latitude": 45.9689629,
+    "longitude": 5.3422651,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1088",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 800 11 02 54",
+    "site_web": null
+  },
+  {
+    "tc_id": 467,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - CHALON-SUR-SAÔNE ",
+    "adresse": "1 avenue de Verdun, 71100, CHALON-SUR-SAONE",
+    "latitude": 46.7768025,
+    "longitude": 4.8537843,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/467",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 468,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - CHAMBÉRY",
+    "adresse": "1125 Av. de la Boisse, 73011, CHAMBÉRY",
+    "latitude": 45.58001,
+    "longitude": 5.912409,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/468",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 469,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - ÉCHIROLLES",
+    "adresse": "11 Rue Clément Ader, 38130, ÉCHIROLLES",
+    "latitude": 45.1360401,
+    "longitude": 5.7138063,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/469",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 473,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - VAULX-EN-VELIN ",
+    "adresse": "15 rue Emile Zola, 69120, VAULX-EN-VELIN",
+    "latitude": 45.7777768,
+    "longitude": 4.9180438,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/473",
+    "email": "certification-fle@ifra.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 471,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - SAINT-CHAMOND",
+    "adresse": "59 rue Maurice Bonnevialle, 42400, SAINT-CHAMOND",
+    "latitude": 45.4700501,
+    "longitude": 4.5092513,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/471",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 472,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - VALENCE",
+    "adresse": "1 passage de l'argonne, 26000, VALENCE",
+    "latitude": 44.9340134,
+    "longitude": 4.8976517,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/472",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 876,
+    "center_id": null,
+    "nom": "MYSTORY",
+    "adresse": "3 bis avenue de gagny, 93220, GAGNY",
+    "latitude": 48.88808,
+    "longitude": 2.523359,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/876",
+    "email": "arudhan@mystoryformation.fr",
+    "telephone": "+33 6 81 43 16 54",
+    "site_web": null
+  },
+  {
+    "tc_id": 1080,
+    "center_id": null,
+    "nom": "ASLY FORMATION-COLOMBES",
+    "adresse": "56 avenue de l'Agent Sarre, 92700, COLOMBES",
+    "latitude": 48.9243825,
+    "longitude": 2.2642329,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1080",
+    "email": "contact@aslyformation.fr",
+    "telephone": "+33 6 09 38 54 60",
+    "site_web": null
+  },
+  {
+    "tc_id": 610,
+    "center_id": null,
+    "nom": "ETOILE INSTITUT DE LANGUE",
+    "adresse": "38, boulevard Raspail, 75007, PARIS",
+    "latitude": 48.8525689,
+    "longitude": 2.326323,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/610",
+    "email": "contact@etoilecertifications.com",
+    "telephone": "+33 9 72 31 32 66",
+    "site_web": null
+  },
+  {
+    "tc_id": 14,
+    "center_id": null,
+    "nom": "ACIFE",
+    "adresse": "44 rue Louveau, 92320, CHÂTILLON",
+    "latitude": 48.803165,
+    "longitude": 2.2954,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/14",
+    "email": "cstable@acife.org",
+    "telephone": "+33 1 47 46 04 12",
+    "site_web": null
+  },
+  {
+    "tc_id": 831,
+    "center_id": null,
+    "nom": "CREPT FORMATION",
+    "adresse": "130 rue Henri Desbals, 31100, TOULOUSE",
+    "latitude": 43.580566,
+    "longitude": 1.4129282,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/831",
+    "email": "contact@crept-formation.com",
+    "telephone": "+33 5 62 72 93 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 482,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "13 RUE MICHEL LABROUSSE, 31100, TOULOUSE",
+    "latitude": 43.5684509,
+    "longitude": 1.3864213,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/482",
+    "email": "occitanie.ec@leolagrange-formation.fr",
+    "telephone": "+33 4 67 12 17 85",
+    "site_web": null
+  },
+  {
+    "tc_id": 1081,
+    "center_id": null,
+    "nom": "ASLY FORMATION-MAYOTTE",
+    "adresse": "53 bd des Amoureux , 97615, DZAOUDZI",
+    "latitude": -12.786894,
+    "longitude": 45.278969,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1081",
+    "email": "contact.mayotte@aslyformation.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 865,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "7 rue de Dijon, 06000, Nice",
+    "latitude": 43.7069049,
+    "longitude": 7.2627898,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/865",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 24,
+    "center_id": null,
+    "nom": "ALIP",
+    "adresse": "27 rue Ginoux, 75015, PARIS",
+    "latitude": 48.8474964,
+    "longitude": 2.2887017,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/24",
+    "email": "info@alipfrance.com",
+    "telephone": "+33 1 58 01 00 61",
+    "site_web": null
+  },
+  {
+    "tc_id": 282,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "202 Avenue de Colmar, 67100, STRASBOURG",
+    "latitude": 48.5576075,
+    "longitude": 7.7477045,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/282",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1015,
+    "center_id": null,
+    "nom": "ÉDUCATION ET FORMATION -  LE HAVRE",
+    "adresse": "68, boulevard Jules Durand, 76600, LE HAVRE",
+    "latitude": 49.4893093,
+    "longitude": 0.1558432,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1015",
+    "email": "contact.lehavre@educationetformation.fr",
+    "telephone": "+33 2 76 51 76 30",
+    "site_web": null
+  },
+  {
+    "tc_id": 849,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "2 avenue Bertrand Barrère, 65000, TARBES",
+    "latitude": 43.233972,
+    "longitude": 0.073052,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/849",
+    "email": "occitanie.32@leolagrange-formation.fr",
+    "telephone": "+33 9 63 52 48 86",
+    "site_web": null
+  },
+  {
+    "tc_id": 744,
+    "center_id": null,
+    "nom": "WORLD TRADE CENTER MARSEILLE PROVENCE",
+    "adresse": "2 rue Henri Barbusse, 13001, MARSEILLE",
+    "latitude": 43.2983355,
+    "longitude": 5.3742648,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/744",
+    "email": "l.sellier@wtcmp.com",
+    "telephone": "+33 4 13 94 04 13",
+    "site_web": null
+  },
+  {
+    "tc_id": 991,
+    "center_id": null,
+    "nom": "CEFOL MANAGEMENT",
+    "adresse": "3 RUE BAYARD, 44100, NANTES",
+    "latitude": 47.2107992,
+    "longitude": -1.5712788,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/991",
+    "email": "montestdefrancais@cefolmanagement.fr",
+    "telephone": "+33 2 14 74 64 18",
+    "site_web": null
+  },
+  {
+    "tc_id": 770,
+    "center_id": null,
+    "nom": "ÉDUCATION ET FORMATION - ROUEN - LE PETIT-QUEVILLY",
+    "adresse": "6, place Waldeck Rousseau , 76140, ROUEN/LE PETIT-QUEVILLY",
+    "latitude": 49.424988,
+    "longitude": 1.055424,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/770",
+    "email": "examensfle@educationetformation.fr",
+    "telephone": "+33 2 76 51 76 11",
+    "site_web": null
+  },
+  {
+    "tc_id": 488,
+    "center_id": null,
+    "nom": "IFIE",
+    "adresse": "Tour Essor 14, rue Scandicci, 93500, PANTIN",
+    "latitude": 48.8925643,
+    "longitude": 2.3984782,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/488",
+    "email": "contact.ifieformation@gmail.com",
+    "telephone": "+33 7 77 76 48 85",
+    "site_web": null
+  },
+  {
+    "tc_id": 769,
+    "center_id": null,
+    "nom": "ÉDUCATION ET FORMATION - ÉVREUX",
+    "adresse": "63 rue de Rome, 27000, ÉVREUX",
+    "latitude": 49.0307098,
+    "longitude": 1.1851709,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/769",
+    "email": "contact.evreux@educationetformation.fr",
+    "telephone": "+33 2 76 51 76 27",
+    "site_web": null
+  },
+  {
+    "tc_id": 824,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "31 Rue Paul Manivet, 84000, Avignon",
+    "latitude": 43.943488,
+    "longitude": 4.809053,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/824",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 902,
+    "center_id": null,
+    "nom": "MRD CONNECT",
+    "adresse": "5, avenue PAVLOV , 78190, TRAPPES",
+    "latitude": 48.785796,
+    "longitude": 1.975248,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/902",
+    "email": "contact@mrdconnect.fr",
+    "telephone": "+33 7 68 37 18 19",
+    "site_web": null
+  },
+  {
+    "tc_id": 251,
+    "center_id": null,
+    "nom": "AVD FORMATION",
+    "adresse": "8 rue Catulle Mendès, 75017, PARIS",
+    "latitude": 48.8868054,
+    "longitude": 2.2913121,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/251",
+    "email": "avd.formation@yahoo.fr",
+    "telephone": "+33 9 84 40 98 78",
+    "site_web": null
+  },
+  {
+    "tc_id": 760,
+    "center_id": null,
+    "nom": "HESIO CONSEIL",
+    "adresse": "14, Allée René Fonck, 51100, REIMS",
+    "latitude": 49.2346589,
+    "longitude": 4.0687607,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/760",
+    "email": "tef@hesio.fr",
+    "telephone": "+33 6 08 02 72 88",
+    "site_web": null
+  },
+  {
+    "tc_id": 600,
+    "center_id": null,
+    "nom": "KANGOUROU - PARIS",
+    "adresse": "5 rue du Général Clergerie, 75116, PARIS",
+    "latitude": 48.8695868,
+    "longitude": 2.283002,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/600",
+    "email": "admin@kangourou.fr",
+    "telephone": "+33 1 45 05 92 84",
+    "site_web": null
+  },
+  {
+    "tc_id": 825,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "22 Rue Victor Clappier, 83000, Toulon",
+    "latitude": 43.126299,
+    "longitude": 5.9321431,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/825",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 866,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "2 Rue Raymond Lizop - Immeuble \"Les Imaginations Fertiles\", 31100, Toulouse",
+    "latitude": 43.5664186,
+    "longitude": 1.3982315,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/866",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 901,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "7 rue Gaston de Flotte, 13012, Marseille",
+    "latitude": 43.2959285,
+    "longitude": 5.4236164,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/901",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 19,
+    "center_id": null,
+    "nom": "AEFTI SAVOIRS ET COMPÉTENCES ",
+    "adresse": "5 Place d’Auvergne B.P. 60221, 80002, AMIENS",
+    "latitude": 49.9152267,
+    "longitude": 2.254016,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/19",
+    "email": "aefti.picardie@orange.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 951,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "2 rue des Buisses, 59800, Lille",
+    "latitude": 50.637382,
+    "longitude": 3.069352,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/951",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 927,
+    "center_id": null,
+    "nom": "IBEP FORMATION - VANNES",
+    "adresse": "11 RUE COUSTEAU, 56860, SENE",
+    "latitude": 47.649873,
+    "longitude": -2.723372,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/927",
+    "email": "ibep.vannes@ibepformation.fr",
+    "telephone": "+33 2 97 42 53 63",
+    "site_web": null
+  },
+  {
+    "tc_id": 1008,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "Place Miot, boulevard Albert 1er, 20000, Ajaccio",
+    "latitude": 41.9099724,
+    "longitude": 8.7208929,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1008",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 1023,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - ROANNE",
+    "adresse": "25 rue Benoit Malon, 42300, ROANNE",
+    "latitude": 46.034321,
+    "longitude": 4.070016,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1023",
+    "email": "certification-fle@leolagrange-formation.fr",
+    "telephone": "+33 6 07 17 63 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 1066,
+    "center_id": null,
+    "nom": "PURPLE CAMPUS - MENDE",
+    "adresse": "10, rue Albert Einstein, 48000, MENDE",
+    "latitude": 44.5285799,
+    "longitude": 3.4672783,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1066",
+    "email": "mende@purple-campus.com",
+    "telephone": "+33 4 66 49 43 97",
+    "site_web": null
+  },
+  {
+    "tc_id": 1011,
+    "center_id": null,
+    "nom": "AEFTI SAVOIRS ET COMPÉTENCES ",
+    "adresse": "23 rue du dépôt, 62000, ARRAS",
+    "latitude": 50.2823535,
+    "longitude": 2.7765503,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1011",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1012,
+    "center_id": null,
+    "nom": "AEFTI SAVOIRS ET COMPÉTENCES ",
+    "adresse": "73 Grande rue, 02400, CHATEAU-THIERRY",
+    "latitude": 49.0458213,
+    "longitude": 3.399242,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1012",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 21,
+    "center_id": null,
+    "nom": "AFODIL",
+    "adresse": "15 avenue du Président Kennedy, 49300, CHOLET",
+    "latitude": 47.046114,
+    "longitude": -0.892316,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/21",
+    "email": "s.boudaud@afodil.fr",
+    "telephone": "+33 2 41 62 26 54",
+    "site_web": null
+  },
+  {
+    "tc_id": 973,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "384 avenue de Verdun, 36044, CHATEAUROUX",
+    "latitude": 46.7883551,
+    "longitude": 1.7025724,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/973",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": "+33 6 73 54 41 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 976,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "27 rue de la Térraudière, 80 bis avenue de Paris, 79000, NIORT",
+    "latitude": 46.323829,
+    "longitude": -0.453645,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/976",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": "+33 6 73 54 41 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 379,
+    "center_id": null,
+    "nom": "COOPILOTE",
+    "adresse": "17 chemin du Defois, 39100, DOLE",
+    "latitude": 47.1062905,
+    "longitude": 5.4973299,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/379",
+    "email": "lpicaud.fle@gmail.com",
+    "telephone": "+33 6 76 77 60 38",
+    "site_web": null
+  },
+  {
+    "tc_id": 1014,
+    "center_id": null,
+    "nom": "ÉDUCATION ET FORMATION - DIEPPE",
+    "adresse": "88, avenue des Canadiens, 76200, DIEPPE",
+    "latitude": 49.91409,
+    "longitude": 1.074792,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1014",
+    "email": "contact.dieppe@educationetformation.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 960,
+    "center_id": null,
+    "nom": "JAKINOLA",
+    "adresse": "69 bd Alsace Lorraine, 64100, BAYONNE",
+    "latitude": 43.492006,
+    "longitude": -1.4643182,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/960",
+    "email": "oayestaran@jakinola.eus",
+    "telephone": "+33 5 54 81 02 40",
+    "site_web": null
+  },
+  {
+    "tc_id": 1034,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "170, Rue Jean Melliès, 11000, CARCASSONNE",
+    "latitude": 43.2060971,
+    "longitude": 2.3163166,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1034",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1027,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - ORLÉANS",
+    "adresse": "2B RUE ALAIN, 45100, ORLÉANS",
+    "latitude": 47.830922,
+    "longitude": 1.931138,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1027",
+    "email": "LLFTEF.ORLEANS@LEOLAGRANGE.ORG",
+    "telephone": "+33 2 38 63 97 17",
+    "site_web": null
+  },
+  {
+    "tc_id": 1127,
+    "center_id": null,
+    "nom": "STRAFORMATION",
+    "adresse": "21, rue d'Oslo, 67000, STRASBOURG",
+    "latitude": 48.5787355,
+    "longitude": 7.7734454,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1127",
+    "email": "contact@straformation.fr",
+    "telephone": "+33 9 81 22 79 07",
+    "site_web": null
+  },
+  {
+    "tc_id": 16,
+    "center_id": null,
+    "nom": "ACTION PLURIELLE FORMATION",
+    "adresse": "43-45 boulevard de la Muette, 95140, GARGES-LÈS-GONESSE",
+    "latitude": 48.9780288,
+    "longitude": 2.4098779,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/16",
+    "email": "apfmurielle@gmail.com",
+    "telephone": "+33 1 34 53 66 38",
+    "site_web": null
+  },
+  {
+    "tc_id": 998,
+    "center_id": null,
+    "nom": "EMPLOI SERVICES FORMATION (ESF_ARRAS)",
+    "adresse": "168 avenue Kennedy, 62000, ARRAS",
+    "latitude": 50.2872337,
+    "longitude": 2.7472442,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/998",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1055,
+    "center_id": null,
+    "nom": "EMPLOI SERVICES FORMATION (ESF_ARRAS)",
+    "adresse": "66 rue Clos des Villas, 59300, VALENCIENNES",
+    "latitude": 50.354657,
+    "longitude": 3.512976,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1055",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1100,
+    "center_id": null,
+    "nom": "IBEP - MORLAIX",
+    "adresse": "310, Rue Caroline Aigle, 29600, MORLAIX",
+    "latitude": 48.595782,
+    "longitude": -3.816644,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1100",
+    "email": "ibep.morlaix@ibepformation.fr",
+    "telephone": "+33 2 98 88 81 78",
+    "site_web": null
+  },
+  {
+    "tc_id": 584,
+    "center_id": null,
+    "nom": "INTERNATIONAL HOUSE CENTRE DE LANGUE RIVIERA",
+    "adresse": "27 rue Rossini, 06000, NICE",
+    "latitude": 43.7002219,
+    "longitude": 7.2624921,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/584",
+    "email": "info@ihnice.com",
+    "telephone": "+33 6 61 48 15 33",
+    "site_web": null
+  },
+  {
+    "tc_id": 1042,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "29 Av. Aristide Briand, 82000, MONTAUBAN",
+    "latitude": 44.0169074,
+    "longitude": 1.3413868,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1042",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1020,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "5/7 Rue Joseph Fabre, 34500, BEZIERS",
+    "latitude": 43.3497661,
+    "longitude": 3.2334448,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1020",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1109,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - BERGERAC",
+    "adresse": "AGEN BOE",
+    "latitude": 44.1774191,
+    "longitude": 0.6252473,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1109",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1051,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - BREST",
+    "adresse": "Habitat des jeunes du Pays d'Ancenis - 85 boulevard Huchon, 44150, ANCENIS-SAINT-GEREON",
+    "latitude": 47.3663761,
+    "longitude": -1.1836102,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1051",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 626,
+    "center_id": null,
+    "nom": "METZ FRENCHPRO",
+    "adresse": "9 RUE GRAHAM BELL, 57070, METZ",
+    "latitude": 49.1052737,
+    "longitude": 6.2208622,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/626",
+    "email": "info@metzfrenchpro.com",
+    "telephone": "+33 7 66 56 85 68",
+    "site_web": null
+  },
+  {
+    "tc_id": 997,
+    "center_id": null,
+    "nom": "MRD CONNECT",
+    "adresse": "7 avenue GAUGUIN, 78120, MANTES LA JOLIE",
+    "latitude": 48.982616,
+    "longitude": 1.792997,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/997",
+    "email": "contact@mrdconnect.fr",
+    "telephone": "+33 7 68 37 18 19",
+    "site_web": null
+  },
+  {
+    "tc_id": 752,
+    "center_id": null,
+    "nom": "PURPLE CAMPUS - TARBES",
+    "adresse": "78 avenue d'Azereix, 65000, TARBES",
+    "latitude": 43.223635,
+    "longitude": 0.0505185,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/752",
+    "email": "b.solanet@purple-campus.com",
+    "telephone": "+33 5 62 93 40 60",
+    "site_web": null
+  },
+  {
+    "tc_id": 775,
+    "center_id": null,
+    "nom": "AFI - ACTION FORMATION INSERTION",
+    "adresse": "9 avenue du Marais, 95100, ARGENTEUIL",
+    "latitude": 48.932117,
+    "longitude": 2.23395,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/775",
+    "email": "afi@afi.asso.fr",
+    "telephone": "+33 1 34 34 16 50",
+    "site_web": null
+  },
+  {
+    "tc_id": 1026,
+    "center_id": null,
+    "nom": "AL BUSINESS ACADEMY",
+    "adresse": "441 Avenue Marguerite Perey, 77127, LIEUSAINT",
+    "latitude": 48.6204157,
+    "longitude": 2.5629145,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1026",
+    "email": "albaexamen@outlook.fr",
+    "telephone": "+33 6 01 33 81 77",
+    "site_web": null
+  },
+  {
+    "tc_id": 975,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "1 boulevard de Recouvrance, 17100, SAINTES",
+    "latitude": 45.754012,
+    "longitude": -0.656131,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/975",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": "+33 6 73 54 41 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 939,
+    "center_id": null,
+    "nom": "COGNITION FORMATION",
+    "adresse": "52 La Canebière 13001, 13014, MARSEILLE",
+    "latitude": 43.2967529,
+    "longitude": 5.3787447,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/939",
+    "email": "sarah.seghier@outlook.com",
+    "telephone": "+33 6 52 59 95 09",
+    "site_web": null
+  },
+  {
+    "tc_id": 764,
+    "center_id": null,
+    "nom": "ELFE - CHAMPIGNY-SUR-MARNE",
+    "adresse": "98 B Avenue Roger Salengro, 94500, CHAMPIGNY-SUR-MARNE",
+    "latitude": 48.817808,
+    "longitude": 2.493668,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/764",
+    "email": "fsimon@elfe-formation.fr",
+    "telephone": "+33 7 49 61 57 94",
+    "site_web": null
+  },
+  {
+    "tc_id": 875,
+    "center_id": null,
+    "nom": "ELFE - CHAMPIGNY-SUR-MARNE",
+    "adresse": "110 avenue de l'Europe, 60180, Nogent sur Oise",
+    "latitude": 49.2708718,
+    "longitude": 2.4833722,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/875",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1069,
+    "center_id": null,
+    "nom": "ELFE - ÉVRY COURCOURONNES",
+    "adresse": "34 Cours Blaise Pascal, 91000, ÉVRY COURCOURONNES",
+    "latitude": 48.6258319,
+    "longitude": 2.4302301,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1069",
+    "email": "fsimon@elfe-formation.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1061,
+    "center_id": null,
+    "nom": "IBEP - LORIENT",
+    "adresse": "24 Rue du gaillec, 56100, LORIENT",
+    "latitude": 47.7618633,
+    "longitude": -3.3977138,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1061",
+    "email": "ibep.lorient@ibepformation.fr",
+    "telephone": "+33 2 97 21 08 08",
+    "site_web": null
+  },
+  {
+    "tc_id": 1104,
+    "center_id": null,
+    "nom": "LE CAMPUS BY CCI 79",
+    "adresse": "2 rue Ernest Pérochon, 79000, NIORT",
+    "latitude": 46.322676,
+    "longitude": -0.460612,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1104",
+    "email": "contact.formation@cci79.com",
+    "telephone": "+33 5 49 28 79 79",
+    "site_web": null
+  },
+  {
+    "tc_id": 1031,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "158 Avenue Guynemer, 66000, PERPIGNAN",
+    "latitude": 42.6874953,
+    "longitude": 2.9079857,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1031",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 848,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "4, Cours Irénée CROS, 09000, Foix",
+    "latitude": 42.966752,
+    "longitude": 1.609072,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/848",
+    "email": "occitanie.09@leolagrange-formation.fr",
+    "telephone": "+33 9 63 53 00 48",
+    "site_web": null
+  },
+  {
+    "tc_id": 1050,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - BREST",
+    "adresse": "Espace associatif - 1 Allée Monseigneur Jean René Calloc'h, 29000, QIMPER",
+    "latitude": 47.9828491,
+    "longitude": -4.0789038,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1050",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 663,
+    "center_id": null,
+    "nom": "PURPLE CAMPUS-ALBI",
+    "adresse": "6 avenue du Général Hoche, 81000, ALBI",
+    "latitude": 43.944508,
+    "longitude": 2.158202,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/663",
+    "email": "s.dayde@purple-campus.com",
+    "telephone": "+33 5 63 49 05 83",
+    "site_web": null
+  },
+  {
+    "tc_id": 1083,
+    "center_id": null,
+    "nom": "RETRAVAILLER DANS L'EST",
+    "adresse": "11 rue Jacob Mayer, 67200, STRASBOURG",
+    "latitude": 48.5908871,
+    "longitude": 7.7189785,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1083",
+    "email": "accueil@retravailler-est.org",
+    "telephone": "+33 3 88 36 24 39",
+    "site_web": null
+  },
+  {
+    "tc_id": 878,
+    "center_id": null,
+    "nom": "HORIZONS 91",
+    "adresse": "10, chemin du Larris, 91150, ÉTAMPES",
+    "latitude": 48.445271,
+    "longitude": 2.146933,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/878",
+    "email": "contact@horizons91.fr",
+    "telephone": "+33 1 60 80 91 52",
+    "site_web": null
+  },
+  {
+    "tc_id": 1096,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - SENS",
+    "adresse": "14 rue Auguste Morel, 89100, SENS",
+    "latitude": 48.1942685,
+    "longitude": 3.2825544,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1096",
+    "email": "sens@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 419,
+    "center_id": null,
+    "nom": "FÉDÉRATION DES OEUVRES LAÏQUES DE LA NIÈVRE",
+    "adresse": "7 rue du Commandant Rivière, 58000, NEVERS",
+    "latitude": 46.9904743,
+    "longitude": 3.1710349,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/419",
+    "email": "fol58@fol58.org",
+    "telephone": "+33 3 86 71 97 30",
+    "site_web": null
+  },
+  {
+    "tc_id": 1063,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - CHARLEVILLE-MÉZIÈRES",
+    "adresse": "8 rue Jean Baptiste Lefort, 08000, CHARLEVILLE-MÉZIÈRES",
+    "latitude": 49.741349,
+    "longitude": 4.72938,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1063",
+    "email": "emilie.billet@frateformation.net",
+    "telephone": "+33 7 69 41 70 63",
+    "site_web": null
+  },
+  {
+    "tc_id": 1089,
+    "center_id": null,
+    "nom": "GROUPE GEFOR",
+    "adresse": "Chemin de l'Ormois, 77660, CHANGIS",
+    "latitude": 48.9625406,
+    "longitude": 3.0127771,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1089",
+    "email": "contact@gefor.com",
+    "telephone": "+33 1 55 35 00 20",
+    "site_web": null
+  },
+  {
+    "tc_id": 1048,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - BREST",
+    "adresse": "82 Avenue Montaigne , 29200, BREST",
+    "latitude": 48.404586,
+    "longitude": -4.4791252,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1048",
+    "email": "pdl@leolagrange-formation.fr",
+    "telephone": "+33 2 51 76 11 11",
+    "site_web": null
+  },
+  {
+    "tc_id": 1070,
+    "center_id": null,
+    "nom": "ELFE - ÉVRY COURCOURONNES",
+    "adresse": "155 Rue Paul Langevin, 13290, AIX-EN-PROVENCE",
+    "latitude": 43.480454,
+    "longitude": 5.372449,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1070",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1018,
+    "center_id": null,
+    "nom": "EFI RHÔNES ALPES",
+    "adresse": "8 bis Impasse marcel cerdan, 69100, VILLEURBANNE",
+    "latitude": 45.7660662,
+    "longitude": 4.9032171,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1018",
+    "email": "contact@efi-rhonealpes.com",
+    "telephone": "+33 4 65 84 82 10",
+    "site_web": null
+  },
+  {
+    "tc_id": 1095,
+    "center_id": null,
+    "nom": "CHAMBRE DE COMMERCE ET D'INDUSTRIE DE MAYOTTE (CCIM)",
+    "adresse": "Place Mariage, Mamoudzou, Mayotte, France, 97600, MAMOUDZOU",
+    "latitude": -12.7770923,
+    "longitude": 45.2309167,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1095",
+    "email": "formation@mayotte.cci.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1099,
+    "center_id": null,
+    "nom": "MYSTORY - ROSNY",
+    "adresse": "46 Bis Rue d'Estienne d'Orves, 93110, ROSNY",
+    "latitude": 48.868705,
+    "longitude": 2.483281,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1099",
+    "email": "arudhan@mystoryformation.fr",
+    "telephone": "+33 6 81 43 16 54",
+    "site_web": null
+  },
+  {
+    "tc_id": 615,
+    "center_id": null,
+    "nom": "CENTRE PRIVÉ DE LANGUES LSI PARIS",
+    "adresse": "23 rue du Renard, 75004, PARIS",
+    "latitude": 48.8592267,
+    "longitude": 2.3522466,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/615",
+    "email": "par@lsi.edu",
+    "telephone": "+33 1 42 60 53 70",
+    "site_web": null
+  },
+  {
+    "tc_id": 1062,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - BELFORT",
+    "adresse": "ATRIA - 1 Avenue de l'espérance, 90000, BELFORT",
+    "latitude": 47.641909,
+    "longitude": 6.861864,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1062",
+    "email": "contact@frateformation.net",
+    "telephone": "+33 3 81 82 21 75",
+    "site_web": null
+  },
+  {
+    "tc_id": 1097,
+    "center_id": null,
+    "nom": "FRATE FORMATION - MONTLUEL",
+    "adresse": "630 rue des Valets, 01120, MONTLUEL",
+    "latitude": 45.8466073,
+    "longitude": 5.0562934,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1097",
+    "email": "montluel@frateformation.net",
+    "telephone": "+33 4 74 47 32 96",
+    "site_web": null
+  },
+  {
+    "tc_id": 1059,
+    "center_id": null,
+    "nom": "NOFI FORMATION ",
+    "adresse": "22 Rue Albert 1er, 59140 Dunkerque, 59140, DUNKERQUE",
+    "latitude": 51.0306802,
+    "longitude": 2.3762413,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1059",
+    "email": "info@nofiformation.fr",
+    "telephone": "+33 6 85 89 84 70",
+    "site_web": null
+  },
+  {
+    "tc_id": 1075,
+    "center_id": null,
+    "nom": "NOFI FORMATION ",
+    "adresse": "20 rue Sébastopol, 59100, ROUBAIX",
+    "latitude": 50.6892891,
+    "longitude": 3.1706822,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1075",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1052,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - DREUX",
+    "adresse": "58 rue du Château d'eau, 28300, CHARTRES MAINVILLIERS",
+    "latitude": 48.4510188,
+    "longitude": 1.4468016,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1052",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1049,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - DREUX",
+    "adresse": "LEO LAGRANGE FORMATION , 28100, DREUX",
+    "latitude": 48.748669,
+    "longitude": 1.3594748,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1049",
+    "email": "cvl@leolagrange-formation.fr",
+    "telephone": "+33 2 37 88 39 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 1053,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - DREUX",
+    "adresse": "37 rue Gambetta, 28200, CHATEAUDUN",
+    "latitude": 48.0690186,
+    "longitude": 1.3311553,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1053",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1085,
+    "center_id": null,
+    "nom": "EASY LEARN",
+    "adresse": "1 rue du 8 mai 1945, 92110, CLICHY-LA-GARENNE",
+    "latitude": 48.897513,
+    "longitude": 2.310366,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1085",
+    "email": "contact@easy-learn.academy",
+    "telephone": "+33 1 89 62 39 88",
+    "site_web": null
+  },
+  {
+    "tc_id": 877,
+    "center_id": null,
+    "nom": "INSTITUT ARITAS FORMATION",
+    "adresse": "86 rue cardinet, 75017, PARIS",
+    "latitude": 48.8844651,
+    "longitude": 2.309759,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/877",
+    "email": "contact@aritasgroupe.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 669,
+    "center_id": null,
+    "nom": "LAHO FORMATION - LENS",
+    "adresse": "56 rue jean Létienne, 62300, LENS",
+    "latitude": 50.4278717,
+    "longitude": 2.8270859,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/669",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 441,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - LE PUY-EN-VELAY",
+    "adresse": "16 rue des Moulins , 43000, LE PUY-EN-VELAY",
+    "latitude": 45.0383868,
+    "longitude": 3.8848425,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/441",
+    "email": "lepuyenvelay@frateformation.net",
+    "telephone": "+33 4 73 16 82 21",
+    "site_web": null
+  },
+  {
+    "tc_id": 1009,
+    "center_id": null,
+    "nom": " PLATEFORME DE COMPÉTENCES - BOBIGNY",
+    "adresse": "27 rue de paris , 93000, BOBIGNY",
+    "latitude": 48.8964335,
+    "longitude": 2.4303925,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1009",
+    "email": "djouhermezair@gmail.com",
+    "telephone": "+33 6 68 61 58 40",
+    "site_web": null
+  },
+  {
+    "tc_id": 1112,
+    "center_id": null,
+    "nom": "ARCANES FORMATION",
+    "adresse": "51 Avenue Charles Rouxel, 77340, PONTAULT COMBAULT",
+    "latitude": 48.7947745,
+    "longitude": 2.6047503,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1112",
+    "email": "contact@arcanes-formation.com",
+    "telephone": "+33 6 27 70 28 41",
+    "site_web": null
+  },
+  {
+    "tc_id": 619,
+    "center_id": null,
+    "nom": "LSF MONTPELLIER FRENCH LANGUAGE SCHOOL ",
+    "adresse": "6 rue Foch, 34000, MONTPELLIER",
+    "latitude": 43.6109683,
+    "longitude": 3.8729892,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/619",
+    "email": "contact@lsf-france.com",
+    "telephone": "+33 4 67 91 70 03",
+    "site_web": null
+  },
+  {
+    "tc_id": 1064,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - RENNES",
+    "adresse": "107 Avenue Henri Fréville, 35200, RENNES",
+    "latitude": 48.0862104,
+    "longitude": -1.6739855,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1064",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1071,
+    "center_id": null,
+    "nom": "IBEP - LORIENT",
+    "adresse": "14 Avenue Napoléon 1er, 56300, PONTIVY",
+    "latitude": 48.064875,
+    "longitude": -2.9648681,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1071",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1065,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - SAINT-BRIEUC",
+    "adresse": "6 Boulevard Clemenceau, 22000 , SAINT-BRIEUC",
+    "latitude": 48.5099978,
+    "longitude": -2.7597613,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1065",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1079,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - NANTERRE",
+    "adresse": "5 Boulevard des Bouvets, 92747 , NANTERRE",
+    "latitude": 48.8976561,
+    "longitude": 2.2219039,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1079",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1078,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - PAU",
+    "adresse": "4 Allée Catherine de Bourbon, 64445, PAU",
+    "latitude": 43.321024,
+    "longitude": -0.359809,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1078",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1077,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - BLOIS",
+    "adresse": "16 Rue de la Vallée Maillard, 41000, BLOIS",
+    "latitude": 47.6102443,
+    "longitude": 1.3337745,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1077",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1076,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - BASTIA",
+    "adresse": "6 Route de ville, 20200, BASTIA",
+    "latitude": 42.7046206,
+    "longitude": 9.4496715,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1076",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1108,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION - BERGERAC",
+    "adresse": "15 rue Neuve d’Argenson, 24100, BERGERAC",
+    "latitude": 44.849445,
+    "longitude": 0.484596,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1108",
+    "email": "deborah.lacroix@leolagrange.org",
+    "telephone": "+33 5 53 24 74 96",
+    "site_web": null
+  },
+  {
+    "tc_id": 490,
+    "center_id": null,
+    "nom": "INSTITUT DE TOURAINE - IEFT",
+    "adresse": "1 rue de la Grandière, 37020, TOURS CEDEX 1",
+    "latitude": 47.391399,
+    "longitude": 0.6836336,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/490",
+    "email": "contact@institutdetouraine.com",
+    "telephone": "+33 2 47 05 76 83",
+    "site_web": null
+  },
+  {
+    "tc_id": 807,
+    "center_id": null,
+    "nom": "INSTITUT DE TOURAINE - IEFT",
+    "adresse": "Ligue de l'Enseignement BFC, 20 rue de l'Egalité,, 21000, Dijon",
+    "latitude": 47.328418,
+    "longitude": 5.0319561,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/807",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 946,
+    "center_id": null,
+    "nom": "L'ÉCOLE DES CUISTOTS MIGRATEURS",
+    "adresse": "25 RUE DE ROMAINVILLE, 93100, MONTREUIL",
+    "latitude": 48.8648995,
+    "longitude": 2.4455477,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/946",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1121,
+    "center_id": null,
+    "nom": "CLAP SUD-OUEST",
+    "adresse": "13 - 15 allée du Colonel Fabien - LORMONT, 33110, LORMONT",
+    "latitude": 44.876316,
+    "longitude": -0.520119,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1121",
+    "email": null,
+    "telephone": "+33 5 57 77 77 20",
+    "site_web": null
+  },
+  {
+    "tc_id": 805,
+    "center_id": null,
+    "nom": "ACTION PLURIELLE FORMATION",
+    "adresse": "1 avenue Antoine Bourdelle, 93600, Aulnay-sous-Bois",
+    "latitude": 48.929847,
+    "longitude": 2.508871,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/805",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 895,
+    "center_id": null,
+    "nom": "ACTION PLURIELLE FORMATION",
+    "adresse": "Espace Europe - Bât B -36 avenue Frédéric Joliot Curie, 95140, Garges-Lès-Gonesse",
+    "latitude": 48.9761036,
+    "longitude": 2.4090449,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/895",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 894,
+    "center_id": null,
+    "nom": "ACTION PLURIELLE FORMATION",
+    "adresse": "68, avenue Gaston Vermeire, 95340, Persan",
+    "latitude": 49.14956,
+    "longitude": 2.27931,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/894",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 607,
+    "center_id": null,
+    "nom": "KENNEDY FORMATIONS - BMA BIARRITZ",
+    "adresse": "42 Avenue Kennedy, 64200, BIARRITZ",
+    "latitude": 43.472002,
+    "longitude": -1.555619,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/607",
+    "email": "bma@wanadoo.fr",
+    "telephone": "+33 7 66 23 00 45",
+    "site_web": null
+  },
+  {
+    "tc_id": 928,
+    "center_id": null,
+    "nom": "LANGUAZUR",
+    "adresse": "22 boulevard de la République, 06400, CANNES",
+    "latitude": 43.554661,
+    "longitude": 7.025072,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/928",
+    "email": "contact@languazur.fr",
+    "telephone": "+33 4 93 39 02 90",
+    "site_web": null
+  },
+  {
+    "tc_id": 836,
+    "center_id": null,
+    "nom": "LIGUE DE L'ENSEIGNEMENT BOURGOGNE FRANCHE COMTÉ - DIJON",
+    "adresse": "10 rue Camille Flammarion, 21000, DIJON",
+    "latitude": 47.331411,
+    "longitude": 5.061915,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/836",
+    "email": "jligot@ligue21.org",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1111,
+    "center_id": null,
+    "nom": "LA VOIX FRANÇAISE",
+    "adresse": "4 rue Maurice Sibille, 26200, MONTÉLIMAR",
+    "latitude": 44.5244707,
+    "longitude": 4.742907,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1111",
+    "email": "t.celine51@gmail.com",
+    "telephone": "+33 6 52 90 66 88",
+    "site_web": null
+  },
+  {
+    "tc_id": 1101,
+    "center_id": null,
+    "nom": "C-TEC FORMATION CONSEIL",
+    "adresse": "6bis rue de Chatillon, 75014, PARIS",
+    "latitude": 48.8273702,
+    "longitude": 2.324213,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1101",
+    "email": "gerald.honore@c-tec.fr",
+    "telephone": "+33 1 40 37 27 07",
+    "site_web": null
+  },
+  {
+    "tc_id": 954,
+    "center_id": null,
+    "nom": "ARCS",
+    "adresse": "9 rue de Londres , 75009, PARIS",
+    "latitude": 48.8767843,
+    "longitude": 2.329991,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/954",
+    "email": "contact@arcs-france.fr",
+    "telephone": "+33 7 59 64 52 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1054,
+    "center_id": null,
+    "nom": "ARCS",
+    "adresse": "23 rue Buffon, 92500, RUEIL-MALMAISON",
+    "latitude": 48.8690385,
+    "longitude": 2.2109314,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1054",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1019,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "2 Rue du Saphir - Bâtiment G, 34300, AGDE",
+    "latitude": 43.3000525,
+    "longitude": 3.4753433,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1019",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1021,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "220 avenue du Marechal Juin, 34200, SETE",
+    "latitude": 43.4066633,
+    "longitude": 3.7037644,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1021",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1028,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "41 Rue Jean Jaurès, 09300, LAVELANET",
+    "latitude": 42.9314064,
+    "longitude": 1.8461957,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1028",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1029,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "48 Av. de la Rijol, 09100, PAMIERS",
+    "latitude": 43.128236,
+    "longitude": 1.621819,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1029",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1030,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Maison de la Citoyenneté - 16 rue de la République, 09200, SAINT GIRONS",
+    "latitude": 42.9851945,
+    "longitude": 1.1449356,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1030",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1032,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "98 Prom. de la Côte Vermeille, 66140, CANET EN ROUSSILLON",
+    "latitude": 42.686975,
+    "longitude": 3.034551,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1032",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1033,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Hôtel du Canal - 88 Avenue Arnaut Vidal, CASTELNAUDARY",
+    "latitude": 43.3147908,
+    "longitude": 1.949901,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1033",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1035,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Batiment B Espace soleil, 2 route de Gruissan, 11100, NARBONNE",
+    "latitude": 43.150695,
+    "longitude": 3.051914,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1035",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1036,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Pépinière et Hotel d'entreprises Parc régional d'activité économique Charles Cros RD 118, 11300, PIEUSSE",
+    "latitude": 43.07975,
+    "longitude": 2.23266,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1036",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1037,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "75 Rue Saint-Géry, 46000, CAHORS",
+    "latitude": 44.4446753,
+    "longitude": 1.4402798,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1037",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1038,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Maison de la Formation - 6 Avenue Bernard Fontanges, 46100, FIGEAC",
+    "latitude": 44.6096435,
+    "longitude": 2.0217754,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1038",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1039,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Hôtel les Ambassadeurs - 21 Avenue du Général De Gaulle, 46200, SOUILLAC",
+    "latitude": 44.898053,
+    "longitude": 1.477004,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1039",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1040,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "16 rue Jean Jaurès, 32100, CONDOM",
+    "latitude": 43.9561357,
+    "longitude": 0.3722977,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1040",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1041,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "22 Rue Jean Jaurès, 32600, L’ISLE JOURDAIN",
+    "latitude": 43.614672,
+    "longitude": 1.09055,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1041",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1043,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "16 Rue de la République, 82100, CASTELSARRASIN",
+    "latitude": 44.039121,
+    "longitude": 1.1093317,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1043",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1044,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Le club des six - 19 Avenue Général Baron Maransin, 65100, LOURDES",
+    "latitude": 43.09724,
+    "longitude": -0.045592,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1044",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1045,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "La demi-lune 6 462 route de Toulouse, 65300, LANNEMEZAN",
+    "latitude": 43.1200135,
+    "longitude": 0.4065598,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1045",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1093,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "70 Boulevard Matabiau, 31000, TOULOUSE",
+    "latitude": 43.6158713,
+    "longitude": 1.4383139,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1093",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 847,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "1 allée Lagarrasic, 32000, Auch",
+    "latitude": 43.642007,
+    "longitude": 0.585789,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/847",
+    "email": "occitanie.32@leolagrange-formation.fr",
+    "telephone": "+33 5 62 05 39 98",
+    "site_web": null
+  },
+  {
+    "tc_id": 1126,
+    "center_id": null,
+    "nom": "LEO LAGRANGE FORMATION",
+    "adresse": "Forum Ville Active, 32 Rue Robert Mallet Stevens Bâtiment A, 30900, NIMES",
+    "latitude": 43.812905,
+    "longitude": 4.348725,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1126",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 968,
+    "center_id": null,
+    "nom": "FORMALSACE",
+    "adresse": "16 AVENUE DE L'EUROPE BAT SXB1, 67300, SCHILTIGHEIM",
+    "latitude": 48.61303,
+    "longitude": 7.712325,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/968",
+    "email": "CONTACT@FORMALSACE.COM",
+    "telephone": "+33 6 01 75 58 42",
+    "site_web": null
+  },
+  {
+    "tc_id": 635,
+    "center_id": null,
+    "nom": "ALZER",
+    "adresse": "23 allée des Impressionnistes, 93420, VILLEPINTE",
+    "latitude": 48.973614,
+    "longitude": 2.511633,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/635",
+    "email": "contact@alzer.fr",
+    "telephone": "+33 1 88 99 16 08",
+    "site_web": null
+  },
+  {
+    "tc_id": 772,
+    "center_id": null,
+    "nom": "D.CONSEILS-FORMATIONS",
+    "adresse": "74 Boulevard Victor Hugo, 78130, LES MUREAUX",
+    "latitude": 48.992897,
+    "longitude": 1.911309,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/772",
+    "email": "dconseilsformations424@gmail.com",
+    "telephone": "+33 7 89 20 85 58",
+    "site_web": null
+  },
+  {
+    "tc_id": 779,
+    "center_id": null,
+    "nom": "CCI PARIS ILE-DE FRANCE",
+    "adresse": "11, rue Léon Jouhaux, 75010, PARIS",
+    "latitude": 48.8696236,
+    "longitude": 2.3655602,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/779",
+    "email": "tef@cci-paris-idf.fr",
+    "telephone": "+33 1 55 65 44 44",
+    "site_web": null
+  },
+  {
+    "tc_id": 477,
+    "center_id": null,
+    "nom": "Lyon Exam by Inflexyon",
+    "adresse": "48 rue Quivogne, 69002, LYON",
+    "latitude": 45.7425621,
+    "longitude": 4.8228869,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/477",
+    "email": "contact@lyon-exam.com",
+    "telephone": "+33 4 78 39 77 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 273,
+    "center_id": null,
+    "nom": "CCI  FORMATION BEAUJOLAIS",
+    "adresse": "92 rue Henri Dépagneux, 69400, LIMAS",
+    "latitude": 45.9774276,
+    "longitude": 4.717038,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/273",
+    "email": "a.chauvrat@beaujolais.cci.fr",
+    "telephone": "+33 4 74 62 73 00",
+    "site_web": null
+  },
+  {
+    "tc_id": 436,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - BOURG-EN-BRESSE",
+    "adresse": "9 rue Colonel Arnaud Beltrame, 01000, BOURG-EN-BRESSE",
+    "latitude": 46.2126139,
+    "longitude": 5.2392841,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/436",
+    "email": "frateara@frateformation.net",
+    "telephone": "+33 4 74 47 32 96",
+    "site_web": null
+  },
+  {
+    "tc_id": 448,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - VALSERHÔNE",
+    "adresse": "26 rue Joseph Bertola, 1200, VALSERHÔNE",
+    "latitude": 46.1082068,
+    "longitude": 5.8254626,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/448",
+    "email": "valserhone@frateformation.net",
+    "telephone": "+33 4 74 47 32 96",
+    "site_web": null
+  },
+  {
+    "tc_id": 434,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - ANNEMASSE",
+    "adresse": "3 passage Jean Moulin, 74100, ANNEMASSE",
+    "latitude": 46.1924322,
+    "longitude": 6.2335719,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/434",
+    "email": "fratera@frateformation.net",
+    "telephone": "+33 4 74 47 32 96",
+    "site_web": null
+  },
+  {
+    "tc_id": 438,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - CLERMONT-FERRAND",
+    "adresse": "8 rue Pablo Picasso, 63000, CLERMONT-FERRAND",
+    "latitude": 45.7653022,
+    "longitude": 3.1110848,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/438",
+    "email": "frateauvergne@frateformation.net",
+    "telephone": "+33 4 73 16 82 21",
+    "site_web": null
+  },
+  {
+    "tc_id": 941,
+    "center_id": null,
+    "nom": "THE PLACE DEBY",
+    "adresse": "2 rue de Sault, 38000, GRENOBLE",
+    "latitude": 45.1896386,
+    "longitude": 5.7262606,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/941",
+    "email": "examens@theplacedeby.com",
+    "telephone": "+33 4 76 58 21 66",
+    "site_web": null
+  },
+  {
+    "tc_id": 601,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE",
+    "adresse": "7 rue Gaston de Flotte, 13012, MARSEILLE",
+    "latitude": 43.2959285,
+    "longitude": 5.4236164,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/601",
+    "email": "examensciviques@kangourou.fr",
+    "telephone": "+33 4 91 35 31 47",
+    "site_web": null
+  },
+  {
+    "tc_id": 603,
+    "center_id": null,
+    "nom": "KANGOUROU PROVENCE GAP",
+    "adresse": "Micropolis Quartier Belle Aureille, 05000, GAP",
+    "latitude": 44.5344956,
+    "longitude": 6.0515564,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/603",
+    "email": "info@kangourou.fr",
+    "telephone": "+33 4 92 51 57 97",
+    "site_web": null
+  },
+  {
+    "tc_id": 662,
+    "center_id": null,
+    "nom": "PROVENCE LINGUA",
+    "adresse": "13bis Place de l’Hôtel de Ville, 04100, MANOSQUE",
+    "latitude": 43.8334679,
+    "longitude": 5.7825807,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/662",
+    "email": "performes@provencelingua.com",
+    "telephone": "+33 6 35 07 85 14",
+    "site_web": null
+  },
+  {
+    "tc_id": 380,
+    "center_id": null,
+    "nom": "CORYLUS FORMATIONS",
+    "adresse": "1 rue Sévigné, 49400, SAUMUR",
+    "latitude": 47.253985,
+    "longitude": -0.075407,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/380",
+    "email": "direction@corylus-formations.fr",
+    "telephone": "+33 2 41 67 71 45",
+    "site_web": null
+  },
+  {
+    "tc_id": 351,
+    "center_id": null,
+    "nom": "CFP PRESQU'ÎLE - LA ROCHE-SUR-YON",
+    "adresse": "70 rue Chanzy, 85000, LA ROCHE SUR YON",
+    "latitude": 46.672699,
+    "longitude": -1.431824,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/351",
+    "email": "administratif@cfp-presquile.com",
+    "telephone": "+33 7 84 24 55 61",
+    "site_web": null
+  },
+  {
+    "tc_id": 353,
+    "center_id": null,
+    "nom": "CFP PRESQU'ÎLE - SAINT-NAZAIRE",
+    "adresse": "6 rue Étoile du matin, 44600, SAINT-NAZAIRE",
+    "latitude": 47.259627,
+    "longitude": -2.269752,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/353",
+    "email": "administratif@cfp-presquile.com",
+    "telephone": "+33 2 40 88 19 40",
+    "site_web": null
+  },
+  {
+    "tc_id": 449,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - VICHY",
+    "adresse": "2-4 rue de Paris, Passage des Commerces, 03206, VICHY",
+    "latitude": 46.1259861,
+    "longitude": 3.423043,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/449",
+    "email": "frateauvergne@frateformation.net",
+    "telephone": "+33 4 73 16 82 21",
+    "site_web": null
+  },
+  {
+    "tc_id": 432,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - CRAN-GEVRIER ANNECY",
+    "adresse": "33 route de Chevennes, 74960, CRAN-GEVRIER",
+    "latitude": 45.9040578,
+    "longitude": 6.1099541,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/432",
+    "email": "annecy@frateformation.net",
+    "telephone": "+33 3 84 47 25 90",
+    "site_web": null
+  },
+  {
+    "tc_id": 250,
+    "center_id": null,
+    "nom": "AURAL LOGOS",
+    "adresse": "950, Avenue Gaston Monnerville , 97354, RÉMIRE-MONTJOLY",
+    "latitude": 4.8887533,
+    "longitude": -52.2841362,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/250",
+    "email": "contact@aurallogos.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 994,
+    "center_id": null,
+    "nom": "EFFICIA - AUBENAS",
+    "adresse": "2 Rue Marc Seguin, 07200, AUBENAS",
+    "latitude": 44.608622,
+    "longitude": 4.388792,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/994",
+    "email": "contact@efficia.org",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1125,
+    "center_id": null,
+    "nom": "CREPT FORMATION",
+    "adresse": "22 rue Mérigonde, 81100, CASTRES",
+    "latitude": 43.6022195,
+    "longitude": 2.2534946,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1125",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 439,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - DIJON",
+    "adresse": "17 rue des Corroyeurs, 21000, DIJON",
+    "latitude": 47.3162732,
+    "longitude": 5.0328902,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/439",
+    "email": "fratebourgogne@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 184,
+    "center_id": null,
+    "nom": "ALLIANCE FRANÇAISE DE NORMANDIE - ROUEN",
+    "adresse": "80 boulevard de l'Yser, 76000, ROUEN",
+    "latitude": 49.4473813,
+    "longitude": 1.0957882,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/184",
+    "email": "examens@afnormandie.org",
+    "telephone": "+33 2 35 98 55 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 1086,
+    "center_id": null,
+    "nom": "ALLIANCE FRANÇAISE DE NORMANDIE - ROUEN",
+    "adresse": "26 rue des Moulins, 50100, CHERBOURG-EN-COTENTIN",
+    "latitude": 49.6417543,
+    "longitude": -1.6228799,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1086",
+    "email": "examens@afnormandie.org",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 352,
+    "center_id": null,
+    "nom": "CFP PRESQU'ÎLE - NANTES",
+    "adresse": "1 rue Victor Hugo, 44400, REZÉ",
+    "latitude": 47.1888545,
+    "longitude": -1.5516644,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/352",
+    "email": "polelangue@cfp-presquile.com",
+    "telephone": "+33 2 40 08 95 50",
+    "site_web": null
+  },
+  {
+    "tc_id": 350,
+    "center_id": null,
+    "nom": "CFP PRESQU'ÎLE - CARQUEFOU",
+    "adresse": "Centre Commercial La Jalousie - Route de Paris, 44470, CARQUEFOU",
+    "latitude": 47.2641041,
+    "longitude": -1.4914922,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/350",
+    "email": "accueil.nantes@cfp-presquile.com",
+    "telephone": "+33 2 40 08 95 50",
+    "site_web": null
+  },
+  {
+    "tc_id": 929,
+    "center_id": null,
+    "nom": "TOUT AU LONG DE LA VIE",
+    "adresse": "29 rue Bougère, 49000, ANGERS",
+    "latitude": 47.4623972,
+    "longitude": -0.55817,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/929",
+    "email": "catherine@toutaulongdelavie.fr",
+    "telephone": "+33 2 41 48 68 10",
+    "site_web": null
+  },
+  {
+    "tc_id": 433,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - BESANÇON",
+    "adresse": "83 rue de Dole , 25000, BESANÇON",
+    "latitude": 47.2292327,
+    "longitude": 5.991649,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/433",
+    "email": "fratefc@frateformation.net",
+    "telephone": "+33 3 81 82 21 75",
+    "site_web": null
+  },
+  {
+    "tc_id": 442,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - MÂCON",
+    "adresse": "19 Place de la Baille, 71000, MÂCON",
+    "latitude": 46.306654,
+    "longitude": 4.832771,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/442",
+    "email": "fratebourgogne@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 260,
+    "center_id": null,
+    "nom": "CAMPUS XIIe AVENUE",
+    "adresse": "5 rue de Bruxelles, 12000, RODEZ",
+    "latitude": 44.3592266,
+    "longitude": 2.5580758,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/260",
+    "email": "c.perrot@campus12avenue.fr",
+    "telephone": "+33 5 65 75 56 64",
+    "site_web": null
+  },
+  {
+    "tc_id": 883,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - NEVERS",
+    "adresse": "43 Boulevard du Pré Plantin, 58000, NEVERS",
+    "latitude": 46.986194,
+    "longitude": 3.123415,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/883",
+    "email": "fratebourgogne@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 995,
+    "center_id": null,
+    "nom": "EFFICIA - MILLAU",
+    "adresse": "32 avenue de la République, 12100, MILLAU",
+    "latitude": 44.1032295,
+    "longitude": 3.0767335,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/995",
+    "email": "contact@efficia.org",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 435,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - AUXERRE",
+    "adresse": "13 rue Jules Ferry, 89000, AUXERRE",
+    "latitude": 47.7971442,
+    "longitude": 3.5840282,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/435",
+    "email": "auxerre@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 403,
+    "center_id": null,
+    "nom": "EFFICIA",
+    "adresse": "11T, rue Salomon Reinach, 30000, NIMES",
+    "latitude": 43.835327,
+    "longitude": 4.375847,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/403",
+    "email": "TEF@efficia.org",
+    "telephone": "+33 6 11 72 52 41",
+    "site_web": null
+  },
+  {
+    "tc_id": 440,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - JOIGNY",
+    "adresse": "9 boulevard Lesire Lacam, 89300, JOIGNY",
+    "latitude": 47.9843773,
+    "longitude": 3.3998684,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/440",
+    "email": "joigny@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 1003,
+    "center_id": null,
+    "nom": "FRATE FORMATION - BOURGES",
+    "adresse": "Association Tivoli Initiative, 18000, BOURGES",
+    "latitude": 47.0749476,
+    "longitude": 2.4045771,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1003",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 985,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - CAEN",
+    "adresse": "26 Avenue de Thiès, 14000, CAEN",
+    "latitude": 49.1988353,
+    "longitude": -0.3618328,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/985",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1016,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - SAINT-FLOUR",
+    "adresse": "5 Avenue de Besserette, 15100, SAINT- FLOUR",
+    "latitude": 45.0370781,
+    "longitude": 3.079767,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1016",
+    "email": "frateauvergne@frateformation.net",
+    "telephone": "+33 4 73 16 82 21",
+    "site_web": null
+  },
+  {
+    "tc_id": 637,
+    "center_id": null,
+    "nom": "NEWDEAL INSTITUT BORDEAUX",
+    "adresse": "2 Parvis Gattebourse, 33800, BORDEAUX",
+    "latitude": 44.820698,
+    "longitude": -0.546428,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/637",
+    "email": "rory@newdealinstitut.com",
+    "telephone": "+33 9 53 03 16 20",
+    "site_web": null
+  },
+  {
+    "tc_id": 165,
+    "center_id": null,
+    "nom": "ALLIANCE FRANÇAISE DE PARIS ILE-DE-FRANCE",
+    "adresse": "101 boulevard Raspail, 75270, PARIS CEDEX 06",
+    "latitude": 48.84634,
+    "longitude": 2.328547,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/165",
+    "email": "examens@alliancefr.org",
+    "telephone": "+33 1 42 84 90 00",
+    "site_web": null
+  },
+  {
+    "tc_id": 882,
+    "center_id": null,
+    "nom": "ZD ACADEMY",
+    "adresse": "82 avenue de Charras, 63000, Clermont-Ferrand",
+    "latitude": 45.779217,
+    "longitude": 3.099495,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/882",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 971,
+    "center_id": null,
+    "nom": "ZD ACADEMY",
+    "adresse": "178 Avenue du Général Leclerc, 93500, Pantin",
+    "latitude": 48.9017583,
+    "longitude": 2.4138659,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/971",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1072,
+    "center_id": null,
+    "nom": "ZD ACADEMY",
+    "adresse": "5 bis rue de la Gare, 02200, Soissons",
+    "latitude": 49.379647,
+    "longitude": 3.276296,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1072",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1073,
+    "center_id": null,
+    "nom": "ZD ACADEMY",
+    "adresse": "152 avenue jean Jaurès, 19100, Brive La Gaillarde",
+    "latitude": 45.1552437,
+    "longitude": 1.5306594,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1073",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 766,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - NOISY-LE-GRAND",
+    "adresse": "7 porte de Neuilly, 93160, NOISY-LE-GRAND",
+    "latitude": 48.8429281,
+    "longitude": 2.5445023,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/766",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 816,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - NOISY-LE-GRAND",
+    "adresse": "153 avenue Jean Lolive, 93500, Pantin",
+    "latitude": 48.8935388,
+    "longitude": 2.4140116,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/816",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 911,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - NOISY-LE-GRAND",
+    "adresse": "3 rue Jesse Owens, 93200, Saint-Denis",
+    "latitude": 48.923457,
+    "longitude": 2.364425,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/911",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 638,
+    "center_id": null,
+    "nom": "NEXT UP FORMATION",
+    "adresse": "7 avenue Jacques Cartier, 77600, BUSSY-SAINT-GEORGES",
+    "latitude": 48.835142,
+    "longitude": 2.7082564,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/638",
+    "email": "commercial@bynextup.com",
+    "telephone": "+33 9 81 43 50 50",
+    "site_web": null
+  },
+  {
+    "tc_id": 996,
+    "center_id": null,
+    "nom": "INSTITUT LANGUES ET SAVOIRS - ISPA LILLE",
+    "adresse": "177 rue Nationale, 59000, LILLE",
+    "latitude": 50.6323761,
+    "longitude": 3.0518843,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/996",
+    "email": "examens@ispa-langues.com",
+    "telephone": "+33 3 20 40 56 51",
+    "site_web": null
+  },
+  {
+    "tc_id": 616,
+    "center_id": null,
+    "nom": "LIL'LANGUES",
+    "adresse": "36 place Cormontaigne, 59000, LILLE",
+    "latitude": 50.625934,
+    "longitude": 3.039709,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/616",
+    "email": "examen@lillangues.com",
+    "telephone": "+33 3 20 37 42 66",
+    "site_web": null
+  },
+  {
+    "tc_id": 378,
+    "center_id": null,
+    "nom": "CONSENSO FORMATION",
+    "adresse": "1 rue Georges Gouigoux, 60200, COMPIÈGNE",
+    "latitude": 49.4128096,
+    "longitude": 2.8282296,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/378",
+    "email": "contact@consenso-formation.fr",
+    "telephone": "+33 3 44 20 32 54",
+    "site_web": null
+  },
+  {
+    "tc_id": 834,
+    "center_id": null,
+    "nom": "LAHO FORMATION - BEAUVAIS",
+    "adresse": "18 Rue d'Allonne, 60000, BEAUVAIS",
+    "latitude": 49.416128,
+    "longitude": 2.1048559,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/834",
+    "email": "v.debrye@laho-formation.fr",
+    "telephone": "+33 3 44 79 80 81",
+    "site_web": null
+  },
+  {
+    "tc_id": 1010,
+    "center_id": null,
+    "nom": "AEFTI SAVOIRS ET COMPÉTENCES ",
+    "adresse": "9 rue de Marl, 60100, CREIL",
+    "latitude": 49.2599565,
+    "longitude": 2.4759642,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1010",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 581,
+    "center_id": null,
+    "nom": " INSTITUT SUPÉRIEUR DE PROPÉDEUTIQUE D'AMIENS (ISPA)",
+    "adresse": "5 rue des Francs-Mûriers, 80000, AMIENS",
+    "latitude": 49.8968155,
+    "longitude": 2.2996887,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/581",
+    "email": "examens@ispa-langues.com",
+    "telephone": "+33 3 22 91 08 66",
+    "site_web": null
+  },
+  {
+    "tc_id": 974,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "Parc technologique de Sologne - Route de Vielfond, 18100, VIERZON",
+    "latitude": 47.2454945,
+    "longitude": 2.0685953,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/974",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": "+33 6 73 54 41 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 977,
+    "center_id": null,
+    "nom": "CECI Formation",
+    "adresse": "70 avenue de Cognac, 16000, ANGOULEME",
+    "latitude": 45.65322,
+    "longitude": 0.14908,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/977",
+    "email": "bernard.jenaste@ceci-formation.com",
+    "telephone": "+33 6 73 54 41 99",
+    "site_web": null
+  },
+  {
+    "tc_id": 446,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - STRASBOURG ",
+    "adresse": "31 rue Maréchal Lefebvre, 67100, STRASBOURG",
+    "latitude": 48.5613023,
+    "longitude": 7.7415225,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/446",
+    "email": "fratealsace@frateformation.net",
+    "telephone": "+33 3 81 94 95 35",
+    "site_web": null
+  },
+  {
+    "tc_id": 617,
+    "center_id": null,
+    "nom": "LINGUAPHONE ALSACE",
+    "adresse": "4 rue Fredo Krumnov, 68200, MULHOUSE",
+    "latitude": 47.746552,
+    "longitude": 7.298605,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/617",
+    "email": "catherine.humbert@linguaphone.fr",
+    "telephone": "+33 3 89 33 13 65",
+    "site_web": null
+  },
+  {
+    "tc_id": 445,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - MULHOUSE",
+    "adresse": "20 rue de Chemnitz, 68200, MULHOUSE",
+    "latitude": 47.747282,
+    "longitude": 7.297616,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/445",
+    "email": "fl22alsace@frateformation.net",
+    "telephone": "+33 3 81 94 95 35",
+    "site_web": null
+  },
+  {
+    "tc_id": 839,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - REIMS",
+    "adresse": "14 rue Edouard Mignot, 51100, REIMS",
+    "latitude": 49.2602818,
+    "longitude": 4.0211571,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/839",
+    "email": "fratechampard@frateformation.net",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 447,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - TROYES",
+    "adresse": "28 rue Coulommières, 10000, TROYES",
+    "latitude": 48.294039,
+    "longitude": 4.072749,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/447",
+    "email": "troyes@frateformation.net",
+    "telephone": "+33 3 81 82 21 75",
+    "site_web": null
+  },
+  {
+    "tc_id": 437,
+    "center_id": null,
+    "nom": "FRATE FORMATION - CHAUMONT",
+    "adresse": "49 Rue Levy Alphandery, 52000, CHAUMONT",
+    "latitude": 48.105269,
+    "longitude": 5.135601,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/437",
+    "email": "fratechampard@frateformation.net",
+    "telephone": "+33 3 81 94 95 35",
+    "site_web": null
+  },
+  {
+    "tc_id": 1000,
+    "center_id": null,
+    "nom": "FRATE FORMATION - SAINT-DIÉ-DES-VOSGES",
+    "adresse": "7 Rue Laurent Pillard, 88100, SAINT-DIÉ-DES-VOSGES",
+    "latitude": 48.2749862,
+    "longitude": 6.9617769,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1000",
+    "email": "fratelorraine@frateformation.net",
+    "telephone": "+33 3 81 94 95 35",
+    "site_web": null
+  },
+  {
+    "tc_id": 431,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - LONS-LE-SAUNIER",
+    "adresse": "11 avenue Thurel, 39000, LONS-LE-SAUNIER",
+    "latitude": 46.6728934,
+    "longitude": 5.5526959,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/431",
+    "email": "fratefc@frateformation.net",
+    "telephone": "+33 3 84 47 25 90",
+    "site_web": null
+  },
+  {
+    "tc_id": 893,
+    "center_id": null,
+    "nom": "ALLIANCE FRANÇAISE DE LA RÉUNION",
+    "adresse": "4 ruelle Tortue, 97400, SAINT-DENIS",
+    "latitude": 48.9383732,
+    "longitude": 2.3627508,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/893",
+    "email": "aflareunion@gmail.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 743,
+    "center_id": null,
+    "nom": "WORLD EXPERIENCE ",
+    "adresse": "92 Résidence Maimouna, 97139, LES ABYMES",
+    "latitude": 16.247143,
+    "longitude": -61.527385,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/743",
+    "email": "communication@world-experience.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 451,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - MONTBÉLIARD",
+    "adresse": "37 avenue des alliés , 25200, MONTBÉLIARD",
+    "latitude": 47.5137847,
+    "longitude": 6.7985075,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/451",
+    "email": "fratefc@frateformation.net",
+    "telephone": "+33 3 81 94 95 35",
+    "site_web": null
+  },
+  {
+    "tc_id": 444,
+    "center_id": null,
+    "nom": "FRATE FORMATION CONSEIL - MONTCEAU-LES-MINES",
+    "adresse": "16 rue du Docteur Jeannin, 71300, MONTCEAU-LES-MINES",
+    "latitude": 46.6722299,
+    "longitude": 4.3611859,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/444",
+    "email": "montceau@frateformation.net",
+    "telephone": "+33 3 80 45 15 93",
+    "site_web": null
+  },
+  {
+    "tc_id": 986,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - LIMOGES",
+    "adresse": "18 place Winston Churchill, LIMOGES",
+    "latitude": 45.8322557,
+    "longitude": 1.2510911,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/986",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 987,
+    "center_id": null,
+    "nom": "MOVE UP FORMATION - POITIERS",
+    "adresse": "53 avenue du 8 Mai 1945, 86000, POITIERS",
+    "latitude": 46.5609652,
+    "longitude": 0.314503,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/987",
+    "email": "contact@moveup-formation.fr",
+    "telephone": "+33 1 85 44 02 02",
+    "site_web": null
+  },
+  {
+    "tc_id": 1057,
+    "center_id": null,
+    "nom": "FARBEE_BY_LEGALUNITE FRANCE",
+    "adresse": "53 avenue Jean-Jaurès, 93350, LE BOURGET",
+    "latitude": 48.932089,
+    "longitude": 2.42726,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1057",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1,
+    "center_id": null,
+    "nom": "ABC FORMATION",
+    "adresse": "3 allée du lavoir, 95130, FRANCONVILLE",
+    "latitude": 48.980737,
+    "longitude": 2.230062,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1",
+    "email": "contact@abcformation1986.fr",
+    "telephone": "+33 1 34 15 40 62",
+    "site_web": null
+  },
+  {
+    "tc_id": 980,
+    "center_id": null,
+    "nom": "ABC FORMATION",
+    "adresse": "82 Avenue de Verdun, 95310, SAINT-OUEN L'AUMONE",
+    "latitude": 49.0408329,
+    "longitude": 2.1049814,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/980",
+    "email": "pedagogie@abcformation1986.fr",
+    "telephone": "+33 7 49 90 49 42",
+    "site_web": null
+  },
+  {
+    "tc_id": 660,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "12 rue des chauffours , 95000, CERGY",
+    "latitude": 49.0410618,
+    "longitude": 2.0794017,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/660",
+    "email": "admin@poly-langues.com",
+    "telephone": "+33 6 10 60 14 67",
+    "site_web": null
+  },
+  {
+    "tc_id": 812,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "23 bis rue Max Dormoy, 91300, Massy",
+    "latitude": 48.727853,
+    "longitude": 2.271527,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/812",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 813,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "5 Bis Place Praslin, 77000, Melun",
+    "latitude": 48.536814,
+    "longitude": 2.657883,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/813",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 814,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "221, avenue du Président Wilson, 93210 Saint denis, Saint denis",
+    "latitude": 48.9140166,
+    "longitude": 2.3573235,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/814",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 815,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "8 rue du Courant, 33310, LORMONT",
+    "latitude": 44.88105,
+    "longitude": -0.514502,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/815",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 837,
+    "center_id": null,
+    "nom": "POLYLANGUES - CERGY",
+    "adresse": "12 rue des Chauffours, 95000, Cergy",
+    "latitude": 49.0410618,
+    "longitude": 2.0794017,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/837",
+    "email": null,
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 18,
+    "center_id": null,
+    "nom": "ADPE",
+    "adresse": "10-12 Avenue du Colonel Rol-Tanguy, 93240, STAINS",
+    "latitude": 48.9577628,
+    "longitude": 2.3726074,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/18",
+    "email": "contact@association-adpe.com",
+    "telephone": "+33 1 49 98 44 48",
+    "site_web": null
+  },
+  {
+    "tc_id": 402,
+    "center_id": null,
+    "nom": "EFAC FORMATION",
+    "adresse": "17 place du Général De Gaulle, 93100, MONTREUIL",
+    "latitude": 48.868433,
+    "longitude": 2.433045,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/402",
+    "email": "efac.formation@yahoo.fr",
+    "telephone": "+33 6 60 62 26 68",
+    "site_web": null
+  },
+  {
+    "tc_id": 405,
+    "center_id": null,
+    "nom": "ELFE PARIS",
+    "adresse": "15 rue Montmartre, 75001, PARIS",
+    "latitude": 48.8644355,
+    "longitude": 2.3452028,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/405",
+    "email": "contact@elfe-paris.com",
+    "telephone": "+33 1 48 78 73 00",
+    "site_web": null
+  },
+  {
+    "tc_id": 277,
+    "center_id": 507,
+    "nom": "CCI MARTINIQUE FORMATION",
+    "adresse": "Rue Aubin Edmond, 97233, SCHOELCHER",
+    "latitude": 14.6203339,
+    "longitude": -61.098973,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/277",
+    "email": "accueil_skillfor@martinique.cci.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 294,
+    "center_id": 1205,
+    "nom": "CENTRE D'APPRENTISSAGE DE LA LANGUE FRANÇAISE (CALF)",
+    "adresse": "Avenue Maréchal Idriss Déby , NDJAMENA",
+    "latitude": 12.0524244,
+    "longitude": 15.1572567,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/294",
+    "email": "calf.ndj@gmail.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1098,
+    "center_id": 1463,
+    "nom": "CACIMA - SAINT-PIERRE-ET-MIQUELON",
+    "adresse": "4 BOULEVARD CONSTANT COLMAY , 97500, SAINT-PIERRE-ET-MIQUELON",
+    "latitude": 46.780748,
+    "longitude": -56.1698967,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1098",
+    "email": "formation@cacima.fr",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 125,
+    "center_id": 229,
+    "nom": "ALLIANCE FRANÇAISE DE LA PAZ",
+    "adresse": "Calle Guachalla 399, 10220, LA PAZ",
+    "latitude": -16.5082898,
+    "longitude": -68.1286731,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/125",
+    "email": "dp.lapaz@alianzafrancesa.org.bo",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 2,
+    "center_id": 1011,
+    "nom": "ABSOLUTE MJ SOLUTIONS GUADELOUPE",
+    "adresse": "3617, Boulevard de Houelbourg, 97122, BAIE-MAHAULT",
+    "latitude": 16.26738,
+    "longitude": -61.58543,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/2",
+    "email": "tef.guadeloupe@amjsolutions.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 235,
+    "center_id": 1080,
+    "nom": "ALLIANCE FRANCAISE SANTA CRUZ DE LA SIERRA",
+    "adresse": "Calle 24 de Septiembre Nº 36, 99, SANTA CRUZ DE LA SIERRA",
+    "latitude": -17.7826913,
+    "longitude": -63.1816319,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/235",
+    "email": "info.santacruz@alianzafrancesa.org.bo",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 205,
+    "center_id": 378,
+    "nom": "ALLIANCE FRANCAISE D'ANTANANARIVO",
+    "adresse": "BP 916 Andavamamba, 101, TANANARIVE",
+    "latitude": -18.9163197,
+    "longitude": 47.509813,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/205",
+    "email": "contact@afantananarivo.mg",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 463,
+    "center_id": 949,
+    "nom": "HORIZONS FRANCOPHONES",
+    "adresse": "35 rue Anne-Marie Javouhey, 98713, PAPEETE",
+    "latitude": -17.541546,
+    "longitude": -149.567528,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/463",
+    "email": "formation@horizons-francophones.com",
+    "telephone": null,
+    "site_web": null
+  },
+  {
+    "tc_id": 1123,
+    "center_id": 1350,
+    "nom": "ALLIANCE FRANÇAISE DE LA RÉUNION",
+    "adresse": "107 Rue de la République, 97400, Saint Denis",
+    "latitude": -20.8839158,
+    "longitude": 55.4467663,
+    "produits": [
+      "Examen civique mention Naturalisation",
+      "Examen civique mention Carte de résident",
+      "Examen civique mention Carte de séjour pluriannuelle"
+    ],
+    "url_contact": "https://francais.cci-paris-idf.fr/inscription-candidat/contact/1123",
+    "email": "aflareunion@gmail.com",
+    "telephone": null,
+    "site_web": null
+  }
+]
