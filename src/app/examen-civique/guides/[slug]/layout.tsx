@@ -20,7 +20,22 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   }
 
   const url = `${siteUrl}/examen-civique/guides/${params.slug}`;
-  const defaultImage = `${siteUrl}/og-image.png`;
+
+  // Pas de fallback vers un fichier statique ici : si le guide n'a pas sa
+  // propre image, on omet complètement `images` pour laisser Next.js
+  // appliquer automatiquement src/app/opengraph-image.tsx (convention de
+  // fichier). Un `images` explicite pointant vers un fichier inexistant
+  // écraserait ce fallback silencieusement.
+  const ogImages = guide.image_url
+    ? [
+        {
+          url: guide.image_url,
+          width: 1200,
+          height: 630,
+          alt: guide.title,
+        },
+      ]
+    : undefined;
 
   return {
     title: `${guide.title} | Examen civique LlamaKusi`,
@@ -35,20 +50,13 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       type: 'article',
       publishedTime: guide.created_at,
       modifiedTime: guide.updated_at || guide.created_at,
-      images: [
-        {
-          url: guide.image_url || defaultImage,
-          width: 1200,
-          height: 630,
-          alt: guide.title,
-        },
-      ],
+      ...(ogImages ? { images: ogImages } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title: guide.title,
       description: guide.description || '',
-      images: [guide.image_url || defaultImage],
+      ...(guide.image_url ? { images: [guide.image_url] } : {}),
     },
     robots: {
       index: true,

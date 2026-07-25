@@ -14,21 +14,16 @@ export const metadata: Metadata = {
       "Entraînez-vous gratuitement avec les questions officielles de l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle). Examens blancs chronométrés inclus.",
     url: `${siteUrl}/examen-civique`,
     type: "website",
-    images: [
-      {
-        url: `${siteUrl}/logo.png`,
-        width: 1200,
-        height: 630,
-        alt: "LlamaKusi — Examen Civique Gratuit",
-      },
-    ],
+    // Pas d'`images` ici : géré automatiquement par src/app/opengraph-image.tsx
+    // (convention Next.js). L'ancienne référence à /logo.png avait des
+    // dimensions déclarées (1200x630) qui ne correspondaient pas au fichier
+    // réel (322x331) — image déformée sur tout partage social.
   },
   twitter: {
     card: "summary_large_image",
     title: "Questions Examen Civique 2026 — Entraînement Gratuit",
     description:
       "Questions officielles du Ministère de l'Intérieur. Entraînement gratuit, sans inscription.",
-    images: [`${siteUrl}/logo.png`],
   },
   keywords: [
     "examen civique naturalisation",
