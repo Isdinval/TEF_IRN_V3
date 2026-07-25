@@ -47,6 +47,8 @@ export default async function CentresPage() {
     console.error("Erreur chargement centres_examen_civique:", error);
   }
 
+  const centresList = (centres ?? []) as Centre[];
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -57,9 +59,51 @@ export default async function CentresPage() {
     ],
   };
 
+  // ItemList de LocalBusiness — un par centre agréé. C'est le contenu le plus
+  // fort en potentiel GEO local du site (données géolocalisées réelles et
+  // vérifiables) : très pertinent pour des requêtes "centre d'examen civique
+  // près de [ville]" côté Google (rich results/Maps) comme côté moteurs
+  // génératifs. Champs optionnels (téléphone, email, coordonnées) omis quand
+  // absents plutôt que laissés vides, pour rester un JSON-LD valide.
+  const localBusinessListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Centres d'examen civique agréés en France",
+    numberOfItems: centresList.length,
+    itemListElement: centresList.map((centre, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "LocalBusiness",
+        "@id": `${siteUrl}/examen-civique/centres#centre-${centre.tc_id}`,
+        name: centre.nom,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: centre.adresse,
+          ...(centre.code_postal ? { postalCode: centre.code_postal } : {}),
+          ...(centre.ville ? { addressLocality: centre.ville } : {}),
+          addressCountry: "FR",
+        },
+        ...(centre.latitude !== null && centre.longitude !== null
+          ? {
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: centre.latitude,
+                longitude: centre.longitude,
+              },
+            }
+          : {}),
+        ...(centre.telephone ? { telephone: centre.telephone } : {}),
+        ...(centre.email ? { email: centre.email } : {}),
+        url: centre.url_contact,
+      },
+    })),
+  };
+
   return (
     <>
       <JsonLd data={breadcrumbSchema} id="civic-centres-breadcrumb" />
+      <JsonLd data={localBusinessListSchema} id="civic-centres-local-business" />
       <div className="sr-only">
         <p>
           Liste complète des centres agréés CCI pour passer l&apos;examen civique en France :
@@ -67,7 +111,7 @@ export default async function CentresPage() {
           et email pour chaque centre.
         </p>
       </div>
-      <CivicCentres initialCentres={(centres ?? []) as Centre[]} />
+      <CivicCentres initialCentres={centresList} />
     </>
   );
 }

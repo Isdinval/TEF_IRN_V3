@@ -16,14 +16,10 @@ export const metadata: Metadata = {
       "Répondez à 3 questions pour savoir si l'examen civique est obligatoire dans votre situation, ou si vous pouvez en être dispensé.",
     url: `${siteUrl}/examen-civique/eligibilite`,
     type: "website",
-    images: [
-      {
-        url: `${siteUrl}/logo.png`,
-        width: 1200,
-        height: 630,
-        alt: "LlamaKusi — Test d'éligibilité à l'examen civique",
-      },
-    ],
+    // Pas d'`images` ici : géré automatiquement par src/app/opengraph-image.tsx
+    // (convention Next.js). L'ancienne référence à /logo.png avait des
+    // dimensions déclarées (1200x630) qui ne correspondaient pas au fichier
+    // réel (322x331) — image déformée sur tout partage social.
   },
   keywords: [
     "suis-je concerné examen civique",

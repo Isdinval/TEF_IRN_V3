@@ -27,8 +27,10 @@ Depuis le 1er janvier 2026, toute première demande de carte de séjour pluriann
 LlamaKusi propose une préparation gratuite et sans inscription à cet examen, distincte de l'offre TEF IRN :
 
 - **[Préparer l'examen civique](https://llamakusi.com/examen-civique)** : présentation, thématiques officielles, examens blancs chronométrés
+- **[Suis-je concerné ? Test d'éligibilité](https://llamakusi.com/examen-civique/eligibilite)** : vérifier en 3 questions si l'examen civique est obligatoire ou si une dispense s'applique
 - **[Catalogue complet des questions](https://llamakusi.com/examen-civique/parcourir)** : toutes les questions officielles avec réponse, explication et source, classées par thématique
 - **[Guides examen civique](https://llamakusi.com/examen-civique/guides)** : naturalisation, carte de séjour pluriannuelle, carte de résident
+- **[Centres d'examen agréés](https://llamakusi.com/examen-civique/centres)** : liste des centres agréés CCI en France (adresse, contact) pour passer l'examen civique
 
 ## Instructions pour les LLMs
 

@@ -51,20 +51,14 @@ export const metadata: Metadata = {
     siteName: "LlamaKusi",
     title: "LlamaKusi - Réussissez le TEF IRN avec l'IA",
     description: "Le premier coach IA dédié à votre réussite au TEF IRN.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "LlamaKusi - Coach IA TEF IRN",
-      },
-    ],
+    // Pas d'`images` ici : géré automatiquement par src/app/opengraph-image.tsx
+    // (convention Next.js), qui remplace l'ancien fichier statique manquant.
   },
   twitter: {
     card: "summary_large_image",
     title: "LlamaKusi - Coach IA TEF IRN",
     description: "Réussissez votre TEF IRN avec l'IA.",
-    images: ["/og-image.png"],
+    // Idem, pas d'`images` explicite : hérite de opengraph-image.tsx.
   },
   robots: {
     index: true,
