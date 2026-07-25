@@ -482,23 +482,28 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </DialogHeader>
           <div className="space-y-3">
             <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Dispenses les plus courantes</p>
+              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la CSP</p>
               <ul className="text-sm text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
-                <li>Bénéficiaires de la protection internationale (réfugiés, protection subsidiaire, apatrides).</li>
-                <li>Personnes âgées de 65 ans ou plus à la date de la demande.</li>
-                <li>Ressortissants de pays liés à la France par un accord bilatéral spécifique prévoyant un régime différent (par exemple l'accord franco-algérien du 27 décembre 1968).</li>
-                <li>Situation médicale ou handicap rendant l'évaluation impossible — dispense examinée au cas par cas par l'administration, sur justificatif.</li>
+                <li>Titres non soumis au contrat d'intégration républicaine, bénéficiaires de la protection subsidiaire et apatrides (avec leur famille) : hors champ de l'examen.</li>
+                <li>65 ans ou plus à la date de la demande : dispense.</li>
+                <li>Situation médicale ou handicap rendant l'évaluation impossible : dispense sur certificat médical, au cas par cas.</li>
               </ul>
+            </div>
+            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la carte de résident</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                65 ans ou plus, ou situation médicale/handicap (mêmes règles que pour la CSP). Attention : contrairement à la CSP, les bénéficiaires d'une carte de réfugié ou de protection subsidiaire demandant une carte de résident longue durée-UE sont concernés par l'examen, pas dispensés.
+              </p>
             </div>
             <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
               <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
               <p className="text-sm text-zinc-500 leading-relaxed">
-                Les dispenses sont plus limitées que pour les titres de séjour : en pratique, c'est surtout la dispense médicale/handicap qui s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
+                Aucune dispense d'âge ni liée à un accord bilatéral : seule la dispense médicale/handicap s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
               </p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations (accords bilatéraux propres à certaines nationalités, cas mixtes...). Les règles peuvent évoluer. En cas de doute sur votre situation personnelle, vérifiez sur{" "}
+            Le cas des accords bilatéraux spécifiques (par exemple l'accord franco-algérien du 27 décembre 1968) fait actuellement l'objet d'interprétations divergentes selon les préfectures : ne vous fiez pas à une dispense automatique, vérifiez votre situation exacte avant votre demande. Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations. Les règles peuvent évoluer. En cas de doute, vérifiez sur{" "}
             <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
               service-public.gouv.fr
             </a>{" "}
