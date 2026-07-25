@@ -252,9 +252,14 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <p className="text-xs text-zinc-500 font-medium">
             Démarche actuelle : <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
           </p>
-          <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
-            Cas particuliers / exemptions →
-          </button>
+          <div className="flex items-center gap-3">
+            <Link href="/examen-civique/eligibilite" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+              Suis-je concerné ? →
+            </Link>
+            <button onClick={() => setMentionHelpOpen(true)} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:underline">
+              Cas particuliers / exemptions
+            </button>
+          </div>
         </div>
 
         {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
