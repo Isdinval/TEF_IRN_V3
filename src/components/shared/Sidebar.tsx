@@ -29,7 +29,8 @@ import {
   ShieldCheck,
   Wrench,
   Cpu,
-  HelpCircle
+  HelpCircle,
+  MapPin
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -104,6 +105,7 @@ function SidebarContent() {
         { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir" },
         { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement" },
         { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc" },
+        { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres" },
         { label: "Guides", icon: Sparkles, href: "/examen-civique/guides" },
       ],
     },
