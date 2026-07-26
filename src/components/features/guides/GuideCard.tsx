@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Clock, ArrowRight, BookOpen, Mic, FileText, Cpu, GraduationCap, Scale, Zap, Target } from 'lucide-react';
 import { Guide } from '@/types/guides';
 
@@ -70,42 +69,57 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
   };
 
   return (
-    <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-gray-100 overflow-hidden group rounded-[2rem]">
-      <div className={`h-48 flex items-center justify-center ${getCategoryIconColor(guide.category)}`}>
-        <IconComponent size={64} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-300" />
-      </div>
-      <CardHeader className="space-y-1">
-        <div className="flex justify-between items-start mb-2">
-          <Badge variant="outline" className={`capitalize ${getTypeColor(guide.type)}`}>
-            {guide.type}
-          </Badge>
-          {guide.level && (
-             <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-               {guide.level}
-             </span>
-          )}
-        </div>
-        <CardTitle className={`text-xl transition-colors font-black ${styles.titleHover}`}>
-          {guide.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <CardDescription className="text-gray-600 line-clamp-3 font-medium">
-          {guide.description}
-        </CardDescription>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center pt-4 border-t border-gray-50">
-        <div className="flex items-center text-sm text-gray-500">
-          <Clock size={14} className="mr-1" />
-          {guide.reading_time} min
-        </div>
-        <Link href={`${hrefBase}/${guide.slug}`} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined} passHref>
-          <Button variant="ghost" size="sm" className={`p-0 group/btn font-bold ${styles.link}`}>
+    <Link
+      href={`${hrefBase}/${guide.slug}`}
+      target={target}
+      rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+      className="block h-full"
+    >
+      <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-gray-100 overflow-hidden group rounded-[2rem]">
+        {guide.image_url ? (
+          <div className="h-48 overflow-hidden">
+            <img
+              src={guide.image_url}
+              alt={guide.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+          </div>
+        ) : (
+          <div className={`h-48 flex items-center justify-center ${getCategoryIconColor(guide.category)}`}>
+            <IconComponent size={64} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-300" />
+          </div>
+        )}
+        <CardHeader className="space-y-1">
+          <div className="flex justify-between items-start mb-2">
+            <Badge variant="outline" className={`capitalize ${getTypeColor(guide.type)}`}>
+              {guide.type}
+            </Badge>
+            {guide.level && (
+               <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                 {guide.level}
+               </span>
+            )}
+          </div>
+          <CardTitle className={`text-xl transition-colors font-black ${styles.titleHover}`}>
+            {guide.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-grow">
+          <CardDescription className="text-gray-600 line-clamp-3 font-medium">
+            {guide.description}
+          </CardDescription>
+        </CardContent>
+        <CardFooter className="flex justify-between items-center pt-4 border-t border-gray-50">
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock size={14} className="mr-1" />
+            {guide.reading_time} min
+          </div>
+          <span className={`inline-flex items-center p-0 group/btn font-bold text-sm ${styles.link}`}>
             Lire le guide <ArrowRight size={16} className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+          </span>
+        </CardFooter>
+      </Card>
+    </Link>
   );
 };
 
