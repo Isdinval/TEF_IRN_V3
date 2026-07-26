@@ -30,7 +30,8 @@ import {
   Wrench,
   Cpu,
   HelpCircle,
-  MapPin
+  MapPin,
+  BookMarked
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -122,6 +123,7 @@ function SidebarContent() {
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
         { label: "Générateur IA", icon: Cpu, href: "/tef-irn/admin/generator" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
+        { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
       ],
     });
   }
