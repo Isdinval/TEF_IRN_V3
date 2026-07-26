@@ -28,7 +28,6 @@ import {
   Clock,
   ShieldCheck,
   Wrench,
-  Cpu,
   HelpCircle,
   MapPin,
   BookMarked
@@ -121,7 +120,6 @@ function SidebarContent() {
       activePrefix: "/tef-irn/admin",
       items: [
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
-        { label: "Générateur IA", icon: Cpu, href: "/tef-irn/admin/generator" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
         { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
       ],

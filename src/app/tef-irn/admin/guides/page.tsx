@@ -17,8 +17,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, UploadCloud } from "lucide-react";
 import Link from "next/link";
+import { Loader2, Plus, Pencil, Trash2, UploadCloud, ExternalLink } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 import { GuideType } from "@/types/guides";
@@ -355,6 +355,23 @@ export default function GuidesAdmin() {
                 <p className="text-xs text-zinc-400 truncate">/{g.slug}</p>
               </div>
               <div className="flex gap-2 shrink-0">
+                {g.is_published ? (
+                  <Link
+                    href={`/${isCivic(g.category) ? "examen-civique" : "tef-irn"}/guides/${g.slug}`}
+                    target="_blank"
+                    className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600"
+                    title="Voir sur le site"
+                  >
+                    <ExternalLink size={15} />
+                  </Link>
+                ) : (
+                  <span
+                    className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-200 cursor-not-allowed"
+                    title="Brouillon non publié : pas encore visible sur le site"
+                  >
+                    <ExternalLink size={15} />
+                  </span>
+                )}
                 <button onClick={() => openEditDialog(g)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>

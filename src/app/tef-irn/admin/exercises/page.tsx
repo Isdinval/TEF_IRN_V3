@@ -16,7 +16,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Loader2, Plus, Pencil, Trash2, X } from "lucide-react";
-import Link from "next/link";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -236,10 +235,7 @@ export default function ExercisesAdmin() {
           <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
           <h1 className="text-3xl font-black tracking-tight">Exercices TEF</h1>
           <p className="text-muted-foreground">
-            {exercises.length} exercice{exercises.length > 1 ? "s" : ""} affiché{exercises.length > 1 ? "s" : ""} —{" "}
-            <Link href="/tef-irn/admin/generator" className="text-indigo-600 hover:underline font-bold">
-              Générateur IA
-            </Link>
+            {exercises.length} exercice{exercises.length > 1 ? "s" : ""} affiché{exercises.length > 1 ? "s" : ""}
           </p>
         </div>
         <Button onClick={openCreateDialog} className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-black shadow-xl shadow-indigo-100">
