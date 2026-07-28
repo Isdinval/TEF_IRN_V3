@@ -127,7 +127,10 @@ export default function GuidesAdmin() {
     setLoading(true);
     let query = supabase.from("guides").select("*").order("created_at", { ascending: false });
     if (publishedFilter !== "Tous") query = query.eq("is_published", publishedFilter === "true");
-    if (search.trim()) query = query.ilike("title", `%${search.trim()}%`);
+    if (search.trim()) {
+      const term = search.trim().replace(/[%,]/g, "");
+      query = query.or(`title.ilike.%${term}%,slug.ilike.%${term}%`);
+    }
     const { data, error } = await query.limit(300);
     if (!error) {
       let rows = (data as GuideRow[]) || [];
@@ -328,7 +331,7 @@ export default function GuidesAdmin() {
           <option value="true">Publiés</option>
           <option value="false">Brouillons</option>
         </select>
-        <Input placeholder="Rechercher un titre..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />
+        <Input placeholder="Rechercher un titre ou un slug..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />
       </div>
 
       {loading ? (
