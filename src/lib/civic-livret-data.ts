@@ -19,6 +19,7 @@ export type LivretBlock =
   | { type: "list"; items: string[] }
   | { type: "callout"; text: string }
   | { type: "quote"; text: string; source?: string }
+  | { type: "cta"; text: string; label: string; href: string; download?: boolean }
   | { type: "image"; src: string; alt: string; caption?: string };
 
 export interface LivretPage {
@@ -557,7 +558,20 @@ export const LIVRET_PAGES: LivretPage[] = [
       },
       {
         type: "callout",
-        text: "Ce livret est basé sur l'édition officielle de mai 2026 du Ministère de l'Intérieur, disponible en téléchargement intégral ci-dessous.",
+        text: "Ce livret est basé sur l'édition officielle de mai 2026 du Ministère de l'Intérieur.",
+      },
+      {
+        type: "cta",
+        text: "Télécharger le PDF officiel complet, avec toutes les images et annexes.",
+        label: "Télécharger",
+        href: "/documents/livret-du-citoyen-2026.pdf",
+        download: true,
+      },
+      {
+        type: "cta",
+        text: "Prêt à vérifier vos connaissances ? Passez un examen blanc en conditions réelles.",
+        label: "Passer l'examen blanc",
+        href: "/examen-civique/examen-blanc",
       },
     ],
   },

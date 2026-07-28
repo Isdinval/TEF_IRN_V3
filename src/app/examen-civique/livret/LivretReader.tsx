@@ -5,14 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, ChevronLeft, ChevronRight, Download, List,
+  ArrowLeft, ChevronLeft, ChevronRight, Download,
   Flag, Scale, Landmark, MapPin, Globe2, ShieldCheck, Gavel,
   BookOpenCheck, ScrollText, Users2, Mountain, Palette, Home,
   HeartPulse, Briefcase, HeartHandshake, FileText, Sparkles,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { LIVRET_PAGES, LIVRET_PARTS, type LivretIcon, type LivretPage } from "@/lib/civic-livret-data";
 
@@ -72,6 +71,22 @@ function renderRich(text: string) {
   });
 }
 
+function renderListItem(text: string) {
+  // Pattern récurrent dans le contenu du livret : "Libellé : reste de la phrase".
+  // On met le libellé en gras automatiquement, sans avoir à baliser chaque item à la main
+  // avec **...** dans civic-livret-data.ts.
+  const match = text.match(/^([^:]{2,60}) : (.+)$/s);
+  if (!match) return renderRich(text);
+  const [, label, rest] = match;
+  return (
+    <>
+      <strong className="font-bold text-slate-900">{label}</strong>
+      {" : "}
+      {renderRich(rest)}
+    </>
+  );
+}
+
 function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEME[number] }) {
   return (
     <div className="space-y-5">
@@ -111,7 +126,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
                     className="flex gap-3 text-[15px] sm:text-base text-slate-600 leading-relaxed"
                   >
                     <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${theme.dot}`} />
-                    <span>{renderRich(item)}</span>
+                    <span>{renderListItem(item)}</span>
                   </motion.li>
                 ))}
               </motion.ul>
@@ -142,6 +157,23 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
                 )}
               </blockquote>
             );
+          case "cta":
+            return (
+              <a
+                key={i}
+                href={block.href}
+                download={block.download}
+                target={block.download ? undefined : "_blank"}
+                rel={block.download ? undefined : "noopener noreferrer"}
+                className={`flex items-center justify-between gap-3 rounded-2xl border px-5 py-4 transition-transform hover:-translate-y-0.5 ${theme.callout}`}
+              >
+                <span className="text-[15px] leading-relaxed">{renderRich(block.text)}</span>
+                <Button size="sm" className={`rounded-xl font-black gap-1.5 shrink-0 text-white border-none ${theme.badge}`}>
+                  {block.download ? <Download size={14} /> : <ChevronRight size={14} />}
+                  {block.label}
+                </Button>
+              </a>
+            );
           case "image":
             return (
               <figure key={i} className="my-2">
@@ -171,7 +203,6 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
 
 export default function LivretReader() {
   const [index, setIndex] = useState(0);
-  const [tocOpen, setTocOpen] = useState(false);
 
   const total = LIVRET_PAGES.length;
   const page = LIVRET_PAGES[index];
@@ -188,12 +219,11 @@ export default function LivretReader() {
 
   const goTo = (i: number) => {
     setIndex(Math.max(0, Math.min(total - 1, i)));
-    setTocOpen(false);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="min-h-screen bg-white selection:bg-indigo-100 pb-24">
+    <div className="min-h-screen bg-white selection:bg-indigo-100">
       {/* Nav sticky */}
       <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-gray-50">
         <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center justify-between gap-3">
@@ -205,19 +235,11 @@ export default function LivretReader() {
             <span className="text-sm hidden sm:inline">Examen civique</span>
           </Link>
 
-          <button
-            onClick={() => setTocOpen(true)}
-            className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 truncate"
-          >
-            <List size={16} className="shrink-0" />
-            <span className="truncate hidden sm:inline">{page.partTitle}</span>
-          </button>
-
           <select
             aria-label="Aller à la page"
             value={index}
             onChange={(e) => goTo(Number(e.target.value))}
-            className="text-sm font-bold text-slate-600 border border-gray-200 rounded-lg px-2 py-1.5 bg-white hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 max-w-[7rem] sm:max-w-[14rem] truncate"
+            className="text-sm font-bold text-slate-600 border border-gray-200 rounded-lg px-2 py-1.5 bg-white hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 max-w-[9rem] sm:max-w-[20rem] truncate"
           >
             {pagesByPart.map(({ part, pages }) => (
               <optgroup key={part.index} label={part.title}>
@@ -244,7 +266,7 @@ export default function LivretReader() {
       </nav>
 
       {/* Contenu */}
-      <main className="max-w-3xl mx-auto px-5 pt-10 sm:pt-14">
+      <main className="max-w-3xl mx-auto px-5 pt-10 sm:pt-14 pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={page.id}
@@ -278,9 +300,11 @@ export default function LivretReader() {
             <PageBlocks page={page} theme={theme} />
           </motion.div>
         </AnimatePresence>
+      </main>
 
-        {/* Navigation prev/next */}
-        <div className="mt-14 flex items-center justify-between gap-3 border-t border-gray-100 pt-6">
+      {/* Barre de navigation précédent/suivant — fixe, ne bouge pas avec le scroll ni la longueur de page */}
+      <div className="fixed bottom-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-100">
+        <div className="max-w-3xl mx-auto px-5 py-3 flex items-center justify-between gap-3">
           <Button
             variant="ghost"
             onClick={() => goTo(index - 1)}
@@ -299,41 +323,7 @@ export default function LivretReader() {
             <ChevronRight size={16} />
           </Button>
         </div>
-      </main>
-
-      {/* Sommaire */}
-      <Dialog open={tocOpen} onOpenChange={setTocOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Sommaire du livret</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-5 pt-2">
-            {pagesByPart.map(({ part, pages }) => {
-              const partTheme = PART_THEME[part.index] ?? PART_THEME[1];
-              return (
-                <div key={part.index}>
-                  <p className={`text-xs font-black uppercase tracking-wide mb-2 ${partTheme.kicker}`}>
-                    {part.title}
-                  </p>
-                  <div className="space-y-1">
-                    {pages.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => goTo(p.i)}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-                          p.i === index ? `${partTheme.tocActive} font-bold` : "text-slate-600 hover:bg-slate-50"
-                        }`}
-                      >
-                        {p.title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 }
