@@ -309,6 +309,23 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         <div className="space-y-2">
           <h2 className="text-base font-black text-zinc-900 px-1">Se préparer</h2>
 
+          {/* Livret du citoyen — l'étape 0 : le référentiel à lire avant de s'entraîner dessus */}
+          <Link
+            href="/examen-civique/livret"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+              <BookOpen size={17} className="text-indigo-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                Le référentiel officiel du Ministère de l&apos;Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable.
+              </p>
+            </div>
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
+          </Link>
+
           <div className="grid grid-cols-2 gap-2">
             {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
             <Link
@@ -447,23 +464,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
 
         {/* Séparateur — referme l'aparté TEF IRN avant d'enchaîner sur les guides/FAQ */}
         <div className="pt-2 border-t border-zinc-200" />
-
-        {/* Livret du citoyen — lecture officielle gratuite, distincte des guides SEO */}
-        <Link
-          href="/examen-civique/livret"
-          className="flex items-center justify-between gap-3 bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-              <BookOpen size={18} />
-            </div>
-            <div>
-              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
-              <p className="text-xs text-zinc-500 font-medium">Lecture officielle, gratuite et téléchargeable</p>
-            </div>
-          </div>
-          <ArrowRight size={16} className="text-zinc-300 shrink-0" />
-        </Link>
 
         {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
         {relevantGuides.length > 0 && (
