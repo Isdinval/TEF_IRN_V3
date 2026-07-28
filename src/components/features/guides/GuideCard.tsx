@@ -75,7 +75,7 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
       rel={target === '_blank' ? 'noopener noreferrer' : undefined}
       className="block h-full"
     >
-      <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-gray-100 overflow-hidden group rounded-[2rem]">
+      <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-gray-100 overflow-hidden group rounded-[2rem] pt-0">
         {guide.image_url ? (
           <div className="h-48 overflow-hidden">
             <img
