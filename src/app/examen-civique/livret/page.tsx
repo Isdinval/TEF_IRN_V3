@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { siteUrl } from "@/lib/site";
+import JsonLd from "@/components/shared/JsonLd";
 import LivretReader from "./LivretReader";
 
 export const metadata: Metadata = {
@@ -18,6 +19,40 @@ export const metadata: Metadata = {
   },
 };
 
+const OFFICIAL_SOURCE_URL =
+  "https://www.immigration.interieur.gouv.fr/documentation/guides-textes-et-brochures/livret-du-citoyen.html";
+
 export default function LivretCitoyenPage() {
-  return <LivretReader />;
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: "Livret du citoyen 2026",
+    description:
+      "Lecture en ligne, réorganisée par thème, du Livret du citoyen édité par le Ministère de l'Intérieur (édition mai 2026) : principes de la République, institutions, droits et devoirs, histoire, vie quotidienne.",
+    url: `${siteUrl}/examen-civique/livret`,
+    inLanguage: "fr-FR",
+    datePublished: "2026-05-01",
+    dateModified: "2026-07-01",
+    isBasedOn: OFFICIAL_SOURCE_URL,
+    about: "Examen civique et naturalisation française",
+    publisher: { "@id": `${siteUrl}/#organization` },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Examen civique", item: `${siteUrl}/examen-civique` },
+      { "@type": "ListItem", position: 3, name: "Livret du citoyen", item: `${siteUrl}/examen-civique/livret` },
+    ],
+  };
+
+  return (
+    <>
+      <JsonLd data={articleSchema} id="civic-livret-article-schema" />
+      <JsonLd data={breadcrumbSchema} id="civic-livret-breadcrumb" />
+      <LivretReader />
+    </>
+  );
 }
