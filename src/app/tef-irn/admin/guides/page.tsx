@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase";
@@ -208,10 +208,10 @@ export default function GuidesAdmin() {
       reader.readAsText(file);
     });
 
-  const handleImportJson = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // permet de réimporter le même fichier après une correction
-    if (!file) return;
+  const [jsonDragOver, setJsonDragOver] = useState(false);
+  const [mdDragOver, setMdDragOver] = useState(false);
+
+  const processJsonFile = async (file: File) => {
     setErrorMsg(null);
     setJsonImportStatus(null);
     try {
@@ -237,10 +237,21 @@ export default function GuidesAdmin() {
     }
   };
 
-  const handleImportMd = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImportJson = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = "";
+    e.target.value = ""; // permet de réimporter le même fichier après une correction
     if (!file) return;
+    await processJsonFile(file);
+  };
+
+  const handleJsonDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setJsonDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) await processJsonFile(file);
+  };
+
+  const processMdFile = async (file: File) => {
     setErrorMsg(null);
     setMdImportStatus(null);
     try {
@@ -250,6 +261,20 @@ export default function GuidesAdmin() {
     } catch (err: any) {
       setErrorMsg("Fichier MD invalide : " + (err?.message || "erreur de lecture."));
     }
+  };
+
+  const handleImportMd = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    await processMdFile(file);
+  };
+
+  const handleMdDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setMdDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) await processMdFile(file);
   };
 
   const handleProductChange = (product: Product) => {
@@ -403,12 +428,12 @@ export default function GuidesAdmin() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingId ? "Modifier le guide" : "Nouveau guide"}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-1">
             {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
 
             <div className="p-4 bg-indigo-50 rounded-2xl space-y-2">
@@ -423,7 +448,17 @@ export default function GuidesAdmin() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-[10px] font-black uppercase text-zinc-400">Métadonnées (.json)</Label>
-                  <input type="file" accept=".json,application/json" onChange={handleImportJson} className="mt-1 w-full text-xs" />
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setJsonDragOver(true); }}
+                    onDragLeave={() => setJsonDragOver(false)}
+                    onDrop={handleJsonDrop}
+                    className={`mt-1 rounded-xl border-2 border-dashed p-3 text-center transition-colors ${
+                      jsonDragOver ? "border-indigo-500 bg-indigo-100" : "border-indigo-200 bg-indigo-50/50"
+                    }`}
+                  >
+                    <p className="text-[11px] text-zinc-500 mb-1">Glissez le fichier ici ou</p>
+                    <input type="file" accept=".json,application/json" onChange={handleImportJson} className="w-full text-xs" />
+                  </div>
                   {jsonImportStatus && (
                     <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
                       <CheckCircle2 size={14} /> {jsonImportStatus.name} importé
@@ -432,7 +467,17 @@ export default function GuidesAdmin() {
                 </div>
                 <div>
                   <Label className="text-[10px] font-black uppercase text-zinc-400">Contenu (.md)</Label>
-                  <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportMd} className="mt-1 w-full text-xs" />
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setMdDragOver(true); }}
+                    onDragLeave={() => setMdDragOver(false)}
+                    onDrop={handleMdDrop}
+                    className={`mt-1 rounded-xl border-2 border-dashed p-3 text-center transition-colors ${
+                      mdDragOver ? "border-indigo-500 bg-indigo-100" : "border-indigo-200 bg-indigo-50/50"
+                    }`}
+                  >
+                    <p className="text-[11px] text-zinc-500 mb-1">Glissez le fichier ici ou</p>
+                    <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportMd} className="w-full text-xs" />
+                  </div>
                   {mdImportStatus && (
                     <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
                       <CheckCircle2 size={14} /> {mdImportStatus.name} importé
@@ -580,7 +625,7 @@ export default function GuidesAdmin() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-4 border-t border-zinc-100">
             <Button variant="secondary" onClick={() => setDialogOpen(false)} className="rounded-2xl font-black text-sm">
               Annuler
             </Button>
