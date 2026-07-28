@@ -202,6 +202,17 @@ npx supabase db push     # Appliquer les migrations
 npx shadcn@latest add <composant>  # Ajouter un composant shadcn/ui
 ```
 
+### Génération de patchs
+
+Toujours utiliser `git format-patch` (jamais `git diff`) pour fournir un patch à appliquer :
+
+```bash
+git format-patch -1 HEAD          # patch du dernier commit
+git format-patch main..HEAD       # patch de tous les commits depuis main
+```
+
+Un patch `git diff` n'a pas de métadonnées (`From`, `Date`, `Subject`) et n'est pas applicable avec `git am`.
+
 ---
 
 ## Domaine métier — TEF IRN
