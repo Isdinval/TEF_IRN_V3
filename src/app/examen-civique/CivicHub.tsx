@@ -309,6 +309,23 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         <div className="space-y-2">
           <h2 className="text-base font-black text-zinc-900 px-1">Se préparer</h2>
 
+          {/* Livret du citoyen — l'étape 0 : le référentiel à lire avant de s'entraîner dessus */}
+          <Link
+            href="/examen-civique/livret"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+              <BookOpen size={17} className="text-indigo-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                Le référentiel officiel du Ministère de l&apos;Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable.
+              </p>
+            </div>
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
+          </Link>
+
           <div className="grid grid-cols-2 gap-2">
             {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
             <Link
