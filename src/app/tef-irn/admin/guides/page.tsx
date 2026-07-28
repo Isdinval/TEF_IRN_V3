@@ -18,7 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import Link from "next/link";
-import { Loader2, Plus, Pencil, Trash2, UploadCloud, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, UploadCloud, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 import { GuideType } from "@/types/guides";
@@ -119,6 +119,8 @@ export default function GuidesAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [jsonImportStatus, setJsonImportStatus] = useState<{ name: string } | null>(null);
+  const [mdImportStatus, setMdImportStatus] = useState<{ name: string } | null>(null);
 
   const isCivic = (category: string | null) =>
     !!category && (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(category);
@@ -163,6 +165,8 @@ export default function GuidesAdmin() {
     setEditingId(null);
     setForm({ ...EMPTY_FORM });
     setErrorMsg(null);
+    setJsonImportStatus(null);
+    setMdImportStatus(null);
     setDialogOpen(true);
   };
 
@@ -187,6 +191,8 @@ export default function GuidesAdmin() {
       isPublished: g.is_published,
     });
     setErrorMsg(null);
+    setJsonImportStatus(null);
+    setMdImportStatus(null);
     setDialogOpen(true);
   };
 
@@ -207,6 +213,7 @@ export default function GuidesAdmin() {
     e.target.value = ""; // permet de réimporter le même fichier après une correction
     if (!file) return;
     setErrorMsg(null);
+    setJsonImportStatus(null);
     try {
       const meta = JSON.parse(await readFileAsText(file)) as GuideImportMeta;
       setForm((f) => ({
@@ -224,6 +231,7 @@ export default function GuidesAdmin() {
         keyPoints: meta.key_points ? meta.key_points.join("\n") : f.keyPoints,
         isPublished: meta.is_published ?? f.isPublished,
       }));
+      setJsonImportStatus({ name: file.name });
     } catch (err: any) {
       setErrorMsg("Fichier JSON invalide : " + (err?.message || "erreur de parsing."));
     }
@@ -233,8 +241,15 @@ export default function GuidesAdmin() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    const text = await readFileAsText(file);
-    setForm((f) => ({ ...f, content: text }));
+    setErrorMsg(null);
+    setMdImportStatus(null);
+    try {
+      const text = await readFileAsText(file);
+      setForm((f) => ({ ...f, content: text }));
+      setMdImportStatus({ name: file.name });
+    } catch (err: any) {
+      setErrorMsg("Fichier MD invalide : " + (err?.message || "erreur de lecture."));
+    }
   };
 
   const handleProductChange = (product: Product) => {
@@ -409,10 +424,20 @@ export default function GuidesAdmin() {
                 <div>
                   <Label className="text-[10px] font-black uppercase text-zinc-400">Métadonnées (.json)</Label>
                   <input type="file" accept=".json,application/json" onChange={handleImportJson} className="mt-1 w-full text-xs" />
+                  {jsonImportStatus && (
+                    <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
+                      <CheckCircle2 size={14} /> {jsonImportStatus.name} importé
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-[10px] font-black uppercase text-zinc-400">Contenu (.md)</Label>
                   <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportMd} className="mt-1 w-full text-xs" />
+                  {mdImportStatus && (
+                    <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
+                      <CheckCircle2 size={14} /> {mdImportStatus.name} importé
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
