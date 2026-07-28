@@ -448,6 +448,23 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         {/* Séparateur — referme l'aparté TEF IRN avant d'enchaîner sur les guides/FAQ */}
         <div className="pt-2 border-t border-zinc-200" />
 
+        {/* Livret du citoyen — lecture officielle gratuite, distincte des guides SEO */}
+        <Link
+          href="/examen-civique/livret"
+          className="flex items-center justify-between gap-3 bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <BookOpen size={18} />
+            </div>
+            <div>
+              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
+              <p className="text-xs text-zinc-500 font-medium">Lecture officielle, gratuite et téléchargeable</p>
+            </div>
+          </div>
+          <ArrowRight size={16} className="text-zinc-300 shrink-0" />
+        </Link>
+
         {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
         {relevantGuides.length > 0 && (
           <div className="space-y-2">
