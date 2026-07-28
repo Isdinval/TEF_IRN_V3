@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,6 +11,7 @@ import {
   HeartPulse, Briefcase, HeartHandshake, FileText, Sparkles,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { LIVRET_PAGES, LIVRET_PARTS, type LivretIcon, type LivretPage } from "@/lib/civic-livret-data";
@@ -39,9 +41,38 @@ const ICONS: Record<LivretIcon, React.ElementType> = {
   sparkles: Sparkles,
 };
 
+// Classes Tailwind écrites en toutes lettres (le JIT de Tailwind ne résout pas les
+// classes construites dynamiquement du type `bg-${color}-600`).
+const PART_THEME: Record<number, { badge: string; kicker: string; heading: string; dot: string; tocActive: string; callout: string }> = {
+  0: { badge: "bg-slate-600 shadow-slate-100", kicker: "text-slate-400", heading: "text-slate-600", dot: "bg-slate-400", tocActive: "bg-slate-100 text-slate-700", callout: "bg-slate-50 border-slate-100 text-slate-900" },
+  1: { badge: "bg-indigo-600 shadow-indigo-100", kicker: "text-indigo-400", heading: "text-indigo-600", dot: "bg-indigo-400", tocActive: "bg-indigo-50 text-indigo-700", callout: "bg-indigo-50 border-indigo-100 text-indigo-900" },
+  2: { badge: "bg-blue-600 shadow-blue-100", kicker: "text-blue-400", heading: "text-blue-600", dot: "bg-blue-400", tocActive: "bg-blue-50 text-blue-700", callout: "bg-blue-50 border-blue-100 text-blue-900" },
+  3: { badge: "bg-violet-600 shadow-violet-100", kicker: "text-violet-400", heading: "text-violet-600", dot: "bg-violet-400", tocActive: "bg-violet-50 text-violet-700", callout: "bg-violet-50 border-violet-100 text-violet-900" },
+  4: { badge: "bg-amber-600 shadow-amber-100", kicker: "text-amber-500", heading: "text-amber-600", dot: "bg-amber-400", tocActive: "bg-amber-50 text-amber-700", callout: "bg-amber-50 border-amber-100 text-amber-900" },
+  5: { badge: "bg-emerald-600 shadow-emerald-100", kicker: "text-emerald-500", heading: "text-emerald-600", dot: "bg-emerald-400", tocActive: "bg-emerald-50 text-emerald-700", callout: "bg-emerald-50 border-emerald-100 text-emerald-900" },
+  6: { badge: "bg-zinc-600 shadow-zinc-100", kicker: "text-zinc-400", heading: "text-zinc-600", dot: "bg-zinc-400", tocActive: "bg-zinc-100 text-zinc-700", callout: "bg-zinc-50 border-zinc-100 text-zinc-900" },
+};
+
 const PDF_HREF = "/documents/livret-du-citoyen-2026.pdf";
 
-function PageBlocks({ page }: { page: LivretPage }) {
+// Convention légère type markdown : **mot** → gras. Évite de complexifier le modèle de
+// données (pas de champ structuré par mot) tout en permettant de mettre en avant les
+// notions-clés (dates, seuils, noms de lois) directement dans le contenu de civic-livret-data.ts.
+function renderRich(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="font-bold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEME[number] }) {
   return (
     <div className="space-y-5">
       {page.blocks.map((block, i) => {
@@ -49,48 +80,86 @@ function PageBlocks({ page }: { page: LivretPage }) {
           case "lead":
             return (
               <p key={i} className="text-lg sm:text-xl font-semibold text-slate-800 leading-relaxed">
-                {block.text}
+                {renderRich(block.text)}
               </p>
             );
           case "subheading":
             return (
-              <h3 key={i} className="text-sm font-black uppercase tracking-wide text-indigo-600 pt-2">
+              <h3 key={i} className={`text-sm font-black uppercase tracking-wide pt-2 ${theme.heading}`}>
                 {block.text}
               </h3>
             );
           case "paragraph":
             return (
               <p key={i} className="text-[15px] sm:text-base text-slate-600 leading-relaxed">
-                {block.text}
+                {renderRich(block.text)}
               </p>
             );
           case "list":
             return (
-              <ul key={i} className="space-y-2.5">
+              <motion.ul
+                key={i}
+                className="space-y-2.5"
+                initial="hidden"
+                animate="show"
+                variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+              >
                 {block.items.map((item, j) => (
-                  <li key={j} className="flex gap-3 text-[15px] sm:text-base text-slate-600 leading-relaxed">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
-                    <span>{item}</span>
-                  </li>
+                  <motion.li
+                    key={j}
+                    variants={{ hidden: { opacity: 0, x: -6 }, show: { opacity: 1, x: 0 } }}
+                    className="flex gap-3 text-[15px] sm:text-base text-slate-600 leading-relaxed"
+                  >
+                    <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${theme.dot}`} />
+                    <span>{renderRich(item)}</span>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
             );
           case "callout":
             return (
-              <div key={i} className="rounded-2xl bg-indigo-50 border border-indigo-100 px-5 py-4 text-[15px] text-indigo-900 leading-relaxed">
-                {block.text}
+              <div
+                key={i}
+                className={`rounded-2xl border px-5 py-4 text-[15px] leading-relaxed transition-transform hover:-translate-y-0.5 ${theme.callout}`}
+              >
+                <Badge className={`mb-2 text-white border-none ${theme.badge}`}>
+                  <Sparkles size={11} />
+                  À retenir
+                </Badge>
+                <p>{renderRich(block.text)}</p>
               </div>
             );
           case "quote":
             return (
-              <blockquote key={i} className="border-l-4 border-indigo-200 pl-4 italic text-slate-700">
-                « {block.text} »
+              <blockquote key={i} className="border-l-4 border-slate-200 pl-4 italic text-slate-700">
+                « {renderRich(block.text)} »
                 {block.source && (
-                  <footer className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-400 not-italic">
-                    {block.source}
+                  <footer className="mt-2 not-italic">
+                    <Badge variant="outline" className="text-slate-500 font-bold uppercase tracking-wide text-[10px]">
+                      {block.source}
+                    </Badge>
                   </footer>
                 )}
               </blockquote>
+            );
+          case "image":
+            return (
+              <figure key={i} className="my-2">
+                <div className="relative w-full overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-slate-50">
+                  <Image
+                    src={block.src}
+                    alt={block.alt}
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                {block.caption && (
+                  <figcaption className="mt-2 text-xs text-slate-400 text-center italic">
+                    {block.caption}
+                  </figcaption>
+                )}
+              </figure>
             );
           default:
             return null;
@@ -108,6 +177,7 @@ export default function LivretReader() {
   const page = LIVRET_PAGES[index];
   const progress = Math.round(((index + 1) / total) * 100);
   const Icon = ICONS[page.icon];
+  const theme = PART_THEME[page.part] ?? PART_THEME[1];
 
   const pagesByPart = useMemo(() => {
     return LIVRET_PARTS.map((part) => ({
@@ -140,8 +210,25 @@ export default function LivretReader() {
             className="flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 truncate"
           >
             <List size={16} className="shrink-0" />
-            <span className="truncate">{page.partTitle}</span>
+            <span className="truncate hidden sm:inline">{page.partTitle}</span>
           </button>
+
+          <select
+            aria-label="Aller à la page"
+            value={index}
+            onChange={(e) => goTo(Number(e.target.value))}
+            className="text-sm font-bold text-slate-600 border border-gray-200 rounded-lg px-2 py-1.5 bg-white hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 max-w-[7rem] sm:max-w-[14rem] truncate"
+          >
+            {pagesByPart.map(({ part, pages }) => (
+              <optgroup key={part.index} label={part.title}>
+                {pages.map((p) => (
+                  <option key={p.id} value={p.i}>
+                    {p.i + 1}. {p.title}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
 
           <a href={PDF_HREF} download className="shrink-0">
             <Button size="sm" variant="outline" className="rounded-xl font-bold gap-1.5 hidden sm:flex">
@@ -167,20 +254,28 @@ export default function LivretReader() {
             transition={{ duration: 0.2 }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 shrink-0">
+              <motion.div
+                initial={{ scale: 0.9, rotate: -4 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg shrink-0 ${theme.badge}`}
+              >
                 <Icon size={20} />
-              </div>
+              </motion.div>
               <div>
-                <p className="text-xs font-black uppercase tracking-wide text-indigo-400">
-                  {page.partTitle} · {index + 1}/{total}
-                </p>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <Badge className={`text-white border-none ${theme.badge}`}>
+                    {page.part === 0 ? "Avant-propos" : page.part === 6 ? "Annexes" : `Partie ${page.part}`}
+                  </Badge>
+                  <span className="text-xs font-black text-slate-400">{index + 1}/{total}</span>
+                </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
                   {page.title}
                 </h1>
               </div>
             </div>
 
-            <PageBlocks page={page} />
+            <PageBlocks page={page} theme={theme} />
           </motion.div>
         </AnimatePresence>
 
@@ -198,7 +293,7 @@ export default function LivretReader() {
           <Button
             onClick={() => goTo(index + 1)}
             disabled={index === total - 1}
-            className="rounded-xl font-black gap-1.5 bg-indigo-600 shadow-lg shadow-indigo-100 disabled:opacity-30"
+            className={`rounded-xl font-black gap-1.5 shadow-lg disabled:opacity-30 ${theme.badge}`}
           >
             Suivant
             <ChevronRight size={16} />
@@ -213,28 +308,29 @@ export default function LivretReader() {
             <DialogTitle>Sommaire du livret</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 pt-2">
-            {pagesByPart.map(({ part, pages }) => (
-              <div key={part.index}>
-                <p className="text-xs font-black uppercase tracking-wide text-indigo-400 mb-2">
-                  {part.title}
-                </p>
-                <div className="space-y-1">
-                  {pages.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => goTo(p.i)}
-                      className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
-                        p.i === index
-                          ? "bg-indigo-50 text-indigo-700 font-bold"
-                          : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p.title}
-                    </button>
-                  ))}
+            {pagesByPart.map(({ part, pages }) => {
+              const partTheme = PART_THEME[part.index] ?? PART_THEME[1];
+              return (
+                <div key={part.index}>
+                  <p className={`text-xs font-black uppercase tracking-wide mb-2 ${partTheme.kicker}`}>
+                    {part.title}
+                  </p>
+                  <div className="space-y-1">
+                    {pages.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => goTo(p.i)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-lg transition-colors ${
+                          p.i === index ? `${partTheme.tocActive} font-bold` : "text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {p.title}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>

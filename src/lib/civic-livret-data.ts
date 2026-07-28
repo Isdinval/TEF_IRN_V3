@@ -18,7 +18,8 @@ export type LivretBlock =
   | { type: "paragraph"; text: string }
   | { type: "list"; items: string[] }
   | { type: "callout"; text: string }
-  | { type: "quote"; text: string; source?: string };
+  | { type: "quote"; text: string; source?: string }
+  | { type: "image"; src: string; alt: string; caption?: string };
 
 export interface LivretPage {
   id: string;
@@ -54,7 +55,7 @@ export const LIVRET_PAGES: LivretPage[] = [
       },
       {
         type: "paragraph",
-        text: "L'assimilation à la communauté française suppose une maîtrise du français correspondant au niveau B2 (oral et écrit) du cadre européen commun de référence, une connaissance suffisante de l'histoire, de la culture et de la société françaises, ainsi qu'une adhésion aux principes et valeurs de la République.",
+        text: "L'assimilation à la communauté française suppose une maîtrise du français correspondant au niveau **B2** (oral et écrit) du cadre européen commun de référence, une connaissance suffisante de l'histoire, de la culture et de la société françaises, ainsi qu'une adhésion aux principes et valeurs de la République.",
       },
       {
         type: "paragraph",
@@ -77,7 +78,7 @@ export const LIVRET_PAGES: LivretPage[] = [
     blocks: [
       {
         type: "lead",
-        text: "« Liberté, égalité, fraternité » : la devise de la France, inscrite sur le fronton des bâtiments publics, résume les valeurs fondatrices de la République.",
+        text: "**« Liberté, égalité, fraternité »** : la devise de la France, inscrite sur le fronton des bâtiments publics, résume les valeurs fondatrices de la République.",
       },
       { type: "subheading", text: "Liberté" },
       {
@@ -117,7 +118,7 @@ export const LIVRET_PAGES: LivretPage[] = [
     blocks: [
       {
         type: "lead",
-        text: "L'article 1er de la Constitution du 4 octobre 1958 dispose que « la France est une République indivisible, laïque, démocratique et sociale ».",
+        text: "L'article 1er de la Constitution du 4 octobre 1958 dispose que « la France est une **République indivisible, laïque, démocratique et sociale** ».",
       },
       { type: "subheading", text: "Une République indivisible" },
       {
@@ -190,7 +191,7 @@ export const LIVRET_PAGES: LivretPage[] = [
       {
         type: "list",
         items: [
-          "Communes (34 875) : gérées par un maire et un conseil municipal élus pour 6 ans ; compétentes pour les écoles primaires, l'état civil, les activités locales.",
+          "Communes (34 875) : gérées par un maire et un conseil municipal élus pour **6 ans** ; compétentes pour les écoles primaires, l'état civil, les activités locales.",
           "Départements (101, dont 5 en outre-mer) : conseils départementaux, compétents pour les collèges, l'action sociale, les routes départementales.",
           "Régions (18 : 13 en métropole, 5 en outre-mer) : conseils régionaux, compétents pour les transports, la formation professionnelle, les lycées.",
           "Outre-mer : 12 territoires — 5 sont à la fois départements et régions (Guadeloupe, Martinique, Mayotte, Guyane, La Réunion), 7 sont des collectivités à statut particulier (Nouvelle-Calédonie, Polynésie française, Saint-Martin, Saint-Barthélemy, Saint-Pierre-et-Miquelon, TAAF, Wallis-et-Futuna).",
@@ -292,10 +293,10 @@ export const LIVRET_PAGES: LivretPage[] = [
           "Respecter les lois, les institutions et les décisions de justice.",
           "Respecter les principes et valeurs de la République (liberté, égalité, fraternité, laïcité).",
           "Participer à la vie démocratique : le vote n'est pas obligatoire, mais reste un devoir civique important ; les résultats électoraux s'imposent à tous.",
-          "Contribuer aux charges publiques : déclarer ses revenus et payer ses impôts (article 13 de la DDHC).",
-          "Défendre la patrie : recensement à 16 ans, Journée Défense et Citoyenneté, service militaire volontaire de 8 mois depuis 2026.",
+          "Contribuer aux charges publiques : déclarer ses revenus et payer ses impôts (**article 13** de la DDHC).",
+          "Défendre la patrie : recensement à 16 ans, Journée Défense et Citoyenneté, service militaire volontaire de **8 mois** depuis 2026.",
           "Protéger l'environnement (Charte de 2004).",
-          "Transmettre les valeurs républicaines à ses enfants et respecter la scolarité obligatoire (3-16 ans).",
+          "Transmettre les valeurs républicaines à ses enfants et respecter la scolarité obligatoire (**3-16 ans**).",
           "Porter assistance à personne en danger — la non-assistance est un délit.",
         ],
       },
