@@ -24,6 +24,7 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
   const feedback = attempt.answers.feedback;
   const level = (feedback as WritingFeedback)?.level || (feedback as LegacyFeedback)?.level || "B1";
   const subject = attempt.answers.subject || attempt.exercise?.instructions || "Expression Écrite";
+  const isExamBlanc = attempt.source === "scenario";
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600 bg-emerald-50";
@@ -52,6 +53,11 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
               <Badge variant="outline" className="shrink-0 rounded-full border-zinc-200 bg-zinc-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
                 {level}
               </Badge>
+              {isExamBlanc && (
+                <Badge className="shrink-0 rounded-full border-none bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                  Examen blanc
+                </Badge>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-zinc-400">

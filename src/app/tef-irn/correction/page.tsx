@@ -61,8 +61,8 @@ export default function CorrectionHistoryPage() {
     const end = start + ITEMS_PER_PAGE - 1;
 
     let query = supabase
-      .from('exercise_attempts')
-      .select('*, exercise:exercises(*)')
+      .from('writing_all_attempts')
+      .select('*')
       .eq('user_id', user.id)
       .not('answers->feedback', 'is', null);
 
