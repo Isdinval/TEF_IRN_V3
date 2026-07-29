@@ -1,8 +1,22 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getOpenAIClient } from "@/lib/openai";
 import { createClient } from "@/lib/supabase-server";
 
 type Turn = { role: "candidat" | "coach"; text: string };
+
+// Seuil "candidat trop peu loquace" : compte les mots du CANDIDAT uniquement (les tours
+// de l'examinateur ne comptent pas). Contrairement à l'EE, il n'y a pas de minimum de mots
+// par sujet ici -- 20 mots est un seuil bas volontaire (quelques mots isolés sur toute la
+// session), pas un seuil de qualité : en dessous, il n'y a simplement pas assez de matière
+// pour évaluer les 5 critères de façon fiable, quel que soit leur contenu.
+const MIN_CANDIDATE_WORDS = 20;
+
+function countCandidateWords(transcript: Turn[]): number {
+  return transcript
+    .filter((t) => t.role === "candidat")
+    .reduce((sum, t) => sum + t.text.trim().split(/\s+/).filter(Boolean).length, 0);
+}
 
 // Grille inspirée du référentiel officiel TEF IRN (Compétence 4, Production orale) :
 // 5 critères répartis en capacités communicatives et linguistiques, notés <A1 à B2.
@@ -22,6 +36,22 @@ const LEVEL_THRESHOLDS: { min: number; level: "<A1" | "A1" | "A2" | "B1" | "B2" 
 function levelFromScore(score: number): "<A1" | "A1" | "A2" | "B1" | "B2" {
   return LEVEL_THRESHOLDS.find((t) => score >= t.min)!.level;
 }
+
+// Validation minimale de la réponse IA : response_format:"json_object" garantit un JSON
+// valide, mais pas la présence/le type des champs attendus (OralAnalysisView lit
+// scores.*, strengths, improvements sans garde-fou et plante si absents/mal typés).
+const OralFeedbackSchema = z.object({
+  scores: z.object({
+    pertinence_et_adequation_au_sujet: z.object({ evidence: z.string(), score: z.number() }),
+    coherence_et_interaction: z.object({ evidence: z.string(), score: z.number() }),
+    etendue_et_precision_du_vocabulaire: z.object({ evidence: z.string(), score: z.number() }),
+    correction_grammaticale: z.object({ evidence: z.string(), score: z.number() }),
+    aisance_et_fluidite: z.object({ evidence: z.string(), score: z.number() }),
+  }),
+  strengths: z.array(z.string()),
+  improvements: z.array(z.string()),
+  general_comment: z.string(),
+});
 
 export async function POST(req: Request) {
   try {
@@ -52,6 +82,34 @@ export async function POST(req: Request) {
       .map((t) => `${t.role === "candidat" ? "CANDIDAT" : "EXAMINATEUR"} : ${t.text}`)
       .join("\n");
 
+    const candidateWordCount = countCandidateWords(transcript);
+    const isInsufficientSpeech = candidateWordCount < MIN_CANDIDATE_WORDS;
+
+    // Exemplaires de calibration (tef_knowledge) : ancrage concret sur tout le spectre de
+    // score (excellent/moyen/faible) pour le niveau visé, même principe que la calibration
+    // EE (voir src/app/api/writing/correct/route.ts). Lookup déterministe par niveau (pas
+    // de recherche vectorielle : le niveau est toujours connu à l'avance). Best-effort : la
+    // table peut être vide ou la requête échouer sans jamais bloquer l'analyse.
+    let calibrationExemplar = "";
+    try {
+      const { data: exemplarRows } = await supabase
+        .from("tef_knowledge")
+        .select("content, metadata")
+        .eq("metadata->>category", "eo_calibration_exemplar")
+        .eq("metadata->>level", scenario.level)
+        .limit(3);
+
+      if (exemplarRows && exemplarRows.length > 0) {
+        const TIER_ORDER: Record<string, number> = { excellent: 0, moyen: 1, faible: 2 };
+        const sorted = [...exemplarRows].sort(
+          (a, b) => (TIER_ORDER[a.metadata?.tier] ?? 99) - (TIER_ORDER[b.metadata?.tier] ?? 99)
+        );
+        calibrationExemplar = `\nREPÈRES DE SÉVÉRITÉ (ne pas recopier, servent uniquement à calibrer ta notation sur tout le barème -- positionne le candidat par interpolation entre ces 3 repères, ne converge PAS systématiquement vers le repère "moyen" par prudence) :\n${sorted.map((r) => r.content).join("\n\n")}`;
+      }
+    } catch (ragError) {
+      console.error("Lecture tef_knowledge échouée (non bloquant):", ragError);
+    }
+
     const systemPrompt = `
 Tu es un examinateur expert du TEF IRN, spécialisé dans l'évaluation de l'expression orale (Compétence 4) selon le référentiel officiel France Compétences, pour les niveaux A2 à B2 du CECRL.
 
@@ -78,6 +136,8 @@ Les 5 critères à noter (avec leur focus précis) :
 5. "aisance_et_fluidite" : longueur et fluidité des tours de parole du candidat telles que visibles dans le texte (hésitations transcrites, reformulations, réponses monosyllabiques vs développées).
 
 Ne calcule PAS toi-même de score global ni de niveau CECRL global : ils seront calculés automatiquement à partir de tes 5 notes. Concentre-toi uniquement sur des notes par critère justes et indépendantes les unes des autres.
+${calibrationExemplar}
+${isInsufficientSpeech ? `\nMATIÈRE INSUFFISANTE : le candidat n'a produit que ${candidateWordCount} mots sur toute la session (seuil minimal : ${MIN_CANDIDATE_WORDS}). Note tous les critères bas (10-20), quelle que soit leur qualité apparente, et mentionne ce manque de matière en premier dans "general_comment".` : ""}
 
 Donne aussi 2-4 points forts, 2-4 points à améliorer (basés sur des faits observés, pas génériques), et un commentaire général bref, bienveillant et actionnable.
 
@@ -106,7 +166,18 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
       response_format: { type: "json_object" },
     });
 
-    const raw = JSON.parse(response.choices[0].message.content || "{}");
+    const rawData = JSON.parse(response.choices[0].message.content || "{}");
+    const parsed = OralFeedbackSchema.safeParse(rawData);
+
+    if (!parsed.success) {
+      console.error("Réponse IA invalide (schéma inattendu):", parsed.error.flatten());
+      // Pas de persistance en base sur une réponse invalide : mieux vaut laisser le
+      // candidat relancer l'analyse qu'enregistrer une session à 0/100 dans son historique.
+      return NextResponse.json(
+        { error: "L'analyse n'a pas pu être générée correctement. Merci de réessayer.", saved: false },
+        { status: 200 }
+      );
+    }
 
     // On extrait uniquement les notes numériques (l'"evidence" sert à ancrer le
     // raisonnement du modèle mais n'est pas persistée pour l'instant).
@@ -120,7 +191,18 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
 
     const scores: Record<(typeof scoreKeys)[number], number> = {} as any;
     for (const key of scoreKeys) {
-      scores[key] = Number(raw.scores?.[key]?.score) || 0;
+      scores[key] = parsed.data.scores[key].score;
+    }
+
+    // Application déterministe du seuil "matière insuffisante" : la consigne du prompt
+    // le demande déjà, mais comme pour l'EE, une règle purement mécanique (nombre de mots
+    // du candidat, connu avec certitude côté serveur) est plus fiable qu'une obéissance au
+    // prompt seule -- on plafonne donc ici plutôt que d'espérer que le modèle applique la
+    // consigne à chaque fois.
+    if (isInsufficientSpeech) {
+      for (const key of scoreKeys) {
+        scores[key] = Math.min(scores[key], 20);
+      }
     }
 
     // Calcul déterministe côté serveur : garantit que overall_score et estimated_level
@@ -130,13 +212,18 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     );
     const estimated_level = levelFromScore(overall_score);
 
+    let general_comment = parsed.data.general_comment;
+    if (isInsufficientSpeech && !/mots|matière|court/i.test(general_comment)) {
+      general_comment = `Cette session est bien trop courte pour évaluer correctement la production orale (${candidateWordCount} mots prononcés), ce qui limite fortement l'évaluation. ${general_comment}`;
+    }
+
     const analysis = {
       overall_score,
       estimated_level,
       scores,
-      strengths: raw.strengths || [],
-      improvements: raw.improvements || [],
-      general_comment: raw.general_comment || "",
+      strengths: parsed.data.strengths,
+      improvements: parsed.data.improvements,
+      general_comment,
     };
 
     const { data: saved, error: insertError } = await supabase
