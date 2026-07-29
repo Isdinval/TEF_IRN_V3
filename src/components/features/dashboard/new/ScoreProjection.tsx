@@ -25,17 +25,16 @@ const SKILL_LABELS: Record<string, string> = {
 
 const SKILL_ORDER = ["CO", "CE", "EO", "EE"];
 
-// Convertit un score moyen (0-100%) en estimation de points TEF IRN (0-699)
+// Convertit un score moyen (0-100%) en estimation de points TEF IRN (200-499)
 function toEstimatedPoints(percentScore: number): number {
-  return Math.min(Math.round(percentScore * 6.99), 699);
+  const clamped = Math.min(Math.max(percentScore, 0), 100);
+  return Math.round(200 + (clamped / 100) * 299);
 }
 
 function levelFromScore(estimatedScore: number): string {
-  if (estimatedScore >= 500) return "B2+";
-  if (estimatedScore >= 400) return "B1+";
+  if (estimatedScore >= 400) return "B2";
   if (estimatedScore >= 300) return "B1";
-  if (estimatedScore >= 200) return "A2";
-  return "A2+";
+  return "A2";
 }
 
 export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjectionProps) {
@@ -53,7 +52,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
     : null;
 
   const progressPercent = globalEstimate !== null
-    ? Math.min(Math.max((globalEstimate / 699) * 100, 5), 100)
+    ? Math.min(Math.max(((globalEstimate - 200) / 299) * 100, 5), 100)
     : 0;
 
   return (
