@@ -22,6 +22,11 @@ interface ZoneRedactionProps {
   wordCount: number;
 }
 
+// Normalise les apostrophes typographiques (’ ‘) vers l'apostrophe droite ('). Remplacement
+// caractère pour caractère (même longueur) : les positions trouvées dans le texte normalisé
+// restent donc valables sur le texte original, sans mapping d'offsets à gérer.
+const normalizeQuotes = (str: string) => str.replace(/[’‘]/g, "'");
+
 export const ZoneRedaction = ({
   text,
   setText,
@@ -44,23 +49,31 @@ export const ZoneRedaction = ({
     }
   }, [activeErrorIndex]);
 
-  const highlightedText = React.useMemo(() => {
+  const normalizedText = React.useMemo(() => normalizeQuotes(text), [text]);
+
+  const { parts: highlightedText, unmatchedCount } = React.useMemo(() => {
     if (!feedback?.liste_des_erreurs || feedback.liste_des_erreurs.length === 0) {
-      return text;
+      return { parts: text as string | (string | JSX.Element)[], unmatchedCount: 0 };
     }
 
     let currentSearchIndex = 0;
+    let unmatched = 0;
     const matchedErrors = feedback.liste_des_erreurs.map((error, index) => {
-      let position = text.indexOf(error.texte_original, currentSearchIndex);
+      const needle = normalizeQuotes(error.texte_original);
+      let position = normalizedText.indexOf(needle, currentSearchIndex);
 
       if (position === -1) {
-        position = text.indexOf(error.texte_original);
+        position = normalizedText.indexOf(needle);
       }
 
       if (position !== -1) {
         currentSearchIndex = position + error.texte_original.length;
         return { ...error, position, originalIndex: index };
       }
+      // Le modèle a légèrement reformulé l'extrait : on ne peut pas le localiser dans le
+      // texte (au-delà des apostrophes déjà normalisées ci-dessus). L'erreur reste visible
+      // dans le panneau de feedback à droite, simplement pas surlignée ici.
+      unmatched += 1;
       return null;
     }).filter(Boolean) as any[];
 
@@ -105,8 +118,8 @@ export const ZoneRedaction = ({
       parts.push(text.substring(lastIndex));
     }
 
-    return parts;
-  }, [feedback, text, activeErrorIndex, onSelectError]);
+    return { parts, unmatchedCount: unmatched };
+  }, [feedback, text, normalizedText, activeErrorIndex, onSelectError]);
 
   return (
     <Card className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border-2 border-indigo-50 bg-[#FAFAFA] shadow-2xl shadow-indigo-100/30">
@@ -128,6 +141,14 @@ export const ZoneRedaction = ({
         {feedback && !isAnalyzing && (
           <Badge className="border-none bg-emerald-100 text-[9px] font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
             Analyse terminée
+          </Badge>
+        )}
+        {feedback && !isAnalyzing && unmatchedCount > 0 && (
+          <Badge
+            title="Ces corrections restent visibles dans le panneau de feedback, mais l'extrait exact n'a pas pu être localisé dans votre texte."
+            className="border-none bg-amber-100 text-[9px] font-black uppercase tracking-widest text-amber-700 px-3 py-1"
+          >
+            {unmatchedCount} correction{unmatchedCount > 1 ? "s" : ""} non surlignée{unmatchedCount > 1 ? "s" : ""}
           </Badge>
         )}
       </CardHeader>
