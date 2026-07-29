@@ -126,7 +126,7 @@ export async function POST(req: Request) {
       ? Number(minWords)
       : (DEFAULT_MIN_WORDS[effectiveLevel.toUpperCase().trim()] || 100);
     const actualWordCount = countWords(text);
-    const wordCountInstruction = `\nLONGUEUR : le texte du candidat fait ${actualWordCount} mots ; le minimum requis pour ce sujet est ${effectiveMinWords} mots. Si ${actualWordCount} < ${effectiveMinWords}, c'est un critère d'évaluation TEF IRN à part entière : signale-le explicitement dans "conseil_general" et pénalise le "score_global" en conséquence (un texte trop court ne peut pas obtenir un score élevé, même sans faute). Si le seuil est atteint, ne commente pas la longueur.`;
+    const halfMinWords = Math.floor(effectiveMinWords / 2);
 
     // Écart profil apprenant / niveau du sujet : le sujet fait TOUJOURS foi pour la
     // correction (barème inchangé). Seul cas particulier : l'apprenant est en dessous
@@ -181,11 +181,14 @@ OBJECTIF :
 
 ${levelGuidelines}
 ${levelGapInstruction}
-${wordCountInstruction}
 ${calibrationExemplar}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
+1bis. LONGUEUR (à vérifier AVANT toute autre chose, ce n'est pas une note informative annexe) : le texte du candidat fait ${actualWordCount} mots ; le minimum requis pour ce sujet est ${effectiveMinWords} mots.
+   - Si ${actualWordCount} < ${halfMinWords} mots (moins de 50% du minimum) : matière insuffisante pour évaluer correctement la production, quelle que soit la qualité du peu de texte produit -- comme dans les certifications de français comparables (DELF/TCF), score_global ET tous les scores_par_competence doivent être TRÈS bas (10-20). "conseil_general" doit mentionner ce point en premier, avant tout autre commentaire.
+   - Si ${halfMinWords} <= ${actualWordCount} < ${effectiveMinWords} : pénalise nettement "score_global" (retire au moins 15 à 20 points par rapport à ce qu'il aurait obtenu à longueur suffisante) et mentionne explicitement le déficit de longueur dans "conseil_general", même si le reste du texte est par ailleurs correct.
+   - Si ${actualWordCount} >= ${effectiveMinWords} : le seuil est atteint, ne commente PAS la longueur.
 2. Identifie les erreurs selon ces catégories précises :
    - "conjugaison" : erreurs de temps, de mode ou de terminaisons verbales.
    - "grammaire" : erreurs d'accords, de pronoms, d'articles, de prépositions.
