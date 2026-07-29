@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getOpenAIClient } from '@/lib/openai';
 import { createClient } from '@/lib/supabase-server';
+
+// Nombre de mots minimum par défaut si le sujet ne fournit pas min_words (cas legacy /
+// entrée libre). Correspond aux seuils standards du barème TEF IRN par section.
+const DEFAULT_MIN_WORDS: Record<string, number> = { A2: 40, B1: 100, B2: 100 };
+
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
 
 // Référentiel condensé par niveau CECRL — source détaillée : docs/writing-correction-levels.md
 // Objectif : éviter (1) une correction trop sévère/littéraire pour un niveau A2/B1,
@@ -48,7 +57,43 @@ function normalizeToEEScale(level?: string | null): string | null {
   return EE_LEVEL_ORDER.includes(normalized) ? normalized : null;
 }
 
+// Validation minimale de la réponse IA : response_format:"json_object" garantit un JSON
+// valide, mais pas la présence/le type des champs attendus par le frontend (FeedbackIA,
+// ZoneRedaction lisent scores_par_competence.* et liste_des_erreurs sans garde-fou et
+// plantent si ces champs sont absents). On valide donc la forme avant de renvoyer.
+const WritingFeedbackSchema = z.object({
+  score_global: z.number(),
+  scores_par_competence: z.object({
+    grammaire: z.number(),
+    vocabulaire: z.number(),
+    coherence: z.number(),
+    orthographe: z.number(),
+  }),
+  liste_des_erreurs: z.array(z.object({
+    texte_original: z.string(),
+    texte_corrige: z.string(),
+    explication: z.string(),
+    type_erreur: z.enum(['conjugaison', 'grammaire', 'vocabulaire', 'orthographe', 'syntaxe']),
+  })),
+  conseil_general: z.string(),
+  texte_corrige_complet: z.string(),
+});
+
+// Réponse de repli, toujours conforme au schéma attendu par le frontend, utilisée à la
+// fois si l'IA renvoie une forme invalide et si l'appel OpenAI échoue (catch global).
+function buildFallbackFeedback(text: string, message: string) {
+  return {
+    score_global: 0,
+    scores_par_competence: { grammaire: 0, vocabulaire: 0, coherence: 0, orthographe: 0 },
+    liste_des_erreurs: [],
+    conseil_general: message,
+    texte_corrige_complet: text,
+    error: message,
+  };
+}
+
 export async function POST(req: Request) {
+  let text: string = "";
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -58,7 +103,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { text, subject, targetLevel, learnerLevel } = body;
+    ({ text } = body);
+    const { subject, targetLevel, learnerLevel, minWords } = body;
     const openai = getOpenAIClient();
 
     if (!openai) {
@@ -72,6 +118,15 @@ export async function POST(req: Request) {
     const effectiveSubject = subject || "Sujet libre";
     const effectiveLevel = targetLevel || "B1";
     const levelGuidelines = getLevelGuidelines(effectiveLevel);
+
+    // Longueur minimale réelle du sujet (variable par scénario) plutôt que la valeur
+    // générique mentionnée dans LEVEL_GUIDELINES : le score doit refléter le seuil du
+    // sujet réellement choisi, pas un standard approximatif.
+    const effectiveMinWords = Number(minWords) > 0
+      ? Number(minWords)
+      : (DEFAULT_MIN_WORDS[effectiveLevel.toUpperCase().trim()] || 100);
+    const actualWordCount = countWords(text);
+    const wordCountInstruction = `\nLONGUEUR : le texte du candidat fait ${actualWordCount} mots ; le minimum requis pour ce sujet est ${effectiveMinWords} mots. Si ${actualWordCount} < ${effectiveMinWords}, c'est un critère d'évaluation TEF IRN à part entière : signale-le explicitement dans "conseil_general" et pénalise le "score_global" en conséquence (un texte trop court ne peut pas obtenir un score élevé, même sans faute). Si le seuil est atteint, ne commente pas la longueur.`;
 
     // Écart profil apprenant / niveau du sujet : le sujet fait TOUJOURS foi pour la
     // correction (barème inchangé). Seul cas particulier : l'apprenant est en dessous
@@ -100,6 +155,7 @@ OBJECTIF :
 
 ${levelGuidelines}
 ${levelGapInstruction}
+${wordCountInstruction}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
@@ -140,6 +196,7 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
+      temperature: 0.2, // Correction notée : on veut de la constance, pas de créativité.
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Texte du candidat : "${text}"` }
@@ -147,13 +204,23 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
       response_format: { type: "json_object" }
     });
 
-    const data = JSON.parse(response.choices[0].message.content || '{}');
+    const rawData = JSON.parse(response.choices[0].message.content || '{}');
+    const parsed = WritingFeedbackSchema.safeParse(rawData);
 
-    return NextResponse.json(data);
+    if (!parsed.success) {
+      console.error("Réponse IA invalide (schéma inattendu):", parsed.error.flatten());
+      return NextResponse.json(
+        buildFallbackFeedback(text, "La correction n'a pas pu être générée correctement. Merci de réessayer."),
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(parsed.data);
   } catch (error: any) {
     console.error("OpenAI API Error:", error);
-    return NextResponse.json({
-      error: "Erreur lors de l'analyse IA",
-    }, { status: 500 });
+    return NextResponse.json(
+      buildFallbackFeedback(text, "Erreur lors de l'analyse IA. Merci de réessayer dans quelques instants."),
+      { status: 200 }
+    );
   }
 }

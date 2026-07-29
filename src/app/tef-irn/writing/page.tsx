@@ -204,7 +204,8 @@ export function WritingCoachContent() {
           text,
           subject: exercise.instructions, // Pass subject for AI context
           targetLevel: exercise.level,
-          learnerLevel
+          learnerLevel,
+          minWords: exercise.content?.min_words
         }),
       });
       const data = await response.json();
