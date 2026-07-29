@@ -143,6 +143,27 @@ export async function POST(req: Request) {
       ? `\nCONTEXTE APPRENANT : le niveau de l'apprenant (${learnerLevel}) est en dessous du niveau visé par ce sujet (${effectiveLevel}). Corrige et note STRICTEMENT selon le niveau du sujet (${effectiveLevel}), sans rien assouplir. Ajoute uniquement, dans "conseil_general", 1 phrase bienveillante qui resitue l'écart (ex. : ce sujet est plus exigeant que son niveau actuel, et quels points travailler avant d'y revenir) — sans décourager.`
       : "";
 
+    // Exemplaire de calibration (tef_knowledge) : ancrage concret ("à quoi ressemble une
+    // copie notée correctement à ce niveau") en plus du référentiel textuel ci-dessus.
+    // Lookup déterministe par niveau (pas de recherche vectorielle : le niveau recherché
+    // est toujours connu, une similarité sémantique n'apporterait rien ici). Best-effort :
+    // la table peut être vide ou la requête échouer sans jamais bloquer la correction.
+    let calibrationExemplar = "";
+    try {
+      const { data: exemplarRows } = await supabase
+        .from('tef_knowledge')
+        .select('content')
+        .eq('metadata->>category', 'ee_calibration_exemplar')
+        .eq('metadata->>level', normalizedTargetLevel)
+        .limit(1);
+
+      if (exemplarRows && exemplarRows.length > 0) {
+        calibrationExemplar = `\nRepère de sévérité (ne pas recopier, sert uniquement à calibrer ta notation) :\n${exemplarRows[0].content}`;
+      }
+    } catch (ragError) {
+      console.error("Lecture tef_knowledge échouée (non bloquant):", ragError);
+    }
+
     const systemPrompt = `
 Tu es un examinateur expert du TEF IRN (format 2025), spécialisé dans l'évaluation de l'expression écrite pour les niveaux A2 à B2.
 Ta mission est de fournir une correction EXTRÊMEMENT détaillée, pédagogique et complète de la production d'un candidat.
@@ -156,6 +177,7 @@ OBJECTIF :
 ${levelGuidelines}
 ${levelGapInstruction}
 ${wordCountInstruction}
+${calibrationExemplar}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
