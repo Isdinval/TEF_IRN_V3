@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import GuideDetail from './GuideDetail';
 import JsonLd from '@/components/shared/JsonLd';
 import { siteUrl } from '@/lib/site';
-import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 
 export default async function GuideDetailPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
@@ -18,7 +17,7 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
 
   // Les guides examen civique vivent désormais sous /examen-civique/guides/[slug] —
   // ne jamais les servir en double ici (contenu dupliqué + CTA/liens pensés pour le TEF IRN).
-  if (error || !guide || (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
+  if (error || !guide || guide.product === 'examen-civique') {
     notFound();
   }
 

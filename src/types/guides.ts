@@ -1,4 +1,6 @@
 export type GuideType = 'complet' | 'thematique' | 'astuces' | 'methodologie';
+export type GuideProduct = 'tef-irn' | 'examen-civique';
+export type GuideSiloRole = 'hub' | 'pilier' | 'satellite';
 
 export interface Guide {
   id: string;
@@ -8,6 +10,8 @@ export interface Guide {
   level: string | null;
   category: string | null;
   type: GuideType;
+  product: GuideProduct;
+  silo_role: GuideSiloRole;
   description: string | null;
   content: string | null;
   reading_time: number | null;

@@ -1,7 +1,6 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { siteUrl } from '@/lib/site';
-import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 import {
   HERO_IMAGE_URL,
   OLIVIER_PHOTO_URL,
@@ -26,11 +25,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // === GUIDES ===
   const { data: guides } = await supabase
     .from('guides')
-    .select('slug, created_at, updated_at, image_url, category')
+    .select('slug, created_at, updated_at, image_url, product')
     .eq('is_published', true);
 
-  const civicGuides = (guides || []).filter((g: any) => (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
-  const tefIrnGuides = (guides || []).filter((g: any) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
+  const civicGuides = (guides || []).filter((g: any) => g.product === 'examen-civique');
+  const tefIrnGuides = (guides || []).filter((g: any) => g.product === 'tef-irn');
 
   // === PARCOURS ===
   const { data: parcours } = await supabase

@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import CivicGuideDetail from './CivicGuideDetail';
 import JsonLd from '@/components/shared/JsonLd';
 import { siteUrl } from '@/lib/site';
-import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 
 export default async function CivicGuideDetailPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
@@ -18,7 +17,7 @@ export default async function CivicGuideDetailPage(props: { params: Promise<{ sl
 
   // Un guide qui existe mais n'est pas de catégorie civique n'a rien à faire ici —
   // sa page canonique est /tef-irn/guides/[slug].
-  if (error || !guide || !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
+  if (error || !guide || guide.product !== 'examen-civique') {
     notFound();
   }
 
