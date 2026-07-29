@@ -1,18 +1,17 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
 import { siteUrl } from '@/lib/site';
-import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
   const supabase = await createClient();
   const { data: guide } = await supabase
     .from('guides')
-    .select('title, description, image_url, created_at, updated_at, category')
+    .select('title, description, image_url, created_at, updated_at, product')
     .eq('slug', params.slug)
     .single();
 
-  if (!guide || (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(guide.category)) {
+  if (!guide || guide.product === 'examen-civique') {
     return {
       title: 'Guide non trouvé',
     };

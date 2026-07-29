@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase-server';
-import { CIVIC_GUIDE_CATEGORIES } from '@/lib/civic-guide-categories';
 import { AdminGuardScreen } from '@/components/shared/AdminGuardScreen';
 import { SitemapDebugClient } from './SitemapDebugClient';
 
@@ -35,7 +34,7 @@ export default async function SitemapDebug() {
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }),
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }).eq('reviewed', true),
     supabase.from('parcours').select('*', { count: 'exact', head: true }),
-    supabase.from('guides').select('category, is_published'),
+    supabase.from('guides').select('product, is_published'),
   ]);
 
   // On distingue explicitement "0 ligne correspond" d'une erreur de requête (mauvaise colonne,
@@ -50,8 +49,8 @@ export default async function SitemapDebug() {
   ].filter(Boolean) as string[];
 
   const guidesData = guidesRes.data || [];
-  const civicGuides = guidesData.filter((g: any) => (CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
-  const tefIrnGuides = guidesData.filter((g: any) => !(CIVIC_GUIDE_CATEGORIES as readonly string[]).includes(g.category));
+  const civicGuides = guidesData.filter((g: any) => g.product === 'examen-civique');
+  const tefIrnGuides = guidesData.filter((g: any) => g.product !== 'examen-civique');
 
   const overview = {
     lessons: { total: lessonsTotalRes.count || 0 },
