@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getOpenAIClient } from "@/lib/openai";
 import { createClient } from "@/lib/supabase-server";
+import { trackUserError, analyzeUserErrorsAndRecommend } from "@/lib/recommendation-engine";
 
 type Turn = { role: "candidat" | "coach"; text: string };
 
@@ -251,6 +252,25 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
       console.error("Supabase insert oral_session_results error:", insertError);
       // On renvoie quand même l'analyse même si la sauvegarde échoue (dégradation gracieuse).
       return NextResponse.json({ ...analysis, saved: false });
+    }
+
+    // Remonte les points faibles vers user_errors (seuls Grammaire et Vocabulaire ont un
+    // équivalent dans l'enum exercises.category -- pertinence/cohérence/fluidité n'ont pas
+    // d'exercice ciblé existant, les y remonter ne ferait que polluer le widget "Points
+    // faibles" sans jamais alimenter de recommandation). Miroir du choix EE : on ne
+    // "résout" jamais un point faible ici, une bonne session ne prouve pas une maîtrise
+    // durable -- seul un signal de faiblesse répété (frequency) doit s'accumuler.
+    const WEAK_SCORE_THRESHOLD = 55;
+    try {
+      if (scores.correction_grammaticale < WEAK_SCORE_THRESHOLD) {
+        await trackUserError(user.id, "Grammaire");
+      }
+      if (scores.etendue_et_precision_du_vocabulaire < WEAK_SCORE_THRESHOLD) {
+        await trackUserError(user.id, "Vocabulaire");
+      }
+      await analyzeUserErrorsAndRecommend(user.id);
+    } catch (recoError) {
+      console.error("Recommendation engine error (oral session):", recoError);
     }
 
     return NextResponse.json({ ...analysis, saved: true, id: saved.id });
