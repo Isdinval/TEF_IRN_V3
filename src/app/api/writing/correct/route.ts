@@ -143,22 +143,27 @@ export async function POST(req: Request) {
       ? `\nCONTEXTE APPRENANT : le niveau de l'apprenant (${learnerLevel}) est en dessous du niveau visé par ce sujet (${effectiveLevel}). Corrige et note STRICTEMENT selon le niveau du sujet (${effectiveLevel}), sans rien assouplir. Ajoute uniquement, dans "conseil_general", 1 phrase bienveillante qui resitue l'écart (ex. : ce sujet est plus exigeant que son niveau actuel, et quels points travailler avant d'y revenir) — sans décourager.`
       : "";
 
-    // Exemplaire de calibration (tef_knowledge) : ancrage concret ("à quoi ressemble une
-    // copie notée correctement à ce niveau") en plus du référentiel textuel ci-dessus.
-    // Lookup déterministe par niveau (pas de recherche vectorielle : le niveau recherché
-    // est toujours connu, une similarité sémantique n'apporterait rien ici). Best-effort :
+    // Exemplaires de calibration (tef_knowledge) : ancrage concret sur TOUT le spectre de
+    // score (excellent/moyen/faible), pas un seul repère central -- avec un seul exemplaire,
+    // le modèle a tendance à converger vers son score plutôt que d'explorer tout le barème
+    // (surtout avec une température basse). Lookup déterministe par niveau (pas de
+    // recherche vectorielle : le niveau recherché est toujours connu à l'avance). Best-effort :
     // la table peut être vide ou la requête échouer sans jamais bloquer la correction.
     let calibrationExemplar = "";
     try {
       const { data: exemplarRows } = await supabase
         .from('tef_knowledge')
-        .select('content')
+        .select('content, metadata')
         .eq('metadata->>category', 'ee_calibration_exemplar')
         .eq('metadata->>level', normalizedTargetLevel)
-        .limit(1);
+        .limit(3);
 
       if (exemplarRows && exemplarRows.length > 0) {
-        calibrationExemplar = `\nRepère de sévérité (ne pas recopier, sert uniquement à calibrer ta notation) :\n${exemplarRows[0].content}`;
+        const TIER_ORDER: Record<string, number> = { excellent: 0, moyen: 1, faible: 2 };
+        const sorted = [...exemplarRows].sort(
+          (a, b) => (TIER_ORDER[a.metadata?.tier] ?? 99) - (TIER_ORDER[b.metadata?.tier] ?? 99)
+        );
+        calibrationExemplar = `\nREPÈRES DE SÉVÉRITÉ (ne pas recopier, servent uniquement à calibrer ta notation sur TOUT le barème -- positionne le candidat par interpolation entre ces 3 repères, ne convergent PAS systématiquement vers le repère "moyen" par prudence) :\n${sorted.map((r) => r.content).join('\n\n')}`;
       }
     } catch (ragError) {
       console.error("Lecture tef_knowledge échouée (non bloquant):", ragError);
