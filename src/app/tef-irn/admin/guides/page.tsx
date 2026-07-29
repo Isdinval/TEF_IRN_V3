@@ -21,12 +21,12 @@ import Link from "next/link";
 import { Loader2, Plus, Pencil, Trash2, UploadCloud, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
-import { GuideType } from "@/types/guides";
+import { GuideType, GuideSiloRole } from "@/types/guides";
 import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
 
-// Un guide "TEF IRN" est simplement un guide dont category n'est pas une catégorie civique.
-// /examen-civique/guides filtre .in("category", CIVIC_GUIDE_CATEGORIES) : sortir de cette liste
-// pour un guide civique le rendrait invisible sur le site, d'où le select contraint ci-dessous.
+// `product` est maintenant une colonne en base (migration 20260729000008) : le select
+// ci-dessous reste contraint pour éviter de mélanger une catégorie civique avec product=tef-irn,
+// mais la source de vérité pour filtrer/afficher est désormais g.product, pas category.
 type Product = "tef-irn" | "examen-civique";
 
 const TYPES: { value: GuideType; label: string }[] = [
@@ -34,6 +34,12 @@ const TYPES: { value: GuideType; label: string }[] = [
   { value: "thematique", label: "Thématique" },
   { value: "astuces", label: "Astuces" },
   { value: "methodologie", label: "Méthodologie" },
+];
+
+const SILO_ROLES: { value: GuideSiloRole; label: string }[] = [
+  { value: "satellite", label: "Satellite" },
+  { value: "pilier", label: "Pilier" },
+  { value: "hub", label: "Hub (Master Silo)" },
 ];
 
 interface GuideRow {
@@ -44,6 +50,8 @@ interface GuideRow {
   level: string | null;
   category: string | null;
   type: GuideType;
+  product: Product;
+  silo_role: GuideSiloRole;
   description: string | null;
   content: string | null;
   reading_time: number | null;
@@ -93,6 +101,7 @@ const EMPTY_FORM = {
   category: "",
   level: "",
   type: "thematique" as GuideType,
+  siloRole: "satellite" as GuideSiloRole,
   description: "",
   content: "",
   readingTime: "",
@@ -137,11 +146,11 @@ export default function GuidesAdmin() {
     if (!error) {
       let rows = (data as GuideRow[]) || [];
       if (productFilter !== "Tous") {
-        rows = rows.filter((g) => (productFilter === "examen-civique" ? isCivic(g.category) : !isCivic(g.category)));
+        rows = rows.filter((g) => g.product === productFilter);
       }
       setGuides(rows);
       setExistingCategories(
-        Array.from(new Set((data as GuideRow[] || []).map((g) => g.category).filter((c): c is string => !!c && !isCivic(c))))
+        Array.from(new Set((data as GuideRow[] || []).filter((g) => g.product === "tef-irn").map((g) => g.category).filter((c): c is string => !!c)))
       );
     }
     setLoading(false);
@@ -173,13 +182,14 @@ export default function GuidesAdmin() {
   const openEditDialog = (g: GuideRow) => {
     setEditingId(g.id);
     setForm({
-      product: isCivic(g.category) ? "examen-civique" : "tef-irn",
+      product: g.product,
       title: g.title,
       slug: g.slug,
       slugTouched: true,
       category: g.category || "",
       level: g.level || "",
       type: g.type || "thematique",
+      siloRole: g.silo_role || "satellite",
       description: g.description || "",
       content: g.content || "",
       readingTime: g.reading_time ? String(g.reading_time) : "",
@@ -301,9 +311,11 @@ export default function GuidesAdmin() {
       const payload = {
         title: form.title.trim(),
         slug: form.slug.trim(),
+        product: form.product,
         category: form.category.trim(),
         level: form.level.trim() || null,
         type: form.type,
+        silo_role: form.siloRole,
         description: form.description.trim() || null,
         content: form.content,
         reading_time: form.readingTime ? Number(form.readingTime) : null,
@@ -386,7 +398,7 @@ export default function GuidesAdmin() {
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className="text-[10px] font-black uppercase">
-                    {isCivic(g.category) ? "Examen civique" : "TEF IRN"}
+                    {g.product === "examen-civique" ? "Examen civique" : "TEF IRN"}
                   </Badge>
                   {g.category && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.category}</Badge>}
                   {g.level && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.level}</Badge>}
@@ -400,7 +412,7 @@ export default function GuidesAdmin() {
               <div className="flex gap-2 shrink-0">
                 {g.is_published ? (
                   <Link
-                    href={`/${isCivic(g.category) ? "examen-civique" : "tef-irn"}/guides/${g.slug}`}
+                    href={`/${g.product}/guides/${g.slug}`}
                     target="_blank"
                     className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600"
                     title="Voir sur le site"
@@ -549,6 +561,12 @@ export default function GuidesAdmin() {
                 <Label className="text-xs font-black uppercase text-zinc-400">Type</Label>
                 <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as GuideType }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
                   {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">Rôle silo</Label>
+                <select value={form.siloRole} onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                  {SILO_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
             </div>

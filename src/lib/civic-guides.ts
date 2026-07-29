@@ -2,7 +2,6 @@
 // depuis un composant client. Les constantes partagées vivent dans civic-guide-categories.ts.
 import { createClient } from "@/lib/supabase-server";
 import { Guide } from "@/types/guides";
-import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
 
 /**
  * Récupère tous les guides publiés liés à l'examen civique (toutes démarches confondues).
@@ -16,7 +15,7 @@ export async function getCivicGuides(): Promise<Guide[]> {
     .from("guides")
     .select("*")
     .eq("is_published", true)
-    .in("category", CIVIC_GUIDE_CATEGORIES as unknown as string[])
+    .eq("product", "examen-civique")
     .order("created_at", { ascending: false });
 
   if (error) {
