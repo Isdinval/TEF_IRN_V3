@@ -34,6 +34,20 @@ function getLevelGuidelines(level: string): string {
   return LEVEL_GUIDELINES[normalized] || LEVEL_GUIDELINES['B1'];
 }
 
+// Le barème EE du TEF IRN ne couvre que A2/B1/B2 (sections A et B). Le profil de
+// l'apprenant (current_level) peut lui être A1 à C2 : on ramène ces bornes vers
+// le niveau EE le plus proche (A1 -> A2, C1/C2 -> B2) pour pouvoir le comparer
+// au niveau du sujet choisi.
+const EE_LEVEL_ORDER = ['A2', 'B1', 'B2'];
+
+function normalizeToEEScale(level?: string | null): string | null {
+  if (!level) return null;
+  const normalized = level.toUpperCase().trim();
+  if (normalized === 'A1') return 'A2';
+  if (normalized === 'C1' || normalized === 'C2') return 'B2';
+  return EE_LEVEL_ORDER.includes(normalized) ? normalized : null;
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
@@ -44,7 +58,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { text, subject, targetLevel } = body;
+    const { text, subject, targetLevel, learnerLevel } = body;
     const openai = getOpenAIClient();
 
     if (!openai) {
@@ -59,6 +73,21 @@ export async function POST(req: Request) {
     const effectiveLevel = targetLevel || "B1";
     const levelGuidelines = getLevelGuidelines(effectiveLevel);
 
+    // Écart profil apprenant / niveau du sujet : le sujet fait TOUJOURS foi pour la
+    // correction (barème inchangé). Seul cas particulier : l'apprenant est en dessous
+    // du niveau du sujet choisi -> on ajoute une phrase de contextualisation dans le
+    // conseil général. Dans le cas inverse (apprenant au-dessus, ex. révision d'un
+    // niveau déjà acquis), aucune mention particulière : c'est un usage normal.
+    const normalizedLearnerLevel = normalizeToEEScale(learnerLevel);
+    const normalizedTargetLevel = normalizeToEEScale(effectiveLevel) || effectiveLevel;
+    const learnerBelowTarget =
+      normalizedLearnerLevel !== null &&
+      EE_LEVEL_ORDER.indexOf(normalizedLearnerLevel) < EE_LEVEL_ORDER.indexOf(normalizedTargetLevel);
+
+    const levelGapInstruction = learnerBelowTarget
+      ? `\nCONTEXTE APPRENANT : le niveau de l'apprenant (${learnerLevel}) est en dessous du niveau visé par ce sujet (${effectiveLevel}). Corrige et note STRICTEMENT selon le niveau du sujet (${effectiveLevel}), sans rien assouplir. Ajoute uniquement, dans "conseil_general", 1 phrase bienveillante qui resitue l'écart (ex. : ce sujet est plus exigeant que son niveau actuel, et quels points travailler avant d'y revenir) — sans décourager.`
+      : "";
+
     const systemPrompt = `
 Tu es un examinateur expert du TEF IRN (format 2025), spécialisé dans l'évaluation de l'expression écrite pour les niveaux A2 à B2.
 Ta mission est de fournir une correction EXTRÊMEMENT détaillée, pédagogique et complète de la production d'un candidat.
@@ -70,6 +99,7 @@ OBJECTIF :
 - Détecte les erreurs récurrentes et les points de blocage.
 
 ${levelGuidelines}
+${levelGapInstruction}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
