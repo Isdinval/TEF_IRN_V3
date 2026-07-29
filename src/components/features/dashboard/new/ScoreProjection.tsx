@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Target, ChevronRight, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface CompetencyScore {
   subject: string; // 'CE' | 'EE' | 'EO'
@@ -61,6 +62,10 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
       <CardContent className="p-8">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-6">
           <TrendingUp size={14} /> Projection de Score TEF
+          <InfoTooltip
+            text="Estimation indicative en points TEF IRN (200-499), calculée à partir de la moyenne de vos scores en EE et EO. Ce n'est pas une note officielle."
+            className="text-indigo-200 hover:text-white"
+          />
         </div>
 
         <div className="space-y-6">

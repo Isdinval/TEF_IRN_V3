@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Zap, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface SrsReviewBannerProps {
   vocabReviewsDue: number;
@@ -24,8 +25,9 @@ export function SrsReviewBanner({ vocabReviewsDue, exerciseReviewsDue }: SrsRevi
             <Zap size={28} />
           </div>
           <div>
-            <p className="text-xl font-black text-zinc-900 tracking-tight">
+            <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
               {total} révision{total > 1 ? "s" : ""} vous attend{total > 1 ? "ent" : ""} aujourd'hui
+              <InfoTooltip text="Ces révisions reviennent selon la méthode de répétition espacée (SRS) : plus vous les réussissez, plus l'intervalle avant la prochaine révision s'allonge." />
             </p>
             <p className="text-xs font-bold text-zinc-500 mt-1">
               {vocabReviewsDue > 0 && `${vocabReviewsDue} mot${vocabReviewsDue > 1 ? "s" : ""} de vocabulaire`}

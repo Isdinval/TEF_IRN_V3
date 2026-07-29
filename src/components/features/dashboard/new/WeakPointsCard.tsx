@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ArrowRight, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface WeakPoint {
   category: string;
@@ -24,7 +25,10 @@ export function WeakPointsCard({ weakPoints }: { weakPoints: WeakPoint[] }) {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 flex items-center gap-2">
             <AlertCircle size={14} /> À travailler
           </h3>
-          <p className="text-xl font-black text-zinc-900 tracking-tight">Vos points faibles</p>
+          <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
+            Vos points faibles
+            <InfoTooltip text="Catégories où des erreurs ont été détectées le plus souvent, tous exercices et examens confondus. Le ×N compte le nombre de fois où une erreur de ce type a été relevée." />
+          </p>
         </div>
 
         <div className="space-y-3 mb-6">

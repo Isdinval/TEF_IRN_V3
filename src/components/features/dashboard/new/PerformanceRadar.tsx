@@ -4,6 +4,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Pola
 import { Radar as RadarIcon, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 interface CompetencyData {
   subject: string;
@@ -33,9 +34,19 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
             </h3>
             <p className="text-xl font-black text-zinc-900 tracking-tight">Radar de Compétences</p>
           </div>
-          <div className="h-10 w-10 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400">
-            <Info size={18} />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                aria-label="Plus d'informations"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 transition-colors hover:text-zinc-600"
+              >
+                <Info size={18} />
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                Chaque axe (CE, EE, EO) est la moyenne de tous vos scores obtenus dans cette compétence, tous exercices et examens blancs confondus. CO n'est pas encore disponible.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="h-[320px] w-full relative">

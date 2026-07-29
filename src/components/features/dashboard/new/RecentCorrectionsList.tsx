@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileText, CheckCircle2, ChevronRight, Timer } from "lucide-react";
+import { FileText, CheckCircle2, ChevronRight, Timer, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface Correction {
   id: string;
@@ -33,15 +34,29 @@ function getTypeBadgeLabel(type?: string): string {
 export function RecentCorrectionsList({ corrections }: { corrections: Correction[] }) {
   const router = useRouter();
 
+  const header = (
+    <div className="mb-6 flex items-center gap-2">
+      <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
+        <History size={18} className="text-zinc-400" /> Corrections récentes
+      </h2>
+      <InfoTooltip text="Vos 5 dernières corrections (exercices, examens blancs et sessions orales confondus), triées par date." />
+    </div>
+  );
+
   if (corrections.length === 0) return (
-     <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-100 bg-white">
+    <div>
+      {header}
+      <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-100 bg-white">
         <FileText size={48} className="text-zinc-200 mb-4" />
         <p className="text-sm font-bold text-zinc-400">Aucune correction récente. Commencez un exercice d'expression !</p>
-     </div>
+      </div>
+    </div>
   );
 
   return (
-    <div className="space-y-4">
+    <div>
+      {header}
+      <div className="space-y-4">
       {corrections.map((item, i) => {
         const score = item.ai_feedback?.overall_score || item.score || 0;
         const notions = item.ai_feedback?.knowledge_references || [];
@@ -120,6 +135,7 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
           </motion.div>
         );
       })}
+      </div>
     </div>
   );
 }
