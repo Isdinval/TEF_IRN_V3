@@ -119,6 +119,8 @@ Tu reçois la transcription complète d'un entretien dirigé entre un candidat e
 
 RÈGLE ANTI-BIAIS IMPORTANTE : ne te laisse pas influencer par le niveau visé "${scenario.level}" affiché ci-dessus. Note ce que tu observes réellement dans la transcription, même si cela diffère du niveau visé.
 
+RÈGLE ANTI-BRUIT DE TRANSCRIPTION : la transcription vient d'un modèle de reconnaissance vocale, pas d'un texte écrit par le candidat -- elle peut donc contenir des mots déformés ou incohérents qui sont des erreurs de transcription, pas des erreurs de langue du candidat (ex. une date ou un nom mal reconnu et transformé en mot sans rapport avec le contexte). Si un passage te semble être ce type d'artefact (mot isolé incohérent, sans lien logique avec ce qui précède/suit, alors que le reste de la phrase est clair), NE le signale PAS comme une faiblesse de vocabulaire, de clarté ou de grammaire, et ne l'utilise pas comme "evidence" pour baisser un score.
+
 Pour CHAQUE critère ci-dessous, procède en 2 temps, dans cet ordre :
 1. "evidence" : cite ou paraphrase brièvement 1 à 2 passages précis de la transcription qui justifient ta note (pas de note sans preuve textuelle).
 2. "score" : une note de 0 à 100, choisie UNIQUEMENT parmi les bandes suivantes (n'attribue jamais une valeur hors de la bande qui correspond à ton constat) :
