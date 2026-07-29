@@ -249,21 +249,41 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
       );
     }
 
+    // Application déterministe du seuil "matière insuffisante" (<50% du minimum de mots).
+    // La consigne 1bis du prompt demande déjà ceci, mais observée 2 fois en test réel à ne
+    // PAS être respectée (score renvoyé au-dessus de 20, longueur absente de conseil_general)
+    // -- alors que actualWordCount/halfMinWords sont connus avec certitude côté serveur, sans
+    // dépendre du jugement du modèle. On corrige donc ici plutôt que d'espérer une meilleure
+    // obéissance au prompt sur une règle purement mécanique.
+    const finalData = {
+      ...parsed.data,
+      scores_par_competence: { ...parsed.data.scores_par_competence },
+    };
+    const isInsufficientLength = actualWordCount < halfMinWords;
+    if (isInsufficientLength) {
+      finalData.score_global = Math.min(finalData.score_global, 20);
+      for (const key of Object.keys(finalData.scores_par_competence) as (keyof typeof finalData.scores_par_competence)[]) {
+        finalData.scores_par_competence[key] = Math.min(finalData.scores_par_competence[key], 20);
+      }
+      if (!/mots|longueur/i.test(finalData.conseil_general)) {
+        finalData.conseil_general = `Ce texte est bien en dessous de la longueur minimale requise (${actualWordCount} mots sur ${effectiveMinWords} attendus), ce qui limite fortement l'évaluation. ${finalData.conseil_general}`;
+      }
+    }
+
     // Garde-fou d'observabilité (non bloquant) : score_global et scores_par_competence sont
     // censés être sur la même échelle 0-100 et cohérents entre eux (cf. consigne 5 du prompt).
     // On loggue si un écart important survient malgré cette consigne, pour pouvoir suivre si
     // le problème réapparaît -- sans jamais modifier ni bloquer la réponse renvoyée.
-    const { score_global, scores_par_competence } = parsed.data;
-    const competenceValues = Object.values(scores_par_competence);
+    const competenceValues = Object.values(finalData.scores_par_competence);
     const competenceAverage = competenceValues.reduce((sum, v) => sum + v, 0) / competenceValues.length;
-    if (Math.abs(score_global - competenceAverage) > 25) {
+    if (Math.abs(finalData.score_global - competenceAverage) > 25) {
       console.warn(
-        `Incohérence de score détectée : score_global=${score_global} vs moyenne scores_par_competence=${competenceAverage.toFixed(1)}`,
-        scores_par_competence
+        `Incohérence de score détectée : score_global=${finalData.score_global} vs moyenne scores_par_competence=${competenceAverage.toFixed(1)}`,
+        finalData.scores_par_competence
       );
     }
 
-    return NextResponse.json(parsed.data);
+    return NextResponse.json(finalData);
   } catch (error: any) {
     console.error("OpenAI API Error:", error);
     return NextResponse.json(
