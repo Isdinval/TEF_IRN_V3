@@ -227,7 +227,7 @@ export default function CivicGuideDetail({ guide }: { guide: Guide }) {
                 </Button>
               </Link>
               <Link href="/examen-civique/parcourir" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
+                <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
                   Voir les questions <ExternalLink size={18} className="ml-2" />
                 </Button>
               </Link>
@@ -247,7 +247,7 @@ export default function CivicGuideDetail({ guide }: { guide: Guide }) {
               <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
                 <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Questions officielles Ministère de l&apos;Intérieur</Badge>
                 <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">100% gratuit</Badge>
-                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Technologie IA 2025</Badge>
+                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Technologie IA 2026</Badge>
               </div>
             </div>
           </div>

@@ -243,7 +243,7 @@ function CivicTrainingContent() {
   // === CONFIGURATION (avant démarrage) — toujours affiché sauf pour le mode "erreurs" ===
   if (!started) {
     return (
-      <div className="min-h-screen bg-zinc-50 p-6">
+      <div className="min-h-full bg-zinc-50 p-6">
         <div className="max-w-xl mx-auto">
           <ExerciseLayout
             title={<>Vérifiez votre <span className="text-indigo-600">sélection</span></>}
@@ -333,7 +333,7 @@ function CivicTrainingContent() {
   // === CHARGEMENT INITIAL ===
   if (loading && questions.length === 0) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+      <div className="min-h-full bg-zinc-50 flex items-center justify-center">
         <Loader2 className="animate-spin text-indigo-600" size={48} />
       </div>
     );
@@ -342,7 +342,7 @@ function CivicTrainingContent() {
   // === ERREUR (ex. aucune question pour ces filtres) ===
   if (errorMsg && questions.length === 0) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center gap-4">
+      <div className="min-h-full bg-zinc-50 flex flex-col items-center justify-center p-6 text-center gap-4">
         <p className="text-sm text-zinc-500 font-bold max-w-sm">{errorMsg}</p>
         <div className="flex gap-2 flex-wrap justify-center">
           {hasDue && activeMode !== "memoriser" && (
@@ -366,7 +366,7 @@ function CivicTrainingContent() {
   // === FIN DE SESSION ===
   if (finished) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-full bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
           <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
             <Trophy size={36} />
@@ -420,7 +420,7 @@ function CivicTrainingContent() {
   const current = questions[index];
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col">
+    <div className="min-h-full bg-zinc-50 flex flex-col">
       <ExerciseLayout
         variant="compact"
         title={activeMode === "memoriser" ? "Mémoriser" : activeMode === "erreurs" ? "Révision de vos erreurs" : "Apprendre"}
@@ -529,7 +529,7 @@ function CivicTrainingContent() {
 
 export function CivicTraining() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-full bg-zinc-50"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
       <CivicTrainingContent />
     </Suspense>
   );
