@@ -26,6 +26,7 @@ interface Correction {
 // sinon on garde le type brut de l'exercice (EE, QCM, ...) comme avant.
 function getTypeBadgeLabel(type?: string): string {
   if (type === "examen_blanc") return "Examen blanc";
+  if (type === "entretien_oral") return "Oral";
   return type?.toUpperCase() || "EE";
 }
 
@@ -52,7 +53,11 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             className="group cursor-pointer"
-            onClick={() => router.push(`/tef-irn/correction?id=${item.id}`)}
+            onClick={() => router.push(
+              item.exercise?.type === "entretien_oral"
+                ? `/tef-irn/oral/history?id=${item.id}`
+                : `/tef-irn/correction?id=${item.id}`
+            )}
           >
             <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30 transition-all flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
