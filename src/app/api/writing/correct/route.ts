@@ -199,7 +199,7 @@ CONSIGNES DE CORRECTION :
 3. Pour chaque erreur, fournis l'extrait EXACT du texte original.
 4. **EXPLICATION DÉTAILLÉE** : Pour chaque erreur, fournis une explication complète (2-3 phrases). Explique POURQUOI c'est une erreur, quelle est la règle de français appliquée, et donne un conseil pour ne plus la refaire.
 5. Donne un score_global sur 100 et des scores_par_competence -- CHACUN AUSSI SUR 100 (même échelle 0-100, jamais un compte de fautes, jamais une note sur 10). score_global doit être COHÉRENT avec ces 4 sous-scores : à quelques points près, il reflète leur moyenne pondérée par la gravité des erreurs trouvées -- jamais une valeur déconnectée. Un texte dont liste_des_erreurs est vide ou quasi vide doit avoir des scores_par_competence ET un score_global élevés (85-100), jamais l'inverse (sous-scores bas + score_global haut, ou l'inverse, sont tous les deux des incohérences à éviter).
-6. Fournis un conseil général structuré et motivant.
+6. Fournis un conseil général structuré et motivant. Si liste_des_erreurs est vide ou quasi vide, "conseil_general" doit être une simple validation/encouragement sincère (ex. : féliciter la clarté, la structure, l'adéquation au sujet) -- ne JAMAIS y glisser une suggestion d'amélioration ("travaillez les accords", "variez les connecteurs"...) qui ne correspond à AUCUNE erreur réellement listée : ce serait contredire ton propre score_global élevé et ta propre liste_des_erreurs vide.
 
 STRUCTURE DE LA RÉPONSE (JSON STRICT) :
 {
