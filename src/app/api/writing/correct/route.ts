@@ -192,9 +192,13 @@ CONSIGNES DE CORRECTION :
    - "syntaxe" : erreurs d'ordre des mots, de connecteurs logiques, de structure de phrase.
    - "orthographe" : fautes d'orthographe pure, accents, ponctuation.
    - "vocabulaire" : mauvais choix de mot, anglicismes, registre inadapté.
+2bis. NE signale une erreur QUE s'il s'agit d'une vraie violation du français standard (accord, conjugaison, orthographe, syntaxe, mot incorrect) -- JAMAIS une préférence de style ou un choix par ailleurs valide. En particulier :
+   - Le conditionnel de politesse ("je souhaiterais", "pourriez-vous", "il serait utile de") dans un texte formel est CORRECT et même recommandé -- ne JAMAIS le signaler comme une faute de conjugaison.
+   - Reformuler une phrase déjà correcte pour la rendre "plus élégante" ou proposer un synonyme d'une phrase déjà juste n'est PAS une erreur -- ne l'ajoute pas à liste_des_erreurs.
+   - Si le texte ne contient AUCUNE erreur réelle au sens ci-dessus, liste_des_erreurs doit être vide (ou quasi vide) -- ne fabrique jamais une erreur artificielle pour "remplir" la réponse.
 3. Pour chaque erreur, fournis l'extrait EXACT du texte original.
 4. **EXPLICATION DÉTAILLÉE** : Pour chaque erreur, fournis une explication complète (2-3 phrases). Explique POURQUOI c'est une erreur, quelle est la règle de français appliquée, et donne un conseil pour ne plus la refaire.
-5. Donne un score global sur 100 et des scores détaillés par compétence.
+5. Donne un score_global sur 100 et des scores_par_competence -- CHACUN AUSSI SUR 100 (même échelle 0-100, jamais un compte de fautes, jamais une note sur 10). score_global doit être COHÉRENT avec ces 4 sous-scores : à quelques points près, il reflète leur moyenne pondérée par la gravité des erreurs trouvées -- jamais une valeur déconnectée. Un texte dont liste_des_erreurs est vide ou quasi vide doit avoir des scores_par_competence ET un score_global élevés (85-100), jamais l'inverse (sous-scores bas + score_global haut, ou l'inverse, sont tous les deux des incohérences à éviter).
 6. Fournis un conseil général structuré et motivant.
 
 STRUCTURE DE LA RÉPONSE (JSON STRICT) :
@@ -239,6 +243,20 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
       return NextResponse.json(
         buildFallbackFeedback(text, "La correction n'a pas pu être générée correctement. Merci de réessayer."),
         { status: 200 }
+      );
+    }
+
+    // Garde-fou d'observabilité (non bloquant) : score_global et scores_par_competence sont
+    // censés être sur la même échelle 0-100 et cohérents entre eux (cf. consigne 5 du prompt).
+    // On loggue si un écart important survient malgré cette consigne, pour pouvoir suivre si
+    // le problème réapparaît -- sans jamais modifier ni bloquer la réponse renvoyée.
+    const { score_global, scores_par_competence } = parsed.data;
+    const competenceValues = Object.values(scores_par_competence);
+    const competenceAverage = competenceValues.reduce((sum, v) => sum + v, 0) / competenceValues.length;
+    if (Math.abs(score_global - competenceAverage) > 25) {
+      console.warn(
+        `Incohérence de score détectée : score_global=${score_global} vs moyenne scores_par_competence=${competenceAverage.toFixed(1)}`,
+        scores_par_competence
       );
     }
 
