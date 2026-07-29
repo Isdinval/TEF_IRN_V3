@@ -12,7 +12,7 @@ interface Correction {
   study_time_minutes: number;
   exercise: {
     instructions: string;
-    type: string;
+    type: string; // 'examen_blanc' pour les sujets du catalogue writing_exam_scenarios
     category: string;
   };
   ai_feedback?: {
@@ -20,6 +20,13 @@ interface Correction {
     global_comment: string;
     knowledge_references?: string[];
   };
+}
+
+// Libellé du badge : cas particulier pour les examens blancs (writing_scenario_attempts),
+// sinon on garde le type brut de l'exercice (EE, QCM, ...) comme avant.
+function getTypeBadgeLabel(type?: string): string {
+  if (type === "examen_blanc") return "Examen blanc";
+  return type?.toUpperCase() || "EE";
 }
 
 export function RecentCorrectionsList({ corrections }: { corrections: Correction[] }) {
@@ -58,7 +65,7 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
                      {item.exercise?.instructions?.substring(0, 50) || "Exercice"}...
                   </h3>
                   <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] uppercase font-black tracking-widest">
-                    {item.exercise?.type?.toUpperCase() || 'EE'}
+                    {getTypeBadgeLabel(item.exercise?.type)}
                   </Badge>
                   {item.study_time_minutes > 0 && (
                     <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-400">

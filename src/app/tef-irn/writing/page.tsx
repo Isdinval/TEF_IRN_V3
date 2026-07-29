@@ -39,6 +39,10 @@ export function WritingCoachContent() {
   const [status, setStatus] = useState<Status>("catalogue");
   const [durationSeconds, setDurationSeconds] = useState<number | undefined>(undefined);
   const sessionStartRef = useRef<number | null>(null);
+  // Sujet issu du catalogue d'examens blancs (writing_exam_scenarios) plutôt que du pool
+  // SRS (exercises) : la sauvegarde doit alors passer par /api/writing/scenario-complete
+  // (table dédiée), pas /api/exercise-complete (FK stricte vers exercises.id).
+  const [scenarioSection, setScenarioSection] = useState<string | null>(null);
 
   const [allScenarios, setAllScenarios] = useState<WritingScenarioListItem[]>([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -77,6 +81,7 @@ export function WritingCoachContent() {
       const levelParam = searchParams.get('level');
 
       if (subjectParam) {
+        setScenarioSection(null);
         setExercise({
           id: exerciseId || undefined,
           instructions: subjectParam,
@@ -105,6 +110,7 @@ export function WritingCoachContent() {
         .limit(1)
         .maybeSingle();
 
+      setScenarioSection(null);
       if (exerciseData) {
         setExercise({
           id: exerciseData.id,
@@ -135,6 +141,7 @@ export function WritingCoachContent() {
       level: scenario.level,
       content: { min_words: scenario.min_words },
     });
+    setScenarioSection(scenario.section);
     setDurationSeconds(scenario.duration_seconds);
     setText("");
     setFeedback(null);
@@ -176,21 +183,37 @@ export function WritingCoachContent() {
         const studyTimeMinutes = sessionStartRef.current
           ? Math.round((Date.now() - sessionStartRef.current) / 60000)
           : 0;
-        const completeRes = await fetch("/api/exercise-complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            exerciseId: exercise.id,
-            score: data.score_global,
-            answers: {
-              text,
-              subject: exercise.instructions,
-              feedback: data
-            },
-            aiFeedback: data,
-            studyTimeMinutes
-          })
-        });
+
+        // Sujet du catalogue "examen blanc" (writing_exam_scenarios) : table dédiée,
+        // exercise.id n'existe pas dans `exercises` (cf. docs/EXAM_SCENARIOS_CATALOGUE.md).
+        const completeRes = scenarioSection
+          ? await fetch("/api/writing/scenario-complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                scenarioId: exercise.id,
+                section: scenarioSection,
+                level: exercise.level,
+                text,
+                feedback: data,
+                studyTimeMinutes
+              })
+            })
+          : await fetch("/api/exercise-complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                exerciseId: exercise.id,
+                score: data.score_global,
+                answers: {
+                  text,
+                  subject: exercise.instructions,
+                  feedback: data
+                },
+                aiFeedback: data,
+                studyTimeMinutes
+              })
+            });
 
         if (completeRes.ok) {
           router.refresh(); // Ensure the parcours page will see fresh data if navigating back
@@ -201,7 +224,7 @@ export function WritingCoachContent() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, exercise, supabase, router]);
+  }, [text, exercise, scenarioSection, supabase, router]);
 
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;

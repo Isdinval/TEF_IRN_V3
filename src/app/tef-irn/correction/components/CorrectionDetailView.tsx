@@ -39,6 +39,7 @@ export const CorrectionDetailView = ({
 
   const feedback = attempt.answers.feedback;
   const isLegacy = !('liste_des_erreurs' in (feedback || {}));
+  const isExamBlanc = attempt.source === "scenario";
 
   const level = (feedback as WritingFeedback)?.level || (feedback as LegacyFeedback)?.level || "B1";
   const comment = (feedback as WritingFeedback)?.conseil_general || (feedback as LegacyFeedback)?.comment || "";
@@ -145,8 +146,9 @@ export const CorrectionDetailView = ({
           </Button>
           <Button
             onClick={() => onExport(attempt)}
-            disabled={isExporting}
-            className="h-14 rounded-2xl bg-zinc-900 px-6 font-black text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800"
+            disabled={isExporting || isExamBlanc}
+            title={isExamBlanc ? "Export PDF bientôt disponible pour les examens blancs" : undefined}
+            className="h-14 rounded-2xl bg-zinc-900 px-6 font-black text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isExporting ? <Sparkles className="animate-spin" /> : <Download size={18} className="mr-2" />}
             Export PDF
