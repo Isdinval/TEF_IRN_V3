@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -97,6 +98,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -129,6 +131,13 @@ export default function Onboarding() {
         setLoading(false);
         return;
       }
+      // Le dashboard garde en cache (React Query) la réponse du RPC
+      // get_dashboard_data() obtenue lors du 1er passage sur /dashboard,
+      // où onboarding_completed valait encore false. Sans ce removeQueries,
+      // le dashboard sert cette réponse obsolète au montage et redirige
+      // aussitôt vers /onboarding, avant même que le refetch en arrière-plan
+      // ne confirme onboarding_completed:true → boucle infinie perçue.
+      queryClient.removeQueries({ queryKey: ["dashboard-data"] });
       router.push('/tef-irn/dashboard');
     }
     setLoading(false);
