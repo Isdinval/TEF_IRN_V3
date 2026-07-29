@@ -49,6 +49,12 @@ export function WritingCoachContent() {
   const [filterSection, setFilterSection] = useState<Section | "all">("all");
   const [filterLevel, setFilterLevel] = useState<Level | "all">("all");
   const [filterTypeTexte, setFilterTypeTexte] = useState<string | "all">("all");
+  // Niveau réel de l'apprenant (profiles.current_level), transmis à la correction pour
+  // contextualiser l'écart avec le niveau du sujet choisi (voir handleCorrection).
+  const [learnerLevel, setLearnerLevel] = useState<string | null>(null);
+  // Garde-fou pour n'appliquer la pré-sélection du niveau (via goal_level) qu'une seule
+  // fois, sans écraser un choix que l'apprenant aurait fait entre-temps dans le filtre.
+  const appliedDefaultLevelRef = useRef(false);
 
   const supabase = createClient();
   const router = useRouter();
@@ -62,6 +68,32 @@ export function WritingCoachContent() {
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, status, exercise.instructions, exercise.level]);
+
+  // Récupère le niveau réel de l'apprenant et son objectif d'examen (définis à
+  // l'onboarding) pour adapter le coach : pré-sélection du filtre de niveau du
+  // catalogue sur l'objectif, et transmission du niveau réel à la correction.
+  useEffect(() => {
+    async function fetchProfileLevels() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("current_level, goal_level")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.current_level) setLearnerLevel(profile.current_level);
+
+      // Pré-sélection uniquement (pas de verrouillage) : l'apprenant reste libre de
+      // choisir un autre niveau ensuite dans le catalogue.
+      if (profile?.goal_level && !appliedDefaultLevelRef.current) {
+        appliedDefaultLevelRef.current = true;
+        setFilterLevel(profile.goal_level as Level);
+      }
+    }
+    fetchProfileLevels();
+  }, [supabase]);
 
   // Charge le catalogue de sujets (entrée libre uniquement, mais chargement léger et inoffensif dans tous les cas).
   useEffect(() => {
@@ -171,7 +203,9 @@ export function WritingCoachContent() {
         body: JSON.stringify({
           text,
           subject: exercise.instructions, // Pass subject for AI context
-          targetLevel: exercise.level
+          targetLevel: exercise.level,
+          learnerLevel,
+          minWords: exercise.content?.min_words
         }),
       });
       const data = await response.json();
@@ -224,7 +258,7 @@ export function WritingCoachContent() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [text, exercise, scenarioSection, supabase, router]);
+  }, [text, exercise, scenarioSection, supabase, router, learnerLevel]);
 
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;
