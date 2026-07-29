@@ -38,6 +38,16 @@ function levelFromScore(score: number): "<A1" | "A1" | "A2" | "B1" | "B2" {
   return LEVEL_THRESHOLDS.find((t) => score >= t.min)!.level;
 }
 
+// Référentiel condensé par niveau CECRL — source détaillée : docs/oral-analysis-levels.md
+// (miroir de LEVEL_GUIDELINES dans src/app/api/writing/correct/route.ts). Sans ça, le prompt
+// n'avait que les bandes de score génériques (0-39/40-54/...), sans consigne sur ce qu'il faut
+// attendre/tolérer/s'interdire à CE niveau précis -- risque de juger un A2 avec des attentes B2.
+const LEVEL_GUIDELINES: Record<"A2" | "B1" | "B2", string> = {
+  A2: `Niveau A2 : attends des réponses courtes mais complètes à chaque question, pas de phrases développées. Tolère les hésitations, les réponses très courtes (si elles répondent à la question), le vocabulaire limité. Signale en priorité une absence de réponse à une question directe ou une incapacité à formuler une phrase complète. N'exige JAMAIS de nuance, de justification développée ou de connecteurs élaborés -- ce n'est pas attendu à ce niveau.`,
+  B1: `Niveau B1 : attends une justification simple (parce que, car) et une réaction visible aux relances/objections de l'interlocuteur (pas juste "oui, oui"). Tolère des connecteurs encore simples (mais, donc) et de petites hésitations. Signale en priorité une objection ignorée ou une opinion sans aucune justification. N'exige JAMAIS une argumentation nuancée en plusieurs étapes (c'est l'attendu B2), et ne pénalise PAS un registre informel en Section B (tutoiement) : c'est le registre attendu, pas une faute.`,
+  B2: `Niveau B2 : attends une argumentation nuancée (distinguer plusieurs causes/options, concéder un point puis contre-argumenter) et une vraie capacité à faire évoluer la position de l'interlocuteur. Signale en priorité une argumentation qui reste générale/évasive malgré une relance explicite. N'exige JAMAIS de vocabulaire soutenu ou livresque hors de l'usage courant, et ne pénalise PAS une argumentation efficace formulée simplement -- B2 évalue la nuance et l'interaction réelle, pas la sophistication du vocabulaire.`,
+};
+
 // Validation minimale de la réponse IA : response_format:"json_object" garantit un JSON
 // valide, mais pas la présence/le type des champs attendus (OralAnalysisView lit
 // scores.*, strengths, improvements sans garde-fou et plante si absents/mal typés).
@@ -121,6 +131,9 @@ Tu reçois la transcription complète d'un entretien dirigé entre un candidat e
 RÈGLE ANTI-BIAIS IMPORTANTE : ne te laisse pas influencer par le niveau visé "${scenario.level}" affiché ci-dessus. Note ce que tu observes réellement dans la transcription, même si cela diffère du niveau visé.
 
 RÈGLE ANTI-BRUIT DE TRANSCRIPTION : la transcription vient d'un modèle de reconnaissance vocale, pas d'un texte écrit par le candidat -- elle peut donc contenir des mots déformés ou incohérents qui sont des erreurs de transcription, pas des erreurs de langue du candidat (ex. une date ou un nom mal reconnu et transformé en mot sans rapport avec le contexte). Si un passage te semble être ce type d'artefact (mot isolé incohérent, sans lien logique avec ce qui précède/suit, alors que le reste de la phrase est clair), NE le signale PAS comme une faiblesse de vocabulaire, de clarté ou de grammaire, et ne l'utilise pas comme "evidence" pour baisser un score.
+
+CONSIGNE SPÉCIFIQUE AU NIVEAU VISÉ (ce que tu dois attendre/tolérer/t'interdire pour CE scénario précis, indépendamment de la règle anti-biais ci-dessus qui porte sur le résultat, pas sur la grille d'attentes) :
+${LEVEL_GUIDELINES[scenario.level]}
 
 Pour CHAQUE critère ci-dessous, procède en 2 temps, dans cet ordre :
 1. "evidence" : cite ou paraphrase brièvement 1 à 2 passages précis de la transcription qui justifient ta note (pas de note sans preuve textuelle).
