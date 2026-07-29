@@ -258,7 +258,7 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
                 </Button>
               </Link>
               <Link href="/examen-civique">
-                <Button size="lg" variant="outline" className="h-16 px-12 border-white/20 hover:bg-white/5 text-white font-bold text-lg rounded-2xl">
+                <Button size="lg" variant="outline" className="h-16 px-12 border-white/20 bg-transparent hover:bg-white/5 text-white font-bold text-lg rounded-2xl">
                   Retour à l'accueil
                 </Button>
               </Link>

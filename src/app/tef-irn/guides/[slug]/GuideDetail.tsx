@@ -21,10 +21,12 @@ import { motion } from "framer-motion";
 import { Guide } from "@/types/guides";
 import GuideContent from "@/components/features/guides/GuideContent";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function GuideDetail({ guide }: { guide: Guide }) {
   const router = useRouter();
   const { setPageContext } = useCoachContext();
+  const { user: currentUser } = useAuth();
 
   useEffect(() => {
     setPageContext({
@@ -69,7 +71,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
             >
               <Share2 size={18} />
             </button>
-            <Link href="/tef-irn/login">
+            <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login"}>
               <Button size="sm" className="bg-blue-600 font-black rounded-xl shadow-lg shadow-blue-100 px-6">
                 S'entraîner
               </Button>
@@ -227,13 +229,13 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
               Ce guide vous a donné les bases. Notre IA vous donne l'expérience nécessaire pour réussir le jour J.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/tef-irn/login" className="w-full sm:w-auto">
+              <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login"} className="w-full sm:w-auto">
                 <Button size="lg" className="h-16 px-10 bg-white text-blue-600 hover:bg-blue-50 font-black text-xl rounded-2xl shadow-xl w-full">
                   Démarrer l'entraînement
                 </Button>
               </Link>
               <Link href="/tef-irn/practice" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
+                <Button size="lg" variant="outline" className="h-16 px-10 border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-lg rounded-2xl w-full">
                   Voir les exercices <ExternalLink size={18} className="ml-2" />
                 </Button>
               </Link>
@@ -253,7 +255,7 @@ export default function GuideDetail({ guide }: { guide: Guide }) {
               <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
                 <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Expertise TEF IRN</Badge>
                 <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Certifié Qualiopi (en cours)</Badge>
-                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Technologie IA 2025</Badge>
+                <Badge variant="outline" className="bg-white border-gray-200 text-slate-500 font-bold">Technologie IA 2026</Badge>
               </div>
             </div>
           </div>
