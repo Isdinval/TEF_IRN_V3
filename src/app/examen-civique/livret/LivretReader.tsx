@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -203,6 +203,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
 
 export default function LivretReader() {
   const [index, setIndex] = useState(0);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const total = LIVRET_PAGES.length;
   const page = LIVRET_PAGES[index];
@@ -219,11 +220,16 @@ export default function LivretReader() {
 
   const goTo = (i: number) => {
     setIndex(Math.max(0, Math.min(total - 1, i)));
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    // window.scrollTo ne fonctionne pas ici : le conteneur qui défile réellement
+    // est <main className="overflow-auto"> dans AppLayout (mode anonyme comme
+    // authentifié), jamais `window`. scrollIntoView remonte le bon ancêtre
+    // scrollable automatiquement, quel qu'il soit.
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <div className="min-h-screen bg-white selection:bg-indigo-100">
+    <div className="min-h-screen flex flex-col bg-white selection:bg-indigo-100">
+      <div ref={topRef} />
       {/* Nav sticky */}
       <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-gray-50">
         <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center justify-between gap-3">
@@ -266,7 +272,7 @@ export default function LivretReader() {
       </nav>
 
       {/* Contenu */}
-      <main className="max-w-3xl mx-auto px-5 pt-10 sm:pt-14 pb-24">
+      <main className="flex-1 max-w-3xl mx-auto px-5 pt-10 sm:pt-14 pb-8 w-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={page.id}
@@ -302,8 +308,11 @@ export default function LivretReader() {
         </AnimatePresence>
       </main>
 
-      {/* Barre de navigation précédent/suivant — fixe, ne bouge pas avec le scroll ni la longueur de page */}
-      <div className="fixed bottom-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-100">
+      {/* Barre de navigation précédent/suivant — sticky (pas fixed) pour rester dans le
+          même contexte de largeur que le contenu : avec `fixed`, la barre se centrait sur
+          tout le viewport et ignorait le décalage introduit par la sidebar en mode authentifié.
+          `mt-auto` la plaque en bas même quand le contenu est plus court que l'écran. */}
+      <div className="sticky bottom-0 z-50 mt-auto bg-white/90 backdrop-blur-md border-t border-gray-100">
         <div className="max-w-3xl mx-auto px-5 py-3 flex items-center justify-between gap-3">
           <Button
             variant="ghost"
