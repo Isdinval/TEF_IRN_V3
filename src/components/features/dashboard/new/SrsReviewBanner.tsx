@@ -37,21 +37,24 @@ export function SrsReviewBanner({ vocabReviewsDue, exerciseReviewsDue }: SrsRevi
           </div>
         </div>
 
-        {vocabReviewsDue > 0 ? (
-          <Button
-            onClick={() => router.push("/tef-irn/vocab")}
-            className="h-14 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2 shrink-0"
-          >
-            Réviser le vocabulaire <ArrowRight size={18} />
-          </Button>
-        ) : (
-          <Button
-            onClick={() => router.push("/tef-irn/parcours")}
-            className="h-14 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2 shrink-0"
-          >
-            Voir mes parcours <ArrowRight size={18} />
-          </Button>
-        )}
+        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+          {exerciseReviewsDue > 0 && (
+            <Button
+              onClick={() => router.push("/tef-irn/practice?mode=review")}
+              className="h-14 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2"
+            >
+              Réviser les exercices <ArrowRight size={18} />
+            </Button>
+          )}
+          {vocabReviewsDue > 0 && (
+            <Button
+              onClick={() => router.push("/tef-irn/vocab?review=true")}
+              className="h-14 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2"
+            >
+              Réviser le vocabulaire <ArrowRight size={18} />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
