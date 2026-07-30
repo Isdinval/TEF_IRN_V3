@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 const BANNER_URL =
-  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/GUIDES_bannieres/GUIDE_TEF_IRN_BANNIERE.webp";
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/email_template_images/banniere_template_article.png";
 
 function buildReminderEmail(dueExercises: number, dueVocab: number) {
   const parts: string[] = [];
