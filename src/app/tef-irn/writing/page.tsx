@@ -263,6 +263,25 @@ export function WritingCoachContent() {
     }
   }, [text, exercise, scenarioSection, supabase, router, learnerLevel]);
 
+  const handleBack = useCallback(() => {
+    // Sujet choisi dans le catalogue (cf. handleSelectScenario) : l'URL /tef-irn/writing
+    // ne change jamais entre catalogue et rédaction pour ce flux, donc "retour" = ré-afficher
+    // le catalogue localement, sans navigation, plutôt que de renvoyer vers un parcours actif
+    // qui n'a rien à voir avec la façon dont on est arrivé ici.
+    if (scenarioSection) {
+      setStatus("catalogue");
+      setText("");
+      setFeedback(null);
+      setActiveErrorIndex(null);
+      return;
+    }
+    if (activeParcours) {
+      router.push(`/tef-irn/parcours/${activeParcours.slug}`);
+      return;
+    }
+    router.back();
+  }, [scenarioSection, activeParcours, router]);
+
   const handleResize = useCallback((e: MouseEvent) => {
     const newWidth = (e.clientX / window.innerWidth) * 100;
     if (newWidth > 30 && newWidth < 80) {
@@ -336,13 +355,7 @@ export function WritingCoachContent() {
           <header className="p-4 border-b bg-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  if (activeParcours) {
-                    router.push(`/tef-irn/parcours/${activeParcours.slug}`);
-                  } else {
-                    router.back();
-                  }
-                }}
+                onClick={handleBack}
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-900 mr-1"
               >
                 <ChevronLeft size={20} />
