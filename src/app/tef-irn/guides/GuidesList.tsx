@@ -9,11 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Guide } from '@/types/guides';
 import GuideCard from '@/components/features/guides/GuideCard';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCoachContext } from '@/contexts/CoachContext';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { Logo } from '@/components/landing/Logo';
+import { Footer } from '@/components/landing/Footer';
+import { TEF_IRN_GUIDES_BANNER_URL } from '@/data/guides-banners';
 
 export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }) {
   const [guides] = useState<Guide[]>(initialGuides);
   const { setPageContext } = useCoachContext();
+  const { user } = useAuth();
 
   useEffect(() => {
     setPageContext({ type: "browsing", section: "guides" });
@@ -48,59 +54,88 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24">
-      {/* Hero Section */}
-      <section className="bg-white border-b border-gray-100 py-20 px-6 overflow-hidden relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-[0.03] pointer-events-none">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5"/>
-            </pattern>
-            <rect width="100" height="100" fill="url(#grid)" />
-          </svg>
-        </div>
-
-        <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest"
-          >
-            <Sparkles size={14} />
-            Centre de ressources
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl lg:text-7xl font-black tracking-tight text-zinc-900 leading-tight"
-          >
-            Tout pour réussir votre <br />
-            <span className="text-blue-600">certificat TEF IRN</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 font-medium max-w-2xl mx-auto"
-          >
-            Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto relative group pt-8"
-          >
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 mt-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={24} />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un guide, un sujet, une règle..."
-              className="w-full h-20 pl-16 pr-8 bg-white border-2 border-gray-100 rounded-[2rem] text-lg font-bold shadow-2xl shadow-gray-100 focus:border-blue-600 focus:ring-0 transition-all"
+    <>
+      {/* Page publique (SEO) : AppLayout ne fournit aucun chrome ici pour les visiteurs
+          anonymes (cf. `publicRoutes` dans AppLayout.tsx). On reproduit ici exactement le
+          header "Case 2" d'AppLayout (visiteur anonyme sur une route non publique) —
+          PAS le <Header/> marketing de la landing (nav complète, à ne pas dupliquer ici) —
+          pour rester cohérent avec ce que voit un visiteur anonyme sur /examen-civique/guides.
+          Les utilisateurs connectés voient déjà la Sidebar + ParcoursTopBar (isAuthedOnGuides
+          dans AppLayout), donc pas de header ici pour eux afin d'éviter un double chrome. */}
+      {!user && (
+        <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
+          <Logo />
+          <div className="flex items-center gap-4">
+            <Link href="/tef-irn/login">
+              <Button variant="ghost" className="font-bold">Connexion</Button>
+            </Link>
+            <Link href="/tef-irn/login?mode=signup">
+              <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
+                Essai Gratuit
+              </Button>
+            </Link>
+          </div>
+        </header>
+      )}
+      <div className="min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24">
+      {/* Hero Section — bannière encadrée + verre dépoli premium */}
+      <section className="px-6 pt-8 md:pt-12">
+        <div className="max-w-7xl mx-auto relative">
+          <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+            <Image
+              src={TEF_IRN_GUIDES_BANNER_URL}
+              alt="Illustration aquarelle de la préparation au TEF IRN, univers visuel LlamaKusi"
+              fill
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              className="object-cover"
             />
-          </motion.div>
+          </div>
+
+          <div className="absolute inset-0 flex items-center justify-center px-5 py-6 md:px-12 md:py-10">
+            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50/90 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest"
+              >
+                <Sparkles size={14} />
+                Centre de ressources
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight [text-shadow:0_2px_24px_rgba(255,255,255,0.8)]"
+              >
+                Tout pour réussir votre <br />
+                <span className="text-blue-600">certificat TEF IRN</span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-base md:text-lg text-slate-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
+              >
+                Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="max-w-xl mx-auto relative group pt-1"
+              >
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher un guide, un sujet, une règle..."
+                  className="w-full h-14 pl-12 pr-6 bg-white border-2 border-gray-100 rounded-[1.5rem] text-sm md:text-base font-bold shadow-xl shadow-gray-100 focus:border-blue-600 focus:ring-0 transition-all"
+                />
+              </motion.div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -294,5 +329,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
         </div>
       </section>
     </div>
+    {!user && <Footer />}
+    </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, Sparkles, Clock, ChevronRight, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import GuideCard from "@/components/features/guides/GuideCard";
 import { useCivicContext } from "@/components/features/examen-civique/useCivicContext";
 import { CIVIC_GENERAL_GUIDE_CATEGORY, guideCategoryForMention } from "@/lib/civic-guide-categories";
 import { MENTIONS } from "@/lib/civic-constants";
+import { CIVIC_GUIDES_BANNER_URL } from "@/data/guides-banners";
 import type { Guide, GuideType } from "@/types/guides";
 
 const GUIDE_TYPES: { value: GuideType; label: string }[] = [
@@ -50,49 +52,64 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] selection:bg-indigo-100 pb-24">
-      {/* Hero Section */}
-      <section className="bg-white border-b border-gray-100 py-16 px-6 overflow-hidden relative">
-        <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest"
-          >
-            <Sparkles size={14} />
-            Guides examen civique
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl lg:text-6xl font-black tracking-tight text-zinc-900 leading-tight"
-          >
-            Tout comprendre sur <br />
-            <span className="text-indigo-600">l'examen civique</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-slate-500 font-medium max-w-2xl mx-auto"
-          >
-            Naturalisation, carte de résident, carte de séjour pluriannuelle : des guides gratuits pour comprendre votre démarche avant de vous entraîner.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto relative group pt-4"
-          >
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 mt-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un guide, une démarche, un sujet..."
-              className="w-full h-16 pl-14 pr-8 bg-white border-2 border-gray-100 rounded-[2rem] text-base font-bold shadow-xl shadow-gray-100 focus:border-indigo-600 focus:ring-0 transition-all"
+      {/* Hero Section — bannière encadrée + verre dépoli premium */}
+      <section className="px-6 pt-8 md:pt-12">
+        <div className="max-w-7xl mx-auto relative">
+          <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+            <Image
+              src={CIVIC_GUIDES_BANNER_URL}
+              alt="Illustration aquarelle d'une élue française devant une mairie, symbole de la naturalisation et de l'examen civique"
+              fill
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              className="object-cover"
             />
-          </motion.div>
+          </div>
+
+          <div className="absolute inset-0 flex items-center justify-center px-5 py-6 md:px-12 md:py-10">
+            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50/90 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest"
+              >
+                <Sparkles size={14} />
+                Guides examen civique
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight [text-shadow:0_2px_24px_rgba(255,255,255,0.8)]"
+              >
+                Tout comprendre sur <br />
+                <span className="text-indigo-600">l'examen civique</span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-base md:text-lg text-slate-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
+              >
+                Naturalisation, carte de résident, carte de séjour pluriannuelle : des guides gratuits pour comprendre votre démarche avant de vous entraîner.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="max-w-xl mx-auto relative group pt-1"
+              >
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher un guide, une démarche, un sujet..."
+                  className="w-full h-14 pl-12 pr-6 bg-white border-2 border-gray-100 rounded-[1.5rem] text-sm md:text-base font-bold shadow-xl shadow-gray-100 focus:border-indigo-600 focus:ring-0 transition-all"
+                />
+              </motion.div>
+            </div>
+          </div>
         </div>
       </section>
 
