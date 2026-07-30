@@ -19,7 +19,7 @@ function buildReminderEmail(dueExercises: number, dueVocab: number) {
         <p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#333333;">
           <strong>${dueExercises} exercice${dueExercises > 1 ? "s" : ""}</strong> ${dueExercises > 1 ? "sont prêts" : "est prêt"} à être révisé${dueExercises > 1 ? "s" : ""}.
         </p>
-        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/practice"
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/practice?mode=review"
            style="display:inline-block;padding:10px 20px;margin-bottom:20px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">
           Réviser mes exercices
         </a>
@@ -35,7 +35,7 @@ function buildReminderEmail(dueExercises: number, dueVocab: number) {
         <p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#333333;">
           <strong>${dueVocab} carte${dueVocab > 1 ? "s" : ""} de vocabulaire</strong> ${dueVocab > 1 ? "sont prêtes" : "est prête"} à être révisée${dueVocab > 1 ? "s" : ""}.
         </p>
-        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/vocab"
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/vocab?review=true"
            style="display:inline-block;padding:10px 20px;margin-bottom:20px;background-color:#16a34a;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">
           Réviser mon vocabulaire
         </a>
@@ -55,18 +55,27 @@ function buildReminderEmail(dueExercises: number, dueVocab: number) {
           </tr>
           <tr>
             <td style="padding:24px 32px 8px;">
-              <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#111111;">Bonjour,</p>
+              <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#111111;">Bonjour 👋,</p>
               <p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#333333;">
-                Il est temps de faire un petit point révision avant que ça ne s'accumule :
+                Chez <strong>LlamaKusi</strong>, on garde un œil sur votre planning de révision pour que rien ne s'accumule avant votre TEF IRN.
+                Petit point du jour :
               </p>
             </td>
           </tr>
           ${exerciseBlock}
           ${vocabBlock}
           <tr>
+            <td style="padding:8px 32px 24px;">
+              <p style="margin:0;font-size:14px;line-height:1.5;color:#555555;">
+                À bientôt, et bon courage pour la suite !<br/>
+                L'équipe LlamaKusi 🦙
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td style="padding:16px 32px 24px;border-top:1px solid #eeeeee;">
               <p style="margin:0;font-size:12px;line-height:1.5;color:#999999;">
-                Vous ne souhaitez plus recevoir ces rappels ?
+                Vous recevez cet email car les rappels de révision sont activés dans vos préférences LlamaKusi.
                 <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/settings" style="color:#999999;">Gérer mes notifications</a>
               </p>
             </td>

@@ -213,12 +213,16 @@ export function VocabCoachContent() {
         const lessonId = searchParams.get("lessonId");
         const topic = searchParams.get("topic");
         const level = searchParams.get("level");
+        const isReviewMode = searchParams.get("review") === "true";
 
         if (lessonId && topic) {
             hasInitialized.current = true;
             setLevel(level || filters.level);
             setCategory(topic);
             startTraining(false, level || filters.level, topic);
+        } else if (isReviewMode) {
+            hasInitialized.current = true;
+            startTraining(true, level || filters.level);
         }
     }
   }, [exerciseIdFromParams, searchParams, startSpecificCard, startTraining, setLevel, setCategory, filters.level, mode, loading]);
