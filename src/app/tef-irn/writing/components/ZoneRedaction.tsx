@@ -20,7 +20,14 @@ interface ZoneRedactionProps {
   onReset: () => void;
   onSelectError: (index: number) => void;
   wordCount: number;
+  minWords?: number;
 }
+
+// Seuil au-delà duquel on considère le texte comme trop long par rapport à la consigne.
+// Le TEF IRN n'impose pas de maximum strict, mais un texte 2x plus long que le minimum
+// demandé s'éloigne du format attendu (message court en Section A, argumentatif calibré
+// en Section B) — on le signale sans bloquer la rédaction.
+const OVER_LENGTH_MULTIPLIER = 2;
 
 // Normalise les apostrophes typographiques (’ ‘) vers l'apostrophe droite ('). Remplacement
 // caractère pour caractère (même longueur) : les positions trouvées dans le texte normalisé
@@ -37,8 +44,24 @@ export const ZoneRedaction = ({
   onReset,
   onSelectError,
   wordCount,
+  minWords,
 }: ZoneRedactionProps) => {
   const errorRefs = useRef<(HTMLSpanElement | null)[]>([]);
+
+  const wordCountStatus: "neutral" | "under" | "ok" | "over" = !minWords
+    ? "neutral"
+    : wordCount > minWords * OVER_LENGTH_MULTIPLIER
+    ? "over"
+    : wordCount >= minWords
+    ? "ok"
+    : "under";
+
+  const wordCountStyles: Record<typeof wordCountStatus, string> = {
+    neutral: "text-zinc-500 bg-zinc-100 border-zinc-200",
+    under: "text-zinc-500 bg-zinc-100 border-zinc-200",
+    ok: "text-emerald-700 bg-emerald-100 border-emerald-200",
+    over: "text-amber-700 bg-amber-100 border-amber-200",
+  };
 
   useEffect(() => {
     if (activeErrorIndex !== null && errorRefs.current[activeErrorIndex]) {
@@ -129,8 +152,20 @@ export const ZoneRedaction = ({
             <PenTool size={20} />
           </div>
           <div>
-            <CardTitle className="text-sm font-black uppercase tracking-tight text-zinc-900">Zone de rédaction</CardTitle>
-            <p className="text-[10px] font-bold text-zinc-400">Exprimez-vous librement</p>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-black uppercase tracking-tight text-zinc-900">Zone de rédaction</CardTitle>
+              <Badge
+                variant="outline"
+                className={`rounded-full px-2 py-0 text-[10px] font-black normal-case tracking-normal tabular-nums ${wordCountStyles[wordCountStatus]}`}
+              >
+                {wordCount}{minWords ? ` / ${minWords}` : ""} mot{wordCount > 1 ? "s" : ""}
+              </Badge>
+            </div>
+            <p className="text-[10px] font-bold text-zinc-400">
+              {wordCountStatus === "over"
+                ? "Texte plutôt long par rapport à la consigne"
+                : "Exprimez-vous librement"}
+            </p>
           </div>
         </div>
         {isAnalyzing && (
