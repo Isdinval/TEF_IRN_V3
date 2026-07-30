@@ -38,6 +38,7 @@ export async function GET(req: Request) {
 
   let sent = 0;
   let failed = 0;
+  const errors: string[] = [];
 
   for (const reminder of reminders ?? []) {
     const { subject, html } = buildReminderEmail(reminder.due_count);
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
       },
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL,
-        to: reminder.email,
+        to: [reminder.email],
         subject,
         html,
       }),
@@ -58,7 +59,9 @@ export async function GET(req: Request) {
 
     if (!res.ok) {
       failed++;
-      console.error("Resend error for", reminder.user_id, await res.text());
+      const errText = await res.text();
+      console.error("Resend error for", reminder.user_id, errText);
+      errors.push(errText);
       continue;
     }
 
@@ -69,5 +72,5 @@ export async function GET(req: Request) {
       .eq("user_id", reminder.user_id);
   }
 
-  return NextResponse.json({ sent, failed, total: reminders?.length ?? 0 });
+  return NextResponse.json({ sent, failed, total: reminders?.length ?? 0, errors });
 }
