@@ -5,11 +5,12 @@ const RESEND_API_URL = "https://api.resend.com/emails";
 const BANNER_URL =
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/email_template_images/banniere_template_article.png";
 
-function buildReminderEmail(dueExercises: number, dueVocab: number) {
+function buildReminderEmail(dueExercises: number, dueVocab: number, dueCivic: number) {
   const parts: string[] = [];
   if (dueExercises > 0) parts.push(`${dueExercises} exercice${dueExercises > 1 ? "s" : ""}`);
   if (dueVocab > 0) parts.push(`${dueVocab} carte${dueVocab > 1 ? "s" : ""} de vocabulaire`);
-  const subject = `${parts.join(" et ")} à réviser sur LlamaKusi`;
+  if (dueCivic > 0) parts.push(`${dueCivic} question${dueCivic > 1 ? "s" : ""} civique${dueCivic > 1 ? "s" : ""}`);
+  const subject = `${parts.join(", ")} à réviser sur LlamaKusi`;
 
   const exerciseBlock =
     dueExercises > 0
@@ -43,6 +44,22 @@ function buildReminderEmail(dueExercises: number, dueVocab: number) {
     </tr>`
       : "";
 
+  const civicBlock =
+    dueCivic > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 8px;">
+        <p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#333333;">
+          <strong>${dueCivic} question${dueCivic > 1 ? "s" : ""} civique${dueCivic > 1 ? "s" : ""}</strong> ${dueCivic > 1 ? "sont prêtes" : "est prête"} à être révisée${dueCivic > 1 ? "s" : ""}.
+        </p>
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/examen-civique/entrainement?mode=memoriser"
+           style="display:inline-block;padding:10px 20px;margin-bottom:20px;background-color:#7c3aed;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">
+          Réviser mes connaissances civiques
+        </a>
+      </td>
+    </tr>`
+      : "";
+
   const html = `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:24px 0;">
     <tr>
@@ -57,13 +74,14 @@ function buildReminderEmail(dueExercises: number, dueVocab: number) {
             <td style="padding:24px 32px 8px;">
               <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#111111;">Bonjour 👋,</p>
               <p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#333333;">
-                Chez <strong>LlamaKusi</strong>, on garde un œil sur votre planning de révision pour que rien ne s'accumule avant votre TEF IRN.
+                Chez <strong>LlamaKusi</strong>, on garde un œil sur votre planning de révision pour que rien ne s'accumule.
                 Petit point du jour :
               </p>
             </td>
           </tr>
           ${exerciseBlock}
           ${vocabBlock}
+          ${civicBlock}
           <tr>
             <td style="padding:8px 32px 24px;">
               <p style="margin:0;font-size:14px;line-height:1.5;color:#555555;">
@@ -114,7 +132,8 @@ export async function GET(req: Request) {
   for (const reminder of reminders ?? []) {
     const { subject, html } = buildReminderEmail(
       reminder.due_exercises_count,
-      reminder.due_vocab_count
+      reminder.due_vocab_count,
+      reminder.due_civic_count
     );
 
     const res = await fetch(RESEND_API_URL, {
