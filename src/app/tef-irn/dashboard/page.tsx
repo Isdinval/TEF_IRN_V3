@@ -25,6 +25,7 @@ import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBa
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { WeakPointsCard } from "@/components/features/dashboard/new/WeakPointsCard";
+import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -126,6 +127,7 @@ export default function DashboardPage() {
                   <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
                     <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
                     Mes parcours
+                    <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
                   </h2>
                   <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
                     Tout voir
@@ -149,6 +151,7 @@ export default function DashboardPage() {
               <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
                 <Badge className="bg-indigo-600 text-white rounded-full">IA Coach</Badge>
                 Recommandations
+                <InfoTooltip text="Générées à partir de vos erreurs les plus fréquentes : le coach cherche une leçon adaptée à cette catégorie et à votre niveau actuel." />
               </h2>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {recommendations.length > 0 ? recommendations.map((reco: any) => (

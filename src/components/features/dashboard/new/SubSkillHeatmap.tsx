@@ -3,6 +3,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Layers } from "lucide-react";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface SubSkillData {
   label: string;
@@ -69,7 +70,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500 flex items-center gap-2">
             <Layers size={14} /> Maîtrise par thématique
           </h3>
-          <p className="text-xl font-black text-zinc-900 tracking-tight">Analyse des sous-compétences</p>
+          <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
+            Analyse des sous-compétences
+            <InfoTooltip text="Chaque barre est la moyenne de vos scores sur cette catégorie (exercices, examens blancs et sessions orales confondus selon la section)." />
+          </p>
         </div>
 
         <div className="flex flex-col gap-8">

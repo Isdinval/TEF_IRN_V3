@@ -3,6 +3,7 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity } from "lucide-react";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface XPChartData {
   day: string;
@@ -19,7 +20,10 @@ export function XPChart({ data }: { data: XPChartData[] }) {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
             <Activity size={14} /> Activité hebdomadaire
           </h3>
-          <p className="text-xl font-black text-zinc-900 tracking-tight">Progression XP</p>
+          <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
+            Progression XP
+            <InfoTooltip text="Points d'expérience gagnés chaque jour (1 XP = 1 point de score sur un exercice/examen terminé), tous types d'activité confondus." />
+          </p>
         </div>
 
         <div className="h-[200px] w-full">

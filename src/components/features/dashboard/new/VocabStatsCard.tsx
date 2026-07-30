@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Languages, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface VocabStatsCardProps {
   total: number;
@@ -31,7 +32,10 @@ export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps)
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
               <Languages size={14} /> Vocabulaire
             </h3>
-            <p className="text-xl font-black text-zinc-900 tracking-tight">{total} mots maîtrisés</p>
+            <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
+              {total} mots maîtrisés
+              <InfoTooltip text="Un mot est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS). Le niveau associé est celui du mot en base, pas votre propre niveau." />
+            </p>
           </div>
           <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
             Niveau {topLevel}

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Landmark, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { mentionLabel } from "@/lib/civic-constants";
+import { mentionLabel, EXAM_PASS_THRESHOLD, EXAM_QUESTION_COUNT } from "@/lib/civic-constants";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface LastAttempt {
   score: number;
@@ -77,8 +78,9 @@ export function CivicExamCard() {
               <p className="text-xs font-black text-zinc-900">
                 Dernier examen blanc : {lastAttempt.score}/{lastAttempt.total_questions}
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 {mentionLabel(lastAttempt.mention)}
+                <InfoTooltip text={`Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT} questions. Le libellé ci-contre indique la démarche visée (CSP/CR/Naturalisation), pas une mention scolaire.`} />
               </p>
             </div>
           </div>
