@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Guide } from '@/types/guides';
 import GuideCard from '@/components/features/guides/GuideCard';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCoachContext } from '@/contexts/CoachContext';
+import { TEF_IRN_GUIDES_BANNER_URL } from '@/data/guides-banners';
 
 export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }) {
   const [guides] = useState<Guide[]>(initialGuides);
@@ -49,58 +51,62 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24">
-      {/* Hero Section */}
-      <section className="bg-white border-b border-gray-100 py-20 px-6 overflow-hidden relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-[0.03] pointer-events-none">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5"/>
-            </pattern>
-            <rect width="100" height="100" fill="url(#grid)" />
-          </svg>
+      {/* Hero Section — bannière image + encadré verre dépoli */}
+      <section className="relative overflow-hidden">
+        <div className="relative w-full h-[440px] md:h-[520px]">
+          <Image
+            src={TEF_IRN_GUIDES_BANNER_URL}
+            alt="Illustration aquarelle de la préparation au TEF IRN, univers visuel LlamaKusi"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
         </div>
 
-        <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest"
-          >
-            <Sparkles size={14} />
-            Centre de ressources
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl lg:text-7xl font-black tracking-tight text-zinc-900 leading-tight"
-          >
-            Tout pour réussir votre <br />
-            <span className="text-blue-600">certificat TEF IRN</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 font-medium max-w-2xl mx-auto"
-          >
-            Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
-          </motion.p>
+        <div className="absolute inset-0 flex items-center justify-center px-6">
+          <div className="w-full max-w-3xl text-center space-y-6 bg-white/80 backdrop-blur-md border border-white/60 rounded-[2.5rem] shadow-2xl px-8 py-10 md:px-14 md:py-14">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest"
+            >
+              <Sparkles size={14} />
+              Centre de ressources
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl lg:text-6xl font-black tracking-tight text-zinc-900 leading-tight"
+            >
+              Tout pour réussir votre <br />
+              <span className="text-blue-600">certificat TEF IRN</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg text-slate-500 font-medium max-w-2xl mx-auto"
+            >
+              Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
+            </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto relative group pt-8"
-          >
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 mt-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={24} />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un guide, un sujet, une règle..."
-              className="w-full h-20 pl-16 pr-8 bg-white border-2 border-gray-100 rounded-[2rem] text-lg font-bold shadow-2xl shadow-gray-100 focus:border-blue-600 focus:ring-0 transition-all"
-            />
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-2xl mx-auto relative group pt-4"
+            >
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 mt-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher un guide, un sujet, une règle..."
+                className="w-full h-16 pl-14 pr-8 bg-white border-2 border-gray-100 rounded-[2rem] text-base font-bold shadow-xl shadow-gray-100 focus:border-blue-600 focus:ring-0 transition-all"
+              />
+            </motion.div>
+          </div>
         </div>
       </section>
 
