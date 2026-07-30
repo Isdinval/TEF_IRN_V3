@@ -15,7 +15,7 @@ import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
 import { WritingTimer } from "./components/WritingTimer";
-import { WritingScenarioCatalogue, WritingScenarioListItem, Section, Level } from "./components/WritingScenarioCatalogue";
+import { WritingScenarioCatalogue, WritingScenarioListItem, Section, Level, TYPE_TEXTE_LABELS } from "./components/WritingScenarioCatalogue";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { useCoachContext } from "@/contexts/CoachContext";
 
@@ -171,6 +171,9 @@ export function WritingCoachContent() {
       id: scenario.id,
       instructions: scenario.sujet,
       level: scenario.level,
+      section: scenario.section,
+      type_texte: scenario.type_texte,
+      title: scenario.title,
       content: { min_words: scenario.min_words },
     });
     setScenarioSection(scenario.section);
@@ -349,10 +352,20 @@ export function WritingCoachContent() {
               </div>
               <div>
                 <h1 className="font-bold text-slate-800 tracking-tight">Coach d'Expression Écrite</h1>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                  {exercise.section && (
+                    <Badge className="text-[10px] font-black uppercase tracking-wider text-white bg-indigo-600 border-none">
+                      Section {exercise.section}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
                     Niveau {exercise.level}
                   </Badge>
+                  {exercise.type_texte && (
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-zinc-200 bg-zinc-50">
+                      {TYPE_TEXTE_LABELS[exercise.type_texte] ?? exercise.type_texte}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -379,6 +392,7 @@ export function WritingCoachContent() {
                 feedback={feedback}
                 activeErrorIndex={activeErrorIndex}
                 wordCount={wordCount}
+                minWords={exercise.content?.min_words}
               />
             </div>
           </main>

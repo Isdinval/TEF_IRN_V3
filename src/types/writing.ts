@@ -44,6 +44,12 @@ export interface WritingExercise {
   id?: string;
   instructions: string;
   level: string;
+  // Renseignés uniquement quand le sujet vient du catalogue (writing_exam_scenarios) —
+  // absents pour un exercice SRS classique (exercises, type='ecrit'), qui n'a pas cette
+  // donnée structurée. Tout affichage basé sur ces champs doit rester conditionnel.
+  section?: "A" | "B";
+  type_texte?: string;
+  title?: string;
   content?: {
     min_words?: number;
   };
