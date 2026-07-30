@@ -2,18 +2,80 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 const RESEND_API_URL = "https://api.resend.com/emails";
+const BANNER_URL =
+  "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/email_template_images/banniere_template_article.png";
 
-function buildReminderEmail(dueCount: number) {
-  const subject = `${dueCount} carte${dueCount > 1 ? "s" : ""} à réviser sur LlamaKusi`;
+function buildReminderEmail(dueExercises: number, dueVocab: number) {
+  const parts: string[] = [];
+  if (dueExercises > 0) parts.push(`${dueExercises} exercice${dueExercises > 1 ? "s" : ""}`);
+  if (dueVocab > 0) parts.push(`${dueVocab} carte${dueVocab > 1 ? "s" : ""} de vocabulaire`);
+  const subject = `${parts.join(" et ")} à réviser sur LlamaKusi`;
+
+  const exerciseBlock =
+    dueExercises > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 8px;">
+        <p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#333333;">
+          <strong>${dueExercises} exercice${dueExercises > 1 ? "s" : ""}</strong> ${dueExercises > 1 ? "sont prêts" : "est prêt"} à être révisé${dueExercises > 1 ? "s" : ""}.
+        </p>
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/practice"
+           style="display:inline-block;padding:10px 20px;margin-bottom:20px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">
+          Réviser mes exercices
+        </a>
+      </td>
+    </tr>`
+      : "";
+
+  const vocabBlock =
+    dueVocab > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 8px;">
+        <p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#333333;">
+          <strong>${dueVocab} carte${dueVocab > 1 ? "s" : ""} de vocabulaire</strong> ${dueVocab > 1 ? "sont prêtes" : "est prête"} à être révisée${dueVocab > 1 ? "s" : ""}.
+        </p>
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/vocab"
+           style="display:inline-block;padding:10px 20px;margin-bottom:20px;background-color:#16a34a;color:#ffffff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;">
+          Réviser mon vocabulaire
+        </a>
+      </td>
+    </tr>`
+      : "";
+
   const html = `
-    <p>Bonjour,</p>
-    <p>Vous avez <strong>${dueCount} carte${dueCount > 1 ? "s" : ""}</strong> de révision prête${dueCount > 1 ? "s" : ""} sur LlamaKusi.</p>
-    <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/vocab">Réviser maintenant</a></p>
-    <p style="font-size:12px;color:#888;">
-      Vous ne souhaitez plus recevoir ces rappels ?
-      <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/settings">Gérer mes notifications</a>
-    </p>
-  `;
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
+          <tr>
+            <td>
+              <img src="${BANNER_URL}" alt="LlamaKusi" width="560" style="display:block;width:100%;max-width:560px;height:auto;" />
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 32px 8px;">
+              <p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#111111;">Bonjour,</p>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#333333;">
+                Il est temps de faire un petit point révision avant que ça ne s'accumule :
+              </p>
+            </td>
+          </tr>
+          ${exerciseBlock}
+          ${vocabBlock}
+          <tr>
+            <td style="padding:16px 32px 24px;border-top:1px solid #eeeeee;">
+              <p style="margin:0;font-size:12px;line-height:1.5;color:#999999;">
+                Vous ne souhaitez plus recevoir ces rappels ?
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL}/tef-irn/settings" style="color:#999999;">Gérer mes notifications</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
+
   return { subject, html };
 }
 
@@ -41,7 +103,10 @@ export async function GET(req: Request) {
   const errors: string[] = [];
 
   for (const reminder of reminders ?? []) {
-    const { subject, html } = buildReminderEmail(reminder.due_count);
+    const { subject, html } = buildReminderEmail(
+      reminder.due_exercises_count,
+      reminder.due_vocab_count
+    );
 
     const res = await fetch(RESEND_API_URL, {
       method: "POST",
