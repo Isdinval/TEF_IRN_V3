@@ -173,6 +173,10 @@ STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_POSTHOG_KEY         (optionnel)
 NEXT_PUBLIC_POSTHOG_HOST        (optionnel)
+SUPABASE_SERVICE_ROLE_KEY       (server-only, jobs cron/admin — voir src/lib/supabase-admin.ts)
+RESEND_API_KEY                  (rappels email SRS, voir /api/cron/srs-reminders)
+RESEND_FROM_EMAIL
+CRON_SECRET                     (vérifie l'appel Vercel Cron sur /api/cron/srs-reminders)
 ```
 
 ---
