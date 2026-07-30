@@ -12,7 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCoachContext } from '@/contexts/CoachContext';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { Header } from '@/components/landing/Header';
+import { Logo } from '@/components/landing/Logo';
 import { Footer } from '@/components/landing/Footer';
 import { TEF_IRN_GUIDES_BANNER_URL } from '@/data/guides-banners';
 
@@ -56,12 +56,28 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
   return (
     <>
       {/* Page publique (SEO) : AppLayout ne fournit aucun chrome ici pour les visiteurs
-          anonymes (cf. `publicRoutes` dans AppLayout.tsx), donc on affiche nous-mêmes le
-          Header — exactement comme /tef-irn/pricing ou /tef-irn/notre-histoire.
+          anonymes (cf. `publicRoutes` dans AppLayout.tsx). On reproduit ici exactement le
+          header "Case 2" d'AppLayout (visiteur anonyme sur une route non publique) —
+          PAS le <Header/> marketing de la landing (nav complète, à ne pas dupliquer ici) —
+          pour rester cohérent avec ce que voit un visiteur anonyme sur /examen-civique/guides.
           Les utilisateurs connectés voient déjà la Sidebar + ParcoursTopBar (isAuthedOnGuides
-          dans AppLayout), donc pas de Header ici pour eux afin d'éviter un double chrome. */}
-      {!user && <Header />}
-      <div className={`min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24 ${!user ? 'pt-20' : ''}`}>
+          dans AppLayout), donc pas de header ici pour eux afin d'éviter un double chrome. */}
+      {!user && (
+        <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
+          <Logo />
+          <div className="flex items-center gap-4">
+            <Link href="/tef-irn/login">
+              <Button variant="ghost" className="font-bold">Connexion</Button>
+            </Link>
+            <Link href="/tef-irn/login?mode=signup">
+              <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
+                Essai Gratuit
+              </Button>
+            </Link>
+          </div>
+        </header>
+      )}
+      <div className="min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24">
       {/* Hero Section — bannière encadrée + verre dépoli premium */}
       <section className="px-6 pt-8 md:pt-12">
         <div className="max-w-7xl mx-auto relative">
@@ -77,7 +93,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center px-5 py-6 md:px-12 md:py-10">
-            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-gradient-to-b from-white/55 via-white/40 to-white/55 backdrop-blur-2xl backdrop-saturate-150 border border-white/50 ring-1 ring-white/20 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
+            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -90,7 +106,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight"
+                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight [text-shadow:0_2px_24px_rgba(255,255,255,0.8)]"
               >
                 Tout pour réussir votre <br />
                 <span className="text-blue-600">certificat TEF IRN</span>
@@ -99,7 +115,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-base md:text-lg text-slate-600 font-medium max-w-2xl mx-auto"
+                className="text-base md:text-lg text-slate-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
               >
                 Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
               </motion.p>

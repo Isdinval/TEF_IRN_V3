@@ -67,7 +67,7 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center px-5 py-6 md:px-12 md:py-10">
-            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-gradient-to-b from-white/55 via-white/40 to-white/55 backdrop-blur-2xl backdrop-saturate-150 border border-white/50 ring-1 ring-white/20 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
+            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -80,7 +80,7 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight"
+                className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900 leading-tight [text-shadow:0_2px_24px_rgba(255,255,255,0.8)]"
               >
                 Tout comprendre sur <br />
                 <span className="text-indigo-600">l'examen civique</span>
@@ -89,7 +89,7 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-base md:text-lg text-slate-600 font-medium max-w-2xl mx-auto"
+                className="text-base md:text-lg text-slate-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
               >
                 Naturalisation, carte de résident, carte de séjour pluriannuelle : des guides gratuits pour comprendre votre démarche avant de vous entraîner.
               </motion.p>
