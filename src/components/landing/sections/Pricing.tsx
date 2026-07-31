@@ -29,7 +29,7 @@ const plans = [
       "Coach Expression Écrite illimité",
       "Coach Oral 40 min / jour",
       "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
-      "Dashboard XP, streaks & radar de compétences",
+      "Tableau de bord de progression : points, séries de jours et radar de compétences",
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
     ],
@@ -45,7 +45,7 @@ const plans = [
       "Coach Expression Écrite illimité",
       "Coach Oral 75 min / jour (au lieu de 40 min en Premium)",
       "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
-      "Dashboard XP, streaks & radar de compétences",
+      "Tableau de bord de progression : points, séries de jours et radar de compétences",
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
     ],

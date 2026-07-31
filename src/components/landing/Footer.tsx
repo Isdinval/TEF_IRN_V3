@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { Facebook, Twitter, Instagram, Linkedin, Github } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -20,9 +19,8 @@ export function Footer() {
       title: "Ressources",
       links: [
         { name: "Guides TEF IRN", href: "/tef-irn/guides" },
+        { name: "Guides Examen Civique", href: "/examen-civique/guides" },
         { name: "Notre histoire", href: "/tef-irn/notre-histoire" },
-        { name: "Blog FLE", href: "#" },
-        { name: "Centre d'aide", href: "#" },
         { name: "Test gratuit", href: "/tef-irn/exercice-gratuit" },
       ]
     },
@@ -44,20 +42,9 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo />
             <p className="mt-6 text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-              La plateforme de préparation au TEF IRN la plus avancée.
-              Propulsée par l'IA pour garantir votre réussite à l'examen de naturalisation et de résidence.
+              La plateforme de préparation à la naturalisation la plus avancée.
+              Un coach IA pour l'Examen Civique et les 4 épreuves du TEF IRN.
             </p>
-            <div className="flex gap-4 mt-8">
-              <Link href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-blue transition-colors shadow-sm">
-                <Twitter size={18} />
-              </Link>
-              <Link href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-blue transition-colors shadow-sm">
-                <Instagram size={18} />
-              </Link>
-              <Link href="#" className="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-blue transition-colors shadow-sm">
-                <Linkedin size={18} />
-              </Link>
-            </div>
           </div>
 
           {columns.map((col) => (
@@ -88,7 +75,7 @@ export function Footer() {
           <div className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-[0.2em]">
             <span>Fait avec</span>
             <span className="text-red-500">❤️</span>
-            <span>à Paris pour les futurs citoyens</span>
+            <span>à Marseille pour votre nouvelle vie en France</span>
           </div>
         </div>
       </div>
