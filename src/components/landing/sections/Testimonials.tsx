@@ -40,7 +40,7 @@ const personas = [
 
 export function Testimonials() {
   return (
-    <section className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
+    <section className="py-32 bg-white dark:bg-brand-dark overflow-hidden px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center mb-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider mb-6">
@@ -64,7 +64,7 @@ export function Testimonials() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl dark:bg-white/5 group relative overflow-hidden">
+              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl bg-slate-50 dark:bg-white/5 group relative overflow-hidden">
                 <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
                   <div className="absolute top-8 right-8 text-8xl">{p.flag}</div>
                 </div>

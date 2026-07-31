@@ -56,7 +56,7 @@ export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
 
   return (
-    <section id="pricing" className="py-32 px-6 bg-white dark:bg-slate-900 relative overflow-hidden">
+    <section id="pricing" className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center text-center mb-10">
           <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-slate-900 dark:text-white">
@@ -106,7 +106,7 @@ export function Pricing() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: i * 0.1 }}
-                 className={`relative p-10 rounded-[3rem] border-2 transition-all duration-500 ${plan.highlight ? 'bg-brand-blue text-white border-brand-blue shadow-2xl scale-105 z-10' : 'bg-slate-50 dark:bg-white/5 border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
+                 className={`relative p-10 rounded-[3rem] border-2 transition-all duration-500 ${plan.highlight ? 'bg-brand-blue text-white border-brand-blue shadow-2xl scale-105 z-10' : 'bg-white dark:bg-white/5 border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
                >
                   {plan.badge && (
                     <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full bg-brand-gold text-brand-dark font-black text-xs uppercase tracking-widest shadow-xl">
@@ -117,9 +117,9 @@ export function Pricing() {
                   <div className="mb-8">
                      <h3 className={`text-xl font-black mb-2 uppercase tracking-widest ${plan.highlight ? 'opacity-80' : 'text-slate-900 dark:text-white opacity-80'}`}>{plan.name}</h3>
                      <div className={`flex items-baseline gap-1 ${plan.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                        {!isFree && <span className="text-2xl font-bold">€</span>}
+                        <span className="text-2xl font-bold">€</span>
                         <span className="text-5xl font-black tracking-tighter">{displayPrice}</span>
-                        {!isFree && <span className="text-sm font-bold opacity-70">/ mois{billingCycle === "annually" ? "*" : ""}</span>}
+                        <span className="text-sm font-bold opacity-70">/ mois{!isFree && billingCycle === "annually" ? "*" : ""}</span>
                      </div>
                      {!isFree && billingCycle === "annually" && (
                        <p className={`text-xs font-bold mt-2 opacity-60 ${plan.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>*(facturé {Math.round(displayPrice * 12)}€ / an)</p>
