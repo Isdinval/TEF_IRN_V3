@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { PenTool, Mic2, BrainCircuit, Headphones, GraduationCap, Sparkles, LayoutPanelLeft, LineChart, Zap, ChevronRight } from "lucide-react";
+import { PenTool, Mic2, BrainCircuit, Headphones, GraduationCap, Sparkles, LayoutPanelLeft, LineChart, Zap, ChevronRight, Timer, Target, ListChecks } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const features = [
@@ -97,11 +97,23 @@ export function Features() {
                   {f.desc}
                 </p>
 
-                {/* Démo animée */}
+                {/* Démo animée (sauf Écrite : l'exemple complet est déjà visible en haut de page) */}
                 <div className="relative mt-auto pt-8">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
-                    <FeatureDemo type={f.type} />
-                  </div>
+                  {f.type === "writing" ? (
+                    <div className="rounded-2xl border border-white/10 dark:border-white/10 border-slate-200 bg-white/50 dark:bg-slate-950 p-6">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Ce que vous obtenez</p>
+                      <ul className="space-y-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                        <li className="flex items-center gap-2"><Timer size={14} className="text-blue-500" /> Timer calqué sur les durées réelles (Section A/B)</li>
+                        <li className="flex items-center gap-2"><Target size={14} className="text-blue-500" /> Compteur de mots avec seuil minimum de l'épreuve</li>
+                        <li className="flex items-center gap-2"><ListChecks size={14} className="text-blue-500" /> Chaque erreur expliquée, pas juste signalée</li>
+                      </ul>
+                      <p className="mt-4 text-[11px] font-bold text-brand-blue dark:text-brand-gold">↑ Voir un exemple complet en haut de page</p>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
+                      <FeatureDemo type={f.type} />
+                    </div>
+                  )}
                 </div>
               </Card>
             </motion.div>
@@ -142,41 +154,8 @@ export function Features() {
   );
 }
 
-// === Animations premium par fonctionnalité === (inchangées)
+// === Animations premium par fonctionnalité === (writing géré directement dans le rendu de la carte, cf. plus haut)
 function FeatureDemo({ type }: { type: string }) {
-  if (type === "writing") {
-    return (
-      <div className="relative w-full h-full p-8 flex flex-col justify-center overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.7, 1] }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-          className="space-y-6"
-        >
-          <div className="text-emerald-400 font-medium flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Correction en cours...
-          </div>
-          
-          <div className="bg-white/10 p-4 rounded-2xl text-sm">
-            <p className="line-through text-white/50">"Je suis aller à Paris hier."</p>
-            <motion.p 
-              initial={{ color: "#fff" }}
-              animate={{ color: "#34d399" }}
-              className="mt-3"
-            >
-              "Je suis allé à Paris hier."
-            </motion.p>
-          </div>
-
-          <div className="flex justify-between text-xs">
-            <div>Score Global : <span className="text-emerald-400 font-bold">94/100</span></div>
-            <div className="text-emerald-400">3 corrections expliquées</div>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   if (type === "oral") {
     return (
       <div className="flex flex-col items-center justify-center h-full text-white/90 relative">

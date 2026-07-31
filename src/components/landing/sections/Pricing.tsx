@@ -152,7 +152,7 @@ export function Pricing() {
                   {!isFree && (
                      <div className={`mt-6 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${plan.highlight ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>
                         <ShieldCheck size={14} />
-                        Essai 7 jours • Sans engagement • Annulation en 1 clic
+                        Sans engagement • Annulation en 1 clic
                      </div>
                   )}
                </motion.div>
