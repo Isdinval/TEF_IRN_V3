@@ -199,9 +199,74 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
 
+  const plusLoinContent = (
+    <>
+      {/* Pont LlamaKusi */}
+      {showCTATef && (
+        <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
+          <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
+          <p className="text-xs text-indigo-200 font-medium leading-relaxed">
+            Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
+            LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 55 €/mois.
+          </p>
+          <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
+            <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
+              Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
+      {relevantGuides.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-black text-zinc-900">Guides</h3>
+            <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+              Tous les guides →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {relevantGuides.map((g) => (
+              <Link
+                key={g.slug}
+                href={`/examen-civique/guides/${g.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
+              >
+                <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
+                {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
+                {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* FAQ */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-black text-zinc-900 px-1">Questions fréquentes</h3>
+        <Accordion className="bg-zinc-50 rounded-[2rem] border border-zinc-100 divide-y divide-zinc-100 px-6">
+          {faq.map((item) => (
+            <AccordionItem key={item.q} value={item.q} className="border-none">
+              <AccordionTrigger className="hover:no-underline py-4 gap-4">
+                <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
+                <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-2xl mx-auto px-5 py-8 lg:px-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-5 py-8 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8 lg:items-start">
+        <div className="space-y-6 lg:col-span-2">
 
         <ExerciseLayout
           title={<>Préparez votre <span className="text-indigo-600">examen civique</span></>}
@@ -485,11 +550,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        {/* Séparateur — tout ce qui suit est secondaire (conversion, approfondissement),
-            regroupé dans un accordéon replié par défaut pour ne pas alourdir la page. */}
-        <div className="pt-2 border-t border-zinc-200" />
+        {/* Séparateur — tout ce qui suit est secondaire (conversion, approfondissement).
+            Sur mobile : accordéon replié pour ne pas alourdir le scroll. Sur desktop
+            (lg:hidden ici), ce même contenu vit en colonne latérale persistante --
+            voir plus bas, hors de cette colonne principale. */}
+        <div className="pt-2 border-t border-zinc-200 lg:hidden" />
 
-        <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6">
+        <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6 lg:hidden">
           <AccordionItem value="plus-loin" className="border-none">
             <AccordionTrigger className="hover:no-underline py-4 gap-4">
               <span className="flex items-center gap-2 text-sm font-black text-zinc-900">
@@ -497,68 +564,22 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               </span>
             </AccordionTrigger>
             <AccordionContent className="pb-6 pl-0 space-y-6" hiddenUntilFound>
-              {/* Pont LlamaKusi */}
-              {showCTATef && (
-                <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
-                  <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
-                  <p className="text-xs text-indigo-200 font-medium leading-relaxed">
-                    Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
-                    LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 55 €/mois.
-                  </p>
-                  <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
-                    <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
-                      Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
-              {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
-              {relevantGuides.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-1">
-                    <h3 className="text-sm font-black text-zinc-900">Guides</h3>
-                    <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
-                      Tous les guides →
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {relevantGuides.map((g) => (
-                      <Link
-                        key={g.slug}
-                        href={`/examen-civique/guides/${g.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
-                      >
-                        <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
-                        {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
-                        {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* FAQ */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-black text-zinc-900 px-1">Questions fréquentes</h3>
-                <Accordion className="bg-zinc-50 rounded-[2rem] border border-zinc-100 divide-y divide-zinc-100 px-6">
-                  {faq.map((item) => (
-                    <AccordionItem key={item.q} value={item.q} className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-4 gap-4">
-                        <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
-                        <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              {plusLoinContent}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        </div>
+
+        {/* Colonne latérale — desktop uniquement (lg:), remplit l'espace laissé vide
+            par la colonne principale sur grand écran avec du contenu réel plutôt que
+            du padding. Même contenu que l'accordéon mobile ci-dessus, toujours visible
+            ici puisque l'espace ne manque pas. */}
+        <div className="hidden lg:block lg:sticky lg:top-8 space-y-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-6">
+          <h3 className="flex items-center gap-2 text-sm font-black text-zinc-900">
+            <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
+          </h3>
+          {plusLoinContent}
+        </div>
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
