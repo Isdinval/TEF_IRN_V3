@@ -33,7 +33,7 @@ const plans = [
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
     ],
-    cta: "Démarrer l'essai gratuit",
+    cta: "Choisir Premium",
     highlight: true,
     badge: "LE PLUS CHOISI"
   },
@@ -49,7 +49,7 @@ const plans = [
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
     ],
-    cta: "Démarrer l'essai gratuit",
+    cta: "Choisir Super Premium",
     highlight: false
   }
 ];

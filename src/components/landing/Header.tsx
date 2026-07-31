@@ -53,7 +53,7 @@ export function Header() {
           </Link>
           <Link href="/tef-irn/login?mode=signup">
             <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
-              Essai Gratuit
+              Commencer gratuitement
             </Button>
           </Link>
         </nav>
@@ -62,7 +62,7 @@ export function Header() {
         <div className="flex md:hidden items-center gap-4">
           <Link href="/tef-irn/login?mode=signup">
             <Button size="sm" className="bg-brand-blue text-white font-black rounded-lg text-xs h-9 px-3">
-              Essai Gratuit
+              S'inscrire
             </Button>
           </Link>
           <button

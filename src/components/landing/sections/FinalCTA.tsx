@@ -45,7 +45,7 @@ export function FinalCTA() {
               <Link href="/tef-irn/login?mode=signup">
                 <Button className="h-20 px-12 text-2xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-[2rem] shadow-2xl shadow-brand-blue/40 group relative overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">
-                    Je commence mon essai gratuit
+                    Je commence gratuitement
                     <ChevronRight className="group-hover:translate-x-2 transition-transform duration-300" />
                   </span>
                   <motion.div
