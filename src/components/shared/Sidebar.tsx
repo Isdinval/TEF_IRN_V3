@@ -36,6 +36,12 @@ import {
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 
+const GROUP_THEME: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+  "tef-irn": { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-700", icon: "text-indigo-600" },
+  "examen-civique": { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-700", icon: "text-blue-600" },
+  "admin": { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700", icon: "text-amber-600" },
+};
+
 function SidebarContent() {
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
@@ -171,33 +177,27 @@ function SidebarContent() {
           // défaut, différentes de celles réellement en cours). Le groupe "TEF IRN" garde le
           // contexte parcoursId, propre à ce produit.
           const buildItemHref = group.key === "examen-civique" ? buildCivicHref : getHrefWithContext;
+          const theme = GROUP_THEME[group.key];
           return (
             <div key={group.key} className="space-y-0.5">
-              <div className={`flex items-center rounded-xl transition-all ${isGroupActive ? "bg-zinc-50 border border-zinc-100 shadow-sm" : ""}`}>
-                <Link
-                  href={buildItemHref(group.baseHref)}
-                  className={`flex-1 flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl ${isGroupActive ? "text-zinc-900" : "text-zinc-500 hover:bg-zinc-50"}`}
-                >
-                  <group.icon size={18} className={isGroupActive ? "text-indigo-600" : "text-zinc-400"} />
-                  {group.label}
-                </Link>
-                <button
-                  onClick={() => toggleGroup(group.key)}
-                  aria-label={isOpen ? `Replier ${group.label}` : `Déplier ${group.label}`}
-                  className="px-3 py-2.5 text-zinc-400 hover:text-zinc-700 transition-colors"
-                >
-                  <ChevronDown size={16} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                </button>
-              </div>
+              <button
+                onClick={() => toggleGroup(group.key)}
+                aria-expanded={isOpen}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${isGroupActive ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+              >
+                <group.icon size={18} className={isGroupActive ? theme.icon : "text-zinc-400"} />
+                <span className="flex-1 text-left">{group.label}</span>
+                <ChevronDown size={16} className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""} ${isGroupActive ? theme.icon : "text-zinc-400"}`} />
+              </button>
               {isOpen && (
                 <div className="pl-4 space-y-0.5">
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
                       href={buildItemHref(item.href)}
-                      className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? "bg-zinc-50 text-zinc-900 border border-zinc-100 shadow-sm" : "text-zinc-500 hover:bg-zinc-50"}`}
+                      className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
                     >
-                      <item.icon size={16} className={isActive(item.href) ? "text-indigo-600" : "text-zinc-400"} />
+                      <item.icon size={16} className={isActive(item.href) ? theme.icon : "text-zinc-400"} />
                       {item.label}
                     </Link>
                   ))}
