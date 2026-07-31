@@ -2,240 +2,207 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { PenTool, Mic2, BrainCircuit, Sparkles, LayoutPanelLeft, LineChart, Zap } from "lucide-react";
+import { PenTool, Mic2, Headphones, GraduationCap, ClipboardCheck, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
 
 const features = [
   {
-    title: "Correction Écrite IA",
-    desc: "Analyse ultra-précise de votre grammaire, syntaxe et vocabulaire. Recevez une note estimée et des conseils de reformulation en 3 secondes.",
-    icon: <PenTool size={32} />,
-    color: "bg-blue-500",
+    number: "01",
+    title: "Coach Expression Écrite",
+    desc: "Rédigez sur des sujets officiels Section A et B. Chaque erreur est corrigée et expliquée, pas juste signalée.",
+    icon: <PenTool size={26} />,
+    accent: "blue",
     delay: 0.1,
-    type: "writing"
+    track: "Coach TEF IRN",
+    points: [
+      "Sujets calqués sur le format réel (Section A/B, timer, compteur de mots)",
+      "Score global + détail par compétence (grammaire, vocabulaire, cohérence, orthographe)",
+      "Chaque correction expliquée en détail, pour comprendre et ne plus refaire l'erreur",
+    ],
   },
   {
-    title: "Coaching Oral 24/7",
-    desc: "Pratiquez l'expression orale sans stress. Notre IA analyse votre prononciation et votre fluidité sur tous les thèmes de l'examen.",
-    icon: <Mic2 size={32} />,
-    color: "bg-purple-500",
+    number: "02",
+    title: "Coach Expression Orale",
+    desc: "Entraînez-vous à l'oral face à un examinateur virtuel, sans stress et sans jugement.",
+    icon: <Mic2 size={26} />,
+    accent: "purple",
     delay: 0.2,
-    type: "oral"
+    track: "Coach TEF IRN",
+    points: [
+      "Simulation des deux sections orales (obtenir des informations, convaincre)",
+      "Feedback sur la prononciation, la fluidité et la pertinence des réponses",
+      "Disponible 24/7, en sessions de quelques minutes",
+    ],
   },
   {
-    title: "Exercices Adaptatifs",
-    desc: "QCM intelligents de niveau A1 à B2. La difficulté s'ajuste à votre progression réelle pour optimiser votre temps de travail.",
-    icon: <BrainCircuit size={32} />,
-    color: "bg-amber-500",
+    number: "03",
+    title: "Compréhension Écrite & Orale",
+    desc: "Des exercices qui s'ajustent à votre niveau réel pour progresser sur les deux épreuves de compréhension.",
+    icon: <Headphones size={26} />,
+    accent: "amber",
     delay: 0.3,
-    type: "practice"
-  }
+    track: "Coach TEF IRN",
+    points: [
+      "Parcours adaptatif de A1 à B2, ajusté à votre progression",
+      "LlamaKusi cible précisément vos lacunes plutôt qu'un programme générique",
+      "Formats d'exercices identiques à ceux de l'examen",
+    ],
+  },
+  {
+    number: "04",
+    title: "Entraînement Examen Civique",
+    desc: "QCM sur l'histoire, les valeurs et les institutions françaises — gratuit, sans carte bancaire.",
+    icon: <GraduationCap size={26} />,
+    accent: "emerald",
+    delay: 0.4,
+    track: "Coach Examen Civique",
+    points: [
+      "Questions issues du référentiel officiel du Ministère de l'Intérieur",
+      "Feedback immédiat sur chaque réponse, avec explication",
+      "Fiches de révision par thématique (institutions, valeurs, histoire)",
+    ],
+  },
 ];
+
+// Classes Tailwind statiques (pas de construction dynamique de nom de classe, pour que le JIT les détecte)
+const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; iconGlow: string; ghost: string; check: string }> = {
+  blue: {
+    bar: "from-blue-500 to-blue-400",
+    iconBg: "bg-blue-500",
+    iconGlow: "shadow-blue-500/30",
+    ghost: "text-blue-500/10 dark:text-blue-400/10",
+    check: "text-blue-500",
+  },
+  purple: {
+    bar: "from-purple-500 to-purple-400",
+    iconBg: "bg-purple-500",
+    iconGlow: "shadow-purple-500/30",
+    ghost: "text-purple-500/10 dark:text-purple-400/10",
+    check: "text-purple-500",
+  },
+  amber: {
+    bar: "from-amber-500 to-amber-400",
+    iconBg: "bg-amber-500",
+    iconGlow: "shadow-amber-500/30",
+    ghost: "text-amber-500/10 dark:text-amber-400/10",
+    check: "text-amber-500",
+  },
+  emerald: {
+    bar: "from-emerald-500 to-emerald-400",
+    iconBg: "bg-emerald-500",
+    iconGlow: "shadow-emerald-500/30",
+    ghost: "text-emerald-500/10 dark:text-emerald-400/10",
+    check: "text-emerald-500",
+  },
+};
 
 export function Features() {
   return (
-    <section id="features" className="py-32 px-6 bg-slate-900 overflow-hidden">
+    <section id="features" className="py-32 px-6 bg-white dark:bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-24">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 dark:bg-white/10 border border-brand-blue/20 dark:border-white/10 text-brand-blue dark:text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
               <Sparkles size={12} />
-              <span>Propulsé par GPT-4o</span>
+              <span>Un parcours, deux étapes</span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-black leading-tight text-white">
-              La technologie au service <br />
-              <span className="text-slate-500">de votre réussite.</span>
+            <h2 className="text-4xl md:text-6xl font-black leading-tight text-slate-900 dark:text-white">
+              Ce que LlamaKusi <br />
+              <span className="text-brand-blue dark:text-brand-gold">fait vraiment pour vous.</span>
             </h2>
           </div>
-          <p className="text-xl text-slate-400 max-w-md font-medium leading-relaxed">
-            Plus qu'une plateforme, LlamaKusi est votre coach personnel qui vous accompagne jusqu'au jour de l'examen.
+          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md font-medium leading-relaxed">
+            Un coach IA dédié à chaque compétence évaluée, du QCM civique jusqu'à l'oral du TEF IRN.
           </p>
         </div>
 
-        {/* Image Technologie - Image 2 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="my-12 md:my-16"
-        >
-          <Image
-            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE2.webp"
-            alt="Olivier et Grecia travaillant sur LlamaKusi à Paris avec vue sur Notre-Dame"
-            width={1200}
-            height={620}
-            className="w-full rounded-3xl shadow-xl"
-            sizes="(max-width: 1280px) 100vw, 1200px"
-          />
-        </motion.div>
-
-        {/* Légende explicative */}
-        <p className="text-center text-sm md:text-base text-slate-400 max-w-2xl mx-auto -mt-6 mb-20">
-          Olivier et Grecia développant LlamaKusi. Leur expérience personnelle a permis de créer un outil qui répond vraiment aux difficultés rencontrées par les candidats au TEF IRN.
-        </p>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((f, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: f.delay }}
-            >
-              <Card className="group relative h-full rounded-[2.5rem] border-none bg-white/5 p-10 overflow-hidden hover:translate-y-[-12px] transition-all duration-700">
-                <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl mb-10 transition-transform group-hover:scale-110 duration-500`}>
-                  {f.icon}
-                </div>
-
-                <h3 className="text-2xl font-black mb-6 text-white">{f.title}</h3>
-                <p className="text-slate-400 leading-relaxed font-medium mb-12">
-                  {f.desc}
-                </p>
-
-                {/* Démo animée améliorée */}
-                <div className="relative mt-auto pt-8">
-                  <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
-                    <FeatureDemo type={f.type} />
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+        {/* Le parcours en 2 étapes — repensé comme un vrai mini-parcours visuel */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/20 shadow-sm">
+            <span className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-base shrink-0">1</span>
+            <div className="text-left">
+              <p className="font-black text-emerald-700 dark:text-emerald-400 leading-tight">Examen Civique</p>
+              <p className="text-[10px] font-black text-emerald-600/70 dark:text-emerald-400/60 uppercase tracking-widest">Gratuit</p>
+            </div>
+          </div>
+          <ArrowRight size={22} className="text-slate-300 dark:text-slate-600 rotate-90 sm:rotate-0 shrink-0" />
+          <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-brand-blue/5 dark:bg-brand-gold/10 border-2 border-brand-blue/20 dark:border-brand-gold/20 shadow-sm">
+            <span className="w-10 h-10 rounded-full bg-brand-blue dark:bg-brand-gold text-white dark:text-brand-dark flex items-center justify-center font-black text-base shrink-0">2</span>
+            <div className="text-left">
+              <p className="font-black text-brand-blue dark:text-brand-gold leading-tight">Coach TEF IRN</p>
+              <p className="text-[10px] font-black text-brand-blue/70 dark:text-brand-gold/70 uppercase tracking-widest">Premium</p>
+            </div>
+          </div>
         </div>
 
-        {/* Stats améliorées */}
+        {/* Features Grid — plus engageant : numéro fantôme, barre d'accent, icône glow, puces colorées */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {features.map((f, i) => {
+            const accent = ACCENT_STYLES[f.accent];
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: f.delay }}
+              >
+                <Card className="group relative h-full rounded-[2.5rem] border-none bg-slate-50 dark:bg-white/5 p-10 overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
+                  {/* Barre d'accent en haut */}
+                  <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accent.bar}`} />
+                  {/* Numéro fantôme en fond */}
+                  <span className={`absolute -top-2 right-6 text-[7rem] font-black leading-none select-none ${accent.ghost}`}>
+                    {f.number}
+                  </span>
+
+                  <div className="relative flex items-center gap-3 mb-8">
+                    <div className={`w-16 h-16 rounded-2xl ${accent.iconBg} flex items-center justify-center text-white shadow-xl ${accent.iconGlow} transition-transform duration-300 group-hover:scale-110`}>
+                      {f.icon}
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${f.accent === "emerald" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-brand-blue/10 text-brand-blue dark:text-brand-gold"}`}>
+                      {f.track}
+                    </span>
+                  </div>
+
+                  <h3 className="relative text-2xl font-black mb-3 text-slate-900 dark:text-white">{f.title}</h3>
+                  <p className="relative text-slate-500 dark:text-slate-400 leading-relaxed font-medium mb-8">
+                    {f.desc}
+                  </p>
+
+                  <ul className="relative space-y-3">
+                    {f.points.map((point, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm font-bold text-slate-700 dark:text-slate-200">
+                        <CheckCircle2 size={16} className={`${accent.check} mt-0.5 shrink-0`} />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Examens blancs — information mise en avant séparément (TEF IRN + Examen Civique) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mt-20 p-12 rounded-[3rem] bg-gradient-to-br from-brand-blue to-brand-purple flex flex-col md:flex-row items-center justify-between gap-12 text-white"
+          transition={{ duration: 0.6 }}
+          className="mt-8 rounded-[2.5rem] p-10 md:p-12 bg-gradient-to-br from-brand-blue to-brand-purple text-white flex flex-col md:flex-row items-start md:items-center gap-8"
         >
-          <StatItem 
-            icon={<LayoutPanelLeft size={32} />} 
-            title="40+ Leçons" 
-            subtitle="Contenu exclusif TEF IRN" 
-          />
-          <StatItem 
-            icon={<BrainCircuit size={32} />} 
-            title="2200+ Exercices" 
-            subtitle="QCM, trous & adaptés" 
-          />
-          <StatItem 
-            icon={<LineChart size={32} />} 
-            title="Progression IA" 
-            subtitle="Analyse de vos points faibles" 
-          />
-          <StatItem 
-            icon={<Zap size={32} />} 
-            title="Zéro Attente" 
-            subtitle="Correction instantanée" 
-          />
+          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-xl flex items-center justify-center shrink-0">
+            <ClipboardCheck size={32} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black mb-2">Examens blancs en conditions réelles</h3>
+            <p className="text-indigo-100 font-medium leading-relaxed max-w-3xl">
+              Simulateur chronométré pour le TEF IRN (CE, CO, EE, EO) comme pour l&apos;Examen Civique (40 questions, 45 minutes) — pour arriver le jour J sans surprise, avec un score estimé fiable.
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>
-  );
-}
-
-// === Animations premium par fonctionnalité === (inchangées)
-function FeatureDemo({ type }: { type: string }) {
-  if (type === "writing") {
-    return (
-      <div className="relative w-full h-full p-8 flex flex-col justify-center overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.7, 1] }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-          className="space-y-6"
-        >
-          <div className="text-emerald-400 font-medium flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Correction en cours...
-          </div>
-          
-          <div className="bg-white/10 p-4 rounded-2xl text-sm">
-            <p className="line-through text-white/50">"Je suis aller à Paris hier."</p>
-            <motion.p 
-              initial={{ color: "#fff" }}
-              animate={{ color: "#34d399" }}
-              className="mt-3"
-            >
-              "Je suis allé à Paris hier."
-            </motion.p>
-          </div>
-
-          <div className="flex justify-between text-xs">
-            <div>Note estimée : <span className="text-emerald-400 font-bold">94/100</span></div>
-            <div className="text-emerald-400">3 améliorations suggérées</div>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (type === "oral") {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-white/90 relative">
-        <motion.div
-          animate={{ 
-            scale: [1, 1.25, 1],
-            boxShadow: ["0 0 0 0 rgba(168, 85, 247, 0.4)", "0 0 0 25px rgba(168, 85, 247, 0)"]
-          }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-          className="w-24 h-24 rounded-full border-[6px] border-purple-500 flex items-center justify-center mb-8"
-        >
-          <Mic2 size={42} className="text-purple-400" />
-        </motion.div>
-        
-        <p className="text-lg font-medium text-center">Prononciation analysée en direct</p>
-        <div className="mt-3 flex gap-4 text-sm">
-          <div>Fluidité <span className="text-purple-400 font-bold">96%</span></div>
-          <div>Accent <span className="text-purple-400 font-bold">Excellent</span></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-8 flex flex-col justify-center h-full text-white/90 space-y-6">
-      <div className="text-center text-sm font-medium opacity-75">Niveau adapté à votre profil</div>
-      
-      <motion.div 
-        animate={{ scale: [1, 1.02, 1] }}
-        transition={{ duration: 1.8, repeat: Infinity }}
-        className="bg-white/10 p-5 rounded-2xl border border-amber-400/30"
-      >
-        <p className="mb-4">Complétez : « Hier, je ___ à la bibliothèque. »</p>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {["vais", "suis allé", "allais", "allé"].map((opt, idx) => (
-            <motion.div
-              key={idx}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              className={`py-3 px-4 rounded-xl cursor-pointer transition-all ${idx === 1 ? 'bg-emerald-500 text-white font-medium' : 'bg-white/5 hover:bg-white/10'}`}
-            >
-              {opt}
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function StatItem({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
-  return (
-    <div className="flex items-center gap-6 group">
-      <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center transition-transform group-hover:scale-110">
-        {icon}
-      </div>
-      <div>
-        <div className="text-3xl font-black tracking-tight">{title}</div>
-        <div className="text-white/70 text-sm">{subtitle}</div>
-      </div>
-    </div>
   );
 }

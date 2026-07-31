@@ -15,7 +15,7 @@ export function Vocabulary() {
   const [flipped, setFlipped] = useState<number | null>(null);
 
   return (
-    <section id="vocab" className="py-32 px-6 overflow-hidden bg-white dark:bg-brand-dark">
+    <section id="vocab" className="py-32 px-6 overflow-hidden bg-indigo-50 dark:bg-indigo-950">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
            <motion.div
@@ -26,14 +26,14 @@ export function Vocabulary() {
            >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
                 <Languages size={12} />
-                <span>Mémorisation Scientifique</span>
+                <span>Révision intelligente</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight text-slate-900 dark:text-white">
                 Mémorisez le vocabulaire essentiel, <br />
                 <span className="text-brand-gold">sans effort.</span>
               </h2>
               <p className="text-xl text-slate-500 dark:text-slate-400 mb-10 leading-relaxed font-medium">
-                Notre système de répétition espacée (SRS) calcule le moment exact où vous allez oublier un mot pour vous le faire réviser.
+                LlamaKusi calcule le moment exact où vous allez oublier un mot pour vous le faire réviser juste avant — vocabulaire du TEF IRN comme notions clés de l'Examen Civique.
               </p>
 
               <ul className="space-y-6 mb-12">
@@ -104,7 +104,7 @@ export function Vocabulary() {
 
                           <div className="flex items-center justify-between pt-8 border-t border-white/10">
                              <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase opacity-50 tracking-[0.3em] mb-1">Status SRS</span>
+                                <span className="text-[10px] font-black uppercase opacity-50 tracking-[0.3em] mb-1">Prochaine révision</span>
                                 <span className="text-brand-purple font-black text-xl">{item.srs}</span>
                              </div>
                              <div className="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple">
@@ -117,8 +117,8 @@ export function Vocabulary() {
                  ))}
 
                  {/* Stack of other cards effect */}
-                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-slate-200/50 dark:bg-slate-800/40 rounded-[3rem] -z-10 border border-slate-200 dark:border-white/5" />
-                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-slate-100/50 dark:bg-slate-800/20 rounded-[3rem] -z-20 border border-slate-200 dark:border-white/5" />
+                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-indigo-200/60 dark:bg-slate-800/40 rounded-[3rem] -z-10 border border-indigo-200 dark:border-white/5" />
+                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-indigo-200/30 dark:bg-slate-800/20 rounded-[3rem] -z-20 border border-indigo-200 dark:border-white/5" />
               </div>
            </div>
         </div>

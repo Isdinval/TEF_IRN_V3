@@ -1,130 +1,126 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Quote, FileText, Clock, Mic, Heart } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { FileText, Clock, Mic, Layers, Info } from "lucide-react";
+import { Card } from "@/components/ui/card";
+
+// Mêmes accents que la section Features, pour une cohérence visuelle sur toute la page
+const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string }> = {
+  blue: { bar: "from-blue-500 to-blue-400", iconBg: "bg-blue-500", needText: "text-blue-600 dark:text-blue-400" },
+  purple: { bar: "from-purple-500 to-purple-400", iconBg: "bg-purple-500", needText: "text-purple-600 dark:text-purple-400" },
+  amber: { bar: "from-amber-500 to-amber-400", iconBg: "bg-amber-500", needText: "text-amber-600 dark:text-amber-400" },
+  emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400" },
+};
 
 const personas = [
   {
     flag: "🇵🇪",
     name: "Maria",
-    role: "Aide-soignante à Lyon · Naturalisation B2",
+    role: "Ingénieure informatique à Lyon · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Maria_Ingenieur_informatique_Lyon.webp",
     text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
-    need: "Coach EE + EO formelle",
-    icon: <FileText size={20} />,
-    number: "1",
-    countryHint: "Pérou"
+    need: "Coach à l'écrit et à l'oral, dans un registre formel",
+    icon: <FileText size={16} />,
+    accent: "blue",
   },
   {
     flag: "🇲🇦",
     name: "Ahmed",
-    role: "Chef d'équipe BTP · Carte de résident B1",
+    role: "Chef d'équipe BTP à Nantes · Carte de résident B1",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Ahmed_Chef_Equipe_BTP_Nantes.webp",
     text: "J'ai pas le temps d'aller à des cours le soir. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme.",
-    need: "Disponible 21h–23h",
-    icon: <Clock size={20} />,
-    number: "2",
-    countryHint: "Maroc"
+    need: "Disponible le soir, entre 21h et 23h",
+    icon: <Clock size={16} />,
+    accent: "purple",
   },
   {
     flag: "🇸🇳",
     name: "Fatou",
-    role: "Infirmière à Bordeaux · Naturalisation B2",
+    role: "Assistante administrative en mairie à Bordeaux · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Fatou_Assistante_Administrative_Mairie_Bordeaux.webp",
     text: "J'ai besoin de quelqu'un qui me corrige vraiment, pas juste qui me dise ce qui est faux.",
-    need: "Correction EE détaillée",
-    icon: <Mic size={20} />,
-    number: "3",
-    countryHint: "Sénégal"
-  }
+    need: "Correction écrite détaillée, pas juste un score",
+    icon: <Mic size={16} />,
+    accent: "amber",
+  },
+  {
+    flag: "🇩🇿",
+    name: "Karim",
+    role: "Comptable à Toulouse · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Karim_comptable_Toulouse.webp",
+    text: "Je devais réussir l'Examen Civique et le TEF IRN la même année. Avoir les deux parcours au même endroit m'a fait gagner un temps fou.",
+    need: "Un seul coach pour l'Examen Civique et le TEF IRN",
+    icon: <Layers size={16} />,
+    accent: "emerald",
+  },
 ];
 
 export function Testimonials() {
   return (
-    <section className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
+    <section className="py-32 bg-white dark:bg-brand-dark overflow-hidden px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 dark:bg-brand-gold/10 border border-brand-blue/20 dark:border-brand-gold/20 text-brand-blue dark:text-brand-gold text-[10px] font-black uppercase tracking-wider mb-6">
+            <Info size={12} />
+            <span>Exemples de parcours illustratifs</span>
+          </div>
           <h2 className="text-4xl md:text-6xl font-black mb-6 text-slate-900 dark:text-white">
-            Ils ont réussi grâce à LlamaKusi
+            Vous vous <span className="text-brand-blue dark:text-brand-gold">reconnaissez</span> ?
           </h2>
           <p className="text-xl text-slate-500 dark:text-slate-400 max-w-xl">
-            Des profils réels, avec des contraintes réelles.
+            Des profils-types, avec des contraintes réelles de candidats à la naturalisation.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {personas.map((p, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl dark:bg-white/5 group relative overflow-hidden">
-                <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <div className="absolute top-8 right-8 text-8xl">{p.flag}</div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {personas.map((p, i) => {
+            const accent = ACCENT_STYLES[p.accent];
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Card className="h-full p-8 rounded-[2rem] border-none shadow-xl bg-slate-50 dark:bg-white/5 group relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
+                  {/* Barre d'accent colorée en haut, comme les cartes Features */}
+                  <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accent.bar}`} />
 
-                <Quote className="absolute top-8 right-8 text-slate-100 dark:text-white/5" size={80} fill="currentColor" />
-
-                <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-8">
-                    <span className="text-5xl transition-transform group-hover:scale-110 duration-300">{p.flag}</span>
-                    <div>
-                      <div className="font-black text-xl text-slate-900 dark:text-white">{p.name}</div>
-                      <div className="text-sm text-slate-500">{p.role}</div>
-                    </div>
+                  <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-6 shadow-lg transition-transform group-hover:scale-[1.02] duration-300">
+                    <Image
+                      src={p.image}
+                      alt={`Portrait aquarelle de ${p.name}, ${p.role}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 45vw, 280px"
+                    />
+                    <span className="absolute bottom-2 right-2 text-3xl leading-none drop-shadow-lg">{p.flag}</span>
                   </div>
 
-                  <p className="text-[17px] leading-relaxed italic text-slate-700 dark:text-slate-200 mb-10">
+                  <div className="mb-6">
+                    <div className="font-black text-lg text-slate-900 dark:text-white leading-tight">{p.name}</div>
+                    <div className="text-xs text-slate-500 leading-tight">{p.role}</div>
+                  </div>
+
+                  <p className="text-sm leading-relaxed italic text-slate-700 dark:text-slate-200 mb-8">
                     "{p.text}"
                   </p>
 
-                  <div className="pt-6 border-t border-slate-100 dark:border-white/10 flex items-center gap-3 text-sm font-bold text-brand-purple">
-                    Besoin n°{p.number} — {p.icon} {p.need}
+                  <div className="pt-5 border-t border-slate-100 dark:border-white/10 flex items-start gap-2.5">
+                    <span className={`shrink-0 w-7 h-7 rounded-lg ${accent.iconBg} text-white flex items-center justify-center mt-0.5`}>
+                      {p.icon}
+                    </span>
+                    <span className={`text-sm font-bold leading-snug ${accent.needText}`}>{p.need}</span>
                   </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Histoire du couple franco-péruvien + Image 3 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-24 max-w-4xl mx-auto"
-        >
-          <Image
-            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE3.webp" // ← Remplace par ton URL Supabase
-            alt="Olivier et Grecia préparant le dossier de naturalisation à Paris"
-            width={1100}
-            height={720}
-            className="w-full rounded-3xl shadow-xl mb-8"
-          />
-
-          <div className="p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10">
-            <div className="flex justify-center gap-8 mb-10">
-              <div className="text-6xl">🇫🇷</div>
-              <Heart size={48} className="text-rose-500 mt-3" fill="currentColor" />
-              <div className="text-6xl">🇵🇪</div>
-            </div>
-
-            <h3 className="text-3xl font-black text-center mb-8">Une histoire vraie</h3>
-            
-            <p className="text-lg text-center leading-relaxed text-slate-600 dark:text-slate-400">
-              LlamaKusi est né dans un couple franco-péruvien. 
-              <span className="font-semibold text-slate-900 dark:text-white"> Olivier</span>, Data Scientist & AI Engineer, a conçu toute l’architecture IA. 
-              <span className="font-semibold text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation tout en travaillant à temps plein.
-            </p>
-            
-            <p className="text-center mt-6 italic text-brand-purple">
-              Le béret français et l'écharpe péruvienne de LlamaKuzi symbolisent cette union et cette volonté de réussir.
-            </p>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

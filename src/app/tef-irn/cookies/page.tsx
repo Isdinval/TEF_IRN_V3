@@ -32,6 +32,8 @@ export default function CookiesPage() {
       title="Gestion des cookies"
       lastUpdated="21 juillet 2026"
       intro="LlamaKusi utilise un nombre volontairement limité de cookies : ce qu'il faut pour vous connecter en toute sécurité et comprendre, de façon agrégée, comment améliorer votre préparation au TEF IRN. Nous n'utilisons aucun cookie publicitaire tiers."
+      bannerImageUrl="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/COOKIES/LLAMAKUSI_COOKIES.webp"
+      bannerImageAlt="Illustration aquarelle humoristique de la mascotte LlamaKusi, en toque de pâtissier, présentant une petite fournée de cookies dans une pâtisserie artisanale, avec une bulle de dialogue façon bande dessinée"
     >
       <div>
         <h2>1. Qu'est-ce qu'un cookie ?</h2>

@@ -10,6 +10,8 @@ interface LegalPageShellProps {
   title: string;
   lastUpdated: string;
   intro?: string;
+  bannerImageUrl?: string;
+  bannerImageAlt?: string;
   children: React.ReactNode;
 }
 
@@ -19,6 +21,8 @@ export function LegalPageShell({
   title,
   lastUpdated,
   intro,
+  bannerImageUrl = BANNER_IMAGE_URL,
+  bannerImageAlt = "Illustration aquarelle de lamas dans une prairie devant les montagnes péruviennes, univers visuel LlamaKusi",
   children,
 }: LegalPageShellProps) {
   return (
@@ -49,8 +53,8 @@ export function LegalPageShell({
         <section className="max-w-4xl mx-auto px-6 -mt-4 mb-4">
           <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img
-              src={BANNER_IMAGE_URL}
-              alt="Illustration aquarelle de lamas dans une prairie devant les montagnes péruviennes, univers visuel LlamaKusi"
+              src={bannerImageUrl}
+              alt={bannerImageAlt}
               className="w-full h-auto object-cover aspect-[16/9] md:aspect-[2.5/1]"
               loading="lazy"
             />
