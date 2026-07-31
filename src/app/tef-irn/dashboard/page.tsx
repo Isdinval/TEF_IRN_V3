@@ -19,9 +19,7 @@ import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview
 import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCard";
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
-import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
-import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBanner";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
@@ -115,50 +113,68 @@ export default function DashboardPage() {
           level={profile.current_level || 'A1'}
         />
 
-        <SrsReviewBanner vocabReviewsDue={vocab_reviews_due} exerciseReviewsDue={exercise_reviews_due} />
-
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          <div className="space-y-12 lg:col-span-8">
-            <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections} />
-            {in_progress_parcours.length > 0 && (
-              <section className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
-                    <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
-                    Mes parcours
-                    <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
-                  </h2>
-                  <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
-                    Tout voir
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {in_progress_parcours.map((p: any) => (
-                    <ParcoursCard
-                      key={p.id}
-                      id={p.id}
-                      slug={p.slug || p.id}
-                      level={p.level}
-                      category={p.category}
-                      progress={p.progress}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-            <ActionPlanCard weakPoints={weak_points} recommendations={recommendations} onDismissed={() => refetch()} />
-            <QuickAccess lastCorrection={recent_corrections[0] || null} />
-          </div>
-
-          <aside className="space-y-8 lg:col-span-4">
-            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
-            {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
-            <CivicExamCard />
-          </aside>
+        <div className="mt-8">
+          <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections} />
         </div>
 
-        <section className="mt-16 space-y-8">
-          <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
+            <Badge className="bg-amber-500 text-white rounded-full">Aujourd'hui</Badge>
+            Aujourd'hui
+          </h2>
+
+          {in_progress_parcours.length > 0 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 flex items-center gap-2">
+                  <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
+                  Mes parcours
+                  <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
+                </h3>
+                <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
+                  Tout voir
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {in_progress_parcours.map((p: any) => (
+                  <ParcoursCard
+                    key={p.id}
+                    id={p.id}
+                    slug={p.slug || p.id}
+                    level={p.level}
+                    category={p.category}
+                    progress={p.progress}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <ActionPlanCard
+            weakPoints={weak_points}
+            recommendations={recommendations}
+            vocabReviewsDue={vocab_reviews_due}
+            exerciseReviewsDue={exercise_reviews_due}
+            onDismissed={() => refetch()}
+          />
+        </section>
+
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
+            <Badge className="bg-violet-600 text-white rounded-full">Progression</Badge>
+            Ma progression
+          </h2>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
+            <div className="space-y-6">
+              {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
+              <CivicExamCard />
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
             <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique, historique XP et corrections récentes." />

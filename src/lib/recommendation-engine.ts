@@ -238,7 +238,8 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
  * updateVocabularySRS() sur échec, voir src/lib/srs-engine.ts) ET
  * consecutive_correct = 0 (dernier essai raté, pas juste un ancien échec déjà
  * rattrapé depuis). Une seule recommandation 'vocab' pending à la fois :
- * le SRS est déjà pressant au quotidien (SrsReviewBanner), pas besoin d'en
+ * le SRS est déjà pressant au quotidien (tuile de révisions dans le Plan
+ * d'action), pas besoin d'en
  * empiler plusieurs.
  */
 const MAX_PENDING_VOCAB_RECOMMENDATIONS = 1;
