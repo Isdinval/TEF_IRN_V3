@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
+import { InfoTooltip } from "@/components/features/examen-civique/InfoTooltip";
 import {
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
@@ -270,8 +271,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             {filteredCount !== null && filteredCount > 0 && (
               <div className="space-y-1.5">
                 <div className="flex items-baseline justify-between">
-                  <p className="text-sm font-black text-zinc-900">
+                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900">
                     {localStats.mastered} / {filteredCount} questions maîtrisées
+                    <InfoTooltip text="Une question est « maîtrisée » après plusieurs révisions consécutives réussies (méthode de répétition espacée). Le total dépend de votre démarche et thématique actuelles." />
                   </p>
                   <p className="text-xs font-black text-emerald-600">
                     {Math.round((localStats.mastered / filteredCount) * 100)}%
@@ -288,18 +290,27 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             <div className="grid grid-cols-3 divide-x divide-zinc-100">
               <div className="text-center px-1">
                 <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                  Jour{civicStreak > 1 ? "s" : ""} de suite
+                  <InfoTooltip text="Nombre de jours consécutifs où vous avez pratiqué au moins une question (entraînement ou examen blanc)." />
+                </p>
               </div>
               <div className="text-center px-1">
                 <p className="text-lg font-black text-zinc-900">
                   {bestScore !== null ? bestScore : "—"}
                   {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
                 </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                  Meilleur score
+                  <InfoTooltip text={`Votre meilleur résultat parmi tous vos examens blancs passés, sur ${EXAM_QUESTION_COUNT} questions. Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`} />
+                </p>
               </div>
               <div className="text-center px-1">
                 <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">À réviser</p>
+                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                  À réviser
+                  <InfoTooltip text="Questions déjà vues dont la date de révision (répétition espacée) est arrivée aujourd'hui. Les revoir maintenant les ancre plus durablement en mémoire." />
+                </p>
               </div>
             </div>
           </div>
@@ -318,7 +329,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <BookOpen size={17} className="text-indigo-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
+              <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900">
+                Livret du citoyen 2026
+                <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. À lire avant de vous entraîner pour donner du sens aux questions." />
+                </span>
+              </p>
               <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
                 Le référentiel officiel du Ministère de l&apos;Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable.
               </p>
@@ -338,8 +354,16 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <ArrowRight size={14} className="text-indigo-200 shrink-0" />
               </div>
               <div>
-                <p className="text-sm font-black text-white leading-tight">
+                <p className="flex items-center gap-1.5 text-sm font-black text-white leading-tight">
                   {hasDue ? "Mémoriser" : "Apprendre"}
+                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <InfoTooltip
+                      className="text-indigo-200 hover:text-white"
+                      text={hasDue
+                        ? "Révise les questions déjà vues dont la date de rappel (répétition espacée) est arrivée — le meilleur moment pour les ancrer durablement."
+                        : "Découvre de nouvelles questions, une par une, avec correction immédiate et explication."}
+                    />
+                  </span>
                 </p>
                 <p className="text-[11px] text-indigo-200 font-medium mt-1 leading-snug">
                   {hasDue
@@ -361,7 +385,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
               </div>
               <div>
-                <p className="text-sm font-black text-zinc-900 leading-tight">Parcourir</p>
+                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                  Parcourir
+                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
+                  </span>
+                </p>
                 <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
                   Toutes les Q&amp;R avec explication et source.
                 </p>
@@ -380,7 +409,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
               </div>
               <div>
-                <p className="text-sm font-black text-zinc-900 leading-tight">Examen blanc</p>
+                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                  Examen blanc
+                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
+                  </span>
+                </p>
                 <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
                   {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
                 </p>
@@ -399,7 +433,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
               </div>
               <div>
-                <p className="text-sm font-black text-zinc-900 leading-tight">Centres d&apos;examen</p>
+                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                  Centres d&apos;examen
+                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
+                  </span>
+                </p>
                 <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
                   Centres agréés CCI, adresse et contact.
                 </p>
@@ -446,73 +485,80 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        {/* Séparateur — le pont TEF IRN n'est pas une étape de "Se préparer", c'est un aparté */}
+        {/* Séparateur — tout ce qui suit est secondaire (conversion, approfondissement),
+            regroupé dans un accordéon replié par défaut pour ne pas alourdir la page. */}
         <div className="pt-2 border-t border-zinc-200" />
 
-        {/* Pont LlamaKusi — visible dès le sommaire, pas seulement en fin de session */}
-        {showCTATef && (
-          <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
-            <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
-            <p className="text-xs text-indigo-200 font-medium leading-relaxed">
-              Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
-              LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 55 €/mois.
-            </p>
-            <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
-              <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
-                Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
-              </Button>
-            </Link>
-          </div>
-        )}
-
-        {/* Séparateur — referme l'aparté TEF IRN avant d'enchaîner sur les guides/FAQ */}
-        <div className="pt-2 border-t border-zinc-200" />
-
-        {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
-        {relevantGuides.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
+        <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6">
+          <AccordionItem value="plus-loin" className="border-none">
+            <AccordionTrigger className="hover:no-underline py-4 gap-4">
+              <span className="flex items-center gap-2 text-sm font-black text-zinc-900">
                 <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
-              </h2>
-              <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
-                Tous les guides →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {relevantGuides.map((g) => (
-                <Link
-                  key={g.slug}
-                  href={`/examen-civique/guides/${g.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
-                >
-                  <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
-                  {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
-                  {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6 pl-0 space-y-6" hiddenUntilFound>
+              {/* Pont LlamaKusi */}
+              {showCTATef && (
+                <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
+                  <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
+                  <p className="text-xs text-indigo-200 font-medium leading-relaxed">
+                    Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
+                    LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 55 €/mois.
+                  </p>
+                  <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
+                    <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
+                      Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
-        {/* FAQ */}
-        <div className="space-y-2">
-          <h2 className="text-base font-black text-zinc-900 px-1">Questions fréquentes</h2>
-          <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
-            {faq.map((item) => (
-              <AccordionItem key={item.q} value={item.q} className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 gap-4">
-                  <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
-                </AccordionTrigger>
-                <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
-                  <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+              {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
+              {relevantGuides.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-sm font-black text-zinc-900">Guides</h3>
+                    <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                      Tous les guides →
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {relevantGuides.map((g) => (
+                      <Link
+                        key={g.slug}
+                        href={`/examen-civique/guides/${g.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
+                      >
+                        <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
+                        {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
+                        {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* FAQ */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-black text-zinc-900 px-1">Questions fréquentes</h3>
+                <Accordion className="bg-zinc-50 rounded-[2rem] border border-zinc-100 divide-y divide-zinc-100 px-6">
+                  {faq.map((item) => (
+                    <AccordionItem key={item.q} value={item.q} className="border-none">
+                      <AccordionTrigger className="hover:no-underline py-4 gap-4">
+                        <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
+                        <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
