@@ -26,14 +26,14 @@ export function Vocabulary() {
            >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20 text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
                 <Languages size={12} />
-                <span>Mémorisation Scientifique</span>
+                <span>Révision intelligente</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight text-slate-900 dark:text-white">
                 Mémorisez le vocabulaire essentiel, <br />
                 <span className="text-brand-gold">sans effort.</span>
               </h2>
               <p className="text-xl text-slate-500 dark:text-slate-400 mb-10 leading-relaxed font-medium">
-                Notre système de répétition espacée (SRS) calcule le moment exact où vous allez oublier un mot pour vous le faire réviser.
+                LlamaKusi calcule le moment exact où vous allez oublier un mot pour vous le faire réviser juste avant — vocabulaire du TEF IRN comme notions clés de l'Examen Civique.
               </p>
 
               <ul className="space-y-6 mb-12">
@@ -104,7 +104,7 @@ export function Vocabulary() {
 
                           <div className="flex items-center justify-between pt-8 border-t border-white/10">
                              <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase opacity-50 tracking-[0.3em] mb-1">Status SRS</span>
+                                <span className="text-[10px] font-black uppercase opacity-50 tracking-[0.3em] mb-1">Prochaine révision</span>
                                 <span className="text-brand-purple font-black text-xl">{item.srs}</span>
                              </div>
                              <div className="w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple">

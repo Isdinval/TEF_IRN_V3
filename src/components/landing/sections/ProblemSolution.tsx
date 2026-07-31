@@ -25,8 +25,8 @@ export function ProblemSolution() {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl font-black mb-8 leading-tight text-slate-900 dark:text-white"
           >
-            L&apos;examen TEF IRN, <br />
-            <span className="text-brand-blue dark:text-brand-gold">ce n&apos;est pas que du QCM.</span>
+            Le parcours de naturalisation, <br />
+            <span className="text-brand-blue dark:text-brand-gold">ce n&apos;est pas qu&apos;un QCM.</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -35,8 +35,8 @@ export function ProblemSolution() {
             transition={{ delay: 0.2 }}
             className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium"
           >
-            Les méthodes traditionnelles oublient l&apos;essentiel : l&apos;expression.
-            Sans entraînement à l&apos;oral et à l&apos;écrit, vous risquez de rater 50% de votre note.
+            L&apos;Examen Civique et le TEF IRN sont deux épreuves distinctes, préparées séparément par la plupart des candidats.
+            Sans entraînement guidé à l&apos;oral et à l&apos;écrit, vous risquez de rater 50% de la note du TEF IRN.
           </motion.p>
         </div>
 
@@ -51,13 +51,13 @@ export function ProblemSolution() {
              >
                 <div className="space-y-4">
                    <h3 className="text-3xl font-black text-slate-400">Méthodes Classiques</h3>
-                   <p className="text-slate-400 font-medium italic">&quot;Des PDFs froids et des QCM répétitifs.&quot;</p>
+                   <p className="text-slate-400 font-medium italic">&quot;Deux démarches séparées, sans lien entre elles.&quot;</p>
                 </div>
                 <div className="space-y-6">
                    {[
-                     { icon: <XCircle className="text-red-400" />, text: "Aucune correction d'expression" },
-                     { icon: <XCircle className="text-red-400" />, text: "Pas de pratique orale réelle" },
-                     { icon: <XCircle className="text-red-400" />, text: "Contenu statique et ennuyeux" }
+                     { icon: <XCircle className="text-red-400" />, text: "Examen Civique et TEF IRN préparés à part" },
+                     { icon: <XCircle className="text-red-400" />, text: "Aucune correction d'expression écrite/orale" },
+                     { icon: <XCircle className="text-red-400" />, text: "Pas de pratique orale réelle" }
                    ].map((item, i) => (
                      <div key={i} className="flex items-center gap-4 text-slate-400">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center">
@@ -78,13 +78,13 @@ export function ProblemSolution() {
              >
                 <div className="space-y-4">
                    <h3 className="text-3xl font-black">L&apos;Expérience LlamaKusi</h3>
-                   <p className="text-brand-blue-100 font-medium italic text-indigo-100">&quot;L&apos;IA vous corrige en temps réel, comme un prof.&quot;</p>
+                   <p className="text-brand-blue-100 font-medium italic text-indigo-100">&quot;Un seul parcours guidé, du QCM civique jusqu&apos;à l&apos;oral du TEF.&quot;</p>
                 </div>
                 <div className="space-y-6">
                    {[
-                     { icon: <MessageSquare />, text: "Correction IA instantanée" },
-                     { icon: <Headphones />, text: "Entraînement oral 24/7" },
-                     { icon: <CheckCircle2 className="text-brand-gold" />, text: "Parcours 100% personnalisé" }
+                     { icon: <MessageSquare />, text: "Correction IA instantanée à l'écrit et à l'oral" },
+                     { icon: <Headphones />, text: "Entraînement disponible 24/7" },
+                     { icon: <CheckCircle2 className="text-brand-gold" />, text: "Un seul tableau de bord pour les deux épreuves" }
                    ].map((item, i) => (
                      <div key={i} className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">

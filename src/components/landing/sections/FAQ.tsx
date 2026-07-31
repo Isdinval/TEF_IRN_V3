@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const faqs = [
   {
     question: "Pourquoi 55€/mois alors que d'autres apps sont moins chères ?",
-    answer: "Parce qu'aucune autre app ne propose de coach IA générative sur l'Expression Écrite et l'Expression Orale — les deux épreuves les plus discriminantes du TEF IRN. Une formation traditionnelle coûte 300 à 800 €+ pour une préparation complète : LlamaKusi offre un entraînement illimité 24/7 pour 5 à 14 fois moins cher."
+    answer: "Parce qu'aucune autre app ne propose de coach IA sur l'Expression Écrite et l'Expression Orale — les deux épreuves les plus discriminantes du TEF IRN. Une formation traditionnelle coûte 300 à 800 €+ pour une préparation complète : LlamaKusi offre un entraînement illimité 24/7 pour 5 à 14 fois moins cher."
   },
   {
     question: "Je travaille en journée, est-ce que ça marche pour moi ?",
@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     question: "L'IA est-elle vraiment fiable pour corriger le TEF ?",
-    answer: "Le Coach Écrit utilise GPT-4o avec des prompts spécialisés sur les critères CECRL et les grilles d'évaluation du TEF IRN : grammaire, vocabulaire, structure et cohérence. Le Coach Oral utilise l'API Realtime d'OpenAI pour évaluer prononciation et fluidité en conversation réelle."
+    answer: "Le coach est calibré sur les critères officiels CECRL et les grilles d'évaluation du TEF IRN : grammaire, vocabulaire, structure et cohérence à l'écrit ; prononciation et fluidité à l'oral, évaluées en conversation réelle."
   },
   {
     question: "Le TEF IRN est-il éligible au CPF avec LlamaKusi ?",
@@ -29,6 +29,18 @@ const faqs = [
   {
     question: "Puis-je annuler à tout moment ?",
     answer: "Oui. L'essai de 7 jours est gratuit, et l'abonnement est sans engagement : vous pouvez annuler en un clic depuis vos paramètres et gardez l'accès jusqu'à la fin de la période en cours."
+  },
+  {
+    question: "L'entraînement à l'Examen Civique est-il vraiment gratuit ?",
+    answer: "Oui, entièrement et sans carte bancaire. L'entraînement, la révision par fiches et les examens blancs sur l'Examen Civique sont inclus dans tous les plans, y compris le plan Gratuit."
+  },
+  {
+    question: "Combien de questions comporte l'Examen Civique, et quel est le seuil de réussite ?",
+    answer: "L'examen comporte 40 questions à choix multiple sur l'histoire, les valeurs et les institutions françaises. Le seuil de réussite est de 32 bonnes réponses sur 40, en 45 minutes."
+  },
+  {
+    question: "Dois-je préparer l'Examen Civique et le TEF IRN en même temps ?",
+    answer: "Ce n'est pas obligatoire, mais c'est ce que nous recommandons : commencez par l'Examen Civique (gratuit, plus rapide à préparer), puis enchaînez avec le coach TEF IRN pour l'écrit et l'oral. Les deux parcours restent accessibles indépendamment depuis votre tableau de bord."
   }
 ];
 

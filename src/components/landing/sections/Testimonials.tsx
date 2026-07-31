@@ -2,9 +2,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Quote, FileText, Clock, Mic, Heart } from "lucide-react";
+import { Quote, FileText, Clock, Mic, Heart, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
 
 const personas = [
   {
@@ -44,11 +43,15 @@ export function Testimonials() {
     <section className="py-32 bg-slate-50 dark:bg-slate-900/30 overflow-hidden px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider mb-6">
+            <Info size={12} />
+            <span>Exemples de parcours illustratifs — pas des avis clients vérifiés</span>
+          </div>
           <h2 className="text-4xl md:text-6xl font-black mb-6 text-slate-900 dark:text-white">
-            Ils ont réussi grâce à LlamaKusi
+            Vous vous reconnaissez ?
           </h2>
           <p className="text-xl text-slate-500 dark:text-slate-400 max-w-xl">
-            Des profils réels, avec des contraintes réelles.
+            Des profils-types, avec des contraintes réelles de candidats à la naturalisation.
           </p>
         </div>
 
@@ -90,21 +93,13 @@ export function Testimonials() {
           ))}
         </div>
 
-        {/* Histoire du couple franco-péruvien + Image 3 */}
+        {/* Histoire du couple franco-péruvien (texte uniquement, sans photo) */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mt-24 max-w-4xl mx-auto"
         >
-          <Image
-            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE3.webp" // ← Remplace par ton URL Supabase
-            alt="Olivier et Grecia préparant le dossier de naturalisation à Paris"
-            width={1100}
-            height={720}
-            className="w-full rounded-3xl shadow-xl mb-8"
-          />
-
           <div className="p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10">
             <div className="flex justify-center gap-8 mb-10">
               <div className="text-6xl">🇫🇷</div>

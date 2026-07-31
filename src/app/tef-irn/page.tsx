@@ -8,21 +8,20 @@ import { Vocabulary } from "@/components/landing/sections/Vocabulary";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
 import { Pricing } from "@/components/landing/sections/Pricing";
 import { FAQ } from "@/components/landing/sections/FAQ";
-import { Merchandising } from "@/components/landing/sections/Merchandising";
 import { FinalCTA } from "@/components/landing/sections/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "LlamaKusi - Coach IA pour réussir le TEF IRN",
+  title: "LlamaKusi - Coach IA pour l'Examen Civique et le TEF IRN",
   description:
-    "Préparez le TEF IRN avec un coach IA personnalisé : exercices adaptatifs, guides gratuits, simulateurs d'examen et suivi de progression pour la naturalisation ou la carte de résident.",
+    "Préparez votre naturalisation ou votre carte de résident avec LlamaKusi : entraînement gratuit à l'Examen Civique et coach IA pour les 4 épreuves du TEF IRN (écrit, oral, compréhension).",
   alternates: {
     canonical: "/tef-irn",
   },
   openGraph: {
-    title: "LlamaKusi - Coach IA pour réussir le TEF IRN",
+    title: "LlamaKusi - Coach IA pour l'Examen Civique et le TEF IRN",
     description:
-      "Votre coach IA personnel pour réussir le TEF IRN : exercices, guides et suivi de progression.",
+      "Votre coach IA personnel pour tout le parcours de naturalisation : Examen Civique (gratuit) et TEF IRN.",
     url: `${siteUrl}/tef-irn`,
     type: "website",
   },
@@ -40,6 +39,7 @@ export default function LandingPage() {
         <Testimonials />
         <Pricing />
         <FAQ />
+        {/* Merchandising retirée : produits dérivés + waitlist supprimés */}
         <FinalCTA />
       </main>
       <Footer />

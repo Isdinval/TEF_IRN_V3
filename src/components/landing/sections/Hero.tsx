@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, CheckCircle2, Globe, Users, Euro, Star } from "lucide-react";
+import { ChevronRight, Play, CheckCircle2, Globe, Users, Euro, Sparkles, PenTool, Mic2, BookOpen, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoModal } from "../VideoModal";
-import Image from "next/image";
 
 export function Hero() {
   const [videoOpen, setVideoOpen] = useState(false);
 
-  const typingWords = ["votre succès", "votre avenir", "votre naturalisation", "votre résidence"];
+  const typingWords = ["votre naturalisation", "votre carte de résident", "l'Examen Civique", "le TEF IRN"];
   const [wordIndex, setWordIndex] = useState(0);
   const [currentText, setCurrentText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,7 +49,7 @@ export function Hero() {
           >
             <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
               <Globe size={12} className="text-brand-blue" />
-              🇫🇷 VISA • NATURALISATION • RÉSIDENCE
+              🇫🇷 EXAMEN CIVIQUE • TEF IRN • NATURALISATION
             </span>
           </motion.div>
 
@@ -60,11 +59,12 @@ export function Hero() {
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight text-slate-900 dark:text-white mb-8 leading-[0.95]"
           >
-            Réussissez le TEF IRN <br />
-            <span className="text-brand-blue dark:text-brand-gold">avec l'IA</span> qui garantit <br />
-            <span className="relative inline-block min-w-[300px]">
-              {currentText}
-              <span className="absolute right-[-4px] top-0 bottom-0 w-1 bg-brand-blue dark:bg-brand-gold animate-pulse" />
+            Un coach IA pour réussir <br />
+            <span className="text-brand-blue dark:text-brand-gold">
+              <span className="relative inline-block min-w-[280px]">
+                {currentText}
+                <span className="absolute right-[-4px] top-0 bottom-0 w-1 bg-brand-blue dark:bg-brand-gold animate-pulse" />
+              </span>
             </span>
           </motion.h1>
 
@@ -74,8 +74,8 @@ export function Hero() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mb-12 leading-relaxed font-medium"
           >
-            La seule plateforme qui corrige votre expression écrite et orale en temps réel.
-            <span className="text-slate-900 dark:text-white font-bold"> Ne laissez plus 50% de l'examen au hasard.</span>
+            Le parcours de naturalisation a deux étapes : l'Examen Civique et le TEF IRN.
+            <span className="text-slate-900 dark:text-white font-bold"> LlamaKusi vous accompagne sur les deux, avec un coach IA qui corrige votre écrit et votre oral en temps réel.</span>
           </motion.p>
 
           <motion.div
@@ -116,29 +116,60 @@ export function Hero() {
               <Euro size={16} className="text-brand-blue" />
               <span>55€/mois vs 300–800€ en formation traditionnelle</span>
             </div>
+            <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-brand-blue" />
+              <span>Le seul coach IA sur les 4 épreuves + l'Examen Civique</span>
+            </div>
           </motion.div>
         </div>
 
-        {/* === HERO IMAGE === */}
+        {/* === MOCKUP PRODUIT (fidèle à /tef-irn/writing — panneau Feedback IA) === */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="relative w-full aspect-[16/6.5] max-h-[560px] overflow-hidden rounded-3xl shadow-2xl"
+          className="relative w-full max-w-5xl mx-auto rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-[#111827]"
         >
-          <Image
-            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE1.webp" 
-            alt="Olivier et Grecia, fondateurs de LlamaKusi, marchant sur les quais de Seine à Paris avec la Tour Eiffel"
-            fill
-            className="object-cover"
-            priority
-            sizes="(max-width: 768px) 100vw, 1200px"
-          />
+          <div className="flex items-center justify-between px-8 py-5 bg-zinc-900/60 border-b border-white/5">
+            <div className="flex items-center gap-2 text-white font-black uppercase tracking-tighter text-sm">
+              <Sparkles size={18} className="text-indigo-400" /> Feedback IA — Expression Écrite
+            </div>
+            <div className="hidden sm:flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/40">
+              <span className="flex items-center gap-1"><PenTool size={12} /> Écrit</span>
+              <span className="flex items-center gap-1"><Mic2 size={12} /> Oral</span>
+              <span className="flex items-center gap-1"><Headphones size={12} /> Compréhension</span>
+              <span className="flex items-center gap-1"><BookOpen size={12} /> Civique</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
+            <div className="md:col-span-3 p-8 text-white/70 text-sm leading-relaxed border-b md:border-b-0 md:border-r border-white/5">
+              <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-4">Votre texte</p>
+              <p>
+                Je pense que le président de la République <span className="underline decoration-red-400 decoration-2 underline-offset-4">a prit</span> une bonne décision. Cette réforme <span className="underline decoration-red-400 decoration-2 underline-offset-4">vont</span> beaucoup aider les citoyens dans leur vie quotidienne.
+              </p>
+            </div>
+            <div className="md:col-span-2 p-8 space-y-6">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Score Global</p>
+                <p className="text-4xl font-black text-white">86<span className="text-lg opacity-40">/100</span></p>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-2 text-white/70">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>« a prit » → <span className="text-emerald-400 font-bold">« a pris »</span> (participe passé)</span>
+                </div>
+                <div className="flex items-start gap-2 text-white/70">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>« vont » → <span className="text-emerald-400 font-bold">« va »</span> (accord sujet singulier)</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Légende explicative */}
         <p className="mt-6 text-center text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-3xl mx-auto">
-          Olivier et Grecia, fondateurs de LlamaKusi. Ils ont créé cette plateforme après avoir vécu eux-mêmes les difficultés du parcours de naturalisation. Leur histoire est au cœur de notre mission.
+          Aperçu du coach d'Expression Écrite. Le même principe de correction guidée s'applique à l'oral, à la compréhension et aux fiches de l'Examen Civique.
         </p>
       </div>
 

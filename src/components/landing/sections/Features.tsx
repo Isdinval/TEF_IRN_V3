@@ -2,82 +2,78 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { PenTool, Mic2, BrainCircuit, Sparkles, LayoutPanelLeft, LineChart, Zap } from "lucide-react";
+import { PenTool, Mic2, BrainCircuit, Headphones, GraduationCap, Sparkles, LayoutPanelLeft, LineChart, Zap, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
 
 const features = [
   {
-    title: "Correction Écrite IA",
-    desc: "Analyse ultra-précise de votre grammaire, syntaxe et vocabulaire. Recevez une note estimée et des conseils de reformulation en 3 secondes.",
+    title: "Coach Expression Écrite",
+    desc: "Votre texte est corrigé phrase par phrase, avec une note estimée et une explication claire de chaque erreur — pas juste un score brut.",
     icon: <PenTool size={32} />,
     color: "bg-blue-500",
     delay: 0.1,
-    type: "writing"
+    type: "writing",
+    track: "Coach TEF IRN"
   },
   {
-    title: "Coaching Oral 24/7",
-    desc: "Pratiquez l'expression orale sans stress. Notre IA analyse votre prononciation et votre fluidité sur tous les thèmes de l'examen.",
+    title: "Coach Oral",
+    desc: "Entraînez-vous à parler sans stress, face à un examinateur virtuel. Feedback immédiat sur la prononciation et la fluidité.",
     icon: <Mic2 size={32} />,
     color: "bg-purple-500",
     delay: 0.2,
-    type: "oral"
+    type: "oral",
+    track: "Coach TEF IRN"
   },
   {
-    title: "Exercices Adaptatifs",
-    desc: "QCM intelligents de niveau A1 à B2. La difficulté s'ajuste à votre progression réelle pour optimiser votre temps de travail.",
-    icon: <BrainCircuit size={32} />,
+    title: "Compréhension Écrite & Orale",
+    desc: "Des exercices qui s'ajustent à votre niveau réel (A1 à B2), pour progresser sur les deux épreuves de compréhension sans perdre de temps.",
+    icon: <Headphones size={32} />,
     color: "bg-amber-500",
     delay: 0.3,
-    type: "practice"
+    type: "practice",
+    track: "Coach TEF IRN"
+  },
+  {
+    title: "Entraînement Examen Civique",
+    desc: "QCM sur l'histoire, les valeurs et les institutions françaises, avec feedback immédiat et fiches de révision. Gratuit, sans carte bancaire.",
+    icon: <GraduationCap size={32} />,
+    color: "bg-emerald-500",
+    delay: 0.4,
+    type: "civic",
+    track: "Gratuit"
   }
 ];
 
 export function Features() {
   return (
-    <section id="features" className="py-32 px-6 bg-slate-900 overflow-hidden">
+    <section id="features" className="py-32 px-6 bg-white dark:bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-24">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 dark:bg-white/10 border border-brand-blue/20 dark:border-white/10 text-brand-blue dark:text-brand-gold text-xs font-black uppercase tracking-wider mb-6">
               <Sparkles size={12} />
-              <span>Propulsé par GPT-4o</span>
+              <span>Un parcours, deux étapes</span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-black leading-tight text-white">
-              La technologie au service <br />
-              <span className="text-slate-500">de votre réussite.</span>
+            <h2 className="text-4xl md:text-6xl font-black leading-tight text-slate-900 dark:text-white">
+              Un coach IA sur <br />
+              <span className="text-slate-400 dark:text-slate-500">les 4 épreuves du TEF IRN.</span>
             </h2>
           </div>
-          <p className="text-xl text-slate-400 max-w-md font-medium leading-relaxed">
-            Plus qu'une plateforme, LlamaKusi est votre coach personnel qui vous accompagne jusqu'au jour de l'examen.
+          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md font-medium leading-relaxed">
+            Aucun autre acteur ne couvre l'Expression Écrite, l'Expression Orale <em>et</em> la Compréhension avec un coach IA — en plus de l'Examen Civique, gratuit.
           </p>
         </div>
 
-        {/* Image Technologie - Image 2 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="my-12 md:my-16"
-        >
-          <Image
-            src="https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/IMAGE2.webp"
-            alt="Olivier et Grecia travaillant sur LlamaKusi à Paris avec vue sur Notre-Dame"
-            width={1200}
-            height={620}
-            className="w-full rounded-3xl shadow-xl"
-            sizes="(max-width: 1280px) 100vw, 1200px"
-          />
-        </motion.div>
-
-        {/* Légende explicative */}
-        <p className="text-center text-sm md:text-base text-slate-400 max-w-2xl mx-auto -mt-6 mb-20">
-          Olivier et Grecia développant LlamaKusi. Leur expérience personnelle a permis de créer un outil qui répond vraiment aux difficultés rencontrées par les candidats au TEF IRN.
-        </p>
+        {/* Bandeau du parcours */}
+        <div className="flex items-center justify-center gap-3 mb-16 text-sm font-black">
+          <span className="px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">1. Examen Civique — Gratuit</span>
+          <ChevronRight size={16} className="text-slate-300 dark:text-slate-600" />
+          <span className="px-4 py-2 rounded-full bg-brand-blue/10 text-brand-blue dark:text-brand-gold border border-brand-blue/20 dark:border-brand-gold/20">2. Coach TEF IRN — Premium</span>
+        </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {features.map((f, i) => (
             <motion.div
               key={i}
@@ -86,17 +82,22 @@ export function Features() {
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: f.delay }}
             >
-              <Card className="group relative h-full rounded-[2.5rem] border-none bg-white/5 p-10 overflow-hidden hover:translate-y-[-12px] transition-all duration-700">
-                <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl mb-10 transition-transform group-hover:scale-110 duration-500`}>
-                  {f.icon}
+              <Card className="group relative h-full rounded-[2.5rem] border-none bg-slate-50 dark:bg-white/5 p-10 overflow-hidden hover:translate-y-[-12px] transition-all duration-700">
+                <div className="flex items-center justify-between mb-10">
+                  <div className={`w-16 h-16 rounded-2xl ${f.color} flex items-center justify-center text-white shadow-xl transition-transform group-hover:scale-110 duration-500`}>
+                    {f.icon}
+                  </div>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${f.track === "Gratuit" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-brand-blue/10 text-brand-blue dark:text-brand-gold"}`}>
+                    {f.track}
+                  </span>
                 </div>
 
-                <h3 className="text-2xl font-black mb-6 text-white">{f.title}</h3>
-                <p className="text-slate-400 leading-relaxed font-medium mb-12">
+                <h3 className="text-2xl font-black mb-6 text-slate-900 dark:text-white">{f.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium mb-12">
                   {f.desc}
                 </p>
 
-                {/* Démo animée améliorée */}
+                {/* Démo animée */}
                 <div className="relative mt-auto pt-8">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-950">
                     <FeatureDemo type={f.type} />
@@ -168,8 +169,8 @@ function FeatureDemo({ type }: { type: string }) {
           </div>
 
           <div className="flex justify-between text-xs">
-            <div>Note estimée : <span className="text-emerald-400 font-bold">94/100</span></div>
-            <div className="text-emerald-400">3 améliorations suggérées</div>
+            <div>Score Global : <span className="text-emerald-400 font-bold">94/100</span></div>
+            <div className="text-emerald-400">3 corrections expliquées</div>
           </div>
         </motion.div>
       </div>
@@ -195,6 +196,30 @@ function FeatureDemo({ type }: { type: string }) {
           <div>Fluidité <span className="text-purple-400 font-bold">96%</span></div>
           <div>Accent <span className="text-purple-400 font-bold">Excellent</span></div>
         </div>
+      </div>
+    );
+  }
+
+  if (type === "civic") {
+    return (
+      <div className="p-8 flex flex-col justify-center h-full text-white/90 space-y-5">
+        <div className="text-center text-sm font-medium opacity-75">Question 12/40 — Institutions</div>
+        <div className="bg-white/10 p-5 rounded-2xl border border-emerald-400/30">
+          <p className="mb-4 text-sm">Qui est élu au suffrage universel direct en France ?</p>
+          <div className="space-y-2 text-sm">
+            {["Le Premier ministre", "Le Président de la République", "Le Préfet"].map((opt, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ scale: 1.02 }}
+                className={`py-2.5 px-4 rounded-xl flex items-center justify-between ${idx === 1 ? "bg-emerald-500 text-white font-medium" : "bg-white/5"}`}
+              >
+                {opt}
+                {idx === 1 && <span className="text-xs">✓ Bonne réponse</span>}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+        <div className="text-center text-xs text-emerald-400 font-bold">Seuil de réussite : 32/40</div>
       </div>
     );
   }
