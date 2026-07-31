@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Quote, FileText, Clock, Mic, Heart, Info } from "lucide-react";
+import { Quote, FileText, Clock, Mic, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const personas = [
@@ -93,33 +93,6 @@ export function Testimonials() {
           ))}
         </div>
 
-        {/* Histoire du couple franco-péruvien (texte uniquement, sans photo) */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-24 max-w-4xl mx-auto"
-        >
-          <div className="p-14 rounded-[3rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10">
-            <div className="flex justify-center gap-8 mb-10">
-              <div className="text-6xl">🇫🇷</div>
-              <Heart size={48} className="text-rose-500 mt-3" fill="currentColor" />
-              <div className="text-6xl">🇵🇪</div>
-            </div>
-
-            <h3 className="text-3xl font-black text-center mb-8">Une histoire vraie</h3>
-            
-            <p className="text-lg text-center leading-relaxed text-slate-600 dark:text-slate-400">
-              LlamaKusi est né dans un couple franco-péruvien. 
-              <span className="font-semibold text-slate-900 dark:text-white"> Olivier</span>, Data Scientist & AI Engineer, a conçu toute l’architecture IA. 
-              <span className="font-semibold text-slate-900 dark:text-white"> Grecia</span>, ingénieure civile péruvienne, prépare elle-même son dossier de naturalisation tout en travaillant à temps plein.
-            </p>
-            
-            <p className="text-center mt-6 italic text-brand-purple">
-              Le béret français et l'écharpe péruvienne de LlamaKuzi symbolisent cette union et cette volonté de réussir.
-            </p>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
