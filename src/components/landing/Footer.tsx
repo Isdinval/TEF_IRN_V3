@@ -75,7 +75,7 @@ export function Footer() {
           <div className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-[0.2em]">
             <span>Fait avec</span>
             <span className="text-red-500">❤️</span>
-            <span>à Paris pour votre nouvelle vie en France</span>
+            <span>à Marseille pour votre nouvelle vie en France</span>
           </div>
         </div>
       </div>
