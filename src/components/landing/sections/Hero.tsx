@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2 } from "lucide-react";
+import { ChevronRight, Play, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoModal } from "../VideoModal";
+
+// Hauteurs fixes pour les barres audio de l'écran d'appel (pas de Math.random() : évite un mismatch d'hydratation SSR/client)
+const AUDIO_BAR_HEIGHTS = [35, 60, 80, 45, 70, 30, 65, 90, 50, 75, 40, 55];
 
 export function Hero() {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -320,22 +323,41 @@ function OralMockup() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 mt-6">
-        {/* Transcription — claire, symétrique à la Zone de rédaction */}
-        <div className="lg:col-span-3 border-t lg:border-t-0 lg:border-r border-zinc-100 flex flex-col bg-[#FAFAFA]">
-          <div className="flex items-center justify-between gap-3 px-6 py-4 bg-white border-b border-zinc-100">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-                <Mic2 size={15} />
-              </div>
-              <span className="text-xs font-black uppercase tracking-tight text-zinc-900">Transcription</span>
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 rounded-full px-2.5 py-1 shrink-0">Analyse terminée</span>
+        {/* Écran d'appel en direct — fidèle à oral/page.tsx (status "active", barres audio + cercle micro) */}
+        <div className="lg:col-span-3 border-t lg:border-t-0 lg:border-r border-white/5 relative flex flex-col items-center justify-center overflow-hidden bg-slate-950 min-h-[360px]">
+          {/* Barres audio animées en fond (12 barres, hauteurs fixes pour éviter tout souci d'hydratation) */}
+          <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-25">
+            {AUDIO_BAR_HEIGHTS.map((h, index) => (
+              <div
+                key={index}
+                className="w-2 animate-bounce rounded-full bg-indigo-500"
+                style={{
+                  height: `${h}%`,
+                  animationDelay: `${index * 0.1}s`,
+                  animationDuration: `${0.6 + (index % 4) * 0.15}s`,
+                }}
+              />
+            ))}
           </div>
-          <div className="flex-1 flex flex-col justify-center gap-4 p-6 md:p-8 text-[14px] leading-relaxed">
-            <p><span className="font-black text-zinc-500">Coach : </span><span className="text-zinc-600">Bonjour, mairie de Lyon, je vous écoute.</span></p>
-            <p><span className="font-black text-indigo-600">Vous : </span><span className="text-zinc-800">Bonjour madame, je voudrais connaître les horaires d&apos;ouverture du service des cartes de séjour, s&apos;il vous plaît.</span></p>
-            <p><span className="font-black text-zinc-500">Coach : </span><span className="text-zinc-600">Le service est ouvert du lundi au vendredi, de 9h à 16h30.</span></p>
-            <p><span className="font-black text-indigo-600">Vous : </span><span className="text-zinc-800">Très bien, merci beaucoup. Est-ce qu&apos;il faut prendre rendez-vous à l&apos;avance ?</span></p>
+
+          <div className="z-10 flex flex-col items-center gap-5 p-8">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.6)]">
+              <Mic2 className="text-white" size={42} />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-black tracking-tight text-white">Le Coach vous écoute...</h3>
+              <p className="mt-2 max-w-xs text-xs font-medium leading-relaxed text-slate-400">
+                Vous parlez avec : Agent municipal (mairie)
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3 pt-1">
+              <span className="h-11 flex items-center rounded-2xl border border-white/20 bg-white/10 px-6 font-black text-white text-xs">
+                Quitter
+              </span>
+              <span className="h-11 flex items-center gap-2 rounded-2xl bg-rose-500 px-6 font-black text-white text-xs">
+                <MicOff size={14} /> Couper le micro
+              </span>
+            </div>
           </div>
         </div>
 
