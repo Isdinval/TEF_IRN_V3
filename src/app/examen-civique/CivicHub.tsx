@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -23,9 +23,6 @@ import {
   migrateLocalCivicDataToSupabase,
 } from "@/lib/civic-local-store";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
-import { CivicSectionNav, type CivicSection } from "@/components/features/examen-civique/CivicSectionNav";
-import { CivicActionCard } from "@/components/features/examen-civique/CivicActionCard";
-import { CivicStatsOverview } from "@/components/features/examen-civique/CivicStatsOverview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -75,16 +72,6 @@ function formatTime(totalSeconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-// Une couleur d'accent distincte par action, cohérente avec les couleurs déjà
-// utilisées ailleurs pour ces mêmes items (sidebar, cartes existantes).
-const CIVIC_SECTIONS: CivicSection[] = [
-  { id: "livret", label: "Livret", icon: BookOpen, activeClass: "bg-indigo-600 text-white" },
-  { id: "entrainement", label: "Entraînement", icon: Brain, activeClass: "bg-violet-600 text-white" },
-  { id: "parcourir", label: "Parcourir", icon: BookOpen, activeClass: "bg-blue-600 text-white" },
-  { id: "examen-blanc", label: "Examen blanc", icon: Clock, activeClass: "bg-zinc-900 text-white" },
-  { id: "centres", label: "Centres", icon: MapPin, activeClass: "bg-amber-500 text-white" },
-];
-
 function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const supabase = useMemo(() => createClient(), []);
   const { user: currentUser } = useAuth();
@@ -100,13 +87,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const [activeSection, setActiveSection] = useState<string>("livret");
-  const sectionTopRef = useRef<HTMLDivElement>(null);
-
-  const handleSectionChange = (id: string) => {
-    setActiveSection(id);
-    sectionTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const hasDue = (dueCount ?? 0) > 0;
   const hasSeenQuestions = localStats.seen > 0;
@@ -218,10 +198,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
 
-  const masteredPercent = filteredCount !== null && filteredCount > 0
-    ? Math.round((localStats.mastered / filteredCount) * 100)
-    : null;
-
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-2xl mx-auto px-5 py-8 lg:px-6 space-y-6">
@@ -230,10 +206,28 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           title={<>Préparez votre <span className="text-indigo-600">examen civique</span></>}
           badge="100 % gratuit"
           description={`Obligatoire depuis janvier 2026 (carte de séjour pluriannuelle, carte de résident, naturalisation).${filteredCount !== null ? ` ${filteredCount} questions officielles disponibles.` : ""}`}
-        />
+        >
+          {/* Réassurance */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🆓</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🏛️</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
+              <p className="text-lg">🧠</p>
+              <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
+              <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
+            </div>
+          </div>
+        </ExerciseLayout>
 
-        {/* Bannière examen interrompu — au-dessus des onglets : reste visible quel que
-            soit l'onglet actif, un examen chronométré en cours est urgent. */}
+        {/* Bannière examen interrompu */}
         {resumableExam && (
           <div className="p-5 rounded-[2rem] bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
             <div>
@@ -253,109 +247,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         )}
 
-        <div className="space-y-2">
-          <h2 className="text-base font-black text-zinc-900 px-1">Votre progression</h2>
-          <CivicStatsOverview
-            streak={civicStreak}
-            bestScore={bestScore}
-            questionCount={EXAM_QUESTION_COUNT}
-            dueCount={dueCount ?? 0}
-            masteredPercent={masteredPercent}
-          />
-        </div>
-
-        <CivicSectionNav sections={CIVIC_SECTIONS} activeSection={activeSection} onChange={handleSectionChange} />
-
-        <div ref={sectionTopRef} className="scroll-mt-24" />
-
-        {activeSection === "livret" && (
-          <CivicActionCard
-            href="/examen-civique/livret"
-            icon={BookOpen}
-            iconBg="bg-indigo-50"
-            iconText="text-indigo-600"
-            title="Livret du citoyen 2026"
-            description="Le référentiel officiel du Ministère de l'Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable."
-            ctaLabel="Lire le livret"
-          />
-        )}
-
-        {activeSection === "entrainement" && (
-          <CivicActionCard
-            href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-            icon={Brain}
-            iconBg="bg-violet-50"
-            iconText="text-violet-600"
-            title={hasDue ? "Mémoriser" : "Apprendre"}
-            description={hasDue
-              ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} programmée${dueCount! > 1 ? "s" : ""} aujourd'hui, selon la méthode de répétition espacée.`
-              : "Nouvelles questions, réponse testée immédiatement avec explication et source officielle."}
-            ctaLabel={hasDue ? "Réviser maintenant" : "Commencer"}
-          />
-        )}
-
-        {activeSection === "parcourir" && (
-          <CivicActionCard
-            href={buildHref("/examen-civique/parcourir")}
-            icon={BookOpen}
-            iconBg="bg-blue-50"
-            iconText="text-blue-600"
-            title="Parcourir les questions"
-            description="Toutes les questions-réponses du référentiel officiel, avec explication et source, classées par thématique."
-            ctaLabel="Parcourir"
-          />
-        )}
-
-        {activeSection === "examen-blanc" && (
-          <CivicActionCard
-            href={buildHref("/examen-civique/examen-blanc")}
-            icon={Clock}
-            iconBg="bg-zinc-100"
-            iconText="text-zinc-700"
-            title="Examen blanc"
-            description={`${EXAM_QUESTION_COUNT} questions, 45 minutes, conditions réelles. Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`}
-            ctaLabel="Passer un examen blanc"
-            extra={bestScore !== null && (
-              <p className="text-xs font-bold text-zinc-400">Votre meilleur score : {bestScore}/{EXAM_QUESTION_COUNT}</p>
-            )}
-          />
-        )}
-
-        {activeSection === "centres" && (
-          <CivicActionCard
-            href="/examen-civique/centres"
-            icon={MapPin}
-            iconBg="bg-amber-50"
-            iconText="text-amber-600"
-            title="Trouver un centre d'examen"
-            description="Centres agréés CCI près de chez vous, avec adresse et contact direct."
-            ctaLabel="Voir les centres"
-          />
-        )}
-
-        {/* Séparateur — tout ce qui suit n'est pas une "action" à sélectionner via les
-            onglets, juste du contexte et du contenu complémentaire. */}
-        <div className="pt-2 border-t border-zinc-200" />
-
-        {/* Réassurance */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🆓</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🏛️</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-            <p className="text-lg">🧠</p>
-            <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
-            <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
-          </div>
-        </div>
-
         {/* Démarche — se choisit désormais sur l'écran de démarrage d'Entraînement / Examen blanc
             (évite de la demander deux fois). Ici, juste un rappel + l'accès aux cas particuliers. */}
         <div className="flex items-center justify-between px-1">
@@ -372,6 +263,192 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </div>
 
+        {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
+        <div className="space-y-2">
+          <h2 className="text-base font-black text-zinc-900 px-1">Votre progression</h2>
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-5">
+            {filteredCount !== null && filteredCount > 0 && (
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm font-black text-zinc-900">
+                    {localStats.mastered} / {filteredCount} questions maîtrisées
+                  </p>
+                  <p className="text-xs font-black text-emerald-600">
+                    {Math.round((localStats.mastered / filteredCount) * 100)}%
+                  </p>
+                </div>
+                <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, Math.round((localStats.mastered / filteredCount) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-3 divide-x divide-zinc-100">
+              <div className="text-center px-1">
+                <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+              </div>
+              <div className="text-center px-1">
+                <p className="text-lg font-black text-zinc-900">
+                  {bestScore !== null ? bestScore : "—"}
+                  {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+                </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">Meilleur score</p>
+              </div>
+              <div className="text-center px-1">
+                <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">À réviser</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions — une seule carte "recommandée", pas trois de front */}
+        <div className="space-y-2">
+          <h2 className="text-base font-black text-zinc-900 px-1">Se préparer</h2>
+
+          {/* Livret du citoyen — l'étape 0 : le référentiel à lire avant de s'entraîner dessus */}
+          <Link
+            href="/examen-civique/livret"
+            className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+              <BookOpen size={17} className="text-indigo-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-black text-zinc-900">Livret du citoyen 2026</p>
+              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
+                Le référentiel officiel du Ministère de l&apos;Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable.
+              </p>
+            </div>
+            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
+          </Link>
+
+          <div className="grid grid-cols-2 gap-2">
+            {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
+            <Link
+              href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
+              className="bg-indigo-600 rounded-[2rem] p-4 flex flex-col gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
+              <div className="flex items-center justify-between">
+                <Brain size={19} className="text-white shrink-0" />
+                <ArrowRight size={14} className="text-indigo-200 shrink-0" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-white leading-tight">
+                  {hasDue ? "Mémoriser" : "Apprendre"}
+                </p>
+                <p className="text-[11px] text-indigo-200 font-medium mt-1 leading-snug">
+                  {hasDue
+                    ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`
+                    : "Nouvelles questions, réponse testée immédiatement."}
+                </p>
+              </div>
+            </Link>
+
+            {/* Parcourir — neutre, utilitaire */}
+            <Link
+              href={buildHref("/examen-civique/parcourir")}
+              className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                  <BookOpen size={15} className="text-zinc-500" />
+                </div>
+                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-zinc-900 leading-tight">Parcourir</p>
+                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                  Toutes les Q&amp;R avec explication et source.
+                </p>
+              </div>
+            </Link>
+
+            {/* Examen blanc — icône sombre pour signaler le format formel/chronométré */}
+            <Link
+              href={buildHref("/examen-civique/examen-blanc")}
+              className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
+                  <Clock size={15} className="text-white" />
+                </div>
+                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-zinc-900 leading-tight">Examen blanc</p>
+                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                  {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
+                </p>
+              </div>
+            </Link>
+
+            {/* Centres d'examen — utilitaire, pas de contexte démarche/thème à propager */}
+            <Link
+              href="/examen-civique/centres"
+              className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                  <MapPin size={15} className="text-zinc-500" />
+                </div>
+                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-zinc-900 leading-tight">Centres d&apos;examen</p>
+                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
+                  Centres agréés CCI, adresse et contact.
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Historique récent */}
+        {attempts.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-base font-black text-zinc-900">Derniers examens blancs</h2>
+              {attempts.length > 3 && (
+                <button
+                  onClick={() => setShowAllAttempts((prev) => !prev)}
+                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                >
+                  {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
+                </button>
+              )}
+            </div>
+            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+              {(showAllAttempts ? attempts : attempts.slice(0, 3)).map((a) => (
+                <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
+                      {a.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-zinc-900">
+                        {a.score}/{a.total_questions}
+                        <span className="ml-2 text-zinc-400 font-bold text-xs">{mentionLabel(a.mention)}</span>
+                      </p>
+                      <p className="text-[10px] font-bold text-zinc-400">{formatAttemptDate(a.created_at)}</p>
+                    </div>
+                  </div>
+                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
+                    {a.passed ? "Réussi" : "Échoué"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Séparateur — le pont TEF IRN n'est pas une étape de "Se préparer", c'est un aparté */}
+        <div className="pt-2 border-t border-zinc-200" />
+
         {/* Pont LlamaKusi — visible dès le sommaire, pas seulement en fin de session */}
         {showCTATef && (
           <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
@@ -387,6 +464,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             </Link>
           </div>
         )}
+
+        {/* Séparateur — referme l'aparté TEF IRN avant d'enchaîner sur les guides/FAQ */}
+        <div className="pt-2 border-t border-zinc-200" />
 
         {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
         {relevantGuides.length > 0 && (
@@ -433,47 +513,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             ))}
           </Accordion>
         </div>
-
-        {/* Séparateur — la section finale demandée : Derniers examens blancs */}
-        <div className="pt-2 border-t border-zinc-200" />
-
-        {/* Historique récent — section finale */}
-        {attempts.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-base font-black text-zinc-900">Derniers examens blancs</h2>
-              {attempts.length > 3 && (
-                <button
-                  onClick={() => setShowAllAttempts((prev) => !prev)}
-                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
-                >
-                  {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
-                </button>
-              )}
-            </div>
-            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-              {(showAllAttempts ? attempts : attempts.slice(0, 3)).map((a) => (
-                <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
-                      {a.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-zinc-900">
-                        {a.score}/{a.total_questions}
-                        <span className="ml-2 text-zinc-400 font-bold text-xs">{mentionLabel(a.mention)}</span>
-                      </p>
-                      <p className="text-[10px] font-bold text-zinc-400">{formatAttemptDate(a.created_at)}</p>
-                    </div>
-                  </div>
-                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
-                    {a.passed ? "Réussi" : "Échoué"}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
