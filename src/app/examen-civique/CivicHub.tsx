@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -85,6 +85,18 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const [attempts, setAttempts] = useState<CivicExamAttempt[]>([]);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
+  const mentionHelpScrollRef = useRef<HTMLDivElement>(null);
+
+  // Le dialog s'ouvrait scrollé en bas (probablement le focus initial posé sur le lien/bouton
+  // le plus bas du contenu, qui entraîne son scroll-into-view). On force le retour en haut à
+  // chaque ouverture, après que le focus initial se soit posé (d'où le rAF).
+  useEffect(() => {
+    if (!mentionHelpOpen) return;
+    const id = requestAnimationFrame(() => {
+      if (mentionHelpScrollRef.current) mentionHelpScrollRef.current.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [mentionHelpOpen]);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -451,7 +463,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
               </div>
-              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white text-indigo-600 text-[11px] font-black shadow-md">2</span>
+              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">2</span>
               <div className="flex items-center justify-between">
                 <Brain size={19} className="text-white shrink-0" />
                 <ArrowRight size={14} className="text-indigo-200 shrink-0" />
@@ -553,22 +565,29 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </div>
 
-        {/* Historique récent */}
-        {attempts.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900">
-                <Badge className="bg-zinc-900 text-white rounded-full">Historique</Badge> Derniers examens blancs
-              </h2>
-              {attempts.length > 3 && (
-                <button
-                  onClick={() => setShowAllAttempts((prev) => !prev)}
-                  className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
-                >
-                  {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
-                </button>
-              )}
+        {/* Historique récent — toujours visible, même vide : ça indique qu'un historique
+            existera après un premier examen blanc plutôt que de faire disparaître la section. */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900">
+              <Badge className="bg-zinc-900 text-white rounded-full">Historique</Badge> Derniers examens blancs
+            </h2>
+            {attempts.length > 3 && (
+              <button
+                onClick={() => setShowAllAttempts((prev) => !prev)}
+                className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+              >
+                {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
+              </button>
+            )}
+          </div>
+          {attempts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-[2rem] border-2 border-dashed border-zinc-200 bg-white p-10 text-center">
+              <Clock size={32} className="text-zinc-300" />
+              <p className="text-sm font-bold text-zinc-500">Aucun examen blanc pour l'instant.</p>
+              <p className="text-xs text-zinc-400">Vos résultats apparaîtront ici après votre premier examen blanc.</p>
             </div>
+          ) : (
             <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
               {(showAllAttempts ? attempts : attempts.slice(0, 3)).map((a) => (
                 <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
@@ -590,8 +609,8 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 </div>
               ))}
             </div>
+          )}
           </div>
-        )}
 
         {/* Séparateur — tout ce qui suit est secondaire (conversion, approfondissement).
             Sur mobile : accordéon replié pour ne pas alourdir le scroll. Sur desktop
@@ -626,46 +645,48 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Cas particuliers et exemptions</DialogTitle>
-            <DialogDescription>
-              Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation par décret. Un simple <strong>renouvellement</strong> d'un titre déjà détenu n'est jamais concerné : l'examen n'est exigé qu'une seule fois, à la première obtention.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la CSP</p>
-              <ul className="text-sm text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
-                <li>Titres non soumis au contrat d'intégration républicaine, bénéficiaires de la protection subsidiaire et apatrides (avec leur famille) : hors champ de l'examen.</li>
-                <li>65 ans ou plus à la date de la demande : dispense.</li>
-                <li>Situation médicale ou handicap rendant l'évaluation impossible : dispense sur certificat médical, au cas par cas.</li>
-              </ul>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0">
+          <div ref={mentionHelpScrollRef} className="overflow-y-auto p-6 space-y-4">
+            <DialogHeader>
+              <DialogTitle>Cas particuliers et exemptions</DialogTitle>
+              <DialogDescription>
+                Depuis le 1er janvier 2026, l'examen civique est obligatoire pour toute <strong>première</strong> demande de carte de séjour pluriannuelle (CSP), de carte de résident (CR) ou de naturalisation par décret. Un simple <strong>renouvellement</strong> d'un titre déjà détenu n'est jamais concerné : l'examen n'est exigé qu'une seule fois, à la première obtention.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la CSP</p>
+                <ul className="text-sm text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
+                  <li>Titres non soumis au contrat d'intégration républicaine, bénéficiaires de la protection subsidiaire et apatrides (avec leur famille) : hors champ de l'examen.</li>
+                  <li>65 ans ou plus à la date de la demande : dispense.</li>
+                  <li>Situation médicale ou handicap rendant l'évaluation impossible : dispense sur certificat médical, au cas par cas.</li>
+                </ul>
+              </div>
+              <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la carte de résident</p>
+                <p className="text-sm text-zinc-500 leading-relaxed">
+                  65 ans ou plus, ou situation médicale/handicap (mêmes règles que pour la CSP). Attention : contrairement à la CSP, les bénéficiaires d'une carte de réfugié ou de protection subsidiaire demandant une carte de résident longue durée-UE sont concernés par l'examen, pas dispensés.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
+                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
+                <p className="text-sm text-zinc-500 leading-relaxed">
+                  Aucune dispense d'âge ni liée à un accord bilatéral : seule la dispense médicale/handicap s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
+                </p>
+              </div>
             </div>
-            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la carte de résident</p>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                65 ans ou plus, ou situation médicale/handicap (mêmes règles que pour la CSP). Attention : contrairement à la CSP, les bénéficiaires d'une carte de réfugié ou de protection subsidiaire demandant une carte de résident longue durée-UE sont concernés par l'examen, pas dispensés.
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-              <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                Aucune dispense d'âge ni liée à un accord bilatéral : seule la dispense médicale/handicap s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Le cas des accords bilatéraux spécifiques (par exemple l'accord franco-algérien du 27 décembre 1968) fait actuellement l'objet d'interprétations divergentes selon les préfectures : ne vous fiez pas à une dispense automatique, vérifiez votre situation exacte avant votre demande. Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations. Les règles peuvent évoluer. En cas de doute, vérifiez sur{" "}
+              <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
+                service-public.gouv.fr
+              </a>{" "}
+              ou avec votre préfecture.
+            </p>
+            <Link href="/examen-civique/eligibilite" className="block text-sm font-black text-indigo-600 hover:underline">
+              Faire le test d'éligibilité complet →
+            </Link>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Le cas des accords bilatéraux spécifiques (par exemple l'accord franco-algérien du 27 décembre 1968) fait actuellement l'objet d'interprétations divergentes selon les préfectures : ne vous fiez pas à une dispense automatique, vérifiez votre situation exacte avant votre demande. Cette liste couvre les cas les plus fréquents, pas l'intégralité des situations. Les règles peuvent évoluer. En cas de doute, vérifiez sur{" "}
-            <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F39530" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-bold">
-              service-public.gouv.fr
-            </a>{" "}
-            ou avec votre préfecture.
-          </p>
-          <Link href="/examen-civique/eligibilite" className="block text-sm font-black text-indigo-600 hover:underline">
-            Faire le test d'éligibilité complet →
-          </Link>
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-4 border-t border-zinc-100">
             <Button onClick={() => setMentionHelpOpen(false)} className="bg-zinc-900 text-white rounded-2xl font-black text-sm">
               Compris
             </Button>
