@@ -147,19 +147,29 @@ export default function DashboardPage() {
               </section>
             )}
             <ActionPlanCard weakPoints={weak_points} recommendations={recommendations} onDismissed={() => refetch()} />
-            <QuickAccess />
-            <RecentCorrectionsList corrections={recent_corrections} />
+            <QuickAccess lastCorrection={recent_corrections[0] || null} />
           </div>
 
           <aside className="space-y-8 lg:col-span-4">
             <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
-            <PerformanceRadar data={competency_radar} />
-            <XPChart data={xp_last_7_days} />
             {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
             <CivicExamCard />
-            <SubSkillHeatmap data={sub_competencies} />
           </aside>
         </div>
+
+        <section className="mt-16 space-y-8">
+          <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
+            <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
+            Analyse détaillée
+            <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique, historique XP et corrections récentes." />
+          </h2>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <PerformanceRadar data={competency_radar} />
+            <SubSkillHeatmap data={sub_competencies} />
+          </div>
+          <XPChart data={xp_last_7_days} />
+          <RecentCorrectionsList corrections={recent_corrections} />
+        </section>
       </div>
     </div>
   );
