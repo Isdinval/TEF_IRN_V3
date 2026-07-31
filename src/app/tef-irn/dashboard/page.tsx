@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase";
@@ -44,6 +44,12 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<DashboardSectionId>("today");
+  const sectionsTopRef = useRef<HTMLDivElement>(null);
+
+  const handleSectionChange = (id: DashboardSectionId) => {
+    setActiveSection(id);
+    sectionsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -107,12 +113,14 @@ export default function DashboardPage() {
   const league_stats = data.league_stats || null;
 
   // recent_corrections remonte désormais jusqu'à 5 éléments par catégorie
-  // (migration 20260731000002) : on répartit ici pour les 3 blocs distincts
-  // demandés (Examen blanc / Écrit-QCM / Oral), chacun gardant ses 5
-  // dernières entrées grâce à la limite déjà appliquée côté RPC.
+  // (migrations 20260731000002/000003) : on répartit ici pour les 3 blocs
+  // distincts demandés (Examen blanc / Écrit / Oral). Le QCM (types 'qcm',
+  // 'trous', 'qcm_centre_entrainement') est explicitement exclu -- il n'est
+  // plus fetché du tout côté RPC depuis 20260731000003, ce filtre est donc
+  // surtout une garde de sécurité côté client.
   const examCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'examen_blanc');
   const oralCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'entretien_oral');
-  const writtenCorrections = recent_corrections.filter((c: any) => c.exercise?.type !== 'examen_blanc' && c.exercise?.type !== 'entretien_oral');
+  const writtenCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'ecrit');
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -130,13 +138,15 @@ export default function DashboardPage() {
           level={profile.current_level || 'A1'}
         />
 
-        <DashboardSectionNav activeSection={activeSection} onChange={setActiveSection} />
-
-        <div className="mt-6">
+        <div className="mt-8">
           <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections}>
             <ExamCountdownCard targetExamDate={target_exam_date} onUpdated={() => refetch()} />
           </StatsOverview>
         </div>
+
+        <DashboardSectionNav activeSection={activeSection} onChange={handleSectionChange} />
+
+        <div ref={sectionsTopRef} className="scroll-mt-24" />
 
         {activeSection === "today" && (
         <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
@@ -223,9 +233,9 @@ export default function DashboardPage() {
             />
             <RecentCorrectionsList
               corrections={writtenCorrections}
-              title="Écrit & QCM"
+              title="Écrit"
               icon={PenTool}
-              tooltip="Vos 5 derniers exercices écrits et QCM."
+              tooltip="Vos 5 derniers exercices d'expression écrite (QCM exclus)."
               emptyMessage="Aucun exercice écrit récent."
             />
             <RecentCorrectionsList
