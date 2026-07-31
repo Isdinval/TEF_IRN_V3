@@ -86,17 +86,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [mentionHelpOpen, setMentionHelpOpen] = useState(false);
   const mentionHelpScrollRef = useRef<HTMLDivElement>(null);
-
-  // Le dialog s'ouvrait scrollé en bas (probablement le focus initial posé sur le lien/bouton
-  // le plus bas du contenu, qui entraîne son scroll-into-view). On force le retour en haut à
-  // chaque ouverture, après que le focus initial se soit posé (d'où le rAF).
-  useEffect(() => {
-    if (!mentionHelpOpen) return;
-    const id = requestAnimationFrame(() => {
-      if (mentionHelpScrollRef.current) mentionHelpScrollRef.current.scrollTop = 0;
-    });
-    return () => cancelAnimationFrame(id);
-  }, [mentionHelpOpen]);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [resumableExam, setResumableExam] = useState<{ mention: string; examEndAt: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -443,7 +432,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             <div className="flex-1">
               <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900">
                 Livret du citoyen 2026
-                <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                   <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. À lire avant de vous entraîner pour donner du sens aux questions." />
                 </span>
               </p>
@@ -471,7 +460,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div>
                 <p className="flex items-center gap-1.5 text-sm font-black text-white leading-tight">
                   {hasDue ? "Mémoriser" : "Apprendre"}
-                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <InfoTooltip
                       className="text-indigo-200 hover:text-white"
                       text={hasDue
@@ -503,7 +492,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div>
                 <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
                   Parcourir
-                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
                   </span>
                 </p>
@@ -528,7 +517,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div>
                 <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
                   Examen blanc
-                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
                   </span>
                 </p>
@@ -553,7 +542,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div>
                 <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
                   Centres d&apos;examen
-                  <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
                   </span>
                 </p>
@@ -645,8 +634,11 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0">
-          <div ref={mentionHelpScrollRef} className="overflow-y-auto p-6 space-y-4">
+        <DialogContent
+          className="max-w-lg max-h-[85vh] flex flex-col p-0"
+          initialFocus={mentionHelpScrollRef}
+        >
+          <div ref={mentionHelpScrollRef} tabIndex={-1} className="overflow-y-auto p-6 space-y-4 outline-none">
             <DialogHeader>
               <DialogTitle>Cas particuliers et exemptions</DialogTitle>
               <DialogDescription>
