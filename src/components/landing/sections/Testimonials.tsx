@@ -1,16 +1,17 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { FileText, Clock, Mic, Layers, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 // Mêmes accents que la section Features, pour une cohérence visuelle sur toute la page
-const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string }> = {
-  blue: { bar: "from-blue-500 to-blue-400", iconBg: "bg-blue-500", needText: "text-blue-600 dark:text-blue-400" },
-  purple: { bar: "from-purple-500 to-purple-400", iconBg: "bg-purple-500", needText: "text-purple-600 dark:text-purple-400" },
-  amber: { bar: "from-amber-500 to-amber-400", iconBg: "bg-amber-500", needText: "text-amber-600 dark:text-amber-400" },
-  emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400" },
+const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string; ring: string }> = {
+  blue: { bar: "from-blue-500 to-blue-400", iconBg: "bg-blue-500", needText: "text-blue-600 dark:text-blue-400", ring: "ring-blue-200 dark:ring-blue-500/30" },
+  purple: { bar: "from-purple-500 to-purple-400", iconBg: "bg-purple-500", needText: "text-purple-600 dark:text-purple-400", ring: "ring-purple-200 dark:ring-purple-500/30" },
+  amber: { bar: "from-amber-500 to-amber-400", iconBg: "bg-amber-500", needText: "text-amber-600 dark:text-amber-400", ring: "ring-amber-200 dark:ring-amber-500/30" },
+  emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400", ring: "ring-emerald-200 dark:ring-emerald-500/30" },
 };
 
 const personas = [
@@ -18,6 +19,7 @@ const personas = [
     flag: "🇵🇪",
     name: "Maria",
     role: "Aide-soignante à Lyon · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Maria_Aide_Soignante_Lyon.webp",
     text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
     need: "Coach à l'écrit et à l'oral, dans un registre formel",
     icon: <FileText size={16} />,
@@ -26,7 +28,8 @@ const personas = [
   {
     flag: "🇲🇦",
     name: "Ahmed",
-    role: "Chef d'équipe BTP · Carte de résident B1",
+    role: "Chef d'équipe BTP à Nantes · Carte de résident B1",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Ahmed_Chef_Equipe_BTP_Nantes.webp",
     text: "J'ai pas le temps d'aller à des cours le soir. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme.",
     need: "Disponible le soir, entre 21h et 23h",
     icon: <Clock size={16} />,
@@ -35,7 +38,8 @@ const personas = [
   {
     flag: "🇸🇳",
     name: "Fatou",
-    role: "Infirmière à Bordeaux · Naturalisation B2",
+    role: "Assistante administrative en mairie à Bordeaux · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Fatou_Assistante_Administrative_Mairie_Bordeaux.webp",
     text: "J'ai besoin de quelqu'un qui me corrige vraiment, pas juste qui me dise ce qui est faux.",
     need: "Correction écrite détaillée, pas juste un score",
     icon: <Mic size={16} />,
@@ -45,6 +49,7 @@ const personas = [
     flag: "🇩🇿",
     name: "Karim",
     role: "Agent de sécurité à Nantes · Naturalisation B2",
+    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Karim_Agent_securite_Nantes.webp",
     text: "Je devais réussir l'Examen Civique et le TEF IRN la même année. Avoir les deux parcours au même endroit m'a fait gagner un temps fou.",
     need: "Un seul coach pour l'Examen Civique et le TEF IRN",
     icon: <Layers size={16} />,
@@ -84,8 +89,19 @@ export function Testimonials() {
                   {/* Barre d'accent colorée en haut, comme les cartes Features */}
                   <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accent.bar}`} />
 
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="text-3xl transition-transform group-hover:scale-110 duration-300">{p.flag}</span>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="relative shrink-0">
+                      <div className={`relative w-16 h-16 rounded-2xl overflow-hidden ring-4 ${accent.ring} shadow-lg transition-transform group-hover:scale-105 duration-300`}>
+                        <Image
+                          src={p.image}
+                          alt={`Portrait aquarelle de ${p.name}, ${p.role}`}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <span className="absolute -bottom-1.5 -right-1.5 text-xl leading-none drop-shadow">{p.flag}</span>
+                    </div>
                     <div>
                       <div className="font-black text-lg text-slate-900 dark:text-white leading-tight">{p.name}</div>
                       <div className="text-xs text-slate-500 leading-tight">{p.role}</div>

@@ -24,7 +24,7 @@ const plans = [
   {
     name: "Premium",
     priceMonthly: 55,
-    desc: "Le coach complet sur les 4 épreuves du TEF IRN, avec 40 min de coach oral par jour.",
+    desc: "Pour préparer sérieusement les 4 épreuves du TEF IRN.",
     features: [
       "Coach Expression Écrite illimité",
       "Coach Oral 40 min / jour",
