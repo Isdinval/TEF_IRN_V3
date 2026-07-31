@@ -28,7 +28,7 @@ import { RecentCorrectionsList } from "@/components/features/dashboard/new/Recen
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
-import { DashboardSectionNav } from "@/components/features/dashboard/new/DashboardSectionNav";
+import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const supabase = createClient();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState<DashboardSectionId>("today");
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,7 +130,7 @@ export default function DashboardPage() {
           level={profile.current_level || 'A1'}
         />
 
-        <DashboardSectionNav />
+        <DashboardSectionNav activeSection={activeSection} onChange={setActiveSection} />
 
         <div className="mt-6">
           <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections}>
@@ -137,7 +138,8 @@ export default function DashboardPage() {
           </StatsOverview>
         </div>
 
-        <section id="section-today" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10 scroll-mt-24">
+        {activeSection === "today" && (
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-amber-500 text-white rounded-full">Aujourd'hui</Badge>
             Aujourd'hui
@@ -178,8 +180,10 @@ export default function DashboardPage() {
             onDismissed={() => refetch()}
           />
         </section>
+        )}
 
-        <section id="section-progress" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10 scroll-mt-24">
+        {activeSection === "progress" && (
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-violet-600 text-white rounded-full">Progression</Badge>
             Ma progression
@@ -195,8 +199,10 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
+        )}
 
-        <section id="section-analysis" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10 scroll-mt-24">
+        {activeSection === "analysis" && (
+        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
@@ -231,6 +237,7 @@ export default function DashboardPage() {
             />
           </div>
         </section>
+        )}
       </div>
     </div>
   );

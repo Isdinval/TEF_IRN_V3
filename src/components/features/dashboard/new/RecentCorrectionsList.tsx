@@ -88,16 +88,9 @@ export function RecentCorrectionsList({
                 : `/tef-irn/correction?id=${item.id}`
             )}
           >
-            <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30 transition-all flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                <FileText size={28} />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-black text-zinc-900 truncate">
-                     {item.exercise?.instructions?.substring(0, 50) || "Exercice"}...
-                  </h3>
+            <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30 transition-all">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] uppercase font-black tracking-widest">
                     {getTypeBadgeLabel(item.exercise?.type)}
                   </Badge>
@@ -107,8 +100,15 @@ export function RecentCorrectionsList({
                     </div>
                   )}
                 </div>
+                <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
+              </div>
 
-                <div className="flex flex-wrap gap-2 mb-2">
+              <h3 className="font-black text-zinc-900 leading-snug mb-2">
+                {item.exercise?.instructions || "Exercice"}
+              </h3>
+
+              {(notions.length > 0 || score < 80) && (
+                <div className="flex flex-wrap gap-2 mb-3">
                   {notions.map((notion, idx) => (
                     <Badge
                       key={idx}
@@ -128,23 +128,21 @@ export function RecentCorrectionsList({
                      </Badge>
                   )}
                 </div>
+              )}
 
-                <p className="text-xs text-zinc-500 truncate italic">
-                  {item.ai_feedback?.global_comment?.substring(0, 100) || (score >= 80 ? "Excellent travail ! Continuez ainsi." : "Analyse terminée. Identifiez vos points faibles.") }
-                </p>
-              </div>
+              <p className="text-xs text-zinc-500 italic leading-relaxed mb-4">
+                {item.ai_feedback?.global_comment || (score >= 80 ? "Excellent travail ! Continuez ainsi." : "Analyse terminée. Identifiez vos points faibles.") }
+              </p>
 
-              <div className="text-right hidden sm:block">
-                <div className={`text-2xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-50">
+                <div className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${score >= 50 ? "text-emerald-500" : "text-rose-500"}`}>
+                  <CheckCircle2 size={12} />
+                  {score >= 50 ? 'Validé' : 'À refaire'}
+                </div>
+                <div className={`text-xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
                   {score}<span className="text-xs text-zinc-400 ml-0.5">/100</span>
                 </div>
-                <div className="flex items-center gap-1 justify-end text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                   <CheckCircle2 size={12} className={score >= 50 ? "text-emerald-500" : "text-rose-500"} />
-                   {score >= 50 ? 'Validé' : 'À refaire'}
-                </div>
               </div>
-
-              <ChevronRight size={20} className="text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
             </div>
           </motion.div>
         );
