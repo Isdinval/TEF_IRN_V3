@@ -401,8 +401,10 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               Démarche actuelle : <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
             </p>
             <div className="flex items-center gap-4">
-              <Link href="/examen-civique/eligibilite" className="text-xs font-black uppercase tracking-widest text-indigo-500 hover:underline">
-                Suis-je concerné ? →
+              <Link href="/examen-civique/eligibilite">
+                <Button className="h-10 px-4 bg-indigo-600 text-white rounded-2xl font-black text-xs hover:bg-indigo-700">
+                  Suis-je concerné ? <ArrowRight className="ml-2" size={14} />
+                </Button>
               </Link>
               <button onClick={() => setMentionHelpOpen(true)} className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:underline">
                 Cas particuliers / exemptions
@@ -444,10 +446,12 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
             <Link
               href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-              className="bg-indigo-600 rounded-[2rem] p-4 flex flex-col gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative overflow-hidden"
+              className="bg-indigo-600 rounded-[2rem] p-4 flex flex-col gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative"
             >
+              <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
+              </div>
               <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white text-indigo-600 text-[11px] font-black shadow-md">2</span>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
               <div className="flex items-center justify-between">
                 <Brain size={19} className="text-white shrink-0" />
                 <ArrowRight size={14} className="text-indigo-200 shrink-0" />
@@ -622,7 +626,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cas particuliers et exemptions</DialogTitle>
             <DialogDescription>
