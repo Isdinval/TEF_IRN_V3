@@ -20,5 +20,8 @@ ALTER TABLE recommendations ADD CONSTRAINT recommendations_type_check
 -- aucun impact sur les lignes existantes -- sauf si des doublons (user_id,
 -- reference_id) existent déjà en prod, auquel cas cette migration échouera
 -- et il faudra les dédupliquer avant de la rejouer.
+-- DROP IF EXISTS avant l'ADD : rend le script rejouable si un run précédent
+-- a déjà créé la contrainte (ex: exécution partielle depuis le SQL Editor).
+ALTER TABLE recommendations DROP CONSTRAINT IF EXISTS recommendations_user_reference_unique;
 ALTER TABLE recommendations ADD CONSTRAINT recommendations_user_reference_unique
   UNIQUE (user_id, reference_id);
