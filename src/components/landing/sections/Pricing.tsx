@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, ShieldCheck, Flame } from "lucide-react";
+import { Check, Sparkles, ShieldCheck, Flame, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -143,9 +143,12 @@ export function Pricing() {
 
                   <Link href="/tef-irn/login?mode=signup">
                      <Button
-                       className={`w-full h-14 rounded-2xl font-black text-lg transition-all ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100' : 'bg-brand-blue text-white hover:bg-brand-blue/90'}`}
+                       className={`group/btn w-full h-14 rounded-2xl font-black text-lg transition-all duration-300 hover:scale-[1.03] active:scale-95 ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100 hover:shadow-xl' : 'bg-brand-blue text-white hover:bg-brand-blue/90 hover:shadow-xl hover:shadow-brand-blue/30'}`}
                      >
-                        {plan.cta}
+                        <span className="flex items-center gap-2">
+                          {plan.cta}
+                          <ChevronRight size={18} className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                        </span>
                      </Button>
                   </Link>
 

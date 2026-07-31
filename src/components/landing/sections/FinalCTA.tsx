@@ -61,11 +61,6 @@ export function FinalCTA() {
             <div className="mt-16 flex flex-wrap justify-center items-center gap-8 text-sm font-black uppercase tracking-[0.2em] text-slate-500">
                <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-brand-gold" />
-                  <span>Essai 7 jours gratuit</span>
-               </div>
-               <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />
-               <div className="flex items-center gap-2">
-                  <Sparkles size={14} className="text-brand-gold" />
                   <span>Sans engagement</span>
                </div>
                <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />
