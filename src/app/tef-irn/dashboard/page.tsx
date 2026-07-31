@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHeader";
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
-import { RecommendationCard } from "@/components/features/dashboard/new/RecommendationCard";
+import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCard";
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
 import { QuickAccess } from "@/components/features/dashboard/new/QuickAccess";
@@ -24,7 +24,6 @@ import { RecentCorrectionsList } from "@/components/features/dashboard/new/Recen
 import { SrsReviewBanner } from "@/components/features/dashboard/new/SrsReviewBanner";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
-import { WeakPointsCard } from "@/components/features/dashboard/new/WeakPointsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -147,24 +146,12 @@ export default function DashboardPage() {
                 </div>
               </section>
             )}
-            <section className="space-y-6">
-              <h2 className="text-xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
-                <Badge className="bg-indigo-600 text-white rounded-full">IA Coach</Badge>
-                Recommandations
-                <InfoTooltip text="Générées à partir de vos erreurs les plus fréquentes : le coach cherche une leçon adaptée à cette catégorie et à votre niveau actuel." />
-              </h2>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {recommendations.length > 0 ? recommendations.map((reco: any) => (
-                  <RecommendationCard key={reco.id} id={reco.id} type={reco.type} reason={reco.reason} referenceId={reco.reference_id} slug={reco.slug} onDismissed={() => refetch()} />
-                )) : <div className="col-span-2 p-12 text-center border-2 border-dashed rounded-[2.5rem] text-zinc-400">Continuez à pratiquer !</div>}
-              </div>
-            </section>
+            <ActionPlanCard weakPoints={weak_points} recommendations={recommendations} onDismissed={() => refetch()} />
             <QuickAccess />
             <RecentCorrectionsList corrections={recent_corrections} />
           </div>
 
           <aside className="space-y-8 lg:col-span-4">
-            <WeakPointsCard weakPoints={weak_points} />
             <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
             <PerformanceRadar data={competency_radar} />
             <XPChart data={xp_last_7_days} />

@@ -11,10 +11,20 @@ interface RecommendationCardProps {
   reason: string;
   referenceId: string;
   slug?: string;
+  // Nombre de fois où l'erreur à l'origine de cette reco a été relevée
+  // (issu de user_errors via le matching category/sub_category avec
+  // weak_points -- voir ActionPlanCard). Absent pour les recos sans point
+  // faible associé (ex: fallback générique, vocabulaire non lié à user_errors).
+  frequency?: number;
   onDismissed?: () => void;
 }
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, onDismissed }: RecommendationCardProps) {
+const TITLES_BY_TYPE: Record<string, string> = {
+  lesson: 'Maîtriser une nouvelle leçon',
+  vocab: 'Ancrer un mot de vocabulaire',
+};
+
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
 
@@ -23,6 +33,7 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, onDism
       case 'lesson': return `/tef-irn/lessons/${slug || referenceId}`;
       case 'exercise': return '/tef-irn/practice';
       case 'review': return '/tef-irn/practice';
+      case 'vocab': return '/tef-irn/vocab';
       default: return '/tef-irn/practice';
     }
   };
@@ -57,9 +68,14 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, onDism
           <Sparkles size={24} />
         </div>
         <div className="space-y-4">
-          <h3 className="text-lg font-black leading-tight text-zinc-900">
-            {type === 'lesson' ? 'Maîtriser une nouvelle leçon' : 'Renforcer vos acquis'}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-black leading-tight text-zinc-900">
+              {TITLES_BY_TYPE[type] || 'Renforcer vos acquis'}
+            </h3>
+            {typeof frequency === 'number' && (
+              <span className="shrink-0 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-black text-rose-500">×{frequency}</span>
+            )}
+          </div>
           <p className="text-sm font-medium italic leading-relaxed text-zinc-500">
             {reason}
           </p>
