@@ -6,7 +6,7 @@ import { XCircle, CheckCircle2, AlertCircle, MessageSquare, Headphones, Zap } fr
 
 export function ProblemSolution() {
   return (
-    <section className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 overflow-hidden">
+    <section className="py-32 px-6 bg-slate-100 dark:bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <motion.div

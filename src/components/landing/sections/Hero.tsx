@@ -1,17 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { VideoModal } from "../VideoModal";
+import { ChevronRight, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
 
 // Hauteurs fixes pour les barres audio de l'écran d'appel (pas de Math.random() : évite un mismatch d'hydratation SSR/client)
 const AUDIO_BAR_HEIGHTS = [35, 60, 80, 45, 70, 30, 65, 90, 50, 75, 40, 55];
 
 export function Hero() {
-  const [videoOpen, setVideoOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"ecrit" | "oral">("ecrit");
 
   const typingWords = ["votre naturalisation", "votre carte de résident", "l'Examen Civique", "le TEF IRN"];
@@ -83,33 +79,10 @@ export function Hero() {
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center gap-6"
-          >
-            <Link href="/tef-irn/login?mode=signup">
-              <Button className="h-16 px-10 text-xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl shadow-2xl shadow-brand-blue/30 group">
-                Commencer gratuitement
-                <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <button
-              onClick={() => setVideoOpen(true)}
-              className="flex items-center gap-4 text-slate-900 dark:text-white font-black hover:opacity-70 transition-opacity"
-            >
-              <div className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-white/20 flex items-center justify-center text-brand-blue dark:text-brand-gold">
-                <Play size={20} fill="currentColor" />
-              </div>
-              <span>Voir la démo</span>
-            </button>
-          </motion.div>
-
-          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
+            transition={{ delay: 0.3 }}
+            className="mt-4 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
           >
             <div className="flex items-center gap-2">
               <Users size={16} className="text-brand-blue" />
@@ -159,7 +132,6 @@ export function Hero() {
         </p>
       </div>
 
-      <VideoModal isOpen={videoOpen} onClose={() => setVideoOpen(false)} />
     </section>
   );
 }

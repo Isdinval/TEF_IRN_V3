@@ -56,7 +56,7 @@ export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
 
   return (
-    <section id="pricing" className="py-32 px-6 bg-slate-50 dark:bg-slate-900/30 relative overflow-hidden">
+    <section id="pricing" className="py-32 px-6 bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center text-center mb-10">
           <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-slate-900 dark:text-white">
@@ -73,7 +73,7 @@ export function Pricing() {
           </div>
 
           {/* Billing toggle */}
-          <div className="flex items-center gap-4 bg-slate-100 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200 dark:border-white/10 mt-10">
+          <div className="flex items-center gap-4 bg-slate-200 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-300 dark:border-white/10 mt-10">
              <button
                onClick={() => setBillingCycle("monthly")}
                className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all ${billingCycle === "monthly" ? "bg-white dark:bg-white text-brand-blue shadow-lg" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}

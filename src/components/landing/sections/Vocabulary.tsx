@@ -15,7 +15,7 @@ export function Vocabulary() {
   const [flipped, setFlipped] = useState<number | null>(null);
 
   return (
-    <section id="vocab" className="py-32 px-6 overflow-hidden bg-slate-50 dark:bg-slate-900/30">
+    <section id="vocab" className="py-32 px-6 overflow-hidden bg-slate-100 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
            <motion.div
