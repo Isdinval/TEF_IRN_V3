@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Hauteurs fixes pour les barres audio de l'écran d'appel (pas de Math.random() : évite un mismatch d'hydratation SSR/client)
 const AUDIO_BAR_HEIGHTS = [35, 60, 80, 45, 70, 30, 65, 90, 50, 75, 40, 55];
@@ -79,10 +81,23 @@ export function Hero() {
           </motion.p>
 
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Link href="/tef-irn/login?mode=signup">
+              <Button className="h-16 px-10 text-xl font-black bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl shadow-2xl shadow-brand-blue/30 group">
+                Commencer gratuitement
+                <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
+            transition={{ delay: 0.4 }}
+            className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm font-bold text-slate-400"
           >
             <div className="flex items-center gap-2">
               <Users size={16} className="text-brand-blue" />
@@ -102,6 +117,9 @@ export function Hero() {
         </div>
 
         {/* === MOCKUP PRODUIT — système d'onglets, reproduction fidèle de /tef-irn/writing et /tef-irn/oral === */}
+        <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4">
+          Aperçu du coach
+        </p>
         <div className="flex items-center justify-center gap-2 mb-6">
           <button
             onClick={() => setActiveTab("ecrit")}
