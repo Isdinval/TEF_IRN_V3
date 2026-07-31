@@ -55,7 +55,7 @@ const features = [
     icon: <GraduationCap size={26} />,
     accent: "emerald",
     delay: 0.4,
-    track: "Gratuit",
+    track: "Coach Examen Civique",
     points: [
       "Questions issues du référentiel officiel du Ministère de l'Intérieur",
       "Feedback immédiat sur chaque réponse, avec explication",
@@ -156,11 +156,11 @@ export function Features() {
                     {f.number}
                   </span>
 
-                  <div className="relative flex items-center justify-between mb-8">
+                  <div className="relative flex items-center gap-3 mb-8">
                     <div className={`w-16 h-16 rounded-2xl ${accent.iconBg} flex items-center justify-center text-white shadow-xl ${accent.iconGlow} transition-transform duration-300 group-hover:scale-110`}>
                       {f.icon}
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${f.track === "Gratuit" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-brand-blue/10 text-brand-blue dark:text-brand-gold"}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${f.accent === "emerald" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-brand-blue/10 text-brand-blue dark:text-brand-gold"}`}>
                       {f.track}
                     </span>
                   </div>

@@ -56,7 +56,7 @@ export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
 
   return (
-    <section id="pricing" className="py-32 px-6 bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
+    <section id="pricing" className="py-32 px-6 bg-slate-200 dark:bg-slate-950 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center text-center mb-10">
           <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-slate-900 dark:text-white">
@@ -73,7 +73,7 @@ export function Pricing() {
           </div>
 
           {/* Billing toggle */}
-          <div className="flex items-center gap-4 bg-slate-200 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-300 dark:border-white/10 mt-10">
+          <div className="flex items-center gap-4 bg-slate-300/60 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-300 dark:border-white/10 mt-10">
              <button
                onClick={() => setBillingCycle("monthly")}
                className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all ${billingCycle === "monthly" ? "bg-white dark:bg-white text-brand-blue shadow-lg" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
@@ -106,7 +106,7 @@ export function Pricing() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: i * 0.1 }}
-                 className={`relative p-10 rounded-[3rem] border-2 transition-all duration-500 ${plan.highlight ? 'bg-brand-blue text-white border-brand-blue shadow-2xl scale-105 z-10' : 'bg-white dark:bg-white/5 border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
+                 className={`relative p-10 rounded-[3rem] border-2 transition-all duration-300 ${plan.highlight ? 'bg-brand-blue text-white border-brand-blue shadow-2xl scale-105 hover:scale-[1.07] hover:shadow-brand-blue/40 z-10' : 'bg-white dark:bg-white/5 border-transparent hover:border-brand-blue/20 dark:hover:border-white/10 hover:-translate-y-2 hover:shadow-2xl'}`}
                >
                   {plan.badge && (
                     <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full bg-brand-gold text-brand-dark font-black text-xs uppercase tracking-widest shadow-xl">

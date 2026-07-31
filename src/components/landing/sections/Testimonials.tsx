@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Quote, FileText, Clock, Mic, Info } from "lucide-react";
+import { FileText, Clock, Mic, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const personas = [
@@ -11,30 +11,27 @@ const personas = [
     name: "Maria",
     role: "Aide-soignante à Lyon · Naturalisation B2",
     text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
-    need: "Coach EE + EO formelle",
-    icon: <FileText size={20} />,
+    need: "Coach à l'écrit et à l'oral, dans un registre formel",
+    icon: <FileText size={18} />,
     number: "1",
-    countryHint: "Pérou"
   },
   {
     flag: "🇲🇦",
     name: "Ahmed",
     role: "Chef d'équipe BTP · Carte de résident B1",
     text: "J'ai pas le temps d'aller à des cours le soir. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme.",
-    need: "Disponible 21h–23h",
-    icon: <Clock size={20} />,
+    need: "Disponible le soir, entre 21h et 23h",
+    icon: <Clock size={18} />,
     number: "2",
-    countryHint: "Maroc"
   },
   {
     flag: "🇸🇳",
     name: "Fatou",
     role: "Infirmière à Bordeaux · Naturalisation B2",
     text: "J'ai besoin de quelqu'un qui me corrige vraiment, pas juste qui me dise ce qui est faux.",
-    need: "Correction EE détaillée",
-    icon: <Mic size={20} />,
+    need: "Correction écrite détaillée, pas juste un score",
+    icon: <Mic size={18} />,
     number: "3",
-    countryHint: "Sénégal"
   }
 ];
 
@@ -45,7 +42,7 @@ export function Testimonials() {
         <div className="flex flex-col items-center text-center mb-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider mb-6">
             <Info size={12} />
-            <span>Exemples de parcours illustratifs — pas des avis clients vérifiés</span>
+            <span>Exemples de parcours illustratifs</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black mb-6 text-slate-900 dark:text-white">
             Vous vous reconnaissez ?
@@ -64,12 +61,11 @@ export function Testimonials() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
             >
-              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl bg-slate-50 dark:bg-white/5 group relative overflow-hidden">
-                <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <div className="absolute top-8 right-8 text-8xl">{p.flag}</div>
+              <Card className="h-full p-10 rounded-[2.5rem] border-none shadow-xl bg-slate-50 dark:bg-white/5 group relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
+                {/* Drapeau décoratif en fond, seul élément dans ce coin (plus de superposition) */}
+                <div className="absolute -top-4 -right-4 text-8xl opacity-5 group-hover:opacity-10 transition-opacity">
+                  {p.flag}
                 </div>
-
-                <Quote className="absolute top-8 right-8 text-slate-100 dark:text-white/5" size={80} fill="currentColor" />
 
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-8">
@@ -85,7 +81,8 @@ export function Testimonials() {
                   </p>
 
                   <div className="pt-6 border-t border-slate-100 dark:border-white/10 flex items-center gap-3 text-sm font-bold text-brand-purple">
-                    Besoin n°{p.number} — {p.icon} {p.need}
+                    <span className="shrink-0">{p.icon}</span>
+                    {p.need}
                   </div>
                 </div>
               </Card>
