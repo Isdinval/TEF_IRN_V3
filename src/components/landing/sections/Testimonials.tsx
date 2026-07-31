@@ -7,18 +7,18 @@ import { FileText, Clock, Mic, Layers, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 // Mêmes accents que la section Features, pour une cohérence visuelle sur toute la page
-const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string; border: string }> = {
-  blue: { bar: "from-blue-500 to-blue-400", iconBg: "bg-blue-500", needText: "text-blue-600 dark:text-blue-400", border: "border-blue-400 dark:border-blue-500/60" },
-  purple: { bar: "from-purple-500 to-purple-400", iconBg: "bg-purple-500", needText: "text-purple-600 dark:text-purple-400", border: "border-purple-400 dark:border-purple-500/60" },
-  amber: { bar: "from-amber-500 to-amber-400", iconBg: "bg-amber-500", needText: "text-amber-600 dark:text-amber-400", border: "border-amber-400 dark:border-amber-500/60" },
-  emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-400 dark:border-emerald-500/60" },
+const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string }> = {
+  blue: { bar: "from-blue-500 to-blue-400", iconBg: "bg-blue-500", needText: "text-blue-600 dark:text-blue-400" },
+  purple: { bar: "from-purple-500 to-purple-400", iconBg: "bg-purple-500", needText: "text-purple-600 dark:text-purple-400" },
+  amber: { bar: "from-amber-500 to-amber-400", iconBg: "bg-amber-500", needText: "text-amber-600 dark:text-amber-400" },
+  emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400" },
 };
 
 const personas = [
   {
     flag: "🇵🇪",
     name: "Maria",
-    role: "Aide-soignante à Lyon · Naturalisation B2",
+    role: "Ingénieure informatique à Lyon · Naturalisation B2",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Maria_Aide_Soignante_Lyon.webp",
     text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
     need: "Coach à l'écrit et à l'oral, dans un registre formel",
@@ -48,7 +48,7 @@ const personas = [
   {
     flag: "🇩🇿",
     name: "Karim",
-    role: "Agent de sécurité à Nantes · Naturalisation B2",
+    role: "Comptable à Toulouse · Naturalisation B2",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Karim_Agent_securite_Nantes.webp",
     text: "Je devais réussir l'Examen Civique et le TEF IRN la même année. Avoir les deux parcours au même endroit m'a fait gagner un temps fou.",
     need: "Un seul coach pour l'Examen Civique et le TEF IRN",
@@ -89,7 +89,7 @@ export function Testimonials() {
                   {/* Barre d'accent colorée en haut, comme les cartes Features */}
                   <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accent.bar}`} />
 
-                  <div className={`relative w-full aspect-square rounded-2xl overflow-hidden border-4 mb-6 shadow-lg transition-transform group-hover:scale-[1.02] duration-300 ${accent.border}`}>
+                  <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-6 shadow-lg transition-transform group-hover:scale-[1.02] duration-300">
                     <Image
                       src={p.image}
                       alt={`Portrait aquarelle de ${p.name}, ${p.role}`}
