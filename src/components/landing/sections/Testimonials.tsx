@@ -44,7 +44,7 @@ const personas = [
   {
     flag: "🇩🇿",
     name: "Karim",
-    role: "Agent de sécurité à Nantes · Naturalisation",
+    role: "Agent de sécurité à Nantes · Naturalisation B2",
     text: "Je devais réussir l'Examen Civique et le TEF IRN la même année. Avoir les deux parcours au même endroit m'a fait gagner un temps fou.",
     need: "Un seul coach pour l'Examen Civique et le TEF IRN",
     icon: <Layers size={16} />,

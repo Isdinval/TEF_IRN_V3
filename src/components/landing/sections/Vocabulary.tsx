@@ -15,7 +15,7 @@ export function Vocabulary() {
   const [flipped, setFlipped] = useState<number | null>(null);
 
   return (
-    <section id="vocab" className="py-32 px-6 overflow-hidden bg-slate-200 dark:bg-slate-950">
+    <section id="vocab" className="py-32 px-6 overflow-hidden bg-indigo-50 dark:bg-indigo-950">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
            <motion.div
@@ -117,8 +117,8 @@ export function Vocabulary() {
                  ))}
 
                  {/* Stack of other cards effect */}
-                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-slate-300/70 dark:bg-slate-800/40 rounded-[3rem] -z-10 border border-slate-300 dark:border-white/5" />
-                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-slate-300/30 dark:bg-slate-800/20 rounded-[3rem] -z-20 border border-slate-300 dark:border-white/5" />
+                 <div className="absolute top-6 left-6 -right-6 -bottom-6 bg-indigo-200/60 dark:bg-slate-800/40 rounded-[3rem] -z-10 border border-indigo-200 dark:border-white/5" />
+                 <div className="absolute top-12 left-12 -right-12 -bottom-12 bg-indigo-200/30 dark:bg-slate-800/20 rounded-[3rem] -z-20 border border-indigo-200 dark:border-white/5" />
               </div>
            </div>
         </div>

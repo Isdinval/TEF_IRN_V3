@@ -8,7 +8,7 @@ import { ChevronRight, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2
 const AUDIO_BAR_HEIGHTS = [35, 60, 80, 45, 70, 30, 65, 90, 50, 75, 40, 55];
 
 export function Hero() {
-  const [activeTab, setActiveTab] = useState<"ecrit" | "oral">("ecrit");
+  const [activeTab, setActiveTab] = useState<"ecrit" | "oral">("oral");
 
   const typingWords = ["votre naturalisation", "votre carte de résident", "l'Examen Civique", "le TEF IRN"];
   const [wordIndex, setWordIndex] = useState(0);

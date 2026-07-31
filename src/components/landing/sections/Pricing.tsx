@@ -24,11 +24,11 @@ const plans = [
   {
     name: "Premium",
     priceMonthly: 55,
-    desc: "Le coach complet pour préparer l'EE et l'EO sans limite.",
+    desc: "Le coach complet sur les 4 épreuves du TEF IRN, avec 40 min de coach oral par jour.",
     features: [
       "Coach Expression Écrite illimité",
       "Coach Oral 40 min / jour",
-      "Parcours adaptatif A1 → B2 avec révision intelligente",
+      "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
       "Dashboard XP, streaks & radar de compétences",
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
@@ -40,12 +40,14 @@ const plans = [
   {
     name: "Super Premium",
     priceMonthly: 78,
-    desc: "Pour une préparation intensive, à l'approche de l'examen.",
+    desc: "Exactement Premium, avec plus de temps de coach oral par jour.",
     features: [
-      "Tout Premium, en illimité",
-      "Coach Oral 75 min / jour",
-      "Correction écrite prioritaire",
-      "Simulateur d'examen avancé"
+      "Coach Expression Écrite illimité",
+      "Coach Oral 75 min / jour (au lieu de 40 min en Premium)",
+      "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+      "Dashboard XP, streaks & radar de compétences",
+      "Simulateur d'examen complet",
+      "Entraînement Examen Civique illimité"
     ],
     cta: "Démarrer l'essai gratuit",
     highlight: false
@@ -56,7 +58,7 @@ export function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
 
   return (
-    <section id="pricing" className="py-32 px-6 bg-slate-200 dark:bg-slate-950 relative overflow-hidden">
+    <section id="pricing" className="py-32 px-6 bg-indigo-50 dark:bg-indigo-950 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center text-center mb-10">
           <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-slate-900 dark:text-white">
@@ -73,7 +75,7 @@ export function Pricing() {
           </div>
 
           {/* Billing toggle */}
-          <div className="flex items-center gap-4 bg-slate-300/60 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-300 dark:border-white/10 mt-10">
+          <div className="flex items-center gap-4 bg-indigo-100 dark:bg-white/5 p-1.5 rounded-2xl border border-indigo-200 dark:border-white/10 mt-10">
              <button
                onClick={() => setBillingCycle("monthly")}
                className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all ${billingCycle === "monthly" ? "bg-white dark:bg-white text-brand-blue shadow-lg" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
