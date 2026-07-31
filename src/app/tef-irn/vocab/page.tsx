@@ -236,6 +236,19 @@ export function VocabCoachContent() {
       }
     }
 
+    // Symétrique du bloc ci-dessus : jusqu'ici un échec au step "type" ne
+    // faisait que renvoyer à la présentation du mot sans jamais persister
+    // l'échec (ease_factor jamais abaissé en base) -- le mot revenait donc
+    // avec le même intervalle SRS qu'un mot maîtrisé, et aucun signal de
+    // difficulté n'était disponible pour analyzeVocabStruggleAndRecommend().
+    if (!isCorrect && step === "type") {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await updateVocabularySRS(user.id, cards[index].id, false);
+        fetch('/api/vocab/track-struggle', { method: 'POST' }).catch(() => {});
+      }
+    }
+
     if (isCorrect) {
       if (step === "presentation") {
         try {

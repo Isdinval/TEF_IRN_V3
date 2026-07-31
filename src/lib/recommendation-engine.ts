@@ -230,6 +230,59 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
   }
 }
 
+/**
+ * Analyse le SRS vocabulaire (user_vocabulary_reviews) pour détecter un mot
+ * en difficulté et générer une recommandation type 'vocab'.
+ *
+ * Signal de difficulté : ease_factor <= 2.0 (abaissé sous le défaut 2.5 par
+ * updateVocabularySRS() sur échec, voir src/lib/srs-engine.ts) ET
+ * consecutive_correct = 0 (dernier essai raté, pas juste un ancien échec déjà
+ * rattrapé depuis). Une seule recommandation 'vocab' pending à la fois :
+ * le SRS est déjà pressant au quotidien (tuile de révisions dans le Plan
+ * d'action), pas besoin d'en
+ * empiler plusieurs.
+ */
+const MAX_PENDING_VOCAB_RECOMMENDATIONS = 1;
+
+export async function analyzeVocabStruggleAndRecommend(userId: string) {
+  const supabase = await createClient();
+
+  const { data: existingVocabReco } = await supabase
+    .from('recommendations')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('type', 'vocab')
+    .eq('status', 'pending')
+    .limit(MAX_PENDING_VOCAB_RECOMMENDATIONS)
+    .maybeSingle();
+
+  if (existingVocabReco) return;
+
+  const { data: struggling } = await supabase
+    .from('user_vocabulary_reviews')
+    .select('vocab_id, ease_factor, vocabulary(word, category)')
+    .eq('user_id', userId)
+    .eq('consecutive_correct', 0)
+    .lte('ease_factor', 2.0)
+    .order('ease_factor', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!struggling) return;
+
+  const vocabWord = Array.isArray(struggling.vocabulary) ? struggling.vocabulary[0] : struggling.vocabulary;
+  if (!vocabWord) return;
+
+  await supabase.from('recommendations').upsert({
+    user_id: userId,
+    type: 'vocab',
+    reference_id: struggling.vocab_id,
+    category: vocabWord.category,
+    reason: `Le mot "${vocabWord.word}" vous résiste malgré plusieurs révisions. Reprenez-le pour bien l'ancrer.`,
+    status: 'pending'
+  }, { onConflict: 'user_id, reference_id' });
+}
+
 async function createGenericRecommendation(userId: string) {
   const supabase = await createClient();
   const options = [
