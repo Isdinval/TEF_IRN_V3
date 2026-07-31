@@ -9,9 +9,12 @@ interface StatsOverviewProps {
   completedExercises: number;
   avgScore: number;
   pendingCorrections: number;
+  // Emplacement pour une 5e carte (ex: ExamCountdownCard), rendue dans la même
+  // grille pour rester visuellement cohérente avec les 4 métriques ci-dessus.
+  children?: React.ReactNode;
 }
 
-export function StatsOverview({ studyTime, completedExercises, avgScore, pendingCorrections }: StatsOverviewProps) {
+export function StatsOverview({ studyTime, completedExercises, avgScore, pendingCorrections, children }: StatsOverviewProps) {
   const displayScore = avgScore > 0 ? `${avgScore}%` : "-";
 
   const stats = [
@@ -29,7 +32,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
       icon: CheckCircle2,
       color: "bg-emerald-50 text-emerald-600",
       detail: "Total session",
-      tooltip: "Nombre de corrections récentes chargées ci-dessous (limité à 5, ce n'est pas votre total d'exercices réalisés)."
+      tooltip: "Nombre de corrections récentes chargées ci-dessous (limité à 5 par catégorie, ce n'est pas votre total d'exercices réalisés)."
     },
     {
       label: "Score Moyen",
@@ -50,7 +53,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
       {stats.map((stat, i) => (
         <Card key={i} className="overflow-hidden border-none bg-white shadow-lg shadow-zinc-100 rounded-3xl transition-all hover:-translate-y-1">
           <CardContent className="p-6">
@@ -70,6 +73,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
           </CardContent>
         </Card>
       ))}
+      {children}
     </div>
   );
 }

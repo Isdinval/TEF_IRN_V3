@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileText, CheckCircle2, ChevronRight, Timer, History } from "lucide-react";
+import { FileText, CheckCircle2, ChevronRight, Timer, History, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { InfoTooltip } from "./InfoTooltip";
@@ -23,6 +23,14 @@ interface Correction {
   };
 }
 
+interface RecentCorrectionsListProps {
+  corrections: Correction[];
+  title?: string;
+  icon?: LucideIcon;
+  tooltip?: string;
+  emptyMessage?: string;
+}
+
 // Libellé du badge : cas particulier pour les examens blancs (writing_scenario_attempts),
 // sinon on garde le type brut de l'exercice (EE, QCM, ...) comme avant.
 function getTypeBadgeLabel(type?: string): string {
@@ -31,15 +39,21 @@ function getTypeBadgeLabel(type?: string): string {
   return type?.toUpperCase() || "EE";
 }
 
-export function RecentCorrectionsList({ corrections }: { corrections: Correction[] }) {
+export function RecentCorrectionsList({
+  corrections,
+  title = "Corrections récentes",
+  icon: Icon = History,
+  tooltip = "Vos 5 dernières corrections (exercices, examens blancs et sessions orales confondus), triées par date.",
+  emptyMessage = "Aucune correction récente. Commencez un exercice d'expression !",
+}: RecentCorrectionsListProps) {
   const router = useRouter();
 
   const header = (
     <div className="mb-6 flex items-center gap-2">
       <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
-        <History size={18} className="text-zinc-400" /> Corrections récentes
+        <Icon size={18} className="text-zinc-400" /> {title}
       </h2>
-      <InfoTooltip text="Vos 5 dernières corrections (exercices, examens blancs et sessions orales confondus), triées par date." />
+      <InfoTooltip text={tooltip} />
     </div>
   );
 
@@ -48,7 +62,7 @@ export function RecentCorrectionsList({ corrections }: { corrections: Correction
       {header}
       <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-100 bg-white">
         <FileText size={48} className="text-zinc-200 mb-4" />
-        <p className="text-sm font-bold text-zinc-400">Aucune correction récente. Commencez un exercice d'expression !</p>
+        <p className="text-sm font-bold text-zinc-400">{emptyMessage}</p>
       </div>
     </div>
   );

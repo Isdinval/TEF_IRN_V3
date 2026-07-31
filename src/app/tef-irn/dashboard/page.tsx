@@ -12,17 +12,23 @@ import {
   Target,
   Trophy,
   Activity,
-  History
+  History,
+  ClipboardCheck,
+  PenTool,
+  Mic
 } from "lucide-react";
 import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHeader";
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
+import { ExamCountdownCard } from "@/components/features/dashboard/new/ExamCountdownCard";
 import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCard";
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
+import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
+import { DashboardSectionNav } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -96,6 +102,16 @@ export default function DashboardPage() {
   const exercise_reviews_due = data.exercise_reviews_due || 0;
   const vocab_stats = data.vocab_stats || null;
   const weak_points = Array.isArray(data.weak_points) ? data.weak_points : [];
+  const target_exam_date = profile.target_exam_date || null;
+  const league_stats = data.league_stats || null;
+
+  // recent_corrections remonte désormais jusqu'à 5 éléments par catégorie
+  // (migration 20260731000002) : on répartit ici pour les 3 blocs distincts
+  // demandés (Examen blanc / Écrit-QCM / Oral), chacun gardant ses 5
+  // dernières entrées grâce à la limite déjà appliquée côté RPC.
+  const examCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'examen_blanc');
+  const oralCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'entretien_oral');
+  const writtenCorrections = recent_corrections.filter((c: any) => c.exercise?.type !== 'examen_blanc' && c.exercise?.type !== 'entretien_oral');
 
   const radarLen = competency_radar.length;
   const avgScore = radarLen > 0
@@ -113,11 +129,15 @@ export default function DashboardPage() {
           level={profile.current_level || 'A1'}
         />
 
-        <div className="mt-8">
-          <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections} />
+        <DashboardSectionNav />
+
+        <div className="mt-6">
+          <StatsOverview studyTime={study_time_today} completedExercises={recent_corrections.length} avgScore={avgScore} pendingCorrections={pending_corrections}>
+            <ExamCountdownCard targetExamDate={target_exam_date} onUpdated={() => refetch()} />
+          </StatsOverview>
         </div>
 
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
+        <section id="section-today" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10 scroll-mt-24">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-amber-500 text-white rounded-full">Aujourd'hui</Badge>
             Aujourd'hui
@@ -159,13 +179,16 @@ export default function DashboardPage() {
           />
         </section>
 
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
+        <section id="section-progress" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10 scroll-mt-24">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-violet-600 text-white rounded-full">Progression</Badge>
             Ma progression
           </h2>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
+            <div className="space-y-6">
+              <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
+              {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
+            </div>
             <div className="space-y-6">
               {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
               <CivicExamCard />
@@ -173,7 +196,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
+        <section id="section-analysis" className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10 scroll-mt-24">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
@@ -184,7 +207,29 @@ export default function DashboardPage() {
             <SubSkillHeatmap data={sub_competencies} />
           </div>
           <XPChart data={xp_last_7_days} />
-          <RecentCorrectionsList corrections={recent_corrections} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <RecentCorrectionsList
+              corrections={examCorrections}
+              title="Examen blanc"
+              icon={ClipboardCheck}
+              tooltip="Vos 5 derniers examens blancs passés."
+              emptyMessage="Aucun examen blanc passé pour l'instant."
+            />
+            <RecentCorrectionsList
+              corrections={writtenCorrections}
+              title="Écrit & QCM"
+              icon={PenTool}
+              tooltip="Vos 5 derniers exercices écrits et QCM."
+              emptyMessage="Aucun exercice écrit récent."
+            />
+            <RecentCorrectionsList
+              corrections={oralCorrections}
+              title="Oral"
+              icon={Mic}
+              tooltip="Vos 5 dernières sessions d'entretien oral."
+              emptyMessage="Aucune session orale récente."
+            />
+          </div>
         </section>
       </div>
     </div>
