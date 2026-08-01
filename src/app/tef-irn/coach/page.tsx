@@ -16,7 +16,7 @@ function CoachPageContent() {
           <div>
             <h1 className="text-3xl font-extrabold text-zinc-900 flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-indigo-600 animate-pulse" />
-              Coach IA LlamaKusi
+              Coach LlamaKusi
             </h1>
             <p className="text-zinc-500 mt-1 font-medium">Expert pédagogique TEF IRN disponible 24/7.</p>
           </div>
