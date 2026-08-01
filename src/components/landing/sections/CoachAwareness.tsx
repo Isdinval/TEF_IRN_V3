@@ -71,7 +71,7 @@ export function CoachAwareness() {
   return (
     <section className="py-32 px-6 bg-white dark:bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16 max-w-2xl mx-auto">
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -96,7 +96,7 @@ export function CoachAwareness() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+            className="text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto"
           >
             Sur une leçon, un parcours, un exercice de rédaction ou une simulation orale, Assistant LlamaKusi sait exactement où vous en êtes et adapte ses réponses en conséquence — sans jamais avoir à lui réexpliquer votre situation.
           </motion.p>
