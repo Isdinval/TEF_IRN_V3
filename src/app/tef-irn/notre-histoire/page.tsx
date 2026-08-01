@@ -26,7 +26,7 @@ const team = [
     name: "Olivier",
     role: "Fondateur Technique · 33 ans · Français",
     bio: "Data Scientist & AI Engineer freelance, 4 ans d'expérience en Machine Learning et NLP, formé chez OpenClassrooms. Il conçoit toute l'intelligence de LlamaKusi : le coach d'expression écrite, le coach oral en temps réel, et l'algorithme de progression.",
-    flag: "🇫🇷",
+    flag: "fr",
     photoUrl: OLIVIER_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/olivier-raymond/",
   },
@@ -34,7 +34,7 @@ const team = [
     name: "Grecia",
     role: "Cofondatrice & Experte Utilisateur · 29 ans · Péruvienne",
     bio: "Ingénieure civile péruvienne, diplômée avec mention en atténuation des risques. Elle a travaillé en géotechnique et enseigné la gestion des risques de catastrophes, avant d'exercer aujourd'hui comme ingénieure conseil en France. Anticiper les points de rupture avant qu'ils n'arrivent — elle applique la même rigueur à l'expérience utilisateur de LlamaKusi.",
-    flag: "🇵🇪",
+    flag: "pe",
     photoUrl: GRECIA_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
   },
@@ -344,7 +344,14 @@ export default function NotreHistoirePage() {
                     />
                     <div className="p-8">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{member.flag}</span>
+                      <img
+                        src={`https://flagcdn.com/w40/${member.flag}.png`}
+                        srcSet={`https://flagcdn.com/w80/${member.flag}.png 2x`}
+                        alt=""
+                        width={28}
+                        height={21}
+                        className="rounded-sm shadow-sm"
+                      />
                       <span className="text-xl font-black text-slate-900 dark:text-white">
                         {member.name}
                       </span>

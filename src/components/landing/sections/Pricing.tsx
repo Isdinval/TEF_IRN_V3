@@ -22,6 +22,20 @@ const plans = [
     highlight: false
   },
   {
+    name: "Essentiel",
+    priceMonthly: 30,
+    desc: "Pour progresser sérieusement à l'écrit et en compréhension, sans coach oral.",
+    features: [
+      "Coach Expression Écrite illimité",
+      "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+      "Tableau de bord de progression : points, séries de jours et radar de compétences",
+      "Simulateur d'examen complet",
+      "Entraînement Examen Civique illimité"
+    ],
+    cta: "Choisir Essentiel",
+    highlight: false
+  },
+  {
     name: "Premium",
     priceMonthly: 55,
     desc: "Pour préparer sérieusement les 4 épreuves du TEF IRN.",
@@ -92,7 +106,7 @@ export function Pricing() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-center">
            {plans.map((plan, i) => {
              const isFree = plan.priceMonthly === 0;
              const displayPrice = isFree
