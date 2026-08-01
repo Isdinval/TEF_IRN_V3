@@ -13,7 +13,7 @@ const features = [
     icon: <PenTool size={26} />,
     accent: "blue",
     delay: 0.1,
-    track: "Coach TEF IRN",
+    track: "Parcours TEF IRN",
     points: [
       "Sujets calqués sur le format réel (Section A/B, timer, compteur de mots)",
       "Score global + détail par compétence (grammaire, vocabulaire, cohérence, orthographe)",
@@ -27,7 +27,7 @@ const features = [
     icon: <Mic2 size={26} />,
     accent: "purple",
     delay: 0.2,
-    track: "Coach TEF IRN",
+    track: "Parcours TEF IRN",
     points: [
       "Simulation des deux sections orales (obtenir des informations, convaincre)",
       "Feedback sur la prononciation, la fluidité et la pertinence des réponses",
@@ -41,7 +41,7 @@ const features = [
     icon: <Headphones size={26} />,
     accent: "amber",
     delay: 0.3,
-    track: "Coach TEF IRN",
+    track: "Parcours TEF IRN",
     points: [
       "Parcours adaptatif de A1 à B2, ajusté à votre progression",
       "LlamaKusi cible précisément vos lacunes plutôt qu'un programme générique",
@@ -55,7 +55,7 @@ const features = [
     icon: <GraduationCap size={26} />,
     accent: "emerald",
     delay: 0.4,
-    track: "Coach Examen Civique",
+    track: "Entraînement Examen Civique",
     points: [
       "Questions issues du référentiel officiel du Ministère de l'Intérieur",
       "Feedback immédiat sur chaque réponse, avec explication",
@@ -130,7 +130,7 @@ export function Features() {
           <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-brand-blue/5 dark:bg-brand-gold/10 border-2 border-brand-blue/20 dark:border-brand-gold/20 shadow-sm">
             <span className="w-10 h-10 rounded-full bg-brand-blue dark:bg-brand-gold text-white dark:text-brand-dark flex items-center justify-center font-black text-base shrink-0">2</span>
             <div className="text-left">
-              <p className="font-black text-brand-blue dark:text-brand-gold leading-tight">Coach TEF IRN</p>
+              <p className="font-black text-brand-blue dark:text-brand-gold leading-tight">Parcours TEF IRN</p>
               <p className="text-[10px] font-black text-brand-blue/70 dark:text-brand-gold/70 uppercase tracking-widest">Premium</p>
             </div>
           </div>

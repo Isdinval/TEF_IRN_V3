@@ -21,7 +21,7 @@ const TAG_STYLES: Record<Tag, string> = {
 
 const faqs: { question: string; answer: string; tag: Tag }[] = [
   {
-    question: "Pourquoi 55€/mois alors que d'autres apps sont moins chères ?",
+    question: "Pourquoi 54,90€/mois alors que d'autres apps sont moins chères ?",
     answer: "Parce qu'aucune autre app ne propose de coach IA sur l'Expression Écrite et l'Expression Orale — les deux épreuves les plus discriminantes du TEF IRN. Une formation traditionnelle coûte 300 à 800 €+ pour une préparation complète : LlamaKusi offre un entraînement illimité 24/7 pour 5 à 14 fois moins cher.",
     tag: "tef-irn",
   },
@@ -37,7 +37,7 @@ const faqs: { question: string; answer: string; tag: Tag }[] = [
   },
   {
     question: "Dois-je préparer l'Examen Civique et le TEF IRN en même temps ?",
-    answer: "Ce n'est pas obligatoire, mais c'est ce que nous recommandons : commencez par l'Examen Civique (gratuit, plus rapide à préparer), puis enchaînez avec le coach TEF IRN pour l'écrit et l'oral. Les deux parcours restent accessibles indépendamment depuis votre tableau de bord.",
+    answer: "Ce n'est pas obligatoire, mais c'est ce que nous recommandons : commencez par l'Examen Civique (gratuit, plus rapide à préparer), puis enchaînez avec le Parcours TEF IRN pour l'écrit et l'oral. Les deux parcours restent accessibles indépendamment depuis votre tableau de bord.",
     tag: "general",
   },
   {

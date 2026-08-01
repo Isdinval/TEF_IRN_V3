@@ -530,7 +530,7 @@ function CivicExamContent() {
                 </p>
                 <p className="text-xs text-indigo-200 font-medium leading-relaxed">
                   Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention] || "B1"} (TEF IRN).
-                  Coach IA oral &amp; écrit, exercices adaptatifs — dès 55 €/mois.
+                  Coach IA oral &amp; écrit, exercices adaptatifs — dès 32,90 €/mois.
                 </p>
               </div>
               <div className="flex gap-2">

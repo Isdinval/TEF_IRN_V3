@@ -38,7 +38,7 @@ export const PERPLEXED_MASCOT_URLS: string[] = [
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/perplexe_6_transparent.webp",
 ];
 
-// Poses "neutres" (état par défaut du Coach TEF) — 5 poses seulement, c'est voulu.
+// Poses "neutres" (état par défaut de l'Assistant LlamaKusi) — 5 poses seulement, c'est voulu.
 export const NEUTRAL_MASCOT_URLS: string[] = [
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_1_transparent.webp",
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_2_transparent.webp",
@@ -47,7 +47,7 @@ export const NEUTRAL_MASCOT_URLS: string[] = [
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/neutre_5_transparent.webp",
 ];
 
-// Poses "reflechit" (état de chargement du Coach TEF, pendant que la réponse arrive).
+// Poses "reflechit" (état de chargement de l'Assistant LlamaKusi, pendant que la réponse arrive).
 export const THINKING_MASCOT_URLS: string[] = [
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_1_transparent.webp",
   "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check/reflechit_2_transparent.webp",
