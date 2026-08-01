@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, Globe, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
+import { ChevronRight, Users, Euro, Sparkles, PenTool, Timer, Quote, Mic2, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Hauteurs fixes pour les barres audio de l'écran d'appel (pas de Math.random() : évite un mismatch d'hydratation SSR/client)
@@ -47,16 +47,15 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-8"
+            className="inline-flex items-center gap-2.5 px-5 py-3 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-8"
           >
-            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-              <Globe size={12} className="text-brand-blue" />
+            <span className="flex items-center gap-2 text-sm md:text-base font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
               <img
                 src="https://flagcdn.com/w40/fr.png"
                 srcSet="https://flagcdn.com/w80/fr.png 2x"
                 alt=""
-                width={14}
-                height={10}
+                width={20}
+                height={15}
                 className="rounded-sm"
               />
               EXAMEN CIVIQUE • TEF IRN • NATURALISATION
@@ -125,37 +124,40 @@ export function Hero() {
         </div>
 
         {/* === MOCKUP PRODUIT — système d'onglets, reproduction fidèle de /tef-irn/writing et /tef-irn/oral === */}
-        <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4">
-          Aperçu du coach
-        </p>
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab("ecrit")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === "ecrit" ? "bg-brand-blue text-white shadow-lg" : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"}`}
+        {/* Wrapper à fond contrasté : délimite visuellement l'aperçu produit du reste de la landing page */}
+        <div className="bg-slate-50 dark:bg-white/5 rounded-[3rem] py-14 px-6 md:px-12">
+          <h2 className="text-center text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-8">
+            Aperçu du coach
+          </h2>
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <button
+              onClick={() => setActiveTab("ecrit")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === "ecrit" ? "bg-brand-blue text-white shadow-lg" : "bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"}`}
+            >
+              <PenTool size={14} /> Expression Écrite
+            </button>
+            <button
+              onClick={() => setActiveTab("oral")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === "oral" ? "bg-brand-blue text-white shadow-lg" : "bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"}`}
+            >
+              <Mic2 size={14} /> Expression Orale
+            </button>
+          </div>
+
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="relative w-full max-w-5xl mx-auto rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white"
           >
-            <PenTool size={14} /> Expression Écrite
-          </button>
-          <button
-            onClick={() => setActiveTab("oral")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all ${activeTab === "oral" ? "bg-brand-blue text-white shadow-lg" : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10"}`}
-          >
-            <Mic2 size={14} /> Expression Orale
-          </button>
+            {activeTab === "ecrit" ? <EcritMockup /> : <OralMockup />}
+          </motion.div>
+
+          <p className="mt-6 text-center text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-3xl mx-auto">
+            Aperçu réel du coach {activeTab === "ecrit" ? "d'Expression Écrite" : "d'Expression Orale"}. Le même principe de correction guidée s&apos;applique aussi à la compréhension et aux fiches de l&apos;Examen Civique.
+          </p>
         </div>
-
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="relative w-full max-w-5xl mx-auto rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white"
-        >
-          {activeTab === "ecrit" ? <EcritMockup /> : <OralMockup />}
-        </motion.div>
-
-        <p className="mt-6 text-center text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-3xl mx-auto">
-          Aperçu réel du coach {activeTab === "ecrit" ? "d'Expression Écrite" : "d'Expression Orale"}. Le même principe de correction guidée s&apos;applique aussi à la compréhension et aux fiches de l&apos;Examen Civique.
-        </p>
       </div>
 
     </section>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { PenTool, Mic2, Headphones, GraduationCap, ClipboardCheck, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
+import { PenTool, Mic2, Headphones, GraduationCap, ClipboardCheck, Sparkles, CheckCircle2, ArrowRight, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const features = [
@@ -152,7 +152,7 @@ export function Features() {
                   {/* Barre d'accent en haut */}
                   <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accent.bar}`} />
                   {/* Numéro fantôme en fond */}
-                  <span className={`absolute -top-2 right-6 text-[7rem] font-black leading-none select-none ${accent.ghost}`}>
+                  <span className={`absolute top-2 right-6 text-[7rem] font-black leading-none select-none ${accent.ghost}`}>
                     {f.number}
                   </span>
 
@@ -190,19 +190,58 @@ export function Features() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-8 rounded-[2.5rem] p-10 md:p-12 bg-gradient-to-br from-brand-blue to-brand-purple text-white flex flex-col md:flex-row items-start md:items-center gap-8"
+          className="mt-8 rounded-[2.5rem] p-10 md:p-12 bg-gradient-to-br from-brand-blue to-brand-purple text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-8"
         >
-          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-xl flex items-center justify-center shrink-0">
-            <ClipboardCheck size={32} />
+          <div className="flex items-start gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-xl flex items-center justify-center shrink-0">
+              <ClipboardCheck size={32} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black mb-2">Examens blancs en conditions réelles</h3>
+              <p className="text-indigo-100 font-medium leading-relaxed max-w-3xl">
+                Simulateur chronométré pour le TEF IRN (CE, CO, EE, EO) comme pour l&apos;Examen Civique (40 questions, 45 minutes) — pour arriver le jour J sans surprise, avec un score estimé fiable.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-2xl font-black mb-2">Examens blancs en conditions réelles</h3>
-            <p className="text-indigo-100 font-medium leading-relaxed max-w-3xl">
-              Simulateur chronométré pour le TEF IRN (CE, CO, EE, EO) comme pour l&apos;Examen Civique (40 questions, 45 minutes) — pour arriver le jour J sans surprise, avec un score estimé fiable.
-            </p>
-          </div>
+          <EpreuvesCycler />
         </motion.div>
       </div>
     </section>
+  );
+}
+
+// Anime en boucle la mise en avant des 4 épreuves du TEF IRN (CE, CO, EE, EO)
+const EPREUVES = [
+  { code: "CE", label: "Compréhension Écrite", icon: <BookOpen size={20} /> },
+  { code: "CO", label: "Compréhension Orale", icon: <Headphones size={20} /> },
+  { code: "EE", label: "Expression Écrite", icon: <PenTool size={20} /> },
+  { code: "EO", label: "Expression Orale", icon: <Mic2 size={20} /> },
+];
+
+function EpreuvesCycler() {
+  const [active, setActive] = React.useState(0);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setActive((prev) => (prev + 1) % EPREUVES.length);
+    }, 1800);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-3 shrink-0">
+      {EPREUVES.map((e, i) => (
+        <motion.div
+          key={e.code}
+          animate={{ scale: active === i ? 1.1 : 1, opacity: active === i ? 1 : 0.55 }}
+          transition={{ duration: 0.4 }}
+          className={`flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-2xl ${active === i ? "bg-white/25" : "bg-white/10"}`}
+          title={e.label}
+        >
+          {e.icon}
+          <span className="text-[10px] font-black uppercase tracking-wider">{e.code}</span>
+        </motion.div>
+      ))}
+    </div>
   );
 }
