@@ -159,11 +159,11 @@ export function Pricing() {
 
                   <Link href="/tef-irn/login?mode=signup">
                      <Button
-                       className={`group/btn w-full h-14 rounded-2xl font-black text-lg transition-all duration-300 hover:scale-[1.03] active:scale-95 ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100 hover:shadow-xl' : 'bg-brand-blue text-white hover:bg-brand-blue/90 hover:shadow-xl hover:shadow-brand-blue/30'}`}
+                       className={`group/btn w-full min-h-14 px-4 py-3 rounded-2xl font-black text-base whitespace-normal leading-snug transition-all duration-300 hover:scale-[1.03] active:scale-95 ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100 hover:shadow-xl' : 'bg-brand-blue text-white hover:bg-brand-blue/90 hover:shadow-xl hover:shadow-brand-blue/30'}`}
                      >
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center justify-center gap-2 text-center">
                           {plan.cta}
-                          <ChevronRight size={18} className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                          <ChevronRight size={18} className="shrink-0 transition-transform duration-300 group-hover/btn:translate-x-1" />
                         </span>
                      </Button>
                   </Link>
