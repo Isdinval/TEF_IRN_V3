@@ -137,7 +137,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {
         id: 'welcome',
         role: 'assistant',
-        content: 'Bonjour ! Je suis ton **Coach LlamaKusi**, ton professeur particulier de français. Je suis là pour t\'aider à préparer ton examen TEF IRN avec bienveillance et pédagogie.'
+        content: 'Bonjour ! Je suis ton **Assistant LlamaKusi**, ton professeur particulier de français. Je suis là pour t\'aider à préparer ton examen TEF IRN avec bienveillance et pédagogie.'
       }
     ],
     onFinish: () => {
@@ -199,7 +199,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             <img src={mascotUrl} alt="Mascotte LlamaKusi" className="w-full h-full object-contain object-bottom" />
           </div>
           <div>
-            <h3 className="font-bold text-sm leading-tight text-white">Coach LlamaKusi</h3>
+            <h3 className="font-bold text-sm leading-tight text-white">Assistant LlamaKusi</h3>
             <p className="text-[10px] text-indigo-100 uppercase tracking-widest font-bold">Assistant Pédagogique</p>
           </div>
         </div>
@@ -268,7 +268,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
           {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
               <div className="bg-white p-2 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm w-12 h-12 overflow-hidden">
-                <img src={mascotUrl} alt="Coach LlamaKusi réfléchit" className="w-full h-full object-contain" />
+                <img src={mascotUrl} alt="Assistant LlamaKusi réfléchit" className="w-full h-full object-contain" />
               </div>
             </div>
           )}
@@ -334,7 +334,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             <Send className="w-4 h-4 text-white" />
           </Button>
         </form>
-        <p className="text-[10px] text-zinc-400 text-center mt-2 font-medium">Coach LlamaKusi peut faire des erreurs. Vérifie les infos.</p>
+        <p className="text-[10px] text-zinc-400 text-center mt-2 font-medium">Assistant LlamaKusi peut faire des erreurs. Vérifie les infos.</p>
       </div>
     </div>
   );
@@ -367,7 +367,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             }}
             className="absolute inset-0 bg-white/30 rounded-full"
           />
-          <img src={idleMascotUrl} alt="Ouvrir le Coach LlamaKusi" className="w-10 h-10 object-contain relative z-10" />
+          <img src={idleMascotUrl} alt="Ouvrir l'Assistant LlamaKusi" className="w-10 h-10 object-contain relative z-10" />
         </Button>
       </motion.div>
     );
