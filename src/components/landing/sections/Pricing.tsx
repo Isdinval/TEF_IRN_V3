@@ -46,7 +46,7 @@ const plans = [
     desc: "Pour préparer sérieusement les 4 épreuves du TEF IRN.",
     features: [
       "Coach Expression Écrite illimité",
-      "Coach Oral 40 min / jour",
+      "Coach Expression Orale : 40 min / jour",
       "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
       "Tableau de bord de progression : points, séries de jours et radar de compétences",
       "Simulateur d'examen complet",
@@ -64,7 +64,7 @@ const plans = [
     desc: "Exactement Premium, avec plus de temps de coach oral par jour.",
     features: [
       "Coach Expression Écrite illimité",
-      "Coach Oral 75 min / jour (au lieu de 40 min en Premium)",
+      "Coach Expression Orale : 75 min / jour (au lieu de 40 min en Premium)",
       "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
       "Tableau de bord de progression : points, séries de jours et radar de compétences",
       "Simulateur d'examen complet",

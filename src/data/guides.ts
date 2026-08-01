@@ -71,7 +71,7 @@ Vous avez une annonce sous les yeux. Vous disposez de **1 minute de préparation
 
 Pratiquer seul devant un miroir n'est pas efficace. Notre **Coach IA Oral** joue le rôle de l'examinateur. Il vous répond, vous relance si vous bloquez, et vous donne une correction immédiate sur votre syntaxe et votre prononciation.
 
-[Essayer le Coach Oral gratuitement](/oral)
+[Essayer le Coach Expression Orale gratuitement](/oral)
     `
   },
   {

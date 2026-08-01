@@ -37,7 +37,7 @@ const faqs: { question: string; answer: string; tag: Tag }[] = [
   },
   {
     question: "Dois-je préparer l'Examen Civique et le TEF IRN en même temps ?",
-    answer: "Ce n'est pas obligatoire, mais c'est ce que nous recommandons : commencez par l'Examen Civique (gratuit, plus rapide à préparer), puis enchaînez avec le coach TEF IRN pour l'écrit et l'oral. Les deux parcours restent accessibles indépendamment depuis votre tableau de bord.",
+    answer: "Ce n'est pas obligatoire, mais c'est ce que nous recommandons : commencez par l'Examen Civique (gratuit, plus rapide à préparer), puis enchaînez avec le Parcours TEF IRN pour l'écrit et l'oral. Les deux parcours restent accessibles indépendamment depuis votre tableau de bord.",
     tag: "general",
   },
   {
