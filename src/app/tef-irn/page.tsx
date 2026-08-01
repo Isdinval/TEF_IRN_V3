@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/sections/Hero";
 import { ProblemSolution } from "@/components/landing/sections/ProblemSolution";
 import { Features } from "@/components/landing/sections/Features";
+import { CoachAwareness } from "@/components/landing/sections/CoachAwareness";
 import { Vocabulary } from "@/components/landing/sections/Vocabulary";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
 import { Pricing } from "@/components/landing/sections/Pricing";
@@ -35,6 +36,7 @@ export default function LandingPage() {
         <Hero />
         <ProblemSolution />
         <Features />
+        <CoachAwareness />
         <Vocabulary />
         <Testimonials />
         <Pricing />
