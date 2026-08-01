@@ -16,7 +16,7 @@ const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: str
 
 const personas = [
   {
-    flag: "🇵🇪",
+    flag: "pe",
     name: "Maria",
     role: "Ingénieure informatique à Lyon · Naturalisation B2",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Maria_Ingenieur_informatique_Lyon.webp",
@@ -26,7 +26,7 @@ const personas = [
     accent: "blue",
   },
   {
-    flag: "🇲🇦",
+    flag: "ma",
     name: "Ahmed",
     role: "Chef d'équipe BTP à Nantes · Carte de résident B1",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Ahmed_Chef_Equipe_BTP_Nantes.webp",
@@ -36,7 +36,7 @@ const personas = [
     accent: "purple",
   },
   {
-    flag: "🇸🇳",
+    flag: "sn",
     name: "Fatou",
     role: "Assistante administrative en mairie à Bordeaux · Naturalisation B2",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Fatou_Assistante_Administrative_Mairie_Bordeaux.webp",
@@ -46,7 +46,7 @@ const personas = [
     accent: "amber",
   },
   {
-    flag: "🇩🇿",
+    flag: "dz",
     name: "Karim",
     role: "Comptable à Toulouse · Naturalisation B2",
     image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Karim_comptable_Toulouse.webp",
@@ -97,11 +97,20 @@ export function Testimonials() {
                       className="object-cover"
                       sizes="(max-width: 768px) 45vw, 280px"
                     />
-                    <span className="absolute bottom-2 right-2 text-3xl leading-none drop-shadow-lg">{p.flag}</span>
                   </div>
 
                   <div className="mb-6">
-                    <div className="font-black text-lg text-slate-900 dark:text-white leading-tight">{p.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-lg text-slate-900 dark:text-white leading-tight">{p.name}</span>
+                      <img
+                        src={`https://flagcdn.com/w40/${p.flag}.png`}
+                        srcSet={`https://flagcdn.com/w80/${p.flag}.png 2x`}
+                        alt=""
+                        width={20}
+                        height={15}
+                        className="rounded-sm shadow-sm shrink-0"
+                      />
+                    </div>
                     <div className="text-xs text-slate-500 leading-tight">{p.role}</div>
                   </div>
 

@@ -51,7 +51,15 @@ export function Hero() {
           >
             <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
               <Globe size={12} className="text-brand-blue" />
-              🇫🇷 EXAMEN CIVIQUE • TEF IRN • NATURALISATION
+              <img
+                src="https://flagcdn.com/w40/fr.png"
+                srcSet="https://flagcdn.com/w80/fr.png 2x"
+                alt=""
+                width={14}
+                height={10}
+                className="rounded-sm"
+              />
+              EXAMEN CIVIQUE • TEF IRN • NATURALISATION
             </span>
           </motion.div>
 
