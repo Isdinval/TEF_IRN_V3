@@ -10,6 +10,7 @@ const plans = [
   {
     name: "Gratuit",
     priceMonthly: 0,
+    price4Months: 0,
     desc: "Pour découvrir la plateforme et tester votre niveau réel.",
     features: [
       "Test de positionnement A1 → B2",
@@ -19,11 +20,13 @@ const plans = [
       "Entraînement Examen Civique illimité"
     ],
     cta: "Commencer gratuitement",
-    highlight: false
+    highlight: false,
+    guarantee: null
   },
   {
     name: "Essentiel",
-    priceMonthly: 30,
+    priceMonthly: 32.9,
+    price4Months: 118.9,
     desc: "Pour progresser sérieusement à l'écrit et en compréhension, sans coach oral.",
     features: [
       "Coach Expression Écrite illimité",
@@ -33,11 +36,13 @@ const plans = [
       "Entraînement Examen Civique illimité"
     ],
     cta: "Choisir Essentiel",
-    highlight: false
+    highlight: false,
+    guarantee: "Remboursé sous 14 jours, sans condition."
   },
   {
     name: "Premium",
-    priceMonthly: 55,
+    priceMonthly: 54.9,
+    price4Months: 197.9,
     desc: "Pour préparer sérieusement les 4 épreuves du TEF IRN.",
     features: [
       "Coach Expression Écrite illimité",
@@ -49,11 +54,13 @@ const plans = [
     ],
     cta: "Choisir Premium",
     highlight: true,
-    badge: "LE PLUS CHOISI"
+    badge: "LE PLUS CHOISI",
+    guarantee: "Remboursé sous 14 jours si moins de 60 min de coach oral utilisées."
   },
   {
     name: "Super Premium",
-    priceMonthly: 78,
+    priceMonthly: 77.9,
+    price4Months: 279.9,
     desc: "Exactement Premium, avec plus de temps de coach oral par jour.",
     features: [
       "Coach Expression Écrite illimité",
@@ -64,12 +71,17 @@ const plans = [
       "Entraînement Examen Civique illimité"
     ],
     cta: "Choisir Super Premium",
-    highlight: false
+    highlight: false,
+    guarantee: "Remboursé sous 14 jours si moins de 90 min de coach oral utilisées."
   }
 ];
 
+function formatPrice(n: number): string {
+  return n % 1 === 0 ? String(n) : n.toFixed(2).replace(".", ",");
+}
+
 export function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "forfait4mois">("monthly");
 
   return (
     <section id="pricing" className="py-32 px-6 bg-indigo-50 dark:bg-indigo-950 relative overflow-hidden">
@@ -97,11 +109,11 @@ export function Pricing() {
                Mensuel
              </button>
              <button
-               onClick={() => setBillingCycle("annually")}
-               className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${billingCycle === "annually" ? "bg-white dark:bg-white text-brand-blue shadow-lg" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
+               onClick={() => setBillingCycle("forfait4mois")}
+               className={`px-6 py-2.5 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${billingCycle === "forfait4mois" ? "bg-white dark:bg-white text-brand-blue shadow-lg" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
              >
-               Annuel
-               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] rounded-full">-20%</span>
+               Forfait 4 mois
+               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] rounded-full">-10%</span>
              </button>
           </div>
         </div>
@@ -109,11 +121,9 @@ export function Pricing() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-center">
            {plans.map((plan, i) => {
              const isFree = plan.priceMonthly === 0;
-             const displayPrice = isFree
-               ? 0
-               : billingCycle === "annually"
-                 ? Math.round(plan.priceMonthly * 0.8)
-                 : plan.priceMonthly;
+             const isForfait = billingCycle === "forfait4mois";
+             const displayPrice = isFree ? 0 : isForfait ? plan.price4Months : plan.priceMonthly;
+             const monthlyEquivalent = isFree ? 0 : plan.price4Months / 4;
 
              return (
                <motion.div
@@ -134,11 +144,11 @@ export function Pricing() {
                      <h3 className={`text-xl font-black mb-2 uppercase tracking-widest ${plan.highlight ? 'opacity-80' : 'text-slate-900 dark:text-white opacity-80'}`}>{plan.name}</h3>
                      <div className={`flex items-baseline gap-1 ${plan.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                         <span className="text-2xl font-bold">€</span>
-                        <span className="text-5xl font-black tracking-tighter">{displayPrice}</span>
-                        <span className="text-sm font-bold opacity-70">/ mois{!isFree && billingCycle === "annually" ? "*" : ""}</span>
+                        <span className="text-5xl font-black tracking-tighter">{formatPrice(displayPrice)}</span>
+                        <span className="text-sm font-bold opacity-70">{isFree ? "/ mois" : isForfait ? "/ 4 mois*" : "/ mois"}</span>
                      </div>
-                     {!isFree && billingCycle === "annually" && (
-                       <p className={`text-xs font-bold mt-2 opacity-60 ${plan.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>*(facturé {Math.round(displayPrice * 12)}€ / an)</p>
+                     {!isFree && isForfait && (
+                       <p className={`text-xs font-bold mt-2 opacity-60 ${plan.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>*paiement unique, sans renouvellement (soit {formatPrice(monthlyEquivalent)}€/mois)</p>
                      )}
                   </div>
 
@@ -169,9 +179,16 @@ export function Pricing() {
                   </Link>
 
                   {!isFree && (
-                     <div className={`mt-6 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${plan.highlight ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>
-                        <ShieldCheck size={14} />
-                        Sans engagement • Annulation en 1 clic
+                     <div className="mt-6 space-y-2">
+                       <div className={`flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${plan.highlight ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>
+                          <ShieldCheck size={14} />
+                          {isForfait ? "Sans engagement • Paiement unique" : "Sans engagement • Annulation en 1 clic"}
+                       </div>
+                       {plan.guarantee && (
+                         <div className={`text-center text-[11px] font-bold leading-snug ${plan.highlight ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                           {plan.guarantee}
+                         </div>
+                       )}
                      </div>
                   )}
                </motion.div>

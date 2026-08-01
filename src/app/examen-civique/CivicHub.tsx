@@ -214,7 +214,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
           <p className="text-xs text-indigo-200 font-medium leading-relaxed">
             Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
-            LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 55 €/mois.
+            LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 32,90 €/mois.
           </p>
           <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
             <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">

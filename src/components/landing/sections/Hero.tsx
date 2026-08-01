@@ -113,7 +113,7 @@ export function Hero() {
             <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
             <div className="flex items-center gap-2">
               <Euro size={16} className="text-brand-blue" />
-              <span>55€/mois vs 300–800€ en formation traditionnelle</span>
+              <span>Dès 32,90€/mois vs 300–800€ en formation traditionnelle</span>
             </div>
             <div className="w-1 h-1 bg-slate-300 rounded-full hidden sm:block" />
             <div className="flex items-center gap-2">

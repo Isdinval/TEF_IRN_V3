@@ -9,7 +9,7 @@ export default function ConditionsUtilisationPage() {
       icon={FileText}
       badge="Cadre contractuel"
       title="Conditions d'utilisation"
-      lastUpdated="21 juillet 2026"
+      lastUpdated="1 août 2026"
       intro="Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de la plateforme LlamaKusi. En créant un compte ou en utilisant le service, vous acceptez sans réserve les termes ci-dessous."
     >
       <div>
@@ -61,13 +61,45 @@ export default function ConditionsUtilisationPage() {
           bancaires ; LlamaKusi ne stocke aucune information de carte bancaire.
         </p>
         <p>
-          Sauf mention contraire au moment de la souscription, les abonnements se
-          renouvellent automatiquement pour une durée identique à la période initiale,
-          au tarif en vigueur. Vous pouvez résilier à tout moment depuis votre espace
-          « Paramètres » ou le portail de facturation Stripe ; la résiliation prend effet
-          à la fin de la période en cours, sans remboursement au prorata sauf disposition
-          légale contraire (notamment le droit de rétractation applicable aux
-          consommateurs).
+          LlamaKusi propose deux modes de facturation, précisés au moment de la
+          souscription :
+        </p>
+        <ul>
+          <li>
+            <strong>Abonnement mensuel :</strong> sans engagement, renouvelé
+            automatiquement chaque mois au tarif en vigueur. Vous pouvez résilier à tout
+            moment depuis votre espace « Paramètres » ou le portail de facturation
+            Stripe ; la résiliation prend effet à la fin de la période en cours, sans
+            remboursement au prorata sauf disposition légale contraire ou garantie
+            contractuelle décrite ci-dessous.
+          </li>
+          <li>
+            <strong>Forfait 4 mois :</strong> paiement unique donnant accès au service
+            pour une durée de 4 mois, sans reconduction ni renouvellement automatique.
+            L'accès prend fin de lui-même à l'issue de cette période, sans action ni
+            frais supplémentaire de votre part.
+          </li>
+        </ul>
+        <p>
+          <strong>Garantie de remboursement :</strong> indépendamment du droit de
+          rétractation légal applicable aux consommateurs, LlamaKusi propose une
+          garantie de remboursement sous 14 jours à compter de la souscription, dans les
+          conditions suivantes selon l'offre souscrite :
+        </p>
+        <ul>
+          <li>
+            <strong>Offre Essentiel :</strong> remboursement sans condition d'usage.
+          </li>
+          <li>
+            <strong>Offres Premium et Super Premium :</strong> remboursement possible
+            tant que l'usage cumulé du coach oral n'excède pas 60 minutes (Premium) ou
+            90 minutes (Super Premium) sur la période concernée.
+          </li>
+        </ul>
+        <p>
+          Pour exercer cette garantie ou votre droit de rétractation légal, contactez{" "}
+          <a href="mailto:contact@llamakusi.com">contact@llamakusi.com</a> dans le délai
+          imparti.
         </p>
       </div>
 
