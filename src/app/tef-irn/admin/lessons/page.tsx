@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -37,6 +37,7 @@ interface LessonRow {
 const LEVELS = ["A1", "A2", "B1", "B2"];
 const CATEGORIES = ["grammaire", "vocabulaire", "conjugaison", "syntaxe", "orthographe"];
 const DIFFICULTIES = ["facile", "moyen", "difficile"];
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://llamakusi.com";
 
 function slugify(title: string): string {
   return title
@@ -245,6 +246,14 @@ export default function LessonsAdmin() {
                 <p className="text-sm font-bold text-zinc-800 truncate">{lesson.title}</p>
               </div>
               <div className="flex gap-2 shrink-0">
+                <a
+                  href={`${SITE_URL}/tef-irn/lessons/${lesson.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-emerald-600"
+                >
+                  <ExternalLink size={15} />
+                </a>
                 <button onClick={() => openEditDialog(lesson)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
