@@ -42,10 +42,10 @@ const team = [
 
 // Où en est notre dossier, en toute transparence — mis à jour manuellement, pas de fausse promesse d'automatisation
 const dossierChecklist: { label: string; note?: string; status: "done" | "pending" }[] = [
-  { label: "Mariage depuis plus de 4 ans", status: "done" },
-  { label: "Communauté de vie établie", status: "done" },
-  { label: "Niveau de français B2", note: "Grecia a obtenu son TEF IRN B2", status: "done" },
-  { label: "Justificatifs de communauté de vie", note: "Bail, factures, comptes joints", status: "done" },
+  { label: "Mariage depuis plus de 4 ans", note: "Mariés le 26 mars 2022", status: "done" },
+  { label: "Communauté de vie établie", note: "Confirmée en juillet 2026", status: "done" },
+  { label: "Niveau de français B2", note: "Grecia a obtenu son TEF IRN B2 en juin 2026", status: "done" },
+  { label: "Justificatifs de communauté de vie", note: "Bail, factures, comptes joints — réunis en juillet 2026", status: "done" },
   { label: "Casier judiciaire", note: "France, Italie et Pérou — en attente du retour", status: "pending" },
   { label: "Acte d'état civil traduit", note: "Obtenu au Pérou, traduction par un traducteur assermenté en cours", status: "pending" },
   { label: "Timbre fiscal (255 €)", note: "Pas encore acheté — le dossier n'est pas complet", status: "pending" },
@@ -202,7 +202,7 @@ export default function NotreHistoirePage() {
         <section className="py-20 px-6">
           <div className="max-w-3xl mx-auto">
             <div className="relative rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 p-8 md:p-14 shadow-sm">
-              <Quote className="absolute top-6 left-6 md:top-8 md:left-8 text-brand-blue/10 dark:text-brand-gold/10" size={72} strokeWidth={1.5} />
+              <Quote className="absolute top-6 right-6 md:top-8 md:right-8 text-brand-blue/10 dark:text-brand-gold/10" size={72} strokeWidth={1.5} />
 
               <p className="relative font-heading text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-8">
                 Cher futur candidat,
@@ -227,7 +227,7 @@ export default function NotreHistoirePage() {
                   Des formations à 300€, 500€, 800€. Un examen à repasser à 200€.
                 </p>
 
-                <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white border-l-4 border-brand-blue dark:border-brand-gold pl-5 py-1">
+                <p className="text-lg font-semibold italic text-slate-900 dark:text-white border-l-4 border-brand-blue dark:border-brand-gold pl-5 py-0.5">
                   Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de
                   simulation orale. Rien. Juste du stress.
                 </p>
