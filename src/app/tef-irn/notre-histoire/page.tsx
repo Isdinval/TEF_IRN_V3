@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin } from "lucide-react";
+import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin, AlertTriangle, Clock } from "lucide-react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { Card } from "@/components/ui/card";
@@ -38,6 +38,18 @@ const team = [
     photoUrl: GRECIA_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
   },
+];
+
+// Où en est notre dossier, en toute transparence — mis à jour manuellement, pas de fausse promesse d'automatisation
+const dossierChecklist: { label: string; note?: string; status: "done" | "pending" }[] = [
+  { label: "Mariage depuis plus de 4 ans", status: "done" },
+  { label: "Communauté de vie établie", status: "done" },
+  { label: "Niveau de français B2", note: "Grecia a obtenu son TEF IRN B2", status: "done" },
+  { label: "Justificatifs de communauté de vie", note: "Bail, factures, comptes joints", status: "done" },
+  { label: "Casier judiciaire", note: "France, Italie et Pérou — en attente du retour", status: "pending" },
+  { label: "Acte d'état civil traduit", note: "Obtenu au Pérou, traduction par un traducteur assermenté en cours", status: "pending" },
+  { label: "Timbre fiscal (255 €)", note: "Pas encore acheté — le dossier n'est pas complet", status: "pending" },
+  { label: "Dépôt du dossier", note: "Sur l'ANEF, dès que les pièces ci-dessus seront réunies", status: "pending" },
 ];
 
 const timeline = [
@@ -318,6 +330,80 @@ export default function NotreHistoirePage() {
                 On n'a pas fini le parcours. On vit encore, avec vous, les démarches, les délais, les doutes. LlamaKusi évolue avec nous, à chaque étape.
               </p>
             </Card>
+          </div>
+        </section>
+
+        {/* Nos erreurs */}
+        <section className="pb-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 justify-center mb-8">
+              <AlertTriangle className="text-brand-blue dark:text-brand-gold" size={22} />
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white text-center">
+                On ne vous cache pas nos erreurs
+              </h2>
+            </div>
+            <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+              <p>
+                On pourrait vous raconter que tout s&apos;est bien passé depuis le début. Ce ne serait pas honnête.
+              </p>
+              <p>
+                On s&apos;est trompés de procédure. Pendant deux semaines, on s&apos;est engagés en pensant suivre
+                la voie de la naturalisation par décret — celle qu&apos;on connaissait, celle dont tout le monde
+                parle. On avait même commencé à préparer Grecia à l&apos;Examen Civique. Puis on a compris :
+                un mariage avec un(e) Français(e) suit une autre voie, la déclaration, avec ses propres règles.
+                Et sur cette voie-là, l&apos;Examen Civique n&apos;est pas obligatoire.
+              </p>
+              <p>
+                Deux semaines à préparer le mauvais examen, pour un couple qui, comme nous, allait justement
+                créer un outil de préparation. Ironique. Mais ça nous a appris une chose essentielle : dans les
+                démarches de naturalisation, la première question n&apos;est pas &laquo; comment je me
+                prépare ? &raquo;, c&apos;est &laquo; à quelle procédure est-ce que je réponds ? &raquo;. Deux
+                personnes dans la même situation — mariées à un ou une Français(e) — peuvent suivre deux
+                parcours complètement différents.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Où en est notre dossier */}
+        <section className="pb-20 px-6">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-black text-center text-slate-900 dark:text-white mb-3">
+              Où en est notre dossier ?
+            </h2>
+            <p className="text-center text-slate-500 dark:text-slate-400 mb-10">
+              On ne l&apos;a pas encore déposé. En toute transparence, voici ce qui est fait — et ce qu&apos;il
+              nous reste à faire.
+            </p>
+            <div className="space-y-3">
+              {dossierChecklist.map((item, idx) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border ${item.status === "done" ? "bg-emerald-500/5 border-emerald-500/20" : "bg-amber-500/5 border-amber-500/20"}`}
+                >
+                  {item.status === "done" ? (
+                    <CheckCircle2 className="text-emerald-500 shrink-0" size={22} />
+                  ) : (
+                    <Clock className="text-amber-500 shrink-0" size={22} />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white text-sm leading-snug">{item.label}</p>
+                    {item.note && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.note}</p>
+                    )}
+                  </div>
+                  <span
+                    className={`ml-auto shrink-0 text-[10px] font-black uppercase tracking-wide ${item.status === "done" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+                  >
+                    {item.status === "done" ? "Validé" : "En cours"}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
