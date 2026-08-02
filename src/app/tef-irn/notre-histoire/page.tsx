@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin } from "lucide-react";
+import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin, Clock, Quote } from "lucide-react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { Card } from "@/components/ui/card";
@@ -38,6 +38,18 @@ const team = [
     photoUrl: GRECIA_PHOTO_URL,
     linkedinUrl: "https://www.linkedin.com/in/grecia-raymond-huayra-mena-423b22122/",
   },
+];
+
+// Où en est notre dossier, en toute transparence — mis à jour manuellement, pas de fausse promesse d'automatisation
+const dossierChecklist: { label: string; note?: string; status: "done" | "pending" }[] = [
+  { label: "Mariage depuis plus de 4 ans", note: "Mariés le 26 mars 2022", status: "done" },
+  { label: "Communauté de vie établie", note: "Confirmée en juillet 2026", status: "done" },
+  { label: "Niveau de français B2", note: "Grecia a obtenu son TEF IRN B2 en juin 2026", status: "done" },
+  { label: "Justificatifs de communauté de vie", note: "Bail, factures, comptes joints — réunis en juillet 2026", status: "done" },
+  { label: "Casier judiciaire", note: "France, Italie et Pérou — en attente du retour", status: "pending" },
+  { label: "Acte d'état civil traduit", note: "Obtenu au Pérou, traduction par un traducteur assermenté en cours", status: "pending" },
+  { label: "Timbre fiscal (255 €)", note: "Pas encore acheté — le dossier n'est pas complet", status: "pending" },
+  { label: "Dépôt du dossier", note: "Sur l'ANEF, dès que les pièces ci-dessus seront réunies", status: "pending" },
 ];
 
 const timeline = [
@@ -137,8 +149,10 @@ export default function NotreHistoirePage() {
 
       <main className="flex-1 pt-20">
         {/* Hero */}
-        <section className="py-20 md:py-28 px-6">
-          <div className="max-w-5xl mx-auto text-center">
+        <section className="relative py-20 md:py-28 px-6 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-brand-blue/5 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/5 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+          <div className="relative max-w-5xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -174,7 +188,7 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Hero image */}
-        <section className="max-w-6xl mx-auto px-6 -mt-4 mb-4">
+        <section className="max-w-7xl mx-auto px-6 -mt-4 mb-4">
           <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img
               src={HERO_IMAGE_URL}
@@ -187,48 +201,78 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Story */}
-        <section className="py-20 px-6">
-          <div className="max-w-3xl mx-auto space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
-            <p>
-              Cher futur candidat,
-            </p>
-            <p>
-              On ne se connaît pas. Mais on se comprend. Toi, tu prépares le{" "}
-              <Link
-                href="/tef-irn/guides"
-                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
-              >
-                TEF IRN
-              </Link>
-              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Et puis Grecia a dit : "Je veux devenir française." On ne savait pas ce que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
-            </p>
-            <p>
-              Des formations à 300€, 500€, 800€. Un examen à repasser à 200€. Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de simulation orale. Rien. Juste du stress. On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
-            </p>
-            <p>
-              Alors on a construit ce qu'on aurait voulu trouver :{" "}
-              <Link
-                href="/tef-irn/pricing"
-                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
-              >
-                LlamaKusi
-              </Link>
-              , un coach IA qui corrige l'écrit en quelques secondes, qui simule l'oral 24/7, qui te donne un vrai retour. On ne vend pas une plateforme. On partage ce qu'on a cherché en vain. Et si notre expérience peut t'éviter une nuit blanche ou un échec... alors notre combat aura servi à quelque chose.
-            </p>
+        <section className="relative py-20 px-6 overflow-hidden">
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-brand-gold/[0.06] rounded-full blur-[130px] translate-x-1/3 pointer-events-none" />
+          <div className="relative max-w-3xl mx-auto">
+            <div className="relative rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 p-8 md:p-14 shadow-sm">
+              <Quote className="absolute top-6 right-6 md:top-8 md:right-8 text-brand-blue/10 dark:text-brand-gold/10" size={72} strokeWidth={1.5} />
+
+              <p className="relative font-heading text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-8">
+                Cher futur candidat,
+              </p>
+
+              <div className="relative space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+                <p className="first-letter:text-6xl first-letter:font-black first-letter:leading-[0.8] first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-brand-blue dark:first-letter:text-brand-gold">
+                  On ne se connaît pas. Mais on se comprend. Toi, tu prépares le{" "}
+                  <Link
+                    href="/tef-irn/guides"
+                    className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+                  >
+                    TEF IRN
+                  </Link>
+                  . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en
+                  France. Et puis Grecia a dit : &laquo; Je veux devenir française. &raquo; On ne savait pas ce
+                  que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les
+                  gens seuls.
+                </p>
+
+                <p>
+                  Des formations à 300€, 500€, 800€. Un examen à repasser à 200€.
+                </p>
+
+                <p className="text-lg font-semibold italic text-slate-900 dark:text-white border-l-4 border-brand-blue dark:border-brand-gold pl-5 py-0.5">
+                  Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de
+                  simulation orale. Rien. Juste du stress.
+                </p>
+
+                <p>
+                  On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats
+                  comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
+                </p>
+
+                <p>
+                  Alors on a construit ce qu'on aurait voulu trouver :{" "}
+                  <Link
+                    href="/tef-irn/pricing"
+                    className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+                  >
+                    LlamaKusi
+                  </Link>
+                  , un coach IA qui corrige l'écrit en quelques secondes, qui simule l'oral 24/7, qui te donne un
+                  vrai retour. On ne vend pas une plateforme. On partage ce qu'on a cherché en vain. Et si notre
+                  expérience peut t'éviter une nuit blanche ou un échec... alors notre combat aura servi à
+                  quelque chose.
+                </p>
+              </div>
+
+              <p className="relative font-heading italic text-xl text-slate-900 dark:text-white mt-10">
+                — Olivier &amp; Grecia
+              </p>
+            </div>
           </div>
         </section>
 
         {/* Pourquoi LlamaKusi */}
         <section className="pb-20 px-6">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-10">
               Pourquoi LlamaKusi ?
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-8 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-10 items-center">
               <img
                 src={MASCOT_IMAGE_URL}
                 alt="La mascotte LlamaKusi, un lama souriant portant un béret, une écharpe et un drapeau français"
-                className="w-40 sm:w-48 h-auto mx-auto"
+                className="w-48 sm:w-56 h-auto mx-auto"
                 loading="lazy"
               />
               <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
@@ -298,8 +342,9 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Milestone */}
-        <section className="pb-20 px-6">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <section className="relative pb-20 px-6 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-brand-purple/[0.04] rounded-full blur-[140px] pointer-events-none" />
+          <div className="relative max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card className="p-8 items-start bg-gradient-to-br from-brand-blue/5 to-transparent dark:from-brand-gold/5">
               <GraduationCap className="text-brand-blue dark:text-brand-gold mb-3" size={28} />
               <div className="text-2xl font-black text-slate-900 dark:text-white mb-1">
@@ -321,9 +366,82 @@ export default function NotreHistoirePage() {
           </div>
         </section>
 
+        {/* Nos erreurs */}
+        <section className="pb-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center gap-2 justify-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white text-center">
+                On ne vous cache pas nos erreurs
+              </h2>
+            </div>
+            <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+              <p>
+                On pourrait vous raconter que tout s&apos;est bien passé depuis le début. Ce ne serait pas honnête.
+              </p>
+              <p>
+                On s&apos;est trompés de procédure. Pendant deux semaines, on s&apos;est engagés en pensant suivre
+                la voie de la naturalisation par décret — celle qu&apos;on connaissait, celle dont tout le monde
+                parle. On avait même commencé à préparer Grecia à l&apos;Examen Civique. Puis on a compris :
+                un mariage avec un(e) Français(e) suit une autre voie, la déclaration, avec ses propres règles.
+                Et sur cette voie-là, l&apos;Examen Civique n&apos;est pas obligatoire.
+              </p>
+              <p>
+                Deux semaines à préparer le mauvais examen, pour un couple qui, comme nous, allait justement
+                créer un outil de préparation. Ironique. Mais ça nous a appris une chose essentielle : dans les
+                démarches de naturalisation, la première question n&apos;est pas &laquo; comment je me
+                prépare ? &raquo;, c&apos;est &laquo; à quelle procédure est-ce que je réponds ? &raquo;. Deux
+                personnes dans la même situation — mariées à un ou une Français(e) — peuvent suivre deux
+                parcours complètement différents.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Où en est notre dossier */}
+        <section className="pb-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-black text-center text-slate-900 dark:text-white mb-3">
+              Où en est notre dossier ?
+            </h2>
+            <p className="text-center text-slate-500 dark:text-slate-400 mb-10">
+              On ne l&apos;a pas encore déposé. En toute transparence, voici ce qui est fait — et ce qu&apos;il
+              nous reste à faire.
+            </p>
+            <div className="space-y-3">
+              {dossierChecklist.map((item, idx) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border ${item.status === "done" ? "bg-emerald-500/5 border-emerald-500/20" : "bg-amber-500/5 border-amber-500/20"}`}
+                >
+                  {item.status === "done" ? (
+                    <CheckCircle2 className="text-emerald-500 shrink-0" size={22} />
+                  ) : (
+                    <Clock className="text-amber-500 shrink-0" size={22} />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white text-sm leading-snug">{item.label}</p>
+                    {item.note && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.note}</p>
+                    )}
+                  </div>
+                  <span
+                    className={`ml-auto shrink-0 text-[10px] font-black uppercase tracking-wide ${item.status === "done" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+                  >
+                    {item.status === "done" ? "Validé" : "En cours"}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Team */}
         <section className="py-20 bg-slate-50 dark:bg-slate-900/30 px-6">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-14">
               L'équipe
             </h2>
@@ -392,8 +510,10 @@ export default function NotreHistoirePage() {
               chaque candidat qui utilise LlamaKusi arrive à son examen mieux préparé que
               nous ne l'étions.
             </p>
+          </div>
 
-            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-3">
+          <div className="max-w-6xl mx-auto">
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-10">
               <img
                 src={BANNER_IMAGE_URL}
                 alt="Olivier et Grecia, fondateurs de LlamaKusi, illustration aquarelle inspirée de Gordes (Provence)"
@@ -402,8 +522,9 @@ export default function NotreHistoirePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
+          </div>
 
-
+          <div className="max-w-3xl mx-auto text-center">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/tef-irn/pricing"
