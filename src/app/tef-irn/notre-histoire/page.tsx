@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin, AlertTriangle, Clock } from "lucide-react";
+import { Heart, MapPin, GraduationCap, Sparkles, ArrowRight, CheckCircle2, FileCheck, Linkedin, Clock, Quote } from "lucide-react";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { Card } from "@/components/ui/card";
@@ -200,33 +200,62 @@ export default function NotreHistoirePage() {
 
         {/* Story */}
         <section className="py-20 px-6">
-          <div className="max-w-3xl mx-auto space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
-            <p>
-              Cher futur candidat,
-            </p>
-            <p>
-              On ne se connaît pas. Mais on se comprend. Toi, tu prépares le{" "}
-              <Link
-                href="/tef-irn/guides"
-                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
-              >
-                TEF IRN
-              </Link>
-              . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en France. Et puis Grecia a dit : "Je veux devenir française." On ne savait pas ce que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les gens seuls.
-            </p>
-            <p>
-              Des formations à 300€, 500€, 800€. Un examen à repasser à 200€. Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de simulation orale. Rien. Juste du stress. On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
-            </p>
-            <p>
-              Alors on a construit ce qu'on aurait voulu trouver :{" "}
-              <Link
-                href="/tef-irn/pricing"
-                className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
-              >
-                LlamaKusi
-              </Link>
-              , un coach IA qui corrige l'écrit en quelques secondes, qui simule l'oral 24/7, qui te donne un vrai retour. On ne vend pas une plateforme. On partage ce qu'on a cherché en vain. Et si notre expérience peut t'éviter une nuit blanche ou un échec... alors notre combat aura servi à quelque chose.
-            </p>
+          <div className="max-w-3xl mx-auto">
+            <div className="relative rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 p-8 md:p-14 shadow-sm">
+              <Quote className="absolute top-6 left-6 md:top-8 md:left-8 text-brand-blue/10 dark:text-brand-gold/10" size={72} strokeWidth={1.5} />
+
+              <p className="relative font-heading text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-8">
+                Cher futur candidat,
+              </p>
+
+              <div className="relative space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+                <p className="first-letter:text-6xl first-letter:font-black first-letter:leading-[0.8] first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-brand-blue dark:first-letter:text-brand-gold">
+                  On ne se connaît pas. Mais on se comprend. Toi, tu prépares le{" "}
+                  <Link
+                    href="/tef-irn/guides"
+                    className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+                  >
+                    TEF IRN
+                  </Link>
+                  . Nous, on l'a vécu. On s'est rencontrés au Pérou. On s'est mariés. On s'est installés en
+                  France. Et puis Grecia a dit : &laquo; Je veux devenir française. &raquo; On ne savait pas ce
+                  que ça impliquait. On a découvert un système qui coûte cher, qui stresse, et qui laisse les
+                  gens seuls.
+                </p>
+
+                <p>
+                  Des formations à 300€, 500€, 800€. Un examen à repasser à 200€.
+                </p>
+
+                <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white border-l-4 border-brand-blue dark:border-brand-gold pl-5 py-1">
+                  Aucun outil pour s'entraîner vraiment. Pas de correction automatique de l'écrit. Pas de
+                  simulation orale. Rien. Juste du stress.
+                </p>
+
+                <p>
+                  On a déménagé trois fois — {cities.slice(0, 3).join(", ")} — et partout, on a vu des candidats
+                  comme toi : des gens qui bossent, qui paient, qui espèrent, et qui n'ont aucun retour.
+                </p>
+
+                <p>
+                  Alors on a construit ce qu'on aurait voulu trouver :{" "}
+                  <Link
+                    href="/tef-irn/pricing"
+                    className="font-semibold text-brand-blue dark:text-brand-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
+                  >
+                    LlamaKusi
+                  </Link>
+                  , un coach IA qui corrige l'écrit en quelques secondes, qui simule l'oral 24/7, qui te donne un
+                  vrai retour. On ne vend pas une plateforme. On partage ce qu'on a cherché en vain. Et si notre
+                  expérience peut t'éviter une nuit blanche ou un échec... alors notre combat aura servi à
+                  quelque chose.
+                </p>
+              </div>
+
+              <p className="relative font-heading italic text-xl text-slate-900 dark:text-white mt-10">
+                — Olivier &amp; Grecia
+              </p>
+            </div>
           </div>
         </section>
 
@@ -337,7 +366,6 @@ export default function NotreHistoirePage() {
         <section className="pb-20 px-6">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-2 justify-center mb-8">
-              <AlertTriangle className="text-brand-blue dark:text-brand-gold" size={22} />
               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white text-center">
                 On ne vous cache pas nos erreurs
               </h2>
