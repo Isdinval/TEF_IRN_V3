@@ -31,7 +31,8 @@ import {
   HelpCircle,
   MapPin,
   BookMarked,
-  Map
+  Map,
+  Users
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -131,6 +132,7 @@ function SidebarContent() {
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
         { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
+        { label: "Profils", icon: Users, href: "/tef-irn/admin/profiles" },
         { label: "Sitemap Debug", icon: Map, href: "/sitemap-debug" },
       ],
     });
