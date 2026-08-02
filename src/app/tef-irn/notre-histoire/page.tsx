@@ -149,8 +149,10 @@ export default function NotreHistoirePage() {
 
       <main className="flex-1 pt-20">
         {/* Hero */}
-        <section className="py-20 md:py-28 px-6">
-          <div className="max-w-5xl mx-auto text-center">
+        <section className="relative py-20 md:py-28 px-6 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-brand-blue/5 rounded-full blur-[120px] -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/5 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 pointer-events-none" />
+          <div className="relative max-w-5xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -186,7 +188,7 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Hero image */}
-        <section className="max-w-6xl mx-auto px-6 -mt-4 mb-4">
+        <section className="max-w-7xl mx-auto px-6 -mt-4 mb-4">
           <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl">
             <img
               src={HERO_IMAGE_URL}
@@ -199,8 +201,9 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Story */}
-        <section className="py-20 px-6">
-          <div className="max-w-3xl mx-auto">
+        <section className="relative py-20 px-6 overflow-hidden">
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-brand-gold/[0.06] rounded-full blur-[130px] translate-x-1/3 pointer-events-none" />
+          <div className="relative max-w-3xl mx-auto">
             <div className="relative rounded-[2.5rem] bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 p-8 md:p-14 shadow-sm">
               <Quote className="absolute top-6 right-6 md:top-8 md:right-8 text-brand-blue/10 dark:text-brand-gold/10" size={72} strokeWidth={1.5} />
 
@@ -261,15 +264,15 @@ export default function NotreHistoirePage() {
 
         {/* Pourquoi LlamaKusi */}
         <section className="pb-20 px-6">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-10">
               Pourquoi LlamaKusi ?
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-8 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-10 items-center">
               <img
                 src={MASCOT_IMAGE_URL}
                 alt="La mascotte LlamaKusi, un lama souriant portant un béret, une écharpe et un drapeau français"
-                className="w-40 sm:w-48 h-auto mx-auto"
+                className="w-48 sm:w-56 h-auto mx-auto"
                 loading="lazy"
               />
               <div className="space-y-6 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
@@ -339,8 +342,9 @@ export default function NotreHistoirePage() {
         </section>
 
         {/* Milestone */}
-        <section className="pb-20 px-6">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <section className="relative pb-20 px-6 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-brand-purple/[0.04] rounded-full blur-[140px] pointer-events-none" />
+          <div className="relative max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card className="p-8 items-start bg-gradient-to-br from-brand-blue/5 to-transparent dark:from-brand-gold/5">
               <GraduationCap className="text-brand-blue dark:text-brand-gold mb-3" size={28} />
               <div className="text-2xl font-black text-slate-900 dark:text-white mb-1">
@@ -395,7 +399,7 @@ export default function NotreHistoirePage() {
 
         {/* Où en est notre dossier */}
         <section className="pb-20 px-6">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-black text-center text-slate-900 dark:text-white mb-3">
               Où en est notre dossier ?
             </h2>
@@ -437,7 +441,7 @@ export default function NotreHistoirePage() {
 
         {/* Team */}
         <section className="py-20 bg-slate-50 dark:bg-slate-900/30 px-6">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-black text-center text-slate-900 dark:text-white mb-14">
               L'équipe
             </h2>
@@ -506,8 +510,10 @@ export default function NotreHistoirePage() {
               chaque candidat qui utilise LlamaKusi arrive à son examen mieux préparé que
               nous ne l'étions.
             </p>
+          </div>
 
-            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-3">
+          <div className="max-w-6xl mx-auto">
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-10">
               <img
                 src={BANNER_IMAGE_URL}
                 alt="Olivier et Grecia, fondateurs de LlamaKusi, illustration aquarelle inspirée de Gordes (Provence)"
@@ -516,8 +522,9 @@ export default function NotreHistoirePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
+          </div>
 
-
+          <div className="max-w-3xl mx-auto text-center">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/tef-irn/pricing"
