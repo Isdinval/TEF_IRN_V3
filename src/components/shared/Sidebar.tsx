@@ -127,6 +127,7 @@ function SidebarContent() {
       baseHref: "/tef-irn/admin/exercises",
       activePrefix: "/tef-irn/admin",
       items: [
+        { label: "Leçons", icon: BookOpen, href: "/tef-irn/admin/lessons" },
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
         { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
