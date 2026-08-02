@@ -258,12 +258,12 @@ export default function LessonsAdmin() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{editingId ? "Modifier la leçon" : "Nouvelle leçon"}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-1">
             {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
 
             <div>
@@ -347,7 +347,7 @@ export default function LessonsAdmin() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button variant="secondary" onClick={() => setDialogOpen(false)} className="rounded-2xl font-black text-sm">
               Annuler
             </Button>
