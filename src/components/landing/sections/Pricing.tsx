@@ -194,6 +194,13 @@ export function Pricing() {
                     </div>
                   )}
 
+                  <div className="flex justify-center mb-3">
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wide ${plan.highlight ? 'bg-white/15 border border-white/25 text-emerald-200' : 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400'}`}>
+                       <ShieldCheck size={13} />
+                       {isFree ? "Aucune carte bancaire requise" : isForfait ? "Sans engagement • Paiement unique" : "Sans engagement • Annulation en 1 clic"}
+                    </div>
+                  </div>
+
                   <Link href="/tef-irn/login?mode=signup">
                      <Button
                        className={`group/btn w-full min-h-12 px-4 py-2.5 rounded-xl font-black text-sm whitespace-normal leading-snug transition-all duration-300 hover:scale-[1.03] active:scale-95 ${plan.highlight ? 'bg-white text-brand-blue hover:bg-slate-100 hover:shadow-xl' : 'bg-brand-blue text-white hover:bg-brand-blue/90 hover:shadow-xl hover:shadow-brand-blue/30'}`}
@@ -205,17 +212,9 @@ export function Pricing() {
                      </Button>
                   </Link>
 
-                  {!isFree && (
-                     <div className="mt-3 space-y-1">
-                       <div className={`flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${plan.highlight ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>
-                          <ShieldCheck size={12} />
-                          {isForfait ? "Sans engagement • Paiement unique" : "Sans engagement • Annulation en 1 clic"}
-                       </div>
-                       {plan.guarantee && (
-                         <div className={`text-center text-[10px] font-bold leading-snug ${plan.highlight ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                           {plan.guarantee}
-                         </div>
-                       )}
+                  {!isFree && plan.guarantee && (
+                     <div className={`mt-3 text-center text-[10px] font-bold leading-snug ${plan.highlight ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                       {plan.guarantee}
                      </div>
                   )}
                </motion.div>
