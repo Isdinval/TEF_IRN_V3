@@ -26,6 +26,25 @@ interface ProfileRow {
   subscription_tier: string | null;
   is_admin: boolean;
   created_at: string;
+  total_xp: number;
+  last_activity_at: string;
+}
+
+type StatusFilter = "all" | "admin" | "normal";
+type SortBy = "last_activity" | "created_at" | "xp";
+
+// Formatage relatif simple (fr) pour repérer vite un compte inactif.
+function formatRelative(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "à l'instant";
+  if (minutes < 60) return `il y a ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `il y a ${days}j`;
+  const months = Math.floor(days / 30);
+  return `il y a ${months} mois`;
 }
 
 const CONFIRM_PHRASE = "RETROGRADER";
@@ -49,6 +68,8 @@ export default function ProfilesAdmin() {
   const [resetConfirmText, setResetConfirmText] = useState("");
   const [resetPendingId, setResetPendingId] = useState<string | null>(null);
   const [resetResultMsg, setResetResultMsg] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortBy, setSortBy] = useState<SortBy>("last_activity");
 
   useEffect(() => {
     (async () => {
@@ -77,6 +98,27 @@ export default function ProfilesAdmin() {
   useEffect(() => {
     if (authState === "granted") fetchProfiles();
   }, [authState, fetchProfiles]);
+
+  const myProfile = useMemo(
+    () => profiles.find((p) => p.id === currentUserId) ?? null,
+    [profiles, currentUserId]
+  );
+
+  const displayedProfiles = useMemo(() => {
+    let list = profiles.filter((p) => p.id !== currentUserId);
+    if (statusFilter === "admin") list = list.filter((p) => p.is_admin);
+    if (statusFilter === "normal") list = list.filter((p) => !p.is_admin);
+
+    const sorted = [...list];
+    if (sortBy === "last_activity") {
+      sorted.sort((a, b) => new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime());
+    } else if (sortBy === "created_at") {
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else {
+      sorted.sort((a, b) => b.total_xp - a.total_xp);
+    }
+    return sorted;
+  }, [profiles, currentUserId, statusFilter, sortBy]);
 
   const toggleAdmin = async (profile: ProfileRow, nextIsAdmin: boolean) => {
     setPendingId(profile.id);
@@ -145,6 +187,59 @@ export default function ProfilesAdmin() {
     return <AdminGuardScreen state={authState} />;
   }
 
+  const renderProfileCard = (profile: ProfileRow, pinned = false) => (
+    <div key={profile.id} className={`flex items-start justify-between gap-4 p-5 ${pinned ? "bg-indigo-50/40" : ""}`}>
+      <div className="space-y-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          {profile.is_admin ? (
+            <Badge className="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border-none">Admin</Badge>
+          ) : (
+            <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">Compte normal</Badge>
+          )}
+          {profile.subscription_tier && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.subscription_tier}</Badge>}
+          {profile.current_level && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.current_level}</Badge>}
+          {pinned && <span className="text-[10px] font-black text-indigo-500 uppercase">(vous)</span>}
+        </div>
+        <p className="text-sm font-bold text-zinc-800 truncate">{profile.email}</p>
+        {(profile.full_name || profile.username) && (
+          <p className="text-xs text-zinc-400 truncate">{profile.full_name || profile.username}</p>
+        )}
+        <p className="text-[11px] text-zinc-400">
+          {profile.total_xp} XP · actif {formatRelative(profile.last_activity_at)} · créé le{" "}
+          {new Date(profile.created_at).toLocaleDateString("fr-FR")}
+        </p>
+      </div>
+      <div className="shrink-0 flex gap-2">
+        <Button
+          variant="outline"
+          disabled={resetPendingId === profile.id}
+          onClick={() => { setResetConfirmText(""); setResetTarget(profile); }}
+          className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50"
+        >
+          {resetPendingId === profile.id ? (
+            <Loader2 className="animate-spin" size={14} />
+          ) : (
+            <><RotateCcw size={14} className="mr-1.5" /> Réinitialiser</>
+          )}
+        </Button>
+        <Button
+          variant={profile.is_admin ? "secondary" : "default"}
+          disabled={pendingId === profile.id}
+          onClick={() => handleToggleClick(profile)}
+          className={`rounded-2xl font-black text-xs h-10 px-4 ${profile.is_admin ? "" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
+        >
+          {pendingId === profile.id ? (
+            <Loader2 className="animate-spin" size={14} />
+          ) : profile.is_admin ? (
+            <><ShieldOff size={14} className="mr-1.5" /> Rétrograder</>
+          ) : (
+            <><ShieldCheck size={14} className="mr-1.5" /> Promouvoir admin</>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
@@ -152,13 +247,23 @@ export default function ProfilesAdmin() {
           <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
           <h1 className="text-3xl font-black tracking-tight">Profils</h1>
           <p className="text-muted-foreground">
-            {profiles.length} compte{profiles.length > 1 ? "s" : ""} affiché{profiles.length > 1 ? "s" : ""}
+            {profiles.length} compte{profiles.length > 1 ? "s" : ""} au total
           </p>
         </div>
       </header>
 
       <div className="flex flex-wrap gap-3 mb-6">
         <Input placeholder="Rechercher par email, username ou nom..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+          <option value="all">Tous les statuts</option>
+          <option value="admin">Admins uniquement</option>
+          <option value="normal">Comptes normaux uniquement</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+          <option value="last_activity">Trier : dernière activité</option>
+          <option value="created_at">Trier : date de création</option>
+          <option value="xp">Trier : XP</option>
+        </select>
       </div>
 
       {errorMsg && <div className="mb-4 p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
@@ -167,59 +272,21 @@ export default function ProfilesAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-          {profiles.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun compte ne correspond à cette recherche.</p>
-          )}
-          {profiles.map((profile) => (
-            <div key={profile.id} className="flex items-start justify-between gap-4 p-5">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {profile.is_admin ? (
-                    <Badge className="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border-none">Admin</Badge>
-                  ) : (
-                    <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">Compte normal</Badge>
-                  )}
-                  {profile.subscription_tier && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.subscription_tier}</Badge>}
-                  {profile.current_level && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.current_level}</Badge>}
-                  {profile.id === currentUserId && <span className="text-[10px] font-black text-indigo-500 uppercase">(vous)</span>}
-                </div>
-                <p className="text-sm font-bold text-zinc-800 truncate">{profile.email}</p>
-                {(profile.full_name || profile.username) && (
-                  <p className="text-xs text-zinc-400 truncate">{profile.full_name || profile.username}</p>
-                )}
-              </div>
-              <div className="shrink-0 flex gap-2">
-                <Button
-                  variant="outline"
-                  disabled={resetPendingId === profile.id}
-                  onClick={() => { setResetConfirmText(""); setResetTarget(profile); }}
-                  className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50"
-                >
-                  {resetPendingId === profile.id ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : (
-                    <><RotateCcw size={14} className="mr-1.5" /> Réinitialiser</>
-                  )}
-                </Button>
-                <Button
-                  variant={profile.is_admin ? "secondary" : "default"}
-                  disabled={pendingId === profile.id}
-                  onClick={() => handleToggleClick(profile)}
-                  className={`rounded-2xl font-black text-xs h-10 px-4 ${profile.is_admin ? "" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
-                >
-                  {pendingId === profile.id ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : profile.is_admin ? (
-                    <><ShieldOff size={14} className="mr-1.5" /> Rétrograder</>
-                  ) : (
-                    <><ShieldCheck size={14} className="mr-1.5" /> Promouvoir admin</>
-                  )}
-                </Button>
-              </div>
+        <>
+          {myProfile && (
+            <div className="mb-6 rounded-[2rem] border-2 border-indigo-100 shadow-sm overflow-hidden">
+              <p className="px-5 pt-4 text-[10px] font-black uppercase text-indigo-400">Mon compte</p>
+              {renderProfileCard(myProfile, true)}
             </div>
-          ))}
-        </div>
+          )}
+
+          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+            {displayedProfiles.length === 0 && (
+              <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun compte ne correspond à cette recherche.</p>
+            )}
+            {displayedProfiles.map((profile) => renderProfileCard(profile))}
+          </div>
+        </>
       )}
 
       <Dialog open={!!selfDemoteTarget} onOpenChange={(open) => !open && setSelfDemoteTarget(null)}>
