@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
 import { useExam } from '@/contexts/ExamContext';
 
 export function ProgressBar() {
@@ -10,13 +9,16 @@ export function ProgressBar() {
   const progress = ((state.currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="w-full bg-white px-4 py-3 border-b border-[var(--exam-line)] shadow-sm">
+    <div className="w-full bg-white px-4 py-3 border-b border-zinc-100">
       <div className="container mx-auto flex items-center gap-4">
-        <span className="font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/50 whitespace-nowrap">
+        <span className="text-xs font-black text-zinc-400 uppercase tracking-wide whitespace-nowrap">
           Question {state.currentQuestionIndex + 1} / {questions.length}
         </span>
-        <div className="flex-1">
-          <Progress value={progress} className="h-2 w-full" />
+        <div className="flex-1 h-2 rounded-full bg-zinc-100 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>
