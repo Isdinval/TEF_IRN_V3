@@ -3,7 +3,7 @@
 import React from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import {
   Trophy,
   RotateCcw,
@@ -20,7 +20,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Progress } from '@/components/ui/progress';
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
@@ -46,44 +45,49 @@ export function ResultsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--exam-paper)] py-12 px-4">
+    <div className="min-h-screen bg-slate-50/30 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center mx-auto mb-6 border-4 border-white ring-4 ring-[var(--exam-blue)]/10">
-            <Trophy size={48} className="text-[var(--exam-blue)]" />
+          <div className="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center mx-auto mb-6 border-4 border-white ring-4 ring-indigo-100">
+            <Trophy size={48} className="text-indigo-600" />
           </div>
-          <h1 className="font-[family-name:var(--exam-font-display)] text-4xl font-semibold text-[var(--exam-ink)]">Résultats de l'examen</h1>
-          <p className="text-xl text-[var(--exam-ink)]/60 font-medium">{getEncouragement(percentage)}</p>
+          <h1 className="text-4xl font-black text-zinc-900">Résultats de l'examen</h1>
+          <p className="text-xl text-zinc-500 font-medium">{getEncouragement(percentage)}</p>
         </div>
 
-        <Card className="rounded-sm border border-[var(--exam-line)] shadow-2xl shadow-[var(--exam-ink)]/5 overflow-hidden">
-          <CardHeader className="bg-[var(--exam-blue)] text-white p-10 text-center flex flex-col items-center">
-            <div className="font-[family-name:var(--exam-font-mono)] text-6xl font-bold mb-2">{totalScored}/{totalPossible}</div>
-            <div className="text-white/70 font-bold uppercase tracking-widest text-sm">Score Global (QCM)</div>
+        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200/50 overflow-hidden">
+          <CardHeader className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-10 text-center flex flex-col items-center">
+            <div className="text-6xl font-black mb-2">{totalScored}/{totalPossible}</div>
+            <div className="text-white/70 font-black uppercase tracking-widest text-sm">Score Global (QCM)</div>
             <div className="mt-8 w-full max-w-md">
-              <Progress value={percentage} className="h-3 w-full" />
-              <div className="mt-2 font-[family-name:var(--exam-font-mono)] text-xs font-bold text-white/60">{Math.round(percentage)}% DE RÉUSSITE</div>
+              <div className="h-3 w-full rounded-full bg-white/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-white transition-all duration-700"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <div className="mt-2 text-xs font-black text-white/70">{Math.round(percentage)}% DE RÉUSSITE</div>
             </div>
           </CardHeader>
 
           <CardContent className="p-10 space-y-10">
             {sessionResults.map((result: ExamResult) => (
               <div key={result.section} className="space-y-6">
-                <div className="flex items-center justify-between border-b border-[var(--exam-line)] pb-4">
-                  <h3 className="font-[family-name:var(--exam-font-display)] text-xl font-semibold text-[var(--exam-ink)]">{sectionLabels[result.section]}</h3>
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+                  <h3 className="text-xl font-black text-zinc-900">{sectionLabels[result.section]}</h3>
                   {result.section === 'CO' || result.section === 'CE' ? (
-                    <div className="px-4 py-1 bg-[var(--exam-paper)] rounded-full font-[family-name:var(--exam-font-mono)] font-bold text-[var(--exam-ink)]/70">
+                    <div className="px-4 py-1 bg-zinc-50 rounded-full font-black text-zinc-600">
                       {result.score} / {result.total}
                     </div>
                   ) : result.section === 'EE' && result.writingFeedbacks && Object.keys(result.writingFeedbacks).length > 0 ? (
-                    <div className="px-4 py-1 bg-[var(--exam-blue)]/5 rounded-full font-[family-name:var(--exam-font-mono)] font-bold text-[var(--exam-blue)]">
+                    <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600">
                       {Math.round(
                         Object.values(result.writingFeedbacks).reduce((sum, f) => sum + f.score_global, 0) /
                         Object.values(result.writingFeedbacks).length
                       )}/100 (IA)
                     </div>
                   ) : (
-                    <div className="px-4 py-1 bg-[var(--exam-blue)]/5 rounded-full font-bold text-[var(--exam-blue)] text-xs">
+                    <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600 text-xs">
                       AUTO-ÉVALUATION
                     </div>
                   )}
@@ -92,31 +96,31 @@ export function ResultsScreen() {
                 {(result.section === 'CO' || result.section === 'CE') && (
                   <Accordion className="w-full">
                     <AccordionItem value="details" className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-[var(--exam-paper)] rounded-sm flex justify-between items-center w-full">
-                        <span className="font-bold text-[var(--exam-ink)]/70">Détail des réponses</span>
+                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-zinc-50 rounded-2xl flex justify-between items-center w-full">
+                        <span className="font-black text-zinc-600">Détail des réponses</span>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2 space-y-3">
                         {result.answers.map((ans: any, idx: number) => {
                           const q = (allQuestions || []).find((currQ: Question) => currQ.id === ans.questionId);
                           return (
-                            <div key={ans.questionId} className="p-4 rounded-sm border border-[var(--exam-line)] flex items-start gap-4">
-                              <div className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 font-[family-name:var(--exam-font-mono)] font-bold ${ans.isCorrect ? 'bg-[var(--exam-success)]/10 text-[var(--exam-success)]' : 'bg-[var(--exam-seal)]/10 text-[var(--exam-seal)]'}`}>
+                            <div key={ans.questionId} className="p-4 rounded-2xl border border-zinc-100 flex items-start gap-4">
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                                 {idx + 1}
                               </div>
                               <div className="flex-1 text-left">
-                                <div className="font-bold text-[var(--exam-ink)]/85 mb-1">{(q as any)?.question}</div>
+                                <div className="font-bold text-zinc-800 mb-1">{(q as any)?.question}</div>
                                 <div className="flex flex-wrap gap-4 text-sm font-bold">
-                                  <div className="flex items-center gap-1.5 text-[var(--exam-ink)]/40">
-                                    Votre réponse: <span className={ans.isCorrect ? 'text-[var(--exam-success)]' : 'text-[var(--exam-seal)]'}>{ans.userAnswer || 'Aucune'}</span>
+                                  <div className="flex items-center gap-1.5 text-zinc-400">
+                                    Votre réponse: <span className={ans.isCorrect ? 'text-emerald-600' : 'text-rose-600'}>{ans.userAnswer || 'Aucune'}</span>
                                   </div>
                                   {!ans.isCorrect && (
-                                    <div className="flex items-center gap-1.5 text-[var(--exam-success)]">
+                                    <div className="flex items-center gap-1.5 text-emerald-600">
                                       Bonne réponse: <span>{ans.correctAnswer}</span>
                                     </div>
                                   )}
                                 </div>
                               </div>
-                              {ans.isCorrect ? <CheckCircle2 className="text-[var(--exam-success)] shrink-0" size={20} /> : <XCircle className="text-[var(--exam-seal)] shrink-0" size={20} />}
+                              {ans.isCorrect ? <CheckCircle2 className="text-emerald-600 shrink-0" size={20} /> : <XCircle className="text-rose-600 shrink-0" size={20} />}
                             </div>
                           );
                         })}
@@ -130,66 +134,66 @@ export function ResultsScreen() {
                     {Object.entries(result.writingProductions).map(([qId, text]: [string, string], idx: number) => {
                       const feedback: WritingFeedback | undefined = result.writingFeedbacks?.[qId];
                       return (
-                        <div key={qId} className="p-6 bg-white border border-[var(--exam-line)] rounded-sm shadow-sm space-y-5">
+                        <div key={qId} className="p-6 bg-white border border-zinc-100 rounded-2xl shadow-sm space-y-5">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                            <div className="flex items-center gap-2 text-indigo-600">
                               <FileText size={20} />
-                              <span className="font-[family-name:var(--exam-font-display)] font-semibold">Production {idx + 1}</span>
+                              <span className="font-black">Production {idx + 1}</span>
                             </div>
                             {feedback && (
-                              <div className="font-[family-name:var(--exam-font-mono)] text-sm font-bold text-[var(--exam-blue)]">
+                              <div className="text-sm font-black text-indigo-600">
                                 {feedback.score_global}/100
                               </div>
                             )}
                           </div>
 
-                          <div className="text-[var(--exam-ink)]/70 whitespace-pre-wrap italic">
+                          <div className="text-zinc-600 whitespace-pre-wrap italic">
                             "{text || "Aucun texte rédigé."}"
                           </div>
 
                           {feedback ? (
-                            <div className="space-y-4 pt-4 border-t border-dashed border-[var(--exam-line)]">
-                              <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                            <div className="space-y-4 pt-4 border-t border-dashed border-zinc-200">
+                              <div className="flex items-center gap-2 text-indigo-600">
                                 <Sparkles size={16} />
-                                <span className="font-[family-name:var(--exam-font-mono)] text-xs font-bold uppercase tracking-widest">Correction IA</span>
+                                <span className="text-xs font-black uppercase tracking-widest">Correction IA</span>
                               </div>
 
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-[family-name:var(--exam-font-mono)] text-xs">
-                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
-                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.grammaire}</div>
-                                  <div className="text-[var(--exam-ink)]/45">Grammaire</div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div className="p-3 bg-zinc-50 rounded-xl text-center">
+                                  <div className="font-black text-zinc-900">{feedback.scores_par_competence.grammaire}</div>
+                                  <div className="text-zinc-400">Grammaire</div>
                                 </div>
-                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
-                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.vocabulaire}</div>
-                                  <div className="text-[var(--exam-ink)]/45">Vocabulaire</div>
+                                <div className="p-3 bg-zinc-50 rounded-xl text-center">
+                                  <div className="font-black text-zinc-900">{feedback.scores_par_competence.vocabulaire}</div>
+                                  <div className="text-zinc-400">Vocabulaire</div>
                                 </div>
-                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
-                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.coherence}</div>
-                                  <div className="text-[var(--exam-ink)]/45">Cohérence</div>
+                                <div className="p-3 bg-zinc-50 rounded-xl text-center">
+                                  <div className="font-black text-zinc-900">{feedback.scores_par_competence.coherence}</div>
+                                  <div className="text-zinc-400">Cohérence</div>
                                 </div>
-                                <div className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
-                                  <div className="font-bold text-[var(--exam-ink)]">{feedback.scores_par_competence.orthographe}</div>
-                                  <div className="text-[var(--exam-ink)]/45">Orthographe</div>
+                                <div className="p-3 bg-zinc-50 rounded-xl text-center">
+                                  <div className="font-black text-zinc-900">{feedback.scores_par_competence.orthographe}</div>
+                                  <div className="text-zinc-400">Orthographe</div>
                                 </div>
                               </div>
 
-                              <p className="text-sm italic text-[var(--exam-ink)]/70">"{feedback.conseil_general}"</p>
+                              <p className="text-sm italic text-zinc-600">"{feedback.conseil_general}"</p>
 
                               {feedback.liste_des_erreurs?.length > 0 && (
                                 <div className="space-y-2">
                                   {feedback.liste_des_erreurs.map((err, i) => (
-                                    <div key={i} className="text-sm p-3 bg-[var(--exam-paper)] rounded-sm">
-                                      <span className="line-through text-[var(--exam-seal)]/70">{err.texte_original}</span>
+                                    <div key={i} className="text-sm p-3 bg-zinc-50 rounded-xl">
+                                      <span className="line-through text-rose-500/80">{err.texte_original}</span>
                                       {' → '}
-                                      <span className="font-bold text-[var(--exam-success)]">{err.texte_corrige}</span>
-                                      <p className="text-xs text-[var(--exam-ink)]/50 mt-1">{err.explication}</p>
+                                      <span className="font-black text-emerald-600">{err.texte_corrige}</span>
+                                      <p className="text-xs text-zinc-400 mt-1">{err.explication}</p>
                                     </div>
                                   ))}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="text-xs font-[family-name:var(--exam-font-mono)] text-[var(--exam-ink)]/40">
+                            <div className="text-xs text-zinc-400">
                               Correction IA indisponible pour cette production.
                             </div>
                           )}
@@ -203,33 +207,33 @@ export function ResultsScreen() {
                   result.oralAnalyses && Object.keys(result.oralAnalyses).length > 0 ? (
                     <div className="space-y-4">
                       {Object.entries(result.oralAnalyses).map(([qId, analysis], idx) => (
-                        <div key={qId} className="p-6 bg-white border border-[var(--exam-line)] rounded-sm shadow-sm space-y-4">
+                        <div key={qId} className="p-6 bg-white border border-zinc-100 rounded-2xl shadow-sm space-y-4">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-[var(--exam-blue)]">
+                            <div className="flex items-center gap-2 text-indigo-600">
                               <MessageSquare size={20} />
-                              <span className="font-[family-name:var(--exam-font-display)] font-semibold">Échange {idx + 1}</span>
+                              <span className="font-black">Échange {idx + 1}</span>
                             </div>
-                            <div className="font-[family-name:var(--exam-font-mono)] text-sm font-bold text-[var(--exam-blue)]">
+                            <div className="text-sm font-black text-indigo-600">
                               Niveau {analysis.estimated_level}
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 font-[family-name:var(--exam-font-mono)] text-xs">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                             {Object.entries(analysis.scores).map(([key, value]) => (
-                              <div key={key} className="p-3 bg-[var(--exam-paper)] rounded-sm text-center">
-                                <div className="font-bold text-[var(--exam-ink)]">{value}</div>
-                                <div className="text-[var(--exam-ink)]/45">{ORAL_CRITERIA_LABELS[key as keyof typeof ORAL_CRITERIA_LABELS]}</div>
+                              <div key={key} className="p-3 bg-zinc-50 rounded-xl text-center">
+                                <div className="font-black text-zinc-900">{value}</div>
+                                <div className="text-zinc-400">{ORAL_CRITERIA_LABELS[key as keyof typeof ORAL_CRITERIA_LABELS]}</div>
                               </div>
                             ))}
                           </div>
-                          <p className="text-sm italic text-[var(--exam-ink)]/70">"{analysis.general_comment}"</p>
+                          <p className="text-sm italic text-zinc-600">"{analysis.general_comment}"</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-6 bg-[var(--exam-paper)] rounded-sm border border-[var(--exam-line)] text-center">
-                      <MessageSquare className="mx-auto mb-3 text-[var(--exam-blue)]" size={32} />
-                      <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] mb-2">Simulation orale terminée</div>
-                      <p className="text-[var(--exam-ink)]/60 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
+                    <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 text-center">
+                      <MessageSquare className="mx-auto mb-3 text-indigo-600" size={32} />
+                      <div className="font-black text-zinc-900 mb-2">Simulation orale terminée</div>
+                      <p className="text-zinc-500 text-sm font-medium">Vous avez suivi les instructions pour les deux sections de l'épreuve orale. Bravo pour cet entraînement !</p>
                     </div>
                   )
                 )}
@@ -241,14 +245,14 @@ export function ResultsScreen() {
         <div className="flex flex-col md:flex-row gap-4">
           <Button
             onClick={resetExam}
-            className="flex-1 h-16 rounded-sm bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] text-lg font-bold shadow-xl"
+            className="flex-1 h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-lg font-black shadow-xl"
           >
             <RotateCcw className="mr-2" size={20} /> Refaire un examen
           </Button>
           <Button
             variant="outline"
             onClick={() => window.location.href = '/tef-irn/dashboard'}
-            className="flex-1 h-16 rounded-sm border border-[var(--exam-blue)] text-[var(--exam-blue)] hover:bg-[var(--exam-paper)] text-lg font-bold"
+            className="flex-1 h-16 rounded-2xl border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-lg font-black"
           >
             <Home className="mr-2" size={20} /> Retour au tableau de bord
           </Button>
