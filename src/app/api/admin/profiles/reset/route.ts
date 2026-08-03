@@ -35,5 +35,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const { data: targetUser } = await admin.auth.admin.getUserById(userId);
+
+  await admin.from("admin_actions_log").insert({
+    admin_id: user.id,
+    admin_email: user.email ?? "",
+    action: "reset_progress",
+    target_user_id: userId,
+    target_email: targetUser.user?.email ?? "",
+    details: { deletedCount },
+  });
+
   return NextResponse.json({ success: true, deletedCount });
 }

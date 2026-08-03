@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = createAdminClient();
+  const { data: targetUser } = await admin.auth.admin.getUserById(userId);
+  const targetEmail = targetUser.user?.email ?? "";
 
   if (!isAdmin) {
     const { count, error: countError } = await admin
@@ -42,8 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     if ((count ?? 0) <= 1) {
-      const { data: targetUser } = await admin.auth.admin.getUserById(userId);
-      if (targetUser.user?.email !== FOUNDER_EMAIL) {
+      if (targetEmail !== FOUNDER_EMAIL) {
         return NextResponse.json(
           { error: "Impossible de retirer le statut admin du dernier administrateur restant." },
           { status: 409 }
@@ -56,6 +57,14 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await admin.from("admin_actions_log").insert({
+    admin_id: user.id,
+    admin_email: user.email ?? "",
+    action: isAdmin ? "promote_admin" : "demote_admin",
+    target_user_id: userId,
+    target_email: targetEmail,
+  });
 
   return NextResponse.json({ success: true });
 }

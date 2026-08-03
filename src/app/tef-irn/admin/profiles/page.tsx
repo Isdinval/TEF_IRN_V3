@@ -47,6 +47,21 @@ function formatRelative(iso: string): string {
   return `il y a ${months} mois`;
 }
 
+interface LogEntry {
+  id: string;
+  admin_email: string;
+  action: "promote_admin" | "demote_admin" | "reset_progress";
+  target_email: string;
+  details: { deletedCount?: number } | null;
+  created_at: string;
+}
+
+const ACTION_LABELS: Record<LogEntry["action"], string> = {
+  promote_admin: "a promu admin",
+  demote_admin: "a rétrogradé",
+  reset_progress: "a réinitialisé",
+};
+
 const CONFIRM_PHRASE = "RETROGRADER";
 const RESET_CONFIRM_PHRASE = "RESET";
 
@@ -70,6 +85,8 @@ export default function ProfilesAdmin() {
   const [resetResultMsg, setResetResultMsg] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortBy>("last_activity");
+  const [actionsLog, setActionsLog] = useState<LogEntry[]>([]);
+  const [logExpanded, setLogExpanded] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -95,9 +112,22 @@ export default function ProfilesAdmin() {
     }
   }, [search]);
 
+  const fetchActionsLog = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/profiles/actions-log");
+      const json = await res.json();
+      if (res.ok) setActionsLog(json.entries || []);
+    } catch {
+      // Historique non bloquant : on n'affiche pas d'erreur si ça échoue.
+    }
+  }, []);
+
   useEffect(() => {
-    if (authState === "granted") fetchProfiles();
-  }, [authState, fetchProfiles]);
+    if (authState === "granted") {
+      fetchProfiles();
+      fetchActionsLog();
+    }
+  }, [authState, fetchProfiles, fetchActionsLog]);
 
   const myProfile = useMemo(
     () => profiles.find((p) => p.id === currentUserId) ?? null,
@@ -132,6 +162,7 @@ export default function ProfilesAdmin() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Erreur lors de la mise à jour.");
       await fetchProfiles();
+      await fetchActionsLog();
     } catch (err: any) {
       setErrorMsg(err?.message || "Erreur lors de la mise à jour.");
     } finally {
@@ -176,6 +207,7 @@ export default function ProfilesAdmin() {
       setResetTarget(null);
       setResetResultMsg(`Compte "${resetTarget.email}" réinitialisé (${json.deletedCount} enregistrements supprimés).`);
       await fetchProfiles();
+      await fetchActionsLog();
     } catch (err: any) {
       setErrorMsg(err?.message || "Erreur lors de la réinitialisation.");
     } finally {
@@ -285,6 +317,34 @@ export default function ProfilesAdmin() {
               <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun compte ne correspond à cette recherche.</p>
             )}
             {displayedProfiles.map((profile) => renderProfileCard(profile))}
+          </div>
+
+          <div className="mt-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm overflow-hidden">
+            <button
+              onClick={() => setLogExpanded((v) => !v)}
+              className="w-full flex items-center justify-between p-5 text-left"
+            >
+              <span className="text-sm font-black text-zinc-700">Historique des actions admin</span>
+              <span className="text-xs font-bold text-zinc-400">{logExpanded ? "Masquer" : "Afficher"}</span>
+            </button>
+            {logExpanded && (
+              <div className="divide-y divide-zinc-50 border-t border-zinc-50">
+                {actionsLog.length === 0 && (
+                  <p className="p-5 text-center text-zinc-400 font-bold text-sm">Aucune action enregistrée.</p>
+                )}
+                {actionsLog.map((entry) => (
+                  <div key={entry.id} className="p-4 text-xs text-zinc-600">
+                    <span className="font-bold text-zinc-800">{entry.admin_email}</span>{" "}
+                    {ACTION_LABELS[entry.action]}{" "}
+                    <span className="font-bold text-zinc-800">{entry.target_email}</span>
+                    {entry.action === "reset_progress" && entry.details?.deletedCount !== undefined && (
+                      <span className="text-zinc-400"> ({entry.details.deletedCount} enregistrements supprimés)</span>
+                    )}
+                    <span className="text-zinc-400"> · {formatRelative(entry.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}
