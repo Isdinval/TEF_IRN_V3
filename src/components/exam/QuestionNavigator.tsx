@@ -8,13 +8,21 @@ import { Button } from '@/components/ui/button';
 
 export function QuestionNavigator() {
   const { state, questions, setQuestionIndex, nextQuestion, prevQuestion } = useExam();
+  const isBackNavLocked = state.section === 'EO';
 
   return (
     <div className="bg-white border-t md:border-t-0 md:border-l border-[var(--exam-line)] p-6 w-full md:w-80 flex flex-col gap-6 overflow-y-auto max-h-[40vh] md:max-h-none">
       <div className="flex items-center justify-between">
         <h3 className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)]">Navigation</h3>
         <div className="flex gap-1">
-          <Button variant="outline" size="icon" onClick={prevQuestion} disabled={state.currentQuestionIndex === 0} className="h-8 w-8 rounded-lg">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={prevQuestion}
+            disabled={state.currentQuestionIndex === 0 || isBackNavLocked}
+            title={isBackNavLocked ? "Retour désactivé pendant l'expression orale" : undefined}
+            className="h-8 w-8 rounded-lg"
+          >
             <ChevronLeft size={16} />
           </Button>
           <Button variant="outline" size="icon" onClick={nextQuestion} disabled={state.currentQuestionIndex === questions.length - 1} className="h-8 w-8 rounded-lg">
@@ -27,18 +35,23 @@ export function QuestionNavigator() {
         {questions.map((q, i) => {
           const isCurrent = state.currentQuestionIndex === i;
           const isAnswered = !!state.answers[q.id];
+          const isLocked = isBackNavLocked && i < state.currentQuestionIndex;
 
           return (
             <button
               key={q.id}
-              onClick={() => setQuestionIndex(i)}
+              onClick={() => !isLocked && setQuestionIndex(i)}
+              disabled={isLocked}
+              title={isLocked ? "Retour désactivé pendant l'expression orale" : undefined}
               className={cn(
                 "h-10 w-full rounded-sm font-[family-name:var(--exam-font-mono)] text-sm font-bold transition-all border",
                 isCurrent
                   ? "border-[var(--exam-blue)] bg-[var(--exam-blue)] text-white shadow-md"
-                  : isAnswered
-                    ? "border-[var(--exam-success)]/40 bg-[var(--exam-success)]/10 text-[var(--exam-success)]"
-                    : "border-[var(--exam-line)] bg-[var(--exam-paper)] text-[var(--exam-ink)]/40 hover:border-[var(--exam-ink)]/30"
+                  : isLocked
+                    ? "border-[var(--exam-line)] bg-[var(--exam-paper-dark)] text-[var(--exam-ink)]/25 cursor-not-allowed"
+                    : isAnswered
+                      ? "border-[var(--exam-success)]/40 bg-[var(--exam-success)]/10 text-[var(--exam-success)]"
+                      : "border-[var(--exam-line)] bg-[var(--exam-paper)] text-[var(--exam-ink)]/40 hover:border-[var(--exam-ink)]/30"
               )}
             >
               {i + 1}

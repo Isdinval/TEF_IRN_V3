@@ -35,6 +35,7 @@ interface ExamContextType {
   oralAnalyses: Record<string, OralAnalysis>;
   finishSection: () => Promise<void>;
   startNextSection: () => void;
+  beginCurrentSection: () => void;
   finishExam: () => void;
   resetExam: () => void;
   sessionResults: ExamResult[];
@@ -238,8 +239,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       selectedSection: section,
       currentQuestionIndex: 0,
       answers: {},
-      status: 'in_progress',
-      startedAt: Date.now(),
+      status: 'paused',
       isTimed,
     };
     setState(newState);
@@ -397,6 +397,14 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const beginCurrentSection = () => {
+    setState(prev => ({
+      ...prev,
+      status: 'in_progress',
+      startedAt: Date.now(),
+    }));
+  };
+
   const finishExam = () => {
     setState(prev => ({ ...prev, status: 'finished' }));
   };
@@ -435,6 +443,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       oralAnalyses,
       finishSection,
       startNextSection,
+      beginCurrentSection,
       finishExam,
       resetExam,
       sessionResults,
