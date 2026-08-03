@@ -8,17 +8,18 @@ import { ExamSelector } from '@/components/exam/ExamSelector';
 
 export default function ExamPage() {
   const router = useRouter();
-  const { state } = useExam();
+  const { state, isLoading } = useExam();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<ExamMetadata | null>(null);
 
-  // Une session est déjà en cours (ou en pause) : on redirige vers l'écran d'épreuve
-  // plutôt que de réafficher le catalogue.
+  // Une session est déjà en cours (ou en pause) : on redirige vers l'écran d'épreuve.
+  // On attend la fin du chargement du contexte pour éviter un flash "catalogue" avant
+  // la restauration de l'état depuis localStorage (voir session/page.tsx).
   useEffect(() => {
-    if (state.status !== 'idle') {
+    if (!isLoading && state.status !== 'idle') {
       router.replace('/tef-irn/exam/session');
     }
-  }, [state.status, router]);
+  }, [isLoading, state.status, router]);
 
   return (
     <>
