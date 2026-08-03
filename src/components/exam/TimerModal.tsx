@@ -74,35 +74,39 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
 
         <div className="grid grid-cols-1 gap-4">
           <button
-            className="h-20 flex items-center justify-between px-6 rounded-2xl border-none bg-indigo-50/60 hover:bg-indigo-50 transition-all group"
+            className="flex flex-col p-5 rounded-2xl border-none bg-indigo-50/60 hover:bg-indigo-50 transition-all group text-left"
             onClick={handleFullExam}
           >
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 shrink-0 bg-indigo-600 rounded-2xl flex items-center justify-center text-white">
-                <Award size={22} />
-              </div>
-              <div className="text-left min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 shrink-0 bg-indigo-600 rounded-2xl flex items-center justify-center text-white">
+                  <Award size={22} />
+                </div>
                 <div className="font-black text-zinc-900 text-base">Examen Complet</div>
-                <div className="text-sm text-zinc-500 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Conditions réelles</div>
               </div>
+              <div className="shrink-0 bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">RECOMMANDÉ</div>
             </div>
-            <div className="shrink-0 bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">RECOMMANDÉ</div>
+            <div className="text-sm text-zinc-500 font-medium mt-2 pl-16">
+              {formatTotalTime(totalDuration)} • 4 épreuves • Conditions réelles
+            </div>
           </button>
 
           <button
-            className="h-20 flex items-center justify-between px-6 rounded-2xl border-none bg-emerald-50/60 hover:bg-emerald-50 transition-all group"
+            className="flex flex-col p-5 rounded-2xl border-none bg-emerald-50/60 hover:bg-emerald-50 transition-all group text-left"
             onClick={handleFullExamUntimed}
           >
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 shrink-0 bg-emerald-600 rounded-2xl flex items-center justify-center text-white">
-                <Repeat size={22} />
-              </div>
-              <div className="text-left min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 shrink-0 bg-emerald-600 rounded-2xl flex items-center justify-center text-white">
+                  <Repeat size={22} />
+                </div>
                 <div className="font-black text-zinc-900 text-base">Examen Complet</div>
-                <div className="text-sm text-zinc-500 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Entraînement libre</div>
               </div>
+              <div className="shrink-0 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">SANS CHRONO</div>
             </div>
-            <div className="shrink-0 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">SANS CHRONO</div>
+            <div className="text-sm text-zinc-500 font-medium mt-2 pl-16">
+              {formatTotalTime(totalDuration)} • 4 épreuves • Entraînement libre
+            </div>
           </button>
 
           <div className="relative my-2">
@@ -110,7 +114,7 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
               <span className="w-full border-t border-zinc-100" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-zinc-400 font-black tracking-widest">Ou par épreuve</span>
+              <span className="bg-white px-2 text-zinc-500 font-black tracking-[0.15em]">Ou par épreuve</span>
             </div>
           </div>
 
