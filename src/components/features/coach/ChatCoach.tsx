@@ -91,15 +91,15 @@ function getContextualSuggestions(pageContext: ReturnType<typeof useCoachContext
 }
 
 const SUGGESTIONS_BY_PATH: Record<string, { label: string; prompt: string; icon: any }[]> = {
-  '/dashboard': [
+  '/tef-irn/dashboard': [
     { label: "Comment réviser aujourd'hui ?", prompt: "Quelles sont les meilleures révisions à faire aujourd'hui selon mon profil ?", icon: Sparkles },
     { label: "Mes points faibles", prompt: "Quelles sont mes erreurs les plus fréquentes et comment les corriger ?", icon: AlertCircle }
   ],
-  '/lessons': [
+  '/tef-irn/lessons': [
     { label: "Explique-moi cette leçon", prompt: "Peux-tu m'expliquer les points clés de cette leçon de manière simple ?", icon: BookOpen },
     { label: "Donne-moi un exemple", prompt: "Donne-moi 3 exemples concrets d'utilisation de ce point de grammaire.", icon: GraduationCap }
   ],
-  '/writing': [
+  '/tef-irn/writing': [
     { label: "Conseils de rédaction", prompt: "Donne-moi des conseils pour améliorer la structure de mes textes au TEF IRN.", icon: PenTool },
     { label: "Vocabulaire utile", prompt: "Quel vocabulaire formel devrais-je utiliser pour la section B de l'expression écrite ?", icon: BookOpen }
   ]

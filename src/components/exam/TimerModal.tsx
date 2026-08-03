@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Headset, BookOpen, PenTool, Mic, Award, Clock } from 'lucide-react';
+import { Headset, BookOpen, PenTool, Mic, Award, Clock, Repeat } from 'lucide-react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
 import { ExamSectionType } from '@/types/exam';
 
@@ -47,7 +47,12 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
   };
 
   const handleFullExam = () => {
-    startExam('full', undefined, targetExam?.id);
+    startExam('full', undefined, targetExam?.id, true);
+    onOpenChange(false);
+  };
+
+  const handleFullExamUntimed = () => {
+    startExam('full', undefined, targetExam?.id, false);
     onOpenChange(false);
   };
 
@@ -66,22 +71,39 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <Button
             variant="outline"
             className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-blue)]/20 bg-white hover:border-[var(--exam-blue)] hover:bg-[var(--exam-blue)]/5 transition-all group"
             onClick={handleFullExam}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[var(--exam-blue)] rounded-sm flex items-center justify-center text-white shadow-md">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 shrink-0 bg-[var(--exam-blue)] rounded-sm flex items-center justify-center text-white shadow-md">
                 <Award size={24} />
               </div>
-              <div className="text-left">
+              <div className="text-left min-w-0">
                 <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
-                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
+                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Conditions réelles</div>
               </div>
             </div>
-            <div className="font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
+            <div className="shrink-0 font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-success)]/25 bg-white hover:border-[var(--exam-success)] hover:bg-[var(--exam-success)]/5 transition-all group"
+            onClick={handleFullExamUntimed}
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 shrink-0 bg-[var(--exam-success)] rounded-sm flex items-center justify-center text-white shadow-md">
+                <Repeat size={24} />
+              </div>
+              <div className="text-left min-w-0">
+                <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
+                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Entraînement libre</div>
+              </div>
+            </div>
+            <div className="shrink-0 font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-success)]/10 text-[var(--exam-success)] px-3 py-1 rounded-full text-xs font-bold">SANS CHRONO</div>
           </Button>
 
           <div className="relative my-4">

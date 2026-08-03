@@ -144,6 +144,15 @@ export default function DashboardPage() {
           </StatsOverview>
         </div>
 
+        <div className="mt-4 flex justify-end">
+          <Link
+            href="/tef-irn/exam"
+            className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-xs font-black uppercase tracking-widest text-indigo-600 transition-all hover:bg-indigo-100"
+          >
+            <Target size={14} /> Passer un examen blanc
+          </Link>
+        </div>
+
         <DashboardSectionNav activeSection={activeSection} onChange={handleSectionChange} />
 
         <div ref={sectionsTopRef} className="scroll-mt-24" />

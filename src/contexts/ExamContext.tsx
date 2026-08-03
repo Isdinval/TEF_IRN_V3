@@ -26,7 +26,7 @@ interface ExamContextType {
   activeExam: ExamMetadata | null;
   exams: ExamMetadata[];
   isLoadingExams: boolean;
-  startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => void;
+  startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string, isTimed?: boolean) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
   setQuestionIndex: (index: number) => void;
@@ -35,6 +35,7 @@ interface ExamContextType {
   oralAnalyses: Record<string, OralAnalysis>;
   finishSection: () => Promise<void>;
   startNextSection: () => void;
+  beginCurrentSection: () => void;
   finishExam: () => void;
   resetExam: () => void;
   sessionResults: ExamResult[];
@@ -220,7 +221,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const questions = allQuestions.filter((q: Question) => q.section === state.section);
   const currentQuestion = questions[state.currentQuestionIndex] || ({} as Question);
 
-  const startExam = async (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => {
+  const startExam = async (type: 'single' | 'full', section?: ExamSectionType, examId?: string, isTimed: boolean = true) => {
     let currentExamId = examId || activeExam?.id;
     let currentQuestions = allQuestions;
 
@@ -238,8 +239,8 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       selectedSection: section,
       currentQuestionIndex: 0,
       answers: {},
-      status: 'in_progress',
-      startedAt: Date.now(),
+      status: 'paused',
+      isTimed,
     };
     setState(newState);
     setSessionResults([]);
@@ -396,6 +397,14 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const beginCurrentSection = () => {
+    setState(prev => ({
+      ...prev,
+      status: 'in_progress',
+      startedAt: Date.now(),
+    }));
+  };
+
   const finishExam = () => {
     setState(prev => ({ ...prev, status: 'finished' }));
   };
@@ -434,6 +443,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       oralAnalyses,
       finishSection,
       startNextSection,
+      beginCurrentSection,
       finishExam,
       resetExam,
       sessionResults,
