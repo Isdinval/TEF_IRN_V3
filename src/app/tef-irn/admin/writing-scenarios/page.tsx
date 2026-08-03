@@ -99,7 +99,7 @@ export default function WritingScenariosAdmin() {
       sujet: s.sujet,
       min_words: s.min_words,
       duration_seconds: s.duration_seconds,
-      contraintes: (s.contraintes || []).join("\n"),
+      contraintes: (Array.isArray(s.contraintes) ? s.contraintes : []).join("\n"),
       is_active: s.is_active,
     });
     setErrorMsg(null);

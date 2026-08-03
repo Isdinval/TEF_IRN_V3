@@ -91,8 +91,8 @@ export default function OralScenariosAdmin() {
       title: s.title,
       role_interlocuteur: s.role_interlocuteur,
       sujet: s.sujet,
-      objectifs: (s.objectifs || []).join("\n"),
-      contraintes: (s.contraintes || []).join("\n"),
+      objectifs: (Array.isArray(s.objectifs) ? s.objectifs : []).join("\n"),
+      contraintes: (Array.isArray(s.contraintes) ? s.contraintes : []).join("\n"),
       voice: s.voice || "marin",
       is_active: s.is_active,
     });
