@@ -26,6 +26,7 @@ import {
   ChevronDown,
   Brain,
   Clock,
+  ClipboardCheck,
   ShieldCheck,
   Wrench,
   HelpCircle,
@@ -90,6 +91,7 @@ function SidebarContent() {
       activePrefix: "/tef-irn",
       items: [
         { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
+        { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam" },
         { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
         { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
         { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
