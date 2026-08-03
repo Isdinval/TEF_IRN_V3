@@ -132,6 +132,7 @@ function SidebarContent() {
       items: [
         { label: "Leçons", icon: BookOpen, href: "/tef-irn/admin/lessons" },
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
+        { label: "Examens blancs", icon: ClipboardCheck, href: "/tef-irn/admin/exams" },
         { label: "Scénarios EO", icon: Mic, href: "/tef-irn/admin/oral-scenarios" },
         { label: "Scénarios EE", icon: PenTool, href: "/tef-irn/admin/writing-scenarios" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
