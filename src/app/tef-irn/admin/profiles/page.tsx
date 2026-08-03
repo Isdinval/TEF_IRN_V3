@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck, ShieldOff } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, RotateCcw } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -29,6 +29,7 @@ interface ProfileRow {
 }
 
 const CONFIRM_PHRASE = "RETROGRADER";
+const RESET_CONFIRM_PHRASE = "RESET";
 
 export default function ProfilesAdmin() {
   const supabase = useMemo(() => createClient(), []);
@@ -42,6 +43,12 @@ export default function ProfilesAdmin() {
   // Confirmation renforcée, uniquement quand un admin retire son propre statut.
   const [selfDemoteTarget, setSelfDemoteTarget] = useState<ProfileRow | null>(null);
   const [confirmText, setConfirmText] = useState("");
+  // Réinitialisation d'un compte : vide toute la progression (tentatives,
+  // examens, SRS, chat coach...) mais conserve l'identité et le statut admin.
+  const [resetTarget, setResetTarget] = useState<ProfileRow | null>(null);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetPendingId, setResetPendingId] = useState<string | null>(null);
+  const [resetResultMsg, setResetResultMsg] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -112,6 +119,28 @@ export default function ProfilesAdmin() {
     setSelfDemoteTarget(null);
   };
 
+  const confirmReset = async () => {
+    if (!resetTarget) return;
+    setResetPendingId(resetTarget.id);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/admin/profiles/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: resetTarget.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur lors de la réinitialisation.");
+      setResetTarget(null);
+      setResetResultMsg(`Compte "${resetTarget.email}" réinitialisé (${json.deletedCount} enregistrements supprimés).`);
+      await fetchProfiles();
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors de la réinitialisation.");
+    } finally {
+      setResetPendingId(null);
+    }
+  };
+
   if (authState !== "granted") {
     return <AdminGuardScreen state={authState} />;
   }
@@ -133,6 +162,7 @@ export default function ProfilesAdmin() {
       </div>
 
       {errorMsg && <div className="mb-4 p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+      {resetResultMsg && <div className="mb-4 p-3 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold">{resetResultMsg}</div>}
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
@@ -159,7 +189,19 @@ export default function ProfilesAdmin() {
                   <p className="text-xs text-zinc-400 truncate">{profile.full_name || profile.username}</p>
                 )}
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={resetPendingId === profile.id}
+                  onClick={() => { setResetConfirmText(""); setResetTarget(profile); }}
+                  className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50"
+                >
+                  {resetPendingId === profile.id ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <><RotateCcw size={14} className="mr-1.5" /> Réinitialiser</>
+                  )}
+                </Button>
                 <Button
                   variant={profile.is_admin ? "secondary" : "default"}
                   disabled={pendingId === profile.id}
@@ -205,6 +247,38 @@ export default function ProfilesAdmin() {
               className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
             >
               {pendingId === selfDemoteTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la rétrogradation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetTarget} onOpenChange={(open) => !open && setResetTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Réinitialiser ce compte ?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-zinc-600">
+              Toute la progression de <strong>{resetTarget?.email}</strong> sera définitivement supprimée
+              (tentatives, examens blancs, SRS, historique du chat coach...). Le statut admin, l'abonnement,
+              les crédits IA et les paramètres d'onboarding (niveau, objectif, date d'examen) sont conservés.
+              Cette action est irréversible. Pour confirmer, tapez <strong>{RESET_CONFIRM_PHRASE}</strong> ci-dessous.
+            </p>
+            <div>
+              <Label className="text-xs font-black uppercase text-zinc-400">Confirmation</Label>
+              <Input value={resetConfirmText} onChange={(e) => setResetConfirmText(e.target.value)} className="mt-1" placeholder={RESET_CONFIRM_PHRASE} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setResetTarget(null)} className="rounded-2xl font-black text-sm">
+              Annuler
+            </Button>
+            <Button
+              onClick={confirmReset}
+              disabled={resetConfirmText !== RESET_CONFIRM_PHRASE || resetPendingId === resetTarget?.id}
+              className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
+            >
+              {resetPendingId === resetTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la réinitialisation"}
             </Button>
           </DialogFooter>
         </DialogContent>
