@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb } from 'lucide-react';
 import { ExamSectionType } from '@/types/exam';
-import { SECTION_BRIEFINGS } from '@/lib/exam-briefings';
+import { SECTION_BRIEFINGS, pickRandomTips } from '@/lib/exam-briefings';
 
 const sectionNames: Record<ExamSectionType, string> = {
   CO: 'Compréhension Orale',
@@ -26,6 +26,7 @@ export function SectionTransition() {
   const isInitialBriefing = sessionResults.length === 0;
   const targetSection = isInitialBriefing ? state.section : nextSection;
   const briefing = SECTION_BRIEFINGS[targetSection];
+  const displayedTips = useMemo(() => pickRandomTips(briefing.tips, 2), [briefing.tips]);
   const questionCount = allQuestions.filter(q => q.section === targetSection).length;
 
   const getDuration = (section: ExamSectionType) => {
@@ -103,7 +104,7 @@ export function SectionTransition() {
               <Lightbulb size={16} /> Conseils
             </div>
             <ul className="space-y-2">
-              {briefing.tips.map((tip) => (
+              {displayedTips.map((tip) => (
                 <li key={tip} className="flex items-start gap-2 text-sm text-[var(--exam-ink)]/75">
                   <span className="mt-1.5 w-1 h-1 rounded-full bg-[var(--exam-success)] shrink-0" />
                   {tip}
