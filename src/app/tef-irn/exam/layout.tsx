@@ -1,22 +1,6 @@
 import { Metadata } from "next";
-import { Fraunces, JetBrains_Mono } from "next/font/google";
 import { siteUrl } from "@/lib/site";
 import { ExamProvider } from "@/contexts/ExamContext";
-
-// Typographie propre à /exam : un empattement pour la gravité "document officiel"
-// (Fraunces) et une monospace pour les codes de dossier / minuteurs (JetBrains Mono).
-// Chargées ici plutôt que dans le layout racine pour ne pas affecter le reste du site.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--exam-font-display",
-  weight: ["500", "600", "700", "900"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--exam-font-mono",
-  weight: ["500", "700"],
-});
 
 export const metadata: Metadata = {
   title: "Examen blanc TEF IRN chronométré | LlamaKusi",
@@ -41,17 +25,22 @@ export default function ExamLayout({
 }) {
   return (
     <div
-      className={`${fraunces.variable} ${jetbrainsMono.variable} min-h-screen`}
+      className="min-h-screen"
       style={
         {
-          // Identité "convocation / dossier officiel" : papier, bleu République, tampon.
-          '--exam-ink': '#14213D',
-          '--exam-blue': '#002654',
-          '--exam-paper': '#F6F3EC',
-          '--exam-paper-dark': '#EDE8DA',
-          '--exam-seal': '#B23A2E',
-          '--exam-line': '#D8D2C4',
-          '--exam-success': '#2F6F4E',
+          // Tokens alignés sur le design system LlamaKusi (cf. globals.css).
+          // Les noms de variables --exam-* sont conservés pour ne pas toucher aux
+          // composants consommateurs (ExamSelector, QuestionCard, ResultsScreen, etc.) :
+          // seule leur valeur change ici. Le reskin des formes/cartes est traité à part.
+          '--exam-ink': '#18181B',       // zinc-900
+          '--exam-blue': 'var(--brand-blue)',
+          '--exam-paper': '#FAFAFA',     // brand-off-white
+          '--exam-paper-dark': '#F4F4F5', // zinc-100
+          '--exam-seal': '#E11D48',      // rose-600, cohérent avec les badges du dashboard
+          '--exam-line': '#E4E4E7',      // zinc-200
+          '--exam-success': '#059669',   // emerald-600
+          '--exam-font-display': 'var(--font-montserrat), ui-sans-serif, system-ui',
+          '--exam-font-mono': 'ui-monospace, SFMono-Regular, Menlo, monospace',
         } as React.CSSProperties
       }
     >
