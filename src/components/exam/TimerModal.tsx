@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Headset, BookOpen, PenTool, Mic, Award, Clock, Repeat } from 'lucide-react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
 import { ExamSectionType } from '@/types/exam';
@@ -63,60 +62,55 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-sm p-8 bg-[var(--exam-paper)] border border-[var(--exam-line)]">
+      <DialogContent className="sm:max-w-[520px] rounded-3xl p-8 bg-white border-none shadow-2xl shadow-zinc-200">
         <DialogHeader className="mb-6">
-          <span className="font-[family-name:var(--exam-font-mono,monospace)] text-[11px] tracking-[0.2em] uppercase text-[var(--exam-seal)] font-bold text-center block mb-2">
-            Convocation
-          </span>
-          <DialogTitle className="font-[family-name:var(--exam-font-display,serif)] text-3xl font-semibold text-center text-[var(--exam-ink)]">
+          <DialogTitle className="text-2xl font-black text-center text-zinc-900">
             {targetExam?.label || 'Prêt pour l\'entraînement ?'}
           </DialogTitle>
-          <DialogDescription className="text-center text-lg mt-2 text-[var(--exam-ink)]/60">
+          <DialogDescription className="text-center text-zinc-500 font-medium mt-1">
             Choisissez une épreuve spécifique ou lancez l'examen complet.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4">
-          <Button
-            variant="outline"
-            className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-blue)]/20 bg-white hover:border-[var(--exam-blue)] hover:bg-[var(--exam-blue)]/5 transition-all group"
+          <button
+            className="h-20 flex items-center justify-between px-6 rounded-2xl border-none bg-indigo-50/60 hover:bg-indigo-50 transition-all group"
             onClick={handleFullExam}
           >
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 shrink-0 bg-[var(--exam-blue)] rounded-sm flex items-center justify-center text-white shadow-md">
-                <Award size={24} />
+              <div className="w-12 h-12 shrink-0 bg-indigo-600 rounded-2xl flex items-center justify-center text-white">
+                <Award size={22} />
               </div>
               <div className="text-left min-w-0">
-                <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
-                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Conditions réelles</div>
+                <div className="font-black text-zinc-900 text-base">Examen Complet</div>
+                <div className="text-sm text-zinc-500 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Conditions réelles</div>
               </div>
             </div>
-            <div className="shrink-0 font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
-          </Button>
+            <div className="shrink-0 bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">RECOMMANDÉ</div>
+          </button>
 
-          <Button
-            variant="outline"
-            className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-success)]/25 bg-white hover:border-[var(--exam-success)] hover:bg-[var(--exam-success)]/5 transition-all group"
+          <button
+            className="h-20 flex items-center justify-between px-6 rounded-2xl border-none bg-emerald-50/60 hover:bg-emerald-50 transition-all group"
             onClick={handleFullExamUntimed}
           >
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 shrink-0 bg-[var(--exam-success)] rounded-sm flex items-center justify-center text-white shadow-md">
-                <Repeat size={24} />
+              <div className="w-12 h-12 shrink-0 bg-emerald-600 rounded-2xl flex items-center justify-center text-white">
+                <Repeat size={22} />
               </div>
               <div className="text-left min-w-0">
-                <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
-                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Entraînement libre</div>
+                <div className="font-black text-zinc-900 text-base">Examen Complet</div>
+                <div className="text-sm text-zinc-500 font-medium truncate">{formatTotalTime(totalDuration)} • Les 4 épreuves • Entraînement libre</div>
               </div>
             </div>
-            <div className="shrink-0 font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-success)]/10 text-[var(--exam-success)] px-3 py-1 rounded-full text-xs font-bold">SANS CHRONO</div>
-          </Button>
+            <div className="shrink-0 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">SANS CHRONO</div>
+          </button>
 
-          <div className="relative my-4">
+          <div className="relative my-2">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-dashed border-[var(--exam-line)]" />
+              <span className="w-full border-t border-zinc-100" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-[var(--exam-paper)] px-2 font-[family-name:var(--exam-font-mono,monospace)] text-[var(--exam-ink)]/40 font-bold tracking-widest">Ou par épreuve</span>
+              <span className="bg-white px-2 text-zinc-400 font-black tracking-widest">Ou par épreuve</span>
             </div>
           </div>
 
@@ -125,14 +119,14 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
               <button
                 key={opt.id}
                 onClick={() => handleSelect(opt.id)}
-                className="flex flex-col items-center gap-3 p-6 rounded-sm border border-[var(--exam-line)] bg-white hover:border-[var(--exam-blue)]/40 hover:bg-[var(--exam-blue)]/5 transition-all text-center group"
+                className="flex flex-col items-center gap-3 p-6 rounded-2xl border border-zinc-100 bg-white hover:border-indigo-200 hover:bg-indigo-50/40 transition-all text-center group"
               >
-                <div className="w-12 h-12 bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] rounded-sm flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <opt.icon size={24} />
+                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <opt.icon size={22} />
                 </div>
                 <div>
-                  <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-sm leading-tight">{opt.name}</div>
-                  <div className="font-[family-name:var(--exam-font-mono,monospace)] text-xs text-[var(--exam-ink)]/45 font-medium mt-1 flex items-center justify-center gap-1">
+                  <div className="font-black text-zinc-900 text-sm leading-tight">{opt.name}</div>
+                  <div className="text-xs text-zinc-400 font-bold uppercase tracking-wide mt-1 flex items-center justify-center gap-1">
                     <Clock size={10} /> {opt.duration}
                   </div>
                 </div>
