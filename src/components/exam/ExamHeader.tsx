@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Timer, LogOut } from 'lucide-react';
+import { Timer, LogOut, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useExam } from '@/contexts/ExamContext';
 import { useTimer } from '@/hooks/useTimer';
@@ -28,10 +28,12 @@ export function ExamHeader() {
     }
   };
 
+  const isTimed = state.isTimed !== false;
+
   const { formatTime, isLowTime } = useTimer({
     duration: getDuration(),
     startedAt: state.startedAt,
-    isActive: state.status === 'in_progress',
+    isActive: state.status === 'in_progress' && isTimed,
     onTimeUp: finishSection,
   });
 
@@ -46,7 +48,7 @@ export function ExamHeader() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="font-[family-name:var(--exam-font-mono)] text-[11px] font-bold text-[var(--exam-ink)]/45 uppercase tracking-wider">
-            {state.examType === 'full' ? 'Examen Complet' : 'Épreuve Individuelle'}
+            {state.examType === 'full' ? (isTimed ? 'Examen Complet' : 'Examen Complet · Entraînement libre') : 'Épreuve Individuelle'}
           </span>
           <h1 className="font-[family-name:var(--exam-font-display)] text-lg font-semibold text-[var(--exam-ink)]">
             {sectionNames[state.section]}
@@ -54,10 +56,17 @@ export function ExamHeader() {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-2xl font-bold transition-colors ${isLowTime ? 'bg-[var(--exam-seal)]/10 text-[var(--exam-seal)] animate-pulse' : 'bg-[var(--exam-paper)] text-[var(--exam-ink)]'}`}>
-            <Timer size={24} className={isLowTime ? 'animate-bounce' : ''} />
-            {formatTime}
-          </div>
+          {isTimed ? (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-2xl font-bold transition-colors ${isLowTime ? 'bg-[var(--exam-seal)]/10 text-[var(--exam-seal)] animate-pulse' : 'bg-[var(--exam-paper)] text-[var(--exam-ink)]'}`}>
+              <Timer size={24} className={isLowTime ? 'animate-bounce' : ''} />
+              {formatTime}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-sm font-bold bg-[var(--exam-blue)]/10 text-[var(--exam-blue)]">
+              <Clock size={18} />
+              Entraînement libre
+            </div>
+          )}
 
           <Button
             variant="ghost"

@@ -26,7 +26,7 @@ interface ExamContextType {
   activeExam: ExamMetadata | null;
   exams: ExamMetadata[];
   isLoadingExams: boolean;
-  startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => void;
+  startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string, isTimed?: boolean) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
   setQuestionIndex: (index: number) => void;
@@ -220,7 +220,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const questions = allQuestions.filter((q: Question) => q.section === state.section);
   const currentQuestion = questions[state.currentQuestionIndex] || ({} as Question);
 
-  const startExam = async (type: 'single' | 'full', section?: ExamSectionType, examId?: string) => {
+  const startExam = async (type: 'single' | 'full', section?: ExamSectionType, examId?: string, isTimed: boolean = true) => {
     let currentExamId = examId || activeExam?.id;
     let currentQuestions = allQuestions;
 
@@ -240,6 +240,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       answers: {},
       status: 'in_progress',
       startedAt: Date.now(),
+      isTimed,
     };
     setState(newState);
     setSessionResults([]);

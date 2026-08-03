@@ -49,6 +49,7 @@ export interface ExamSessionState {
   examType: 'single' | 'full';
   selectedSection?: ExamSectionType;
   examId?: string;
+  isTimed?: boolean; // false = mode entraînement sans chronomètre (Examen Complet uniquement). undefined/true = chronométré
 }
 
 export interface ExamResult {

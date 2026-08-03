@@ -47,7 +47,12 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
   };
 
   const handleFullExam = () => {
-    startExam('full', undefined, targetExam?.id);
+    startExam('full', undefined, targetExam?.id, true);
+    onOpenChange(false);
+  };
+
+  const handleFullExamUntimed = () => {
+    startExam('full', undefined, targetExam?.id, false);
     onOpenChange(false);
   };
 
@@ -83,6 +88,14 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
             </div>
             <div className="font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
           </Button>
+
+          <button
+            type="button"
+            onClick={handleFullExamUntimed}
+            className="text-center text-sm font-medium text-[var(--exam-ink)]/50 hover:text-[var(--exam-blue)] transition-colors"
+          >
+            Ou <span className="font-semibold underline underline-offset-4">s'entraîner sans chronomètre</span> — même format, sans pression de temps
+          </button>
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
