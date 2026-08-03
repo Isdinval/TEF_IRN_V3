@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Headset, BookOpen, PenTool, Mic, Award, Clock } from 'lucide-react';
+import { Headset, BookOpen, PenTool, Mic, Award, Clock, Repeat } from 'lucide-react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
 import { ExamSectionType } from '@/types/exam';
 
@@ -83,19 +83,28 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
               </div>
               <div className="text-left">
                 <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
-                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves</div>
+                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves • Conditions réelles</div>
               </div>
             </div>
             <div className="font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-blue)]/10 text-[var(--exam-blue)] px-3 py-1 rounded-full text-xs font-bold">RECOMMANDÉ</div>
           </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-success)]/25 bg-white hover:border-[var(--exam-success)] hover:bg-[var(--exam-success)]/5 transition-all group"
             onClick={handleFullExamUntimed}
-            className="text-center text-sm font-medium text-[var(--exam-ink)]/50 hover:text-[var(--exam-blue)] transition-colors"
           >
-            Ou <span className="font-semibold underline underline-offset-4">s'entraîner sans chronomètre</span> — même format, sans pression de temps
-          </button>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-[var(--exam-success)] rounded-sm flex items-center justify-center text-white shadow-md">
+                <Repeat size={24} />
+              </div>
+              <div className="text-left">
+                <div className="font-[family-name:var(--exam-font-display,serif)] font-semibold text-[var(--exam-ink)] text-lg">Examen Complet</div>
+                <div className="font-[family-name:var(--exam-font-mono,monospace)] text-sm text-[var(--exam-ink)]/50 font-medium">{formatTotalTime(totalDuration)} • Les 4 épreuves • Entraînement libre</div>
+              </div>
+            </div>
+            <div className="font-[family-name:var(--exam-font-mono,monospace)] bg-[var(--exam-success)]/10 text-[var(--exam-success)] px-3 py-1 rounded-full text-xs font-bold">SANS CHRONO</div>
+          </Button>
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
