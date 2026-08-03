@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
 import { siteUrl } from "@/lib/site";
+import { ExamProvider } from "@/contexts/ExamContext";
 
 // Typographie propre à /exam : un empattement pour la gravité "document officiel"
 // (Fraunces) et une monospace pour les codes de dossier / minuteurs (JetBrains Mono).
@@ -54,7 +55,7 @@ export default function ExamLayout({
         } as React.CSSProperties
       }
     >
-      {children}
+      <ExamProvider>{children}</ExamProvider>
     </div>
   );
 }

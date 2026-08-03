@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ interface TimerModalProps {
 }
 
 export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
+  const router = useRouter();
   const { startExam, activeExam } = useExam();
   const targetExam = exam || activeExam;
 
@@ -44,16 +46,19 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
   const handleSelect = (sectionId: string) => {
     startExam('single', sectionId as ExamSectionType, targetExam?.id);
     onOpenChange(false);
+    router.push('/tef-irn/exam/session');
   };
 
   const handleFullExam = () => {
     startExam('full', undefined, targetExam?.id, true);
     onOpenChange(false);
+    router.push('/tef-irn/exam/session');
   };
 
   const handleFullExamUntimed = () => {
     startExam('full', undefined, targetExam?.id, false);
     onOpenChange(false);
+    router.push('/tef-irn/exam/session');
   };
 
   return (
