@@ -2,15 +2,10 @@
 
 import React from 'react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
-import { Headset, BookOpen, PenTool, Mic, ArrowRight, Loader2 } from 'lucide-react';
+import { Headset, BookOpen, PenTool, Mic, ArrowRight, Loader2, Award } from 'lucide-react';
 
 interface ExamSelectorProps {
   onSelect: (exam: ExamMetadata) => void;
-}
-
-function referenceCode(slug: string | undefined, index: number) {
-  const num = slug?.match(/(\d+)$/)?.[1] ?? String(index + 1).padStart(2, '0');
-  return `N° TEF-2026-${num.padStart(2, '0')}`;
 }
 
 function totalDuration(exam: ExamMetadata) {
@@ -31,87 +26,70 @@ export function ExamSelector({ onSelect }: ExamSelectorProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--exam-paper)] py-16 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-12 text-center">
-          <div
-            className="font-[family-name:var(--exam-font-mono)] text-xs tracking-[0.25em] uppercase text-[var(--exam-seal)] font-bold mb-3"
-          >
-            Convocations disponibles
-          </div>
-          <h1 className="font-[family-name:var(--exam-font-display)] text-4xl md:text-5xl font-semibold text-[var(--exam-ink)] leading-tight">
+    <div className="min-h-screen bg-slate-50/30 pb-20">
+      <div className="mx-auto max-w-3xl p-4 md:p-10 lg:p-12">
+        <div className="mb-10">
+          <p className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-2">
+            Examens blancs
+          </p>
+          <h1 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight">
             Choisissez votre examen blanc
           </h1>
-          <p className="mt-3 text-[var(--exam-ink)]/60 text-lg">
+          <p className="mt-2 text-zinc-500 font-medium">
             Trois simulations complètes, conformes au format officiel du TEF IRN.
           </p>
         </div>
 
         {isLoadingExams ? (
-          <div className="flex justify-center py-20 text-[var(--exam-ink)]/50">
+          <div className="flex justify-center py-20 text-zinc-300">
             <Loader2 className="animate-spin" size={28} />
           </div>
         ) : (
-          <div className="space-y-6">
-            {exams.map((exam, index) => (
+          <div className="space-y-5">
+            {exams.map((exam) => (
               <button
                 key={exam.id}
                 onClick={() => onSelect(exam)}
-                className="group w-full text-left bg-white border border-[var(--exam-line)] rounded-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                className="group w-full text-left bg-white border-none rounded-3xl shadow-lg shadow-zinc-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 overflow-hidden"
               >
-                {/* En-tête du dossier */}
-                <div className="flex items-center justify-between px-6 md:px-8 pt-5 pb-4">
-                  <span className="font-[family-name:var(--exam-font-mono)] text-[11px] tracking-wider uppercase text-[var(--exam-ink)]/50">
-                    Dossier d'examen
-                  </span>
-                  <span className="font-[family-name:var(--exam-font-mono)] text-[11px] tracking-wider text-[var(--exam-seal)] font-bold">
-                    {referenceCode(exam.slug, index)}
-                  </span>
-                </div>
-
-                <div className="px-6 md:px-8 pb-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="font-[family-name:var(--exam-font-display)] text-2xl md:text-3xl font-semibold text-[var(--exam-ink)]">
-                        {exam.label}
-                      </h2>
-                      <p className="text-[var(--exam-ink)]/65 mt-1">{exam.description}</p>
+                <div className="p-6 md:p-8">
+                  <div className="flex items-start justify-between gap-4 mb-5">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                        <Award size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="text-xl md:text-2xl font-black text-zinc-900 truncate">
+                          {exam.label}
+                        </h2>
+                        <p className="text-sm text-zinc-500 mt-0.5">{exam.description}</p>
+                      </div>
                     </div>
-                    <span className="shrink-0 font-[family-name:var(--exam-font-mono)] text-xs font-bold px-3 py-1 rounded-full border border-[var(--exam-blue)]/20 text-[var(--exam-blue)] bg-[var(--exam-blue)]/5">
+                    <span className="shrink-0 rounded-full bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-indigo-600">
                       Niveau {exam.level}
                     </span>
                   </div>
-                </div>
 
-                {/* Perforation */}
-                <div
-                  className="relative h-0 border-t-2 border-dashed border-[var(--exam-line)]"
-                  aria-hidden
-                >
-                  <span className="absolute -left-3 -top-3 w-6 h-6 rounded-full bg-[var(--exam-paper)] border border-[var(--exam-line)]" />
-                  <span className="absolute -right-3 -top-3 w-6 h-6 rounded-full bg-[var(--exam-paper)] border border-[var(--exam-line)]" />
-                </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-5 border-t border-zinc-100">
+                    <div className="flex flex-wrap gap-4">
+                      {legs(exam).map((leg) => (
+                        <div key={leg.id} className="flex items-center gap-1.5 text-zinc-400">
+                          <leg.icon size={14} />
+                          <span className="text-xs font-bold uppercase tracking-wide">
+                            {leg.label} {leg.duration}min
+                          </span>
+                        </div>
+                      ))}
+                    </div>
 
-                {/* Talon : itinéraire + action */}
-                <div className="px-6 md:px-8 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--exam-paper-dark)]/40">
-                  <div className="flex flex-wrap gap-4">
-                    {legs(exam).map((leg) => (
-                      <div key={leg.id} className="flex items-center gap-1.5 text-[var(--exam-ink)]/70">
-                        <leg.icon size={14} />
-                        <span className="font-[family-name:var(--exam-font-mono)] text-xs">
-                          {leg.label} {leg.duration}min
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="font-[family-name:var(--exam-font-mono)] text-xs text-[var(--exam-ink)]/50">
-                      Durée totale {totalDuration(exam)}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--exam-blue)] group-hover:gap-2.5 transition-all">
-                      Commencer <ArrowRight size={16} />
-                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs font-bold text-zinc-400">
+                        Durée totale {totalDuration(exam)}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-sm font-black text-indigo-600 group-hover:gap-2.5 transition-all">
+                        Commencer <ArrowRight size={16} />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </button>
