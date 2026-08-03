@@ -132,7 +132,13 @@ function SidebarContent() {
       items: [
         { label: "Leçons", icon: BookOpen, href: "/tef-irn/admin/lessons" },
         { label: "Exercices", icon: Wrench, href: "/tef-irn/admin/exercises" },
+        { label: "Examens blancs", icon: ClipboardCheck, href: "/tef-irn/admin/exams" },
+        { label: "Scénarios EO", icon: Mic, href: "/tef-irn/admin/oral-scenarios" },
+        { label: "Scénarios EE", icon: PenTool, href: "/tef-irn/admin/writing-scenarios" },
         { label: "Questions civiques", icon: HelpCircle, href: "/tef-irn/admin/civic-questions" },
+        { label: "Vocabulaire", icon: RotateCcw, href: "/tef-irn/admin/vocabulary" },
+        { label: "Parcours", icon: Flag, href: "/tef-irn/admin/parcours" },
+        { label: "Centres examen civique", icon: MapPin, href: "/tef-irn/admin/centres-civiques" },
         { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
         { label: "Profils", icon: Users, href: "/tef-irn/admin/profiles" },
         { label: "Sitemap Debug", icon: Map, href: "/sitemap-debug" },
