@@ -71,7 +71,7 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <Button
             variant="outline"
             className="h-20 flex items-center justify-between px-6 rounded-sm border border-[var(--exam-blue)]/20 bg-white hover:border-[var(--exam-blue)] hover:bg-[var(--exam-blue)]/5 transition-all group"
