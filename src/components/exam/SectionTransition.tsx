@@ -4,7 +4,7 @@ import React from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { ArrowRight, CheckCircle2, Clock, Coffee, ListChecks, Lightbulb } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb } from 'lucide-react';
 import { ExamSectionType } from '@/types/exam';
 import { SECTION_BRIEFINGS } from '@/lib/exam-briefings';
 
@@ -42,10 +42,12 @@ export function SectionTransition() {
   return (
     <div className="min-h-screen bg-[var(--exam-paper)] flex items-center justify-center p-4">
       <Card className="max-w-xl w-full rounded-sm border border-[var(--exam-line)] shadow-2xl shadow-[var(--exam-ink)]/5 overflow-hidden">
-        <div className="bg-[var(--exam-blue)] p-12 text-center text-white">
-          <div className="w-20 h-20 bg-white/10 rounded-sm flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <CheckCircle2 size={40} className="text-emerald-400" />
-          </div>
+        <div className="bg-[var(--exam-blue)] p-8 text-center text-white">
+          {!isInitialBriefing && (
+            <div className="w-16 h-16 bg-white/10 rounded-sm flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+              <CheckCircle2 size={32} className="text-emerald-400" />
+            </div>
+          )}
           {isInitialBriefing ? (
             <>
               <h2 className="font-[family-name:var(--exam-font-display)] text-3xl font-semibold mb-2">Épreuve : {sectionNames[targetSection]}</h2>
@@ -63,21 +65,11 @@ export function SectionTransition() {
           )}
         </div>
 
-        <CardContent className="p-12 space-y-8">
-          {!isInitialBriefing && (
-            <div className="flex items-center gap-6 p-6 bg-white rounded-sm border border-dashed border-[var(--exam-line)]">
-              <div className="w-14 h-14 bg-[var(--exam-paper)] rounded-sm flex items-center justify-center shadow-sm text-[var(--exam-blue)]">
-                 <Coffee size={28} />
-              </div>
-              <div>
-                <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)]">Prenez une courte pause</div>
-                <div className="text-sm text-[var(--exam-ink)]/60 font-medium">Respirez un grand coup avant la suite.</div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div className="font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/45 uppercase tracking-widest">{isInitialBriefing ? 'Cette Épreuve' : 'Épreuve Suivante'}</div>
+        <CardContent className="p-8 space-y-6">
+          <div className="space-y-3">
+            {!isInitialBriefing && (
+              <div className="font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/45 uppercase tracking-widest">Épreuve Suivante</div>
+            )}
             <div className="flex items-center justify-between p-6 bg-[var(--exam-blue)]/5 rounded-sm border border-[var(--exam-blue)]/15">
                <div>
                   <div className="font-[family-name:var(--exam-font-display)] font-semibold text-[var(--exam-ink)] text-xl">{sectionNames[targetSection]}</div>
@@ -92,9 +84,9 @@ export function SectionTransition() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-ink)]/45 uppercase tracking-widest">
-              <ListChecks size={14} /> Consignes
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-[var(--exam-ink)] uppercase tracking-wide">
+              <ListChecks size={16} /> Consignes
             </div>
             <ul className="space-y-2">
               {briefing.rules.map((rule) => (
@@ -106,9 +98,9 @@ export function SectionTransition() {
             </ul>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 font-[family-name:var(--exam-font-mono)] text-xs font-bold text-[var(--exam-success)]/80 uppercase tracking-widest">
-              <Lightbulb size={14} /> Conseils
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-[var(--exam-success)] uppercase tracking-wide">
+              <Lightbulb size={16} /> Conseils
             </div>
             <ul className="space-y-2">
               {briefing.tips.map((tip) => (
@@ -121,7 +113,7 @@ export function SectionTransition() {
           </div>
         </CardContent>
 
-        <CardFooter className="p-12 pt-0 bg-white">
+        <CardFooter className="p-8 pt-0 bg-white">
            <Button
              onClick={isInitialBriefing ? beginCurrentSection : startNextSection}
              className="w-full h-16 bg-[var(--exam-blue)] hover:bg-[var(--exam-ink)] rounded-sm text-xl font-bold shadow-xl shadow-[var(--exam-ink)]/10"
