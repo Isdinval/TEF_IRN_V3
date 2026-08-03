@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   const [{ data: profiles, error: profilesError }, { data: usersPage, error: usersError }] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, username, full_name, current_level, subscription_tier, is_admin, created_at, total_xp, last_activity_at")
+      .select("id, username, full_name, current_level, subscription_tier, is_admin, created_at, total_xp, last_activity_at, is_test_account")
       .order("created_at", { ascending: false })
       .limit(MAX_USERS),
     admin.auth.admin.listUsers({ page: 1, perPage: MAX_USERS }),

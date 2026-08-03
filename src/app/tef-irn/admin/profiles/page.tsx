@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck, ShieldOff, RotateCcw } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, RotateCcw, Eye, FlaskConical } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -28,10 +28,12 @@ interface ProfileRow {
   created_at: string;
   total_xp: number;
   last_activity_at: string;
+  is_test_account: boolean;
 }
 
 type StatusFilter = "all" | "admin" | "normal";
 type SortBy = "last_activity" | "created_at" | "xp";
+type TestFilter = "all" | "hide_test" | "test_only";
 
 // Formatage relatif simple (fr) pour repérer vite un compte inactif.
 function formatRelative(iso: string): string {
@@ -62,6 +64,22 @@ const ACTION_LABELS: Record<LogEntry["action"], string> = {
   reset_progress: "a réinitialisé",
 };
 
+interface CategoryStat {
+  count: number;
+  avg_score: number | null;
+}
+
+interface UserStats {
+  exercise_attempts: CategoryStat;
+  writing_scenario_attempts: CategoryStat;
+  oral_session_results: CategoryStat;
+  civic_exam_attempts: CategoryStat;
+  lesson_progress_count: number;
+  user_parcours_progress_count: number;
+  user_errors_count: number;
+  last_sign_in_at: string | null;
+}
+
 const CONFIRM_PHRASE = "RETROGRADER";
 const RESET_CONFIRM_PHRASE = "RESET";
 
@@ -84,9 +102,15 @@ export default function ProfilesAdmin() {
   const [resetPendingId, setResetPendingId] = useState<string | null>(null);
   const [resetResultMsg, setResetResultMsg] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [testFilter, setTestFilter] = useState<TestFilter>("all");
   const [sortBy, setSortBy] = useState<SortBy>("last_activity");
   const [actionsLog, setActionsLog] = useState<LogEntry[]>([]);
   const [logExpanded, setLogExpanded] = useState(false);
+  const [testTogglingId, setTestTogglingId] = useState<string | null>(null);
+  // Vue détail : stats agrégées d'un compte (nb tentatives, score moyen, dernière connexion).
+  const [detailTarget, setDetailTarget] = useState<ProfileRow | null>(null);
+  const [detailStats, setDetailStats] = useState<UserStats | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -138,6 +162,8 @@ export default function ProfilesAdmin() {
     let list = profiles.filter((p) => p.id !== currentUserId);
     if (statusFilter === "admin") list = list.filter((p) => p.is_admin);
     if (statusFilter === "normal") list = list.filter((p) => !p.is_admin);
+    if (testFilter === "hide_test") list = list.filter((p) => !p.is_test_account);
+    if (testFilter === "test_only") list = list.filter((p) => p.is_test_account);
 
     const sorted = [...list];
     if (sortBy === "last_activity") {
@@ -148,7 +174,7 @@ export default function ProfilesAdmin() {
       sorted.sort((a, b) => b.total_xp - a.total_xp);
     }
     return sorted;
-  }, [profiles, currentUserId, statusFilter, sortBy]);
+  }, [profiles, currentUserId, statusFilter, testFilter, sortBy]);
 
   const toggleAdmin = async (profile: ProfileRow, nextIsAdmin: boolean) => {
     setPendingId(profile.id);
@@ -215,6 +241,42 @@ export default function ProfilesAdmin() {
     }
   };
 
+  const toggleTestAccount = async (profile: ProfileRow) => {
+    const nextValue = !profile.is_test_account;
+    setTestTogglingId(profile.id);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/admin/profiles/toggle-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: profile.id, isTestAccount: nextValue }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur lors de la mise à jour.");
+      await fetchProfiles();
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors de la mise à jour.");
+    } finally {
+      setTestTogglingId(null);
+    }
+  };
+
+  const openDetail = async (profile: ProfileRow) => {
+    setDetailTarget(profile);
+    setDetailStats(null);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/profiles/stats?userId=${profile.id}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur lors du chargement des statistiques.");
+      setDetailStats(json.stats);
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors du chargement des statistiques.");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   if (authState !== "granted") {
     return <AdminGuardScreen state={authState} />;
   }
@@ -230,6 +292,20 @@ export default function ProfilesAdmin() {
           )}
           {profile.subscription_tier && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.subscription_tier}</Badge>}
           {profile.current_level && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.current_level}</Badge>}
+          <button
+            type="button"
+            disabled={testTogglingId === profile.id}
+            onClick={() => toggleTestAccount(profile)}
+            title="Marquer/démarquer comme compte de test"
+          >
+            <Badge
+              className={`text-[10px] font-black uppercase border-none cursor-pointer ${
+                profile.is_test_account ? "bg-violet-100 text-violet-700" : "bg-zinc-50 text-zinc-300 hover:text-zinc-400"
+              }`}
+            >
+              <FlaskConical size={10} className="mr-1" /> Test
+            </Badge>
+          </button>
           {pinned && <span className="text-[10px] font-black text-indigo-500 uppercase">(vous)</span>}
         </div>
         <p className="text-sm font-bold text-zinc-800 truncate">{profile.email}</p>
@@ -242,6 +318,13 @@ export default function ProfilesAdmin() {
         </p>
       </div>
       <div className="shrink-0 flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => openDetail(profile)}
+          className="rounded-2xl font-black text-xs h-10 px-4 text-zinc-500 border-zinc-200 hover:bg-zinc-50"
+        >
+          <Eye size={14} className="mr-1.5" /> Détails
+        </Button>
         <Button
           variant="outline"
           disabled={resetPendingId === profile.id}
@@ -290,6 +373,11 @@ export default function ProfilesAdmin() {
           <option value="all">Tous les statuts</option>
           <option value="admin">Admins uniquement</option>
           <option value="normal">Comptes normaux uniquement</option>
+        </select>
+        <select value={testFilter} onChange={(e) => setTestFilter(e.target.value as TestFilter)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+          <option value="all">Comptes de test inclus</option>
+          <option value="hide_test">Masquer les comptes de test</option>
+          <option value="test_only">Comptes de test uniquement</option>
         </select>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
           <option value="last_activity">Trier : dernière activité</option>
@@ -406,6 +494,73 @@ export default function ProfilesAdmin() {
               className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
             >
               {resetPendingId === resetTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la réinitialisation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!detailTarget} onOpenChange={(open) => !open && setDetailTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Détails — {detailTarget?.email}</DialogTitle>
+          </DialogHeader>
+          {detailLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-indigo-600" size={24} /></div>
+          ) : detailStats ? (
+            <div className="space-y-2 text-sm text-zinc-700">
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Exercices (pratique)</span>
+                <span className="font-bold">
+                  {detailStats.exercise_attempts.count}
+                  {detailStats.exercise_attempts.avg_score !== null && ` · moy. ${detailStats.exercise_attempts.avg_score}`}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Examens blancs EE</span>
+                <span className="font-bold">
+                  {detailStats.writing_scenario_attempts.count}
+                  {detailStats.writing_scenario_attempts.avg_score !== null && ` · moy. ${detailStats.writing_scenario_attempts.avg_score}`}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Sessions EO</span>
+                <span className="font-bold">
+                  {detailStats.oral_session_results.count}
+                  {detailStats.oral_session_results.avg_score !== null && ` · moy. ${detailStats.oral_session_results.avg_score}`}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Examen civique blanc</span>
+                <span className="font-bold">
+                  {detailStats.civic_exam_attempts.count}
+                  {detailStats.civic_exam_attempts.avg_score !== null && ` · moy. ${detailStats.civic_exam_attempts.avg_score}`}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Leçons terminées</span>
+                <span className="font-bold">{detailStats.lesson_progress_count}</span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Parcours suivis</span>
+                <span className="font-bold">{detailStats.user_parcours_progress_count}</span>
+              </div>
+              <div className="flex justify-between border-b border-zinc-50 pb-2">
+                <span>Erreurs trackées</span>
+                <span className="font-bold">{detailStats.user_errors_count}</span>
+              </div>
+              <div className="flex justify-between pt-1">
+                <span>Dernière connexion</span>
+                <span className="font-bold">
+                  {detailStats.last_sign_in_at ? formatRelative(detailStats.last_sign_in_at) : "jamais"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-400">Aucune donnée disponible.</p>
+          )}
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDetailTarget(null)} className="rounded-2xl font-black text-sm">
+              Fermer
             </Button>
           </DialogFooter>
         </DialogContent>
