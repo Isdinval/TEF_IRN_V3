@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -56,6 +56,41 @@ const RadarGraphic = () => (
     />
   </div>
 );
+
+// Champ mot de passe avec bouton afficher/masquer (icône œil).
+function PasswordField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        type={visible ? "text" : "password"}
+        className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all pr-12"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
+        aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+        tabIndex={-1}
+      >
+        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  );
+}
 
 function AuthForm() {
   const [email, setEmail] = useState("");
@@ -171,14 +206,7 @@ function AuthForm() {
                 <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
                 <button type="button" className="text-[10px] font-black text-indigo-600 hover:underline">Oublié ?</button>
               </div>
-              <Input
-                id="password"
-                type="password"
-                className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <PasswordField id="password" value={password} onChange={setPassword} />
             </div>
             <Button
               type="submit"
@@ -206,14 +234,7 @@ function AuthForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
-              <Input
-                id="signup-password"
-                type="password"
-                className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <PasswordField id="signup-password" value={password} onChange={setPassword} />
             </div>
             <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
               <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
