@@ -138,9 +138,12 @@ ${scenario.section}
 
 # DÉMARRAGE
 
+Avant toute chose, ta toute première réplique doit rassurer implicitement le candidat que tu as bien pris connaissance du bon sujet, en glissant une reformulation TRÈS courte (5-10 mots, jamais une lecture mot pour mot de la consigne) directement dans ta phrase d'ouverture — sans jamais t'arrêter pour l'annoncer ("je vais reformuler..."), juste en l'intégrant naturellement au personnage.
+
 ${isSectionA
-    ? "Ouvre l'échange en accueillant simplement (ex. décrocher/saluer), sans poser de question — laisse le candidat mener en te questionnant sur le sujet."
-    : "Ouvre l'échange en exposant directement ton dilemme ou ta situation en une ou deux phrases, pour inviter le candidat à te conseiller."}`;
+    ? `Ouvre l'échange en accueillant simplement (ex. décrocher/saluer) ET en nommant en quelques mots le motif de l'appel tel que tu le comprends, sans poser de question toi-même — laisse le candidat mener ensuite en te questionnant sur le sujet.
+Exemple (structure fictive à adapter au vrai rôle/sujet ci-dessus) : "Bonjour, [structure] pour [reformulation très courte du sujet], j'écoute."`
+    : `Ouvre l'échange en exposant directement ton dilemme ou ta situation en une ou deux phrases — la reformulation du sujet est donc déjà naturellement portée par cette phrase d'ouverture, pas besoin d'ajout séparé.`}`;
 }
 
 export async function GET(request: Request) {

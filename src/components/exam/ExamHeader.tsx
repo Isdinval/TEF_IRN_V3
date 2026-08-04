@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Timer, LogOut, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useExam } from '@/contexts/ExamContext';
 import { useTimer } from '@/hooks/useTimer';
 import { ExamSectionType } from '@/types/exam';
@@ -15,7 +16,8 @@ const sectionNames: Record<ExamSectionType, string> = {
 };
 
 export function ExamHeader() {
-  const { state, finishSection, activeExam, isCorrecting } = useExam();
+  const { state, questions, finishSection, activeExam, isCorrecting } = useExam();
+  const [showFinishWarning, setShowFinishWarning] = useState(false);
 
   const getDuration = () => {
     if (!activeExam) return 20 * 60;
@@ -37,32 +39,38 @@ export function ExamHeader() {
     onTimeUp: finishSection,
   });
 
+  const unansweredCount = questions.filter(
+    (q) => q.type !== 'speaking' && !(state.answers[q.id] && state.answers[q.id].trim() !== '')
+  ).length;
+
+  const finishWarningText = unansweredCount > 0
+    ? `Il vous reste ${unansweredCount} question${unansweredCount > 1 ? 's' : ''} sans réponse. Voulez-vous vraiment terminer cette épreuve ?`
+    : 'Voulez-vous vraiment terminer cette épreuve ?';
+
   const handleFinishClick = () => {
-    if (confirm('Voulez-vous vraiment terminer cette épreuve ?')) {
-      finishSection();
-    }
+    setShowFinishWarning(true);
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-[var(--exam-line)] shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="font-[family-name:var(--exam-font-mono)] text-[11px] font-bold text-[var(--exam-ink)]/45 uppercase tracking-wider">
+          <span className="text-[11px] font-black text-white/70 uppercase tracking-wider">
             {state.examType === 'full' ? (isTimed ? 'Examen Complet' : 'Examen Complet · Entraînement libre') : 'Épreuve Individuelle'}
           </span>
-          <h1 className="font-[family-name:var(--exam-font-display)] text-lg font-semibold text-[var(--exam-ink)]">
+          <h1 className="text-lg font-black text-white">
             {sectionNames[state.section]}
           </h1>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           {isTimed ? (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-2xl font-bold transition-colors ${isLowTime ? 'bg-[var(--exam-seal)]/10 text-[var(--exam-seal)] animate-pulse' : 'bg-[var(--exam-paper)] text-[var(--exam-ink)]'}`}>
-              <Timer size={24} className={isLowTime ? 'animate-bounce' : ''} />
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-2xl font-black transition-colors ${isLowTime ? 'bg-rose-500 text-white animate-pulse' : 'bg-white/15 text-white'}`}>
+              <Timer size={22} className={isLowTime ? 'animate-bounce' : ''} />
               {formatTime}
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-sm font-[family-name:var(--exam-font-mono)] text-sm font-bold bg-[var(--exam-blue)]/10 text-[var(--exam-blue)]">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-black bg-white/15 text-white">
               <Clock size={18} />
               Entraînement libre
             </div>
@@ -71,7 +79,7 @@ export function ExamHeader() {
           <Button
             variant="ghost"
             disabled={isCorrecting}
-            className="hidden md:flex items-center gap-2 text-[var(--exam-ink)]/50 hover:text-[var(--exam-seal)] hover:bg-[var(--exam-seal)]/5 disabled:opacity-50"
+            className="hidden md:flex items-center gap-2 text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-50"
             onClick={handleFinishClick}
           >
             <LogOut size={20} />
@@ -79,6 +87,16 @@ export function ExamHeader() {
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showFinishWarning}
+        onOpenChange={setShowFinishWarning}
+        title="Terminer l'épreuve ?"
+        description={finishWarningText}
+        confirmLabel="Terminer"
+        cancelLabel="Continuer l'épreuve"
+        onConfirm={finishSection}
+      />
     </header>
   );
 }
