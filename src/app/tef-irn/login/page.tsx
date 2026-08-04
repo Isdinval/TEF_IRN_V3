@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Loader2, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,6 +18,39 @@ import {
 } from "@/data/login-images";
 import { pickRandomImage } from "@/data/grammar-check-images";
 import { PERSONAS } from "@/data/personas";
+import { cn } from "@/lib/utils";
+
+// Traduit les erreurs Supabase Auth (en anglais par défaut) en messages
+// français compréhensibles par des apprenants A2-B2. Fallback générique si
+// le message n'est pas reconnu.
+function getAuthErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "";
+  const message = raw.toLowerCase();
+
+  if (message.includes("invalid login credentials")) {
+    return "Email ou mot de passe incorrect.";
+  }
+  if (message.includes("already registered") || message.includes("user already exists")) {
+    return "Un compte existe déjà avec cet email. Essayez de vous connecter.";
+  }
+  if (message.includes("email not confirmed")) {
+    return "Votre email n'est pas encore confirmé. Vérifiez votre boîte mail.";
+  }
+  if (message.includes("password should be at least")) {
+    return "Le mot de passe doit contenir au moins 6 caractères.";
+  }
+  if (message.includes("unable to validate email address") || message.includes("invalid email")) {
+    return "Adresse email invalide.";
+  }
+  if (message.includes("rate limit") || message.includes("too many requests")) {
+    return "Trop de tentatives. Réessayez dans quelques minutes.";
+  }
+  if (message.includes("network") || message.includes("fetch")) {
+    return "Problème de connexion. Vérifiez votre connexion internet et réessayez.";
+  }
+
+  return "Une erreur est survenue. Réessayez dans un instant.";
+}
 
 // Carousel de témoignages : personas illustratifs partagés avec la landing
 // (src/data/personas.ts). Le niveau A2/CSP n'a pas encore de persona dédié,
@@ -97,6 +130,7 @@ function AuthForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [formMessage, setFormMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -108,6 +142,7 @@ function AuthForm() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    setFormMessage(null);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -116,8 +151,8 @@ function AuthForm() {
         },
       });
       if (error) throw error;
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      setFormMessage({ type: "error", text: getAuthErrorMessage(error) });
     } finally {
       setGoogleLoading(false);
     }
@@ -126,6 +161,7 @@ function AuthForm() {
   const handleAuth = async (e: React.FormEvent, mode: "signin" | "signup") => {
     e.preventDefault();
     setLoading(true);
+    setFormMessage(null);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
@@ -134,14 +170,17 @@ function AuthForm() {
           options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) throw error;
-        alert("Vérifiez votre boîte mail pour confirmer votre inscription !");
+        setFormMessage({
+          type: "success",
+          text: "Vérifiez votre boîte mail pour confirmer votre inscription !",
+        });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         router.refresh(); router.push("/tef-irn/dashboard");
       }
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      setFormMessage({ type: "error", text: getAuthErrorMessage(error) });
     } finally {
       setLoading(false);
     }
@@ -157,6 +196,26 @@ function AuthForm() {
         <h1 className="text-3xl font-black tracking-tight text-zinc-900">Bienvenue</h1>
         <p className="text-zinc-500 font-medium italic">Le succès au TEF IRN commence ici.</p>
       </div>
+
+      {formMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "flex items-start gap-2.5 p-4 rounded-2xl text-sm font-bold leading-snug",
+            formMessage.type === "error"
+              ? "bg-red-50 text-red-700 border border-red-100"
+              : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+          )}
+        >
+          {formMessage.type === "error" ? (
+            <AlertCircle className="shrink-0 mt-0.5" size={18} />
+          ) : (
+            <CheckCircle2 className="shrink-0 mt-0.5" size={18} />
+          )}
+          <span>{formMessage.text}</span>
+        </div>
+      )}
 
       <Button
         variant="outline"
