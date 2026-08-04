@@ -99,6 +99,44 @@ supabase/
 
 ---
 
+## Méthode de travail attendue des agents IA
+
+Cette section s'applique à toute session de travail (Claude, Jules, Copilot) impliquant plusieurs échanges sur une même fonctionnalité — typiquement une refonte de page ou un chantier multi-fichiers.
+
+### Déclencheur : mode "analyse complète"
+
+Quand un message contient (ou reformule clairement) :
+
+> « Compris ? Analyse mon besoin, complète-le, détaille-le. Problématique et objectifs du besoin. Analyse chain of thought. »
+
+l'agent doit **toujours** produire une réponse structurée en 3 blocs, dans cet ordre, avant tout code :
+
+1. **Problématique et objectifs du besoin** — reformuler le besoin réel derrière la demande, pas juste la paraphraser.
+2. **Analyse chain-of-thought** — lecture effective du code/de la capture/des fichiers concernés (pas de suppositions non vérifiées), écarts entre l'existant et le besoin.
+3. **Plan priorisé en MoSCoW** — `MUST HAVE` / `SHOULD HAVE` / `COULD HAVE` / `WON'T HAVE`, un item = une ligne actionnable, pas de formulation vague.
+
+Ne jamais sauter à l'implémentation directement après ce type de message, même si la demande semble simple.
+
+### Suivi du plan entre les messages
+
+Une fois un plan MoSCoW validé par Olivier :
+
+- **Rappeler le plan complet à jour en tête de chaque réponse suivante**, sous forme de tableau `# | Item | Statut`, avec un statut par ligne (`✅ Fait`, `🔨 En cours`, `🔴 À faire`, `🟠/🟡` pour les priorités secondaires, `🟢` pour "fait partiellement en marge d'un autre item").
+- Le plan est un document vivant : il se met à jour à chaque item terminé, et peut s'enrichir en cours de route (ex. un bug remonté en review devient une ligne du plan, pas juste un aparté).
+- **Un item à la fois** : proposer, obtenir la validation, implémenter, livrer le patch — ne pas enchaîner plusieurs items du plan dans un seul patch sauf demande explicite.
+- Terminer chaque réponse par une section **prochaines étapes** explicite (ce qui est proposé ensuite, ou la question bloquante s'il y en a une).
+
+### Synchronisation du dépôt
+
+Olivier commit et push lui-même après chaque patch livré (l'agent n'a pas d'accès push). Avant de reprendre le travail sur un nouvel item du plan, toujours synchroniser avec la branche de travail en cours :
+
+```bash
+git fetch origin <branche>
+git reset --hard FETCH_HEAD   # jamais git pull, pour éviter les conflits
+```
+
+---
+
 ## Conventions de code
 
 ### TypeScript
