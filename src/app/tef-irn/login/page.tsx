@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { PasswordField } from "@/components/auth/password-field";
 import { PasswordStrengthMeter } from "@/components/auth/password-strength";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { captureEvent } from "@/lib/analytics";
 
 // Carousel de témoignages : personas illustratifs partagés avec la landing
 // (src/data/personas.ts). Le niveau A2/CSP n'a pas encore de persona dédié,
@@ -99,6 +100,7 @@ function AuthForm() {
         },
       });
       if (error) throw error;
+      captureEvent("login_google_click");
     } catch (error) {
       setFormMessage({ type: "error", text: getAuthErrorMessage(error) });
     } finally {
@@ -118,6 +120,7 @@ function AuthForm() {
           options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) throw error;
+        captureEvent("signup_success");
         setFormMessage({
           type: "success",
           text: "Vérifiez votre boîte mail pour confirmer votre inscription !",
@@ -125,6 +128,7 @@ function AuthForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        captureEvent("login_success");
         router.refresh(); router.push("/tef-irn/dashboard");
       }
     } catch (error) {
@@ -151,6 +155,7 @@ function AuthForm() {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
+      captureEvent("password_reset_requested");
       setFormMessage({
         type: "success",
         text: "Si un compte existe avec cet email, un lien de réinitialisation vient d'être envoyé.",

@@ -7,6 +7,7 @@ import { ParcoursWrapper } from "@/components/providers/ParcoursWrapper";
 import { CoachProvider } from "@/contexts/CoachContext";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { createClient } from "@/lib/supabase-server";
 import { Analytics } from "@vercel/analytics/next";
 import { siteUrl } from "@/lib/site";
@@ -111,22 +112,24 @@ export default async function RootLayout({
     <html lang="fr" className="h-full" suppressHydrationWarning>
       <body className={`${inter.variable} ${montserrat.variable} font-sans h-full bg-slate-50/30`}>
         <JsonLd data={organizationSchema} id="schema-org" />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <QueryProvider>
-            <AuthProvider initialUser={user}>
-              <ParcoursWrapper>
-                <CoachProvider>
-                  <AppLayout>{children}</AppLayout>
-                </CoachProvider>
-              </ParcoursWrapper>
-            </AuthProvider>
-          </QueryProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>
+              <AuthProvider initialUser={user}>
+                <ParcoursWrapper>
+                  <CoachProvider>
+                    <AppLayout>{children}</AppLayout>
+                  </CoachProvider>
+                </ParcoursWrapper>
+              </AuthProvider>
+            </QueryProvider>
+          </ThemeProvider>
+        </PostHogProvider>
         <Analytics />
       </body>
     </html>
