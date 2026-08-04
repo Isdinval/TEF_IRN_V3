@@ -8,8 +8,6 @@ import {
   Trophy,
   RotateCcw,
   Home,
-  CheckCircle2,
-  XCircle,
   FileText,
   MessageSquare,
   Sparkles
@@ -20,7 +18,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ExamSectionType, ExamResult, Question } from '@/types/exam';
+import { QuestionDetailPanel } from './QuestionDetailPanel';
+import { ExamSectionType, ExamResult } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
 import { computeSkillLevels, computeGlobalLevel, CecrlLevel } from '@/lib/exam-level';
@@ -106,31 +105,8 @@ export function ResultsScreen() {
                       <AccordionTrigger className="hover:no-underline py-4 px-6 bg-zinc-50 rounded-2xl flex justify-between items-center w-full">
                         <span className="font-black text-zinc-600">Détail des réponses</span>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-4 px-2 space-y-3">
-                        {result.answers.map((ans: any, idx: number) => {
-                          const q = (allQuestions || []).find((currQ: Question) => currQ.id === ans.questionId);
-                          return (
-                            <div key={ans.questionId} className="p-4 rounded-2xl border border-zinc-100 flex items-start gap-4">
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-black ${ans.isCorrect ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                {idx + 1}
-                              </div>
-                              <div className="flex-1 text-left">
-                                <div className="font-bold text-zinc-800 mb-1">{(q as any)?.question}</div>
-                                <div className="flex flex-wrap gap-4 text-sm font-bold">
-                                  <div className="flex items-center gap-1.5 text-zinc-400">
-                                    Votre réponse: <span className={ans.isCorrect ? 'text-emerald-600' : 'text-rose-600'}>{ans.userAnswer || 'Aucune'}</span>
-                                  </div>
-                                  {!ans.isCorrect && (
-                                    <div className="flex items-center gap-1.5 text-emerald-600">
-                                      Bonne réponse: <span>{ans.correctAnswer}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              {ans.isCorrect ? <CheckCircle2 className="text-emerald-600 shrink-0" size={20} /> : <XCircle className="text-rose-600 shrink-0" size={20} />}
-                            </div>
-                          );
-                        })}
+                      <AccordionContent className="pt-4 px-2">
+                        <QuestionDetailPanel answers={result.answers} allQuestions={allQuestions} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
