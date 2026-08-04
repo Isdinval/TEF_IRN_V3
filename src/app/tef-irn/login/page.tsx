@@ -340,9 +340,9 @@ function AuthForm() {
 
       <p className="text-center text-[10px] text-zinc-400 font-medium px-8 leading-relaxed">
         En continuant, vous acceptez nos{" "}
-        <Link href="#" className="text-zinc-600 underline font-bold">Conditions</Link>{" "}
+        <Link href="/tef-irn/conditions-utilisation" target="_blank" rel="noopener noreferrer" className="text-zinc-600 underline font-bold">Conditions</Link>{" "}
         et notre{" "}
-        <Link href="#" className="text-zinc-600 underline font-bold">Politique de confidentialité</Link>.
+        <Link href="/tef-irn/politique-de-confidentialite" target="_blank" rel="noopener noreferrer" className="text-zinc-600 underline font-bold">Politique de confidentialité</Link>.
       </p>
     </motion.div>
   );
