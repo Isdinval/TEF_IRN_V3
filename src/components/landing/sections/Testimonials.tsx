@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { FileText, Clock, Mic, Layers, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { PERSONAS, type PersonaIcon } from "@/data/personas";
 
 // Mêmes accents que la section Features, pour une cohérence visuelle sur toute la page
 const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: string }> = {
@@ -14,48 +15,23 @@ const ACCENT_STYLES: Record<string, { bar: string; iconBg: string; needText: str
   emerald: { bar: "from-emerald-500 to-emerald-400", iconBg: "bg-emerald-500", needText: "text-emerald-600 dark:text-emerald-400" },
 };
 
-const personas = [
-  {
-    flag: "pe",
-    name: "Maria",
-    role: "Ingénieure informatique à Lyon · Naturalisation B2",
-    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Maria_Ingenieur_informatique_Lyon.webp",
-    text: "Je comprends tout ce qu'on me dit au travail, mais quand il faut écrire une lettre officielle ou parler à quelqu'un que je ne connais pas… je bloque complètement.",
-    need: "Coach à l'écrit et à l'oral, dans un registre formel",
-    icon: <FileText size={16} />,
-    accent: "blue",
-  },
-  {
-    flag: "ma",
-    name: "Ahmed",
-    role: "Chef d'équipe BTP à Nantes · Carte de résident B1",
-    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Ahmed_Chef_Equipe_BTP_Nantes.webp",
-    text: "J'ai pas le temps d'aller à des cours le soir. Il me faut quelque chose que je peux faire sur mon téléphone, à mon rythme.",
-    need: "Disponible le soir, entre 21h et 23h",
-    icon: <Clock size={16} />,
-    accent: "purple",
-  },
-  {
-    flag: "sn",
-    name: "Fatou",
-    role: "Assistante administrative en mairie à Bordeaux · Naturalisation B2",
-    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Fatou_Assistante_Administrative_Mairie_Bordeaux.webp",
-    text: "J'ai besoin de quelqu'un qui me corrige vraiment, pas juste qui me dise ce qui est faux.",
-    need: "Correction écrite détaillée, pas juste un score",
-    icon: <Mic size={16} />,
-    accent: "amber",
-  },
-  {
-    flag: "dz",
-    name: "Karim",
-    role: "Comptable à Toulouse · Naturalisation B2",
-    image: "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/landing_page/Karim_comptable_Toulouse.webp",
-    text: "Je devais réussir l'Examen Civique et le TEF IRN la même année. Avoir les deux parcours au même endroit m'a fait gagner un temps fou.",
-    need: "Un seul coach pour l'Examen Civique et le TEF IRN",
-    icon: <Layers size={16} />,
-    accent: "emerald",
-  },
-];
+const ICONS: Record<PersonaIcon, React.ReactNode> = {
+  file: <FileText size={16} />,
+  clock: <Clock size={16} />,
+  mic: <Mic size={16} />,
+  layers: <Layers size={16} />,
+};
+
+const personas = PERSONAS.map((p) => ({
+  flag: p.flag,
+  name: p.name,
+  role: p.role,
+  image: p.image,
+  text: p.landingText,
+  need: p.landingNeed,
+  icon: ICONS[p.icon],
+  accent: p.accent,
+}));
 
 export function Testimonials() {
   return (

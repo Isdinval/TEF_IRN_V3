@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Star, Quote, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,33 +17,15 @@ import {
   GOOGLE_LOGO_URL,
 } from "@/data/login-images";
 import { pickRandomImage } from "@/data/grammar-check-images";
+import { PERSONAS } from "@/data/personas";
 
-// Témoignages orientés résultat, un par palier CECRL du TEF IRN.
-// Barème officiel : chaque épreuve notée sur 0-499. Seuils de niveau global :
-// A2 >= 200 (3 épreuves) + >= 167 (4e) | B1 >= 300 + >= 267 | B2 >= 400 + >= 367.
-const TESTIMONIALS = [
-  {
-    initials: "YB",
-    name: "Youssef B.",
-    role: "Niveau A2 · Carte de séjour pluriannuelle",
-    score: "214/499",
-    text: "En 6 semaines de coaching avec LlamaKusi, j'ai obtenu mon niveau A2. Ma carte de séjour pluriannuelle est signée.",
-  },
-  {
-    initials: "AD",
-    name: "Amina D.",
-    role: "Niveau B1 · Carte de résident",
-    score: "312/499",
-    text: "L'entraînement à l'oral m'a débloquée. J'ai décroché mon B1 du premier coup et ma carte de résident de 10 ans.",
-  },
-  {
-    initials: "CM",
-    name: "Carlos M.",
-    role: "Niveau B2 · Naturalisation",
-    score: "428/499",
-    text: "La correction détaillée de mes écrits a fait toute la différence. B2 obtenu, dossier de naturalisation déposé.",
-  },
-] as const;
+// Carousel de témoignages : personas illustratifs partagés avec la landing
+// (src/data/personas.ts). Le niveau A2/CSP n'a pas encore de persona dédié,
+// donc on n'affiche ici que B1/B2 en attendant.
+const LOGIN_PERSONAS = PERSONAS.filter((p) => p.level !== "A2");
+
+// Durée d'affichage de chaque témoignage avant rotation automatique.
+const TESTIMONIAL_ROTATION_MS = 6000;
 
 const RadarGraphic = () => (
   <div className="relative w-40 h-40 flex items-center justify-center">
@@ -261,11 +243,23 @@ function AuthForm() {
 }
 
 export default function AuthPage() {
-  // Tirés une fois au montage : une aquarelle et un témoignage par chargement de page.
+  // Tirée une fois au montage : une aquarelle de fond par chargement de page.
   const [backgroundUrl] = useState(() => pickRandomImage(LOGIN_WATERCOLOR_URLS));
-  const [testimonial] = useState(
-    () => TESTIMONIALS[Math.floor(Math.random() * TESTIMONIALS.length)]
+
+  // Carousel de témoignages : index de départ aléatoire, puis rotation automatique.
+  const [testimonialIndex, setTestimonialIndex] = useState(() =>
+    Math.floor(Math.random() * LOGIN_PERSONAS.length)
   );
+
+  useEffect(() => {
+    if (LOGIN_PERSONAS.length <= 1) return;
+    const interval = setInterval(() => {
+      setTestimonialIndex((i) => (i + 1) % LOGIN_PERSONAS.length);
+    }, TESTIMONIAL_ROTATION_MS);
+    return () => clearInterval(interval);
+  }, []);
+
+  const testimonial = LOGIN_PERSONAS[testimonialIndex];
 
   return (
     <div className="h-screen grid lg:grid-cols-2 bg-white selection:bg-indigo-100 overflow-hidden">
@@ -303,29 +297,31 @@ export default function AuthPage() {
         <div className="relative z-10">
           <AnimatePresence mode="wait">
             <motion.div
-              key={testimonial.initials}
+              key={testimonial.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] shadow-2xl"
+              className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-[2rem] shadow-2xl flex gap-4"
             >
-              <div className="flex gap-1 text-amber-500 mb-3">
-                {[1, 2, 3, 4, 5].map((i) => <Star key={i} size={16} fill="currentColor" />)}
+              <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-lg">
+                <Image
+                  src={testimonial.image}
+                  alt={`Portrait aquarelle de ${testimonial.name}`}
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
               </div>
-              <p className="text-white text-lg font-bold leading-relaxed mb-4 italic">
-                "{testimonial.text}"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-sm">
-                  {testimonial.initials}
-                </div>
-                <div>
-                  <p className="text-white font-bold text-base">{testimonial.name}</p>
-                  <p className="text-zinc-400 text-sm font-medium">
-                    {testimonial.role} • Score {testimonial.score}
-                  </p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-white text-base font-bold leading-relaxed mb-2 italic">
+                  "{testimonial.loginQuote}"
+                </p>
+                <p className="text-white font-bold text-sm">{testimonial.name}</p>
+                <p className="text-zinc-400 text-xs font-medium">{testimonial.role}</p>
+                <p className="text-zinc-500 text-[10px] font-semibold uppercase tracking-wide mt-1">
+                  Profil illustratif
+                </p>
               </div>
             </motion.div>
           </AnimatePresence>
