@@ -23,22 +23,18 @@ import {
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
-import { computeSkillLevels, computeGlobalLevel } from '@/lib/exam-level';
+import { computeSkillLevels, computeGlobalLevel, CecrlLevel } from '@/lib/exam-level';
 
 export function ResultsScreen() {
   const { sessionResults, resetExam, allQuestions } = useExam();
 
-  const totalPossible = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.total, 0);
-  const totalScored = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.score, 0);
-  const percentage = totalPossible > 0 ? (totalScored / totalPossible) * 100 : 0;
-
   const skillLevels = computeSkillLevels(sessionResults);
   const globalLevel = computeGlobalLevel(skillLevels);
 
-  const getEncouragement = (p: number) => {
-    if (p < 50) return "Continuez vos efforts ! La régularité est la clé de la réussite.";
-    if (p < 70) return "Bon travail ! Vous êtes sur la bonne voie pour obtenir votre TEF IRN.";
-    return "Excellent score ! Vous maîtrisez parfaitement les épreuves QCM.";
+  const getEncouragement = (level: CecrlLevel | undefined) => {
+    if (level === 'B2') return "Excellent score ! Vous maîtrisez très bien le niveau visé pour le TEF IRN.";
+    if (level === 'B1') return "Bon travail ! Vous êtes sur la bonne voie pour obtenir votre TEF IRN.";
+    return "Continuez vos efforts ! La régularité est la clé de la réussite.";
   };
 
   const sectionLabels: Record<ExamSectionType, string> = {
@@ -56,7 +52,7 @@ export function ResultsScreen() {
             <Trophy size={48} className="text-indigo-600" />
           </div>
           <h1 className="text-4xl font-black text-zinc-900">Résultats de l'examen</h1>
-          <p className="text-xl text-zinc-500 font-medium">{getEncouragement(percentage)}</p>
+          <p className="text-xl text-zinc-500 font-medium">{getEncouragement(globalLevel?.level)}</p>
         </div>
 
         <Card className="rounded-[2.5rem] border-none py-0 shadow-2xl shadow-zinc-200/50 overflow-hidden">
@@ -69,24 +65,11 @@ export function ResultsScreen() {
                 <div className="text-7xl font-black mb-2 leading-none">
                   {globalLevel.level}{globalLevel.plus ? '+' : ''}
                 </div>
-                <p className="text-white/60 text-xs font-medium max-w-sm mb-8">
+                <p className="text-white/60 text-xs font-medium max-w-sm">
                   Estimation indicative basée sur vos résultats à cet examen blanc — ne remplace pas le score officiel du TEF IRN.
                 </p>
               </>
             )}
-
-            <div className="text-3xl font-black">{totalScored}/{totalPossible}</div>
-            <div className="text-white/70 font-black uppercase tracking-widest text-[10px] mt-1">Score QCM (Compréhension)</div>
-
-            <div className="mt-6 w-full max-w-md">
-              <div className="h-3 w-full rounded-full bg-white/20 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-white transition-all duration-700"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-              <div className="mt-2 text-xs font-black text-white/70">{Math.round(percentage)}% DE RÉUSSITE</div>
-            </div>
           </CardHeader>
 
           <CardContent className="p-10 space-y-10">
@@ -113,11 +96,7 @@ export function ResultsScreen() {
                           Object.values(result.writingFeedbacks).length
                         )}/100 (IA)
                       </div>
-                    ) : (
-                      <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600 text-xs">
-                        AUTO-ÉVALUATION
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
