@@ -22,13 +22,21 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/tef-irn/dashboard";
+  const nextParam = searchParams.get("next") ?? "/tef-irn/dashboard";
+  // "next" peut arriver soit en chemin relatif ("/auth/reset-password"),
+  // soit en URL absolue complète ("https://llamakusi.com/auth/reset-password")
+  // -- c'est le cas ici puisque resetPasswordForEmail() est appelé avec un
+  // redirectTo déjà absolu (window.location.origin + chemin), qui devient
+  // {{ .RedirectTo }} tel quel dans le template email. Concaténer
+  // aveuglément origin + next produisait un domaine dupliqué
+  // ("https://llamakusi.comhttps://llamakusi.com/...").
+  const next = nextParam.startsWith("http") ? nextParam : `${origin}${nextParam}`;
 
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(next);
     }
   }
 
