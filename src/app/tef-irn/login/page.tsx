@@ -209,6 +209,7 @@ function AuthForm() {
               className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -272,6 +273,7 @@ function AuthForm() {
                     className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -289,7 +291,7 @@ function AuthForm() {
                       Oublié ?
                     </button>
                   </div>
-                  <PasswordField id="password" value={password} onChange={setPassword} />
+                  <PasswordField id="password" value={password} onChange={setPassword} autoComplete="current-password" />
                 </div>
                 <Button
                   type="submit"
@@ -312,12 +314,13 @@ function AuthForm() {
                     className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
-                  <PasswordField id="signup-password" value={password} onChange={setPassword} />
+                  <PasswordField id="signup-password" value={password} onChange={setPassword} autoComplete="new-password" />
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
                   <ShieldCheck className="text-indigo-600 shrink-0" size={20} />

@@ -10,10 +10,12 @@ export function PasswordField({
   id,
   value,
   onChange,
+  autoComplete,
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
+  autoComplete?: string;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -25,6 +27,7 @@ export function PasswordField({
         className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all pr-12"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        autoComplete={autoComplete}
         required
       />
       <button
