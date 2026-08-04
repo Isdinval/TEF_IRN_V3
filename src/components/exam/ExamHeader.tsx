@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Timer, LogOut, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useExam } from '@/contexts/ExamContext';
 import { useTimer } from '@/hooks/useTimer';
 import { ExamSectionType } from '@/types/exam';
@@ -15,7 +16,8 @@ const sectionNames: Record<ExamSectionType, string> = {
 };
 
 export function ExamHeader() {
-  const { state, finishSection, activeExam, isCorrecting } = useExam();
+  const { state, questions, finishSection, activeExam, isCorrecting } = useExam();
+  const [showFinishWarning, setShowFinishWarning] = useState(false);
 
   const getDuration = () => {
     if (!activeExam) return 20 * 60;
@@ -37,10 +39,16 @@ export function ExamHeader() {
     onTimeUp: finishSection,
   });
 
+  const unansweredCount = questions.filter(
+    (q) => q.type !== 'speaking' && !(state.answers[q.id] && state.answers[q.id].trim() !== '')
+  ).length;
+
+  const finishWarningText = unansweredCount > 0
+    ? `Il vous reste ${unansweredCount} question${unansweredCount > 1 ? 's' : ''} sans réponse. Voulez-vous vraiment terminer cette épreuve ?`
+    : 'Voulez-vous vraiment terminer cette épreuve ?';
+
   const handleFinishClick = () => {
-    if (confirm('Voulez-vous vraiment terminer cette épreuve ?')) {
-      finishSection();
-    }
+    setShowFinishWarning(true);
   };
 
   return (
@@ -79,6 +87,16 @@ export function ExamHeader() {
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showFinishWarning}
+        onOpenChange={setShowFinishWarning}
+        title="Terminer l'épreuve ?"
+        description={finishWarningText}
+        confirmLabel="Terminer"
+        cancelLabel="Continuer l'épreuve"
+        onConfirm={finishSection}
+      />
     </header>
   );
 }

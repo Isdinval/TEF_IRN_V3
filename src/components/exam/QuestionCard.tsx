@@ -9,12 +9,14 @@ import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ArrowRight, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function QuestionCard() {
   const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting, submitOralAnalysis, oralAnalyses } = useExam();
   const [wordCount, setWordCount] = useState(0);
+  const [unansweredWarning, setUnansweredWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentQuestion.type === 'writing') {
@@ -36,14 +38,14 @@ export function QuestionCard() {
     if (isLastQuestion) {
       const unanswered = questions.filter((q) => !isQuestionAnswered(q)).length;
       if (unanswered > 0) {
-        const confirmed = confirm(
+        setUnansweredWarning(
           `Il vous reste ${unanswered} question${unanswered > 1 ? 's' : ''} sans réponse dans cette épreuve. Voulez-vous quand même terminer ?`
         );
-        if (!confirmed) return;
+        return;
       }
     } else if (!isQuestionAnswered(currentQuestion)) {
-      const confirmed = confirm("Vous n'avez pas répondu à cette question. Voulez-vous continuer sans répondre ?");
-      if (!confirmed) return;
+      setUnansweredWarning("Vous n'avez pas répondu à cette question. Voulez-vous continuer sans répondre ?");
+      return;
     }
     nextQuestion();
   };
@@ -278,6 +280,16 @@ export function QuestionCard() {
           </div>
         </motion.div>
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={!!unansweredWarning}
+        onOpenChange={(open) => !open && setUnansweredWarning(null)}
+        title="Question sans réponse"
+        description={unansweredWarning || ''}
+        confirmLabel={isLastQuestion ? 'Terminer quand même' : 'Continuer sans répondre'}
+        cancelLabel="Revenir en arrière"
+        onConfirm={nextQuestion}
+      />
     </div>
   );
 }
