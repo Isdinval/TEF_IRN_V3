@@ -18,7 +18,7 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
     <div className="space-y-2">
       {answers.map((ans, idx) => {
         const question = getQuestion(ans.questionId);
-        const hasContext = !!(question?.texte || question?.audioUrl);
+        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length);
         const isExpanded = hasContext && ans.questionId === expandedId;
 
         return (
@@ -77,6 +77,35 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
                           <p className="text-sm leading-relaxed text-zinc-600 italic">{question.transcription}</p>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {question.options && question.options.length > 0 && (
+                    <div className="pt-3 border-t border-zinc-200 space-y-1.5">
+                      <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Options de réponse</div>
+                      {question.options.map((opt) => {
+                        const letter = opt.substring(0, 1);
+                        const label = opt.substring(3);
+                        const isCorrectOption = letter === ans.correctAnswer;
+                        const isUserChoice = letter === ans.userAnswer;
+                        return (
+                          <div
+                            key={opt}
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${
+                              isCorrectOption
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : isUserChoice
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : 'text-zinc-500'
+                            }`}
+                          >
+                            <span className="font-black w-4 shrink-0">{letter}</span>
+                            <span className="flex-1">{label}</span>
+                            {isCorrectOption && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
+                            {isUserChoice && !isCorrectOption && <XCircle size={14} className="text-rose-600 shrink-0" />}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
