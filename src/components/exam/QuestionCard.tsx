@@ -23,6 +23,31 @@ export function QuestionCard() {
     }
   }, [state.answers, currentQuestion]);
 
+  const isLastQuestion = state.currentQuestionIndex === questions.length - 1;
+
+  // L'oral est déjà verrouillé par le disabled du bouton tant que l'analyse n'existe pas :
+  // s'il est cliquable pour une question 'speaking', elle est donc forcément déjà répondue.
+  const isQuestionAnswered = (q: typeof currentQuestion) => {
+    if (q.type === 'speaking') return true;
+    return !!(state.answers[q.id] && state.answers[q.id].trim() !== '');
+  };
+
+  const handleNext = () => {
+    if (isLastQuestion) {
+      const unanswered = questions.filter((q) => !isQuestionAnswered(q)).length;
+      if (unanswered > 0) {
+        const confirmed = confirm(
+          `Il vous reste ${unanswered} question${unanswered > 1 ? 's' : ''} sans réponse dans cette épreuve. Voulez-vous quand même terminer ?`
+        );
+        if (!confirmed) return;
+      }
+    } else if (!isQuestionAnswered(currentQuestion)) {
+      const confirmed = confirm("Vous n'avez pas répondu à cette question. Voulez-vous continuer sans répondre ?");
+      if (!confirmed) return;
+    }
+    nextQuestion();
+  };
+
   const renderQCM = (q: QCMQuestion) => {
     const selectedAnswer = state.answers[q.id];
 
@@ -238,7 +263,7 @@ export function QuestionCard() {
                   {state.currentQuestionIndex + 1} sur {questions.length}
                </div>
                <Button
-                 onClick={nextQuestion}
+                 onClick={handleNext}
                  disabled={isCorrecting || (currentQuestion.type === 'speaking' && !!(currentQuestion as SpeakingQuestion).oralScenarioId && !oralAnalyses[currentQuestion.id])}
                  className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 rounded-2xl text-base font-black shadow-xl shadow-indigo-600/20 disabled:opacity-60"
                >
