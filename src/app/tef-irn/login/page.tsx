@@ -74,6 +74,17 @@ function AuthForm() {
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) setEmail(emailParam);
+
+    const errorCode = searchParams.get("error_code");
+    if (errorCode === "otp_expired") {
+      setFormMessage({
+        type: "error",
+        text: "Ce lien a expiré ou a déjà été utilisé. Redemandez un nouveau lien ci-dessous.",
+      });
+      setForgotPasswordMode(true);
+    } else if (errorCode) {
+      setFormMessage({ type: "error", text: "Une erreur est survenue avec ce lien. Réessayez." });
+    }
   }, [searchParams]);
 
   const handleGoogleSignIn = async () => {
@@ -127,8 +138,16 @@ function AuthForm() {
     setLoading(true);
     setFormMessage(null);
     try {
+      // redirectTo pointe directement vers la destination finale
+      // (/auth/reset-password) : c'est cette valeur que le template email
+      // (Supabase Dashboard > Auth > Email Templates > Reset Password)
+      // récupère via {{ .RedirectTo }} pour construire le lien de
+      // confirmation vers /auth/confirm?token_hash=...&type=recovery&next=...
+      // (voir src/app/auth/confirm/route.ts). On n'utilise plus l'endpoint
+      // GoTrue public {{ .ConfirmationURL }} pour éviter qu'il soit consommé
+      // par les scanners de liens des clients mail avant le clic réel.
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
       setFormMessage({
