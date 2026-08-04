@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { PasswordField } from "@/components/auth/password-field";
+import { PasswordStrengthMeter } from "@/components/auth/password-strength";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { cn } from "@/lib/utils";
 
@@ -79,11 +80,12 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="new-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Nouveau mot de passe</Label>
-              <PasswordField id="new-password" value={password} onChange={setPassword} />
+              <PasswordField id="new-password" value={password} onChange={setPassword} autoComplete="new-password" />
+              <PasswordStrengthMeter password={password} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Confirmer le mot de passe</Label>
-              <PasswordField id="confirm-password" value={confirmPassword} onChange={setConfirmPassword} />
+              <PasswordField id="confirm-password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
             </div>
             <Button
               type="submit"

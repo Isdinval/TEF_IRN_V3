@@ -20,7 +20,9 @@ import { pickRandomImage } from "@/data/grammar-check-images";
 import { PERSONAS } from "@/data/personas";
 import { cn } from "@/lib/utils";
 import { PasswordField } from "@/components/auth/password-field";
+import { PasswordStrengthMeter } from "@/components/auth/password-strength";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { captureEvent } from "@/lib/analytics";
 
 // Carousel de témoignages : personas illustratifs partagés avec la landing
 // (src/data/personas.ts). Le niveau A2/CSP n'a pas encore de persona dédié,
@@ -98,6 +100,7 @@ function AuthForm() {
         },
       });
       if (error) throw error;
+      captureEvent("login_google_click");
     } catch (error) {
       setFormMessage({ type: "error", text: getAuthErrorMessage(error) });
     } finally {
@@ -117,6 +120,7 @@ function AuthForm() {
           options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) throw error;
+        captureEvent("signup_success");
         setFormMessage({
           type: "success",
           text: "Vérifiez votre boîte mail pour confirmer votre inscription !",
@@ -124,6 +128,7 @@ function AuthForm() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        captureEvent("login_success");
         router.refresh(); router.push("/tef-irn/dashboard");
       }
     } catch (error) {
@@ -150,6 +155,7 @@ function AuthForm() {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
+      captureEvent("password_reset_requested");
       setFormMessage({
         type: "success",
         text: "Si un compte existe avec cet email, un lien de réinitialisation vient d'être envoyé.",
@@ -209,6 +215,7 @@ function AuthForm() {
               className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -272,6 +279,7 @@ function AuthForm() {
                     className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -289,7 +297,7 @@ function AuthForm() {
                       Oublié ?
                     </button>
                   </div>
-                  <PasswordField id="password" value={password} onChange={setPassword} />
+                  <PasswordField id="password" value={password} onChange={setPassword} autoComplete="current-password" />
                 </div>
                 <Button
                   type="submit"
@@ -312,12 +320,15 @@ function AuthForm() {
                     className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
-                  <PasswordField id="signup-password" value={password} onChange={setPassword} />
+                  <PasswordField id="signup-password" value={password} onChange={setPassword} autoComplete="new-password" />
+                  <PasswordStrengthMeter password={password} />
+                  <p className="text-[11px] text-zinc-400 font-medium ml-1">Minimum 6 caractères.</p>
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
                   <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
@@ -340,9 +351,9 @@ function AuthForm() {
 
       <p className="text-center text-[10px] text-zinc-400 font-medium px-8 leading-relaxed">
         En continuant, vous acceptez nos{" "}
-        <Link href="#" className="text-zinc-600 underline font-bold">Conditions</Link>{" "}
+        <Link href="/tef-irn/conditions-utilisation" target="_blank" rel="noopener noreferrer" className="text-zinc-600 underline font-bold">Conditions</Link>{" "}
         et notre{" "}
-        <Link href="#" className="text-zinc-600 underline font-bold">Politique de confidentialité</Link>.
+        <Link href="/tef-irn/politique-de-confidentialite" target="_blank" rel="noopener noreferrer" className="text-zinc-600 underline font-bold">Politique de confidentialité</Link>.
       </p>
     </motion.div>
   );
