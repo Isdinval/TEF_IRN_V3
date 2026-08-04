@@ -1,14 +1,11 @@
 import posthog from 'posthog-js'
+import { initializePostHog } from '@/components/providers/PostHogProvider'
 
 export const initPostHog = () => {
-  if (typeof window !== 'undefined') {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
-      person_profiles: 'identified_only',
-    })
-  }
+  initializePostHog()
+  return posthog
 }
 
-export const captureEvent = (name: string, properties?: any) => {
+export const captureEvent = (name: string, properties?: Record<string, unknown>) => {
   posthog.capture(name, properties)
 }
