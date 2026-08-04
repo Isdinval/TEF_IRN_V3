@@ -23,6 +23,7 @@ import {
 import { ExamSectionType, ExamResult, Question } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
+import { computeSkillLevels, computeGlobalLevel } from '@/lib/exam-level';
 
 export function ResultsScreen() {
   const { sessionResults, resetExam, allQuestions } = useExam();
@@ -30,6 +31,9 @@ export function ResultsScreen() {
   const totalPossible = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.total, 0);
   const totalScored = sessionResults.reduce((acc: number, res: ExamResult) => acc + res.score, 0);
   const percentage = totalPossible > 0 ? (totalScored / totalPossible) * 100 : 0;
+
+  const skillLevels = computeSkillLevels(sessionResults);
+  const globalLevel = computeGlobalLevel(skillLevels);
 
   const getEncouragement = (p: number) => {
     if (p < 50) return "Continuez vos efforts ! La régularité est la clé de la réussite.";
@@ -57,9 +61,24 @@ export function ResultsScreen() {
 
         <Card className="rounded-[2.5rem] border-none py-0 shadow-2xl shadow-zinc-200/50 overflow-hidden">
           <CardHeader className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-10 text-center flex flex-col items-center">
-            <div className="text-6xl font-black mb-2">{totalScored}/{totalPossible}</div>
-            <div className="text-white/70 font-black uppercase tracking-widest text-sm">Score Global (QCM)</div>
-            <div className="mt-8 w-full max-w-md">
+            {globalLevel && (
+              <>
+                <div className="text-white/70 font-black uppercase tracking-widest text-xs mb-2">
+                  Niveau CECRL estimé
+                </div>
+                <div className="text-7xl font-black mb-2 leading-none">
+                  {globalLevel.level}{globalLevel.plus ? '+' : ''}
+                </div>
+                <p className="text-white/60 text-xs font-medium max-w-sm mb-8">
+                  Estimation indicative basée sur vos résultats à cet examen blanc — ne remplace pas le score officiel du TEF IRN.
+                </p>
+              </>
+            )}
+
+            <div className="text-3xl font-black">{totalScored}/{totalPossible}</div>
+            <div className="text-white/70 font-black uppercase tracking-widest text-[10px] mt-1">Score QCM (Compréhension)</div>
+
+            <div className="mt-6 w-full max-w-md">
               <div className="h-3 w-full rounded-full bg-white/20 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-white transition-all duration-700"
@@ -71,26 +90,35 @@ export function ResultsScreen() {
           </CardHeader>
 
           <CardContent className="p-10 space-y-10">
-            {sessionResults.map((result: ExamResult) => (
+            {sessionResults.map((result: ExamResult) => {
+              const skillLevel = skillLevels.find((s) => s.section === result.section);
+              return (
               <div key={result.section} className="space-y-6">
                 <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
                   <h3 className="text-xl font-black text-zinc-900">{sectionLabels[result.section]}</h3>
-                  {result.section === 'CO' || result.section === 'CE' ? (
-                    <div className="px-4 py-1 bg-zinc-50 rounded-full font-black text-zinc-600">
-                      {result.score} / {result.total}
-                    </div>
-                  ) : result.section === 'EE' && result.writingFeedbacks && Object.keys(result.writingFeedbacks).length > 0 ? (
-                    <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600">
-                      {Math.round(
-                        Object.values(result.writingFeedbacks).reduce((sum, f) => sum + f.score_global, 0) /
-                        Object.values(result.writingFeedbacks).length
-                      )}/100 (IA)
-                    </div>
-                  ) : (
-                    <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600 text-xs">
-                      AUTO-ÉVALUATION
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {skillLevel && (
+                      <div className="px-3 py-1 bg-violet-50 rounded-full font-black text-violet-600 text-xs">
+                        {skillLevel.level}
+                      </div>
+                    )}
+                    {result.section === 'CO' || result.section === 'CE' ? (
+                      <div className="px-4 py-1 bg-zinc-50 rounded-full font-black text-zinc-600">
+                        {result.score} / {result.total}
+                      </div>
+                    ) : result.section === 'EE' && result.writingFeedbacks && Object.keys(result.writingFeedbacks).length > 0 ? (
+                      <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600">
+                        {Math.round(
+                          Object.values(result.writingFeedbacks).reduce((sum, f) => sum + f.score_global, 0) /
+                          Object.values(result.writingFeedbacks).length
+                        )}/100 (IA)
+                      </div>
+                    ) : (
+                      <div className="px-4 py-1 bg-indigo-50 rounded-full font-black text-indigo-600 text-xs">
+                        AUTO-ÉVALUATION
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {(result.section === 'CO' || result.section === 'CE') && (
@@ -238,7 +266,8 @@ export function ResultsScreen() {
                   )
                 )}
               </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 
