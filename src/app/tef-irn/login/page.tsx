@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,38 +19,8 @@ import {
 import { pickRandomImage } from "@/data/grammar-check-images";
 import { PERSONAS } from "@/data/personas";
 import { cn } from "@/lib/utils";
-
-// Traduit les erreurs Supabase Auth (en anglais par défaut) en messages
-// français compréhensibles par des apprenants A2-B2. Fallback générique si
-// le message n'est pas reconnu.
-function getAuthErrorMessage(error: unknown): string {
-  const raw = error instanceof Error ? error.message : "";
-  const message = raw.toLowerCase();
-
-  if (message.includes("invalid login credentials")) {
-    return "Email ou mot de passe incorrect.";
-  }
-  if (message.includes("already registered") || message.includes("user already exists")) {
-    return "Un compte existe déjà avec cet email. Essayez de vous connecter.";
-  }
-  if (message.includes("email not confirmed")) {
-    return "Votre email n'est pas encore confirmé. Vérifiez votre boîte mail.";
-  }
-  if (message.includes("password should be at least")) {
-    return "Le mot de passe doit contenir au moins 6 caractères.";
-  }
-  if (message.includes("unable to validate email address") || message.includes("invalid email")) {
-    return "Adresse email invalide.";
-  }
-  if (message.includes("rate limit") || message.includes("too many requests")) {
-    return "Trop de tentatives. Réessayez dans quelques minutes.";
-  }
-  if (message.includes("network") || message.includes("fetch")) {
-    return "Problème de connexion. Vérifiez votre connexion internet et réessayez.";
-  }
-
-  return "Une erreur est survenue. Réessayez dans un instant.";
-}
+import { PasswordField } from "@/components/auth/password-field";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 // Carousel de témoignages : personas illustratifs partagés avec la landing
 // (src/data/personas.ts). Le niveau A2/CSP n'a pas encore de persona dédié,
@@ -90,47 +60,13 @@ const RadarGraphic = () => (
   </div>
 );
 
-// Champ mot de passe avec bouton afficher/masquer (icône œil).
-function PasswordField({
-  id,
-  value,
-  onChange,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div className="relative">
-      <Input
-        id={id}
-        type={visible ? "text" : "password"}
-        className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all pr-12"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required
-      />
-      <button
-        type="button"
-        onClick={() => setVisible((v) => !v)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
-        aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-        tabIndex={-1}
-      >
-        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-      </button>
-    </div>
-  );
-}
-
 function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [formMessage, setFormMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -186,6 +122,26 @@ function AuthForm() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setFormMessage(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (error) throw error;
+      setFormMessage({
+        type: "success",
+        text: "Si un compte existe avec cet email, un lien de réinitialisation vient d'être envoyé.",
+      });
+    } catch (error) {
+      setFormMessage({ type: "error", text: getAuthErrorMessage(error) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -193,8 +149,14 @@ function AuthForm() {
       className="w-full max-w-[400px] space-y-6"
     >
       <div className="space-y-1 text-center lg:text-left">
-        <h1 className="text-3xl font-black tracking-tight text-zinc-900">Bienvenue</h1>
-        <p className="text-zinc-500 font-medium italic">Le succès au TEF IRN commence ici.</p>
+        <h1 className="text-3xl font-black tracking-tight text-zinc-900">
+          {forgotPasswordMode ? "Mot de passe oublié" : "Bienvenue"}
+        </h1>
+        <p className="text-zinc-500 font-medium italic">
+          {forgotPasswordMode
+            ? "Recevez un lien par email pour le réinitialiser."
+            : "Le succès au TEF IRN commence ici."}
+        </p>
       </div>
 
       {formMessage && (
@@ -217,100 +179,145 @@ function AuthForm() {
         </div>
       )}
 
-      <Button
-        variant="outline"
-        className="w-full h-14 bg-white border border-zinc-300 hover:bg-zinc-50 hover:shadow-md text-zinc-700 font-semibold text-[15px] rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
-        onClick={handleGoogleSignIn}
-        disabled={googleLoading}
-      >
-        {googleLoading ? (
-          <Loader2 className="animate-spin" size={18} />
-        ) : (
-          <Image src={GOOGLE_LOGO_URL} alt="" width={18} height={18} unoptimized />
-        )}
-        Continuer avec Google
-      </Button>
+      {forgotPasswordMode ? (
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="forgot-email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+            <Input
+              id="forgot-email"
+              type="email"
+              placeholder="nom@exemple.fr"
+              className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : "Envoyer le lien"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => {
+              setFormMessage(null);
+              setForgotPasswordMode(false);
+            }}
+            className="w-full text-center text-[11px] font-bold text-zinc-500 hover:text-zinc-700"
+          >
+            ← Retour à la connexion
+          </button>
+        </form>
+      ) : (
+        <>
+          <Button
+            variant="outline"
+            className="w-full h-14 bg-white border border-zinc-300 hover:bg-zinc-50 hover:shadow-md text-zinc-700 font-semibold text-[15px] rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+          >
+            {googleLoading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <Image src={GOOGLE_LOGO_URL} alt="" width={18} height={18} unoptimized />
+            )}
+            Continuer avec Google
+          </Button>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-100"></span>
-        </div>
-        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">
-          <span className="bg-white px-4">OU</span>
-        </div>
-      </div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-zinc-100"></span>
+            </div>
+            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">
+              <span className="bg-white px-4">OU</span>
+            </div>
+          </div>
 
-      <Tabs defaultValue="login" className="w-full flex flex-col gap-6">
-        <TabsList className="grid w-full grid-cols-2 p-1.5 bg-zinc-100 rounded-2xl h-14">
-          <TabsTrigger value="login" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Connexion</TabsTrigger>
-          <TabsTrigger value="signup" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Inscription</TabsTrigger>
-        </TabsList>
+          <Tabs defaultValue="login" className="w-full flex flex-col gap-6">
+            <TabsList className="grid w-full grid-cols-2 p-1.5 bg-zinc-100 rounded-2xl h-14">
+              <TabsTrigger value="login" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Connexion</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Inscription</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="login" className="space-y-4">
-          <form onSubmit={(e) => handleAuth(e, "signin")} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="nom@exemple.fr"
-                className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
-                <button type="button" className="text-[10px] font-black text-indigo-600 hover:underline">Oublié ?</button>
-              </div>
-              <PasswordField id="password" value={password} onChange={setPassword} />
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : "Se connecter"}
-            </Button>
-          </form>
-        </TabsContent>
+            <TabsContent value="login" className="space-y-4">
+              <form onSubmit={(e) => handleAuth(e, "signin")} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="nom@exemple.fr"
+                    className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormMessage(null);
+                        setForgotPasswordMode(true);
+                      }}
+                      className="text-[10px] font-black text-indigo-600 hover:underline"
+                    >
+                      Oublié ?
+                    </button>
+                  </div>
+                  <PasswordField id="password" value={password} onChange={setPassword} />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : "Se connecter"}
+                </Button>
+              </form>
+            </TabsContent>
 
-        <TabsContent value="signup" className="space-y-4">
-          <form onSubmit={(e) => handleAuth(e, "signup")} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
-              <Input
-                id="signup-email"
-                type="email"
-                placeholder="votre@email.fr"
-                className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
-              <PasswordField id="signup-password" value={password} onChange={setPassword} />
-            </div>
-            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
-              <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
-              <p className="text-[11px] text-indigo-700 font-bold leading-tight">
-                Accès immédiat à votre première session de coaching IA gratuite après inscription.
-              </p>
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : "Créer mon compte"}
-            </Button>
-          </form>
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="signup" className="space-y-4">
+              <form onSubmit={(e) => handleAuth(e, "signup")} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="votre@email.fr"
+                    className="h-14 border-zinc-200 focus:border-indigo-600 rounded-2xl font-bold transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
+                  <PasswordField id="signup-password" value={password} onChange={setPassword} />
+                </div>
+                <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
+                  <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
+                  <p className="text-[11px] text-indigo-700 font-bold leading-tight">
+                    Accès immédiat à votre première session de coaching IA gratuite après inscription.
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : "Créer mon compte"}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
 
       <p className="text-center text-[10px] text-zinc-400 font-medium px-8 leading-relaxed">
         En continuant, vous acceptez nos{" "}
