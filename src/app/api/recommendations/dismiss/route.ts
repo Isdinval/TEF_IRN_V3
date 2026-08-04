@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +21,8 @@ export async function POST(req: Request) {
       .eq('user_id', user.id); // défense en profondeur : ne peut dismiss que ses propres recos
 
     if (error) throw error;
+
+    await captureServerEvent(user.id, "recommendation_dismissed");
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

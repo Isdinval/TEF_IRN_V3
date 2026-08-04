@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { analyzeUserErrorsAndRecommend, trackUserError, resolveUserError, completeRecommendationIfResolved } from '@/lib/recommendation-engine';
 import { updateSRS } from '@/lib/srs-engine-server';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 export async function POST(req: Request) {
   try {
@@ -126,6 +127,12 @@ export async function POST(req: Request) {
         console.error("SRS update error:", srsError);
       }
     }
+
+    await captureServerEvent(user.id, "exercise_completed", {
+      score: xpGain,
+      study_time_minutes: studyTimeMinutes || 0,
+      has_ai_feedback: Boolean(aiFeedback),
+    });
 
     return NextResponse.json({ success: true, xpGained: xpGain });
   } catch (error: any) {
