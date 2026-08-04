@@ -384,13 +384,13 @@ export default function AuthPage() {
               transition={{ duration: 0.4 }}
               className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-[2rem] shadow-2xl flex gap-4"
             >
-              <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-lg">
+              <div className="relative w-24 h-24 shrink-0">
                 <Image
                   src={testimonial.image}
                   alt={`Portrait aquarelle de ${testimonial.name}`}
                   fill
                   className="object-cover"
-                  sizes="64px"
+                  sizes="96px"
                 />
               </div>
               <div className="min-w-0">
