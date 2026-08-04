@@ -42,7 +42,7 @@ export function SectionTransition() {
 
   return (
     <div className="min-h-screen bg-slate-50/30 flex items-center justify-center p-4">
-      <Card className="max-w-xl w-full rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200/50 overflow-hidden">
+      <Card className="max-w-xl w-full rounded-[2.5rem] border-none py-0 shadow-2xl shadow-zinc-200/50 overflow-hidden">
         <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-10 text-center text-white">
           {!isInitialBriefing && (
             <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
@@ -114,7 +114,7 @@ export function SectionTransition() {
           </div>
         </CardContent>
 
-        <CardFooter className="p-8 pt-0">
+        <CardFooter className="p-8 pt-0 border-none bg-transparent">
            <Button
              onClick={isInitialBriefing ? beginCurrentSection : startNextSection}
              className="w-full h-14 bg-zinc-900 hover:bg-black rounded-2xl text-base font-black"

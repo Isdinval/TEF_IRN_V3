@@ -55,7 +55,7 @@ export function ResultsScreen() {
           <p className="text-xl text-zinc-500 font-medium">{getEncouragement(percentage)}</p>
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200/50 overflow-hidden">
+        <Card className="rounded-[2.5rem] border-none py-0 shadow-2xl shadow-zinc-200/50 overflow-hidden">
           <CardHeader className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-10 text-center flex flex-col items-center">
             <div className="text-6xl font-black mb-2">{totalScored}/{totalPossible}</div>
             <div className="text-white/70 font-black uppercase tracking-widest text-sm">Score Global (QCM)</div>
