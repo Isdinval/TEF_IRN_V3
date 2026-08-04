@@ -27,10 +27,15 @@ export function QuestionCard() {
 
   const isLastQuestion = state.currentQuestionIndex === questions.length - 1;
 
-  // L'oral est déjà verrouillé par le disabled du bouton tant que l'analyse n'existe pas :
-  // s'il est cliquable pour une question 'speaking', elle est donc forcément déjà répondue.
+  // L'échange oral est considéré répondu si une analyse existe déjà (session terminée).
+  // S'il n'y a pas de scénario Realtime lié (cas de repli sans oral_scenario_id), il n'y a
+  // rien à vérifier — cf. le fallback dans renderSpeaking().
   const isQuestionAnswered = (q: typeof currentQuestion) => {
-    if (q.type === 'speaking') return true;
+    if (q.type === 'speaking') {
+      const sq = q as SpeakingQuestion;
+      if (!sq.oralScenarioId) return true;
+      return !!oralAnalyses[q.id];
+    }
     return !!(state.answers[q.id] && state.answers[q.id].trim() !== '');
   };
 
@@ -44,7 +49,11 @@ export function QuestionCard() {
         return;
       }
     } else if (!isQuestionAnswered(currentQuestion)) {
-      setUnansweredWarning("Vous n'avez pas répondu à cette question. Voulez-vous continuer sans répondre ?");
+      setUnansweredWarning(
+        currentQuestion.type === 'speaking'
+          ? "Vous n'avez pas terminé cet échange oral. Voulez-vous continuer sans le terminer ?"
+          : "Vous n'avez pas répondu à cette question. Voulez-vous continuer sans répondre ?"
+      );
       return;
     }
     nextQuestion();
@@ -266,7 +275,7 @@ export function QuestionCard() {
                </div>
                <Button
                  onClick={handleNext}
-                 disabled={isCorrecting || (currentQuestion.type === 'speaking' && !!(currentQuestion as SpeakingQuestion).oralScenarioId && !oralAnalyses[currentQuestion.id])}
+                 disabled={isCorrecting}
                  className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 rounded-2xl text-base font-black shadow-xl shadow-indigo-600/20 disabled:opacity-60"
                >
                  {isCorrecting
