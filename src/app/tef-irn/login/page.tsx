@@ -20,6 +20,7 @@ import { pickRandomImage } from "@/data/grammar-check-images";
 import { PERSONAS } from "@/data/personas";
 import { cn } from "@/lib/utils";
 import { PasswordField } from "@/components/auth/password-field";
+import { PasswordStrengthMeter } from "@/components/auth/password-strength";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 // Carousel de témoignages : personas illustratifs partagés avec la landing
@@ -321,6 +322,8 @@ function AuthForm() {
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
                   <PasswordField id="signup-password" value={password} onChange={setPassword} autoComplete="new-password" />
+                  <PasswordStrengthMeter password={password} />
+                  <p className="text-[11px] text-zinc-400 font-medium ml-1">Minimum 6 caractères.</p>
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
                   <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
