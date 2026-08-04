@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase-server";
 import { Analytics } from "@vercel/analytics/next";
 import { siteUrl } from "@/lib/site";
 import JsonLd from "@/components/shared/JsonLd";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 
 const inter = Inter({
   subsets: ["latin"],

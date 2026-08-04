@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getOpenAIClient } from '@/lib/openai';
 import { createClient } from '@/lib/supabase-server';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 // Nombre de mots minimum par défaut si le sujet ne fournit pas min_words (cas legacy /
 // entrée libre). Correspond aux seuils standards du barème TEF IRN par section.
@@ -282,6 +283,14 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
         finalData.scores_par_competence
       );
     }
+
+    await captureServerEvent(user.id, "writing_correction_completed", {
+      target_level: effectiveLevel,
+      word_count: actualWordCount,
+      minimum_word_count: effectiveMinWords,
+      score: finalData.score_global,
+      is_insufficient_length: isInsufficientLength,
+    });
 
     return NextResponse.json(finalData);
   } catch (error: any) {

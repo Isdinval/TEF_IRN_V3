@@ -1,4 +1,5 @@
 import posthog from 'posthog-js'
+import { initializePostHog } from '@/components/providers/PostHogProvider'
 
 export const initPostHog = () => {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase-server";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" as any })
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
       customer: customerId,
       return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/settings`,
     });
+
+    await captureServerEvent(user.id, "billing_portal_opened");
 
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
