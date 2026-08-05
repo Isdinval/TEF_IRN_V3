@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Sparkles, Clock, ChevronRight, BookOpen } from 'lucide-react';
+import { Search, Filter, Sparkles, Clock, BookOpen } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -140,132 +140,124 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
       </section>
 
       <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Filters Sidebar */}
-          <aside className="w-full lg:w-72 space-y-10 shrink-0 lg:sticky lg:top-24 lg:self-start">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Filter size={14} /> Filtres
-              </h3>
+        {/* Filters Bar */}
+        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-10">
+          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-6">
+            <Filter size={14} /> Filtres
+          </h3>
 
-              <div className="space-y-8">
-                {/* Levels */}
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-zinc-900">Niveaux</p>
-                  <div className="flex flex-wrap gap-2">
-                    {['A1', 'A2', 'B1', 'B2'].map(level => (
-                      <button
-                        key={level}
-                        onClick={() => setActiveLevel(activeLevel === level ? null : level)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${
-                          activeLevel === level
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                            : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Categories */}
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-zinc-900">Compétences</p>
-                  <div className="space-y-2">
-                    {['comprehension-orale', 'expression-orale', 'comprehension-ecrite', 'expression-ecrite'].map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-                        className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-between ${
-                          activeCategory === cat
-                            ? 'bg-blue-50 border-blue-200 text-blue-700'
-                            : 'bg-white border-transparent text-slate-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="capitalize">{cat.replace('-', ' ')}</span>
-                        {activeCategory === cat && <ChevronRight size={14} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Types */}
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-zinc-900">Type de guide</p>
-                  <div className="space-y-2">
-                    {['complet', 'methodologie', 'thematique', 'astuces'].map(type => (
-                      <button
-                        key={type}
-                        onClick={() => setActiveType(activeType === type ? null : type)}
-                        className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-between ${
-                          activeType === type
-                            ? 'bg-blue-50 border-blue-200 text-blue-700'
-                            : 'bg-white border-transparent text-slate-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="capitalize">{type}</span>
-                        {activeType === type && <ChevronRight size={14} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {(activeLevel || activeCategory || activeType || searchQuery) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="w-full text-slate-400 hover:text-red-500 font-bold"
+          <div className="flex flex-wrap items-start gap-x-10 gap-y-6">
+            {/* Levels */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-zinc-900">Niveaux</p>
+              <div className="flex flex-wrap gap-2">
+                {['A1', 'A2', 'B1', 'B2'].map(level => (
+                  <button
+                    key={level}
+                    onClick={() => setActiveLevel(activeLevel === level ? null : level)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${
+                      activeLevel === level
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                    }`}
                   >
-                    Réinitialiser
-                  </Button>
-                )}
+                    {level}
+                  </button>
+                ))}
               </div>
             </div>
-          </aside>
 
-          {/* Guides Grid */}
-          <div className="flex-grow">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-black text-zinc-900">
-                {filteredGuides.length} guide{filteredGuides.length > 1 ? 's' : ''} disponible{filteredGuides.length > 1 ? 's' : ''}
-              </h2>
+            {/* Categories */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-zinc-900">Compétences</p>
+              <div className="flex flex-wrap gap-2">
+                {['comprehension-orale', 'expression-orale', 'comprehension-ecrite', 'expression-ecrite'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
+                      activeCategory === cat
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                    }`}
+                  >
+                    {cat.replace('-', ' ')}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <AnimatePresence mode="popLayout">
-              {filteredGuides.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredGuides.map((guide, i) => (
-                    <motion.div
-                      key={guide.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2, delay: i * 0.05 }}
-                    >
-                      <GuideCard guide={guide} />
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
-                >
-                  <div className="p-6 bg-gray-50 rounded-full text-gray-300 mb-6">
-                    <Search size={48} />
-                  </div>
-                  <h3 className="text-xl font-bold text-zinc-900 mb-2">Aucun guide trouvé</h3>
-                  <p className="text-slate-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
-                  <Button onClick={clearFilters} className="rounded-xl font-bold">Voir tous les guides</Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Types */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-zinc-900">Type de guide</p>
+              <div className="flex flex-wrap gap-2">
+                {['complet', 'methodologie', 'thematique', 'astuces'].map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setActiveType(activeType === type ? null : type)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
+                      activeType === type
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(activeLevel || activeCategory || activeType || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-slate-400 hover:text-red-500 font-bold md:ml-auto md:self-center"
+              >
+                Réinitialiser
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Guides Grid */}
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-black text-zinc-900">
+            {filteredGuides.length} guide{filteredGuides.length > 1 ? 's' : ''} disponible{filteredGuides.length > 1 ? 's' : ''}
+          </h2>
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {filteredGuides.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredGuides.map((guide, i) => (
+                <motion.div
+                  key={guide.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
+                >
+                  <GuideCard guide={guide} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+            >
+              <div className="p-6 bg-gray-50 rounded-full text-gray-300 mb-6">
+                <Search size={48} />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Aucun guide trouvé</h3>
+              <p className="text-slate-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
+              <Button onClick={clearFilters} className="rounded-xl font-bold">Voir tous les guides</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Popular Section */}
