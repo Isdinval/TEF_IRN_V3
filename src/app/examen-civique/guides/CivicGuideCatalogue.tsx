@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, Sparkles, Clock, ChevronRight, ArrowRight } from "lucide-react";
+import { Search, Filter, Sparkles, Clock, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -114,107 +114,99 @@ function CivicGuideCatalogueContent({ guides }: { guides: Guide[] }) {
       </section>
 
       <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Filters Sidebar */}
-          <aside className="w-full lg:w-72 space-y-10 shrink-0 lg:sticky lg:top-24 lg:self-start">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Filter size={14} /> Filtres
-              </h3>
+        {/* Filters Bar */}
+        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-10">
+          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-6">
+            <Filter size={14} /> Filtres
+          </h3>
 
-              <div className="space-y-8">
-                {/* Démarche */}
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-zinc-900">Démarche</p>
-                  <div className="space-y-2">
-                    {MENTIONS.map((m) => (
-                      <button
-                        key={m.value}
-                        onClick={() => setActiveMention(activeMention === m.value ? null : m.value)}
-                        className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-between ${
-                          activeMention === m.value
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            : "bg-white border-transparent text-slate-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span>{m.label}</span>
-                        {activeMention === m.value && <ChevronRight size={14} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Type */}
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-zinc-900">Type de guide</p>
-                  <div className="space-y-2">
-                    {GUIDE_TYPES.map((t) => (
-                      <button
-                        key={t.value}
-                        onClick={() => setActiveType(activeType === t.value ? null : t.value)}
-                        className={`w-full text-left px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-between ${
-                          activeType === t.value
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            : "bg-white border-transparent text-slate-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span>{t.label}</span>
-                        {activeType === t.value && <ChevronRight size={14} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {(activeMention || activeType || searchQuery) && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-slate-400 hover:text-rose-500 font-bold">
-                    Réinitialiser
-                  </Button>
-                )}
+          <div className="flex flex-wrap items-start gap-x-10 gap-y-6">
+            {/* Démarche */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-zinc-900">Démarche</p>
+              <div className="flex flex-wrap gap-2">
+                {MENTIONS.map((m) => (
+                  <button
+                    key={m.value}
+                    onClick={() => setActiveMention(activeMention === m.value ? null : m.value)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${
+                      activeMention === m.value
+                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200"
+                        : "bg-white border-gray-100 text-slate-600 hover:border-gray-200"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
               </div>
             </div>
-          </aside>
 
-          {/* Guides Grid */}
-          <div className="flex-grow">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-black text-zinc-900">
-                {filteredGuides.length} guide{filteredGuides.length > 1 ? "s" : ""} disponible{filteredGuides.length > 1 ? "s" : ""}
-              </h2>
+            {/* Type */}
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-zinc-900">Type de guide</p>
+              <div className="flex flex-wrap gap-2">
+                {GUIDE_TYPES.map((t) => (
+                  <button
+                    key={t.value}
+                    onClick={() => setActiveType(activeType === t.value ? null : t.value)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${
+                      activeType === t.value
+                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200"
+                        : "bg-white border-gray-100 text-slate-600 hover:border-gray-200"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <AnimatePresence mode="popLayout">
-              {filteredGuides.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredGuides.map((guide, i) => (
-                    <motion.div
-                      key={guide.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2, delay: i * 0.05 }}
-                    >
-                      <GuideCard guide={guide} hrefBase="/examen-civique/guides" accent="indigo" target="_blank" />
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
-                >
-                  <div className="p-6 bg-gray-50 rounded-full text-gray-300 mb-6">
-                    <Search size={48} />
-                  </div>
-                  <h3 className="text-xl font-bold text-zinc-900 mb-2">Aucun guide trouvé</h3>
-                  <p className="text-slate-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
-                  <Button onClick={clearFilters} className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700">Voir tous les guides</Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {(activeMention || activeType || searchQuery) && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-slate-400 hover:text-rose-500 font-bold md:ml-auto md:self-center">
+                Réinitialiser
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Guides Grid */}
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-black text-zinc-900">
+            {filteredGuides.length} guide{filteredGuides.length > 1 ? "s" : ""} disponible{filteredGuides.length > 1 ? "s" : ""}
+          </h2>
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {filteredGuides.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredGuides.map((guide, i) => (
+                <motion.div
+                  key={guide.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
+                >
+                  <GuideCard guide={guide} hrefBase="/examen-civique/guides" accent="indigo" target="_blank" />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+            >
+              <div className="p-6 bg-gray-50 rounded-full text-gray-300 mb-6">
+                <Search size={48} />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Aucun guide trouvé</h3>
+              <p className="text-slate-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
+              <Button onClick={clearFilters} className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700">Voir tous les guides</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Nouveautés */}
