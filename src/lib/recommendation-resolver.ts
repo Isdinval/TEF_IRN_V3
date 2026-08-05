@@ -9,6 +9,11 @@ export interface ResolveContext {
   category?: string;
   /** Leçon en cours ou juste terminée — active le palier "contexte pédagogique". Optionnel. */
   lessonId?: string;
+  /** Si fourni, pool restreint à ce type d'exercice (ex: 'trous', 'qcm').
+   *  Nécessaire quand l'appelant ne sait traiter qu'un seul format d'exercice
+   *  (ex: /grammar-check, /practice). Omis par défaut = tous types confondus,
+   *  comportement inchangé pour les appelants existants (/parcours, /lessons). */
+  type?: string;
 }
 
 const TIER_REASONS: Record<number, string> = {
@@ -56,6 +61,10 @@ export async function resolveNextExercises(
   if (context.category) {
     const exerciseCategory = context.category.charAt(0).toUpperCase() + context.category.slice(1);
     query = query.or(`category.eq.${exerciseCategory},category.eq.${context.category}`);
+  }
+
+  if (context.type) {
+    query = query.eq('type', context.type);
   }
 
   const { data: exercises, error: exercisesError } = await query.limit(50);

@@ -326,7 +326,7 @@ export default function ParcoursInteractive({
                     </p>
                   </div>
                   <Link href={initialGuideSlug ? `/tef-irn/guides/${initialGuideSlug}` : "/tef-irn/guides"} className="block w-fit">
-                    <Button variant="outline" className="h-12 px-8 border-zinc-700 text-white hover:bg-white hover:text-black rounded-2xl font-black text-sm transition-all group shadow-2xl">
+                    <Button variant="outline" className="h-12 px-8 bg-white/10 border-zinc-700 text-white hover:bg-white hover:text-black rounded-2xl font-black text-sm transition-all group shadow-2xl">
                       {initialGuideSlug ? "Voir le guide complet" : "Parcourir les guides"}
                       <ArrowRight className="ml-2 transition-transform group-hover:translate-x-2" size={18} />
                     </Button>

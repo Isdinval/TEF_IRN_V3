@@ -19,7 +19,6 @@ import {
   Target,
   Sparkles,
   Zap,
-  Calendar,
   GraduationCap,
   RotateCcw
 } from 'lucide-react';
@@ -29,6 +28,7 @@ import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
+import { resolveNextExercises } from "@/lib/recommendation-resolver";
 
 // --- Types ---
 interface Question {
@@ -90,6 +90,8 @@ export function PracticeContent() {
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
   const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
+  const [recommendedExerciseId, setRecommendedExerciseId] = useState<string | null>(null);
+  const [recommendationReason, setRecommendationReason] = useState<string | null>(null);
   const sessionStartRef = useRef<number | null>(null);
 
   const toggleLesson = useCallback(async (lessonId?: string) => {
@@ -168,6 +170,37 @@ export function PracticeContent() {
       fetchCatalogue();
     }
   }, [fetchCatalogue, mode]);
+
+  const fetchRecommendation = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setRecommendedExerciseId(null);
+      setRecommendationReason(null);
+      return;
+    }
+    try {
+      const [recommended] = await resolveNextExercises(
+        user.id,
+        {
+          level: filters.level,
+          category: filters.category !== "Toutes" ? filters.category : undefined,
+          type: "qcm",
+        },
+        supabase,
+        1
+      );
+      setRecommendedExerciseId(recommended?.id ?? null);
+      setRecommendationReason((recommended as any)?.recommendation_reason ?? null);
+    } catch (err) {
+      console.error("Error fetching recommendation:", err);
+    }
+  }, [filters.level, filters.category, supabase]);
+
+  useEffect(() => {
+    if (mode === "selection") {
+      fetchRecommendation();
+    }
+  }, [fetchRecommendation, mode]);
 
   const mapExerciseToQuestions = (ex: ExerciseDB): Question[] => {
     if (!ex?.content?.questions) return [];
@@ -515,16 +548,22 @@ export function PracticeContent() {
               </div>
 
               <div
-                onClick={() => startTraining()}
+                onClick={() => {
+                  if (recommendedExerciseId) {
+                    fetchExerciseById(recommendedExerciseId);
+                  } else {
+                    startTraining();
+                  }
+                }}
                 className="bg-purple-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-purple-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                   <Zap size={14} /> Flash QCM
+                   <Zap size={14} /> Recommandé pour vous
                 </div>
-                <h4 className="text-base font-black leading-tight">Lancer une session rapide</h4>
+                <h4 className="text-base font-black leading-tight">Lancer mon exercice recommandé</h4>
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                    <Calendar size={16} /> Entraînement Quotidien
+                    <Sparkles size={16} /> {recommendationReason || "Basé sur vos performances"}
                  </div>
               </div>
             </div>
