@@ -264,7 +264,8 @@ export default function OralCoach() {
             </h1>
             {scenario && (
               <p className="mb-4 text-sm font-bold uppercase tracking-wide text-zinc-400">
-                Vous parlez avec : <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
+                Vous incarnez <span className="text-zinc-600">le candidat</span> · en appel avec{" "}
+                <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
               </p>
             )}
             {scenario && (
