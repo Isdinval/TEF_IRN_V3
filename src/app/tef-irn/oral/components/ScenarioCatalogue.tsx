@@ -92,51 +92,66 @@ export function ScenarioCatalogue({
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex h-40 items-center justify-center text-zinc-400">
-          <Loader2 className="mr-2 animate-spin" /> Chargement des scénarios...
+      <section className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+            <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">
+              {section === "all" ? "Toutes sections" : `Section ${section}`}
+            </Badge>
+            <span className="text-zinc-400">•</span>
+            <span className="capitalize text-zinc-500">Niveau {level === "all" ? "Tous" : level}</span>
+          </h2>
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+            {filtered.length} scénario{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
+          </div>
         </div>
-      ) : filtered.length === 0 ? (
-        <p className="py-10 text-center text-sm font-medium text-zinc-400">
-          Aucun scénario disponible pour ces filtres.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((s) => (
-            <Card
-              key={s.id}
-              className="group cursor-pointer overflow-hidden rounded-[1.75rem] border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform hover:-translate-y-1 hover:shadow-xl"
-              onClick={() => onSelectScenario(s.id)}
-            >
-              <CardContent className="flex flex-col gap-3 p-6">
-                <div className="flex items-center gap-2">
-                  <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                    Section {s.section}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                    {s.level}
-                  </Badge>
-                </div>
-                <h3 className="text-lg font-black leading-tight tracking-tight text-zinc-900">
-                  {s.title}
-                </h3>
-                <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
-                  {s.role_interlocuteur}
-                </p>
-                <p className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-500">
-                  {s.sujet}
-                </p>
-                <Button
-                  size="sm"
-                  className="mt-2 w-fit rounded-xl bg-zinc-900 font-black group-hover:bg-indigo-600"
-                >
-                  <Play className="mr-2" size={14} /> Démarrer
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+
+        {loading ? (
+          <div className="flex h-40 items-center justify-center text-zinc-400">
+            <Loader2 className="mr-2 animate-spin" /> Chargement des scénarios...
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="py-10 text-center text-sm font-medium text-zinc-400">
+            Aucun scénario disponible pour ces filtres.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((s) => (
+              <Card
+                key={s.id}
+                className="group cursor-pointer overflow-hidden rounded-[1.75rem] border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform hover:-translate-y-1 hover:shadow-xl"
+                onClick={() => onSelectScenario(s.id)}
+              >
+                <CardContent className="flex flex-col gap-3 p-6">
+                  <div className="flex items-center gap-2">
+                    <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                      Section {s.section}
+                    </Badge>
+                    <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                      {s.level}
+                    </Badge>
+                  </div>
+                  <h3 className="text-lg font-black leading-tight tracking-tight text-zinc-900">
+                    {s.title}
+                  </h3>
+                  <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+                    {s.role_interlocuteur}
+                  </p>
+                  <p className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-500">
+                    {s.sujet}
+                  </p>
+                  <Button
+                    size="sm"
+                    className="mt-2 w-fit rounded-xl bg-zinc-900 font-black group-hover:bg-indigo-600"
+                  >
+                    <Play className="mr-2" size={14} /> Démarrer
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
