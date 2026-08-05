@@ -109,6 +109,9 @@ export function RecentCorrectionsList({
                       <Timer size={10} /> {item.study_time_minutes}m
                     </div>
                   )}
+                  <span className="text-[10px] font-bold text-zinc-400">
+                    {new Date(item.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                  </span>
                 </div>
                 <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
               </div>
