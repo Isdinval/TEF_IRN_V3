@@ -75,8 +75,10 @@ export async function POST(req: Request) {
           .filter(Boolean)
       );
 
+      const sourceLabel = attemptContext === 'exam' ? 'Examen blanc' : 'Écrit';
+
       for (const category of typesDetectes) {
-        await trackUserError(user.id, category, null);
+        await trackUserError(user.id, category, null, sourceLabel);
       }
 
       // Note : on ne résout PAS les erreurs absentes de ce texte (pas de resolveUserError ici).

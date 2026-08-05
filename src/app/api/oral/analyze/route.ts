@@ -282,11 +282,12 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     // durable -- seul un signal de faiblesse répété (frequency) doit s'accumuler.
     const WEAK_SCORE_THRESHOLD = 55;
     try {
+      const sourceLabel = sessionContext === 'exam' ? 'Examen blanc' : 'Oral';
       if (scores.correction_grammaticale < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Grammaire");
+        await trackUserError(user.id, "Grammaire", null, sourceLabel);
       }
       if (scores.etendue_et_precision_du_vocabulaire < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Vocabulaire");
+        await trackUserError(user.id, "Vocabulaire", null, sourceLabel);
       }
       await analyzeUserErrorsAndRecommend(user.id);
     } catch (recoError) {
