@@ -371,7 +371,7 @@ export function VocabCoachContent() {
         <ExerciseLayout
           variant="compact"
           title="COACH VOCABULAIRE"
-          badge="Mémorisation SRS"
+          badge="Coach Vocabulaire"
           badgeColor="emerald"
           onBack={handleBack}
           rightElement={
@@ -606,9 +606,9 @@ export function VocabCoachContent() {
       <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10">
         <ExerciseLayout
           title="COACH VOCABULAIRE"
-          badge="Mémorisation SRS"
+          badge="Coach Vocabulaire"
           badgeColor="emerald"
-          description="Enrichissez votre lexique thématique pour le TEF IRN. Notre algorithme de répétition espacée (SRS) cible vos lacunes pour une rétention maximale."
+          description="Enrichissez votre lexique thématique pour le TEF IRN. Nous ciblons vos mots à réviser au bon moment pour une mémorisation durable."
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
@@ -655,7 +655,7 @@ export function VocabCoachContent() {
               </div>
               <h4 className="text-base font-black leading-tight">Lancer mes mots à réviser</h4>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                <Zap size={16} /> Mode Intelligent (SRS)
+                <Zap size={16} /> Recommandé pour vous
               </div>
             </div>
           </div>
