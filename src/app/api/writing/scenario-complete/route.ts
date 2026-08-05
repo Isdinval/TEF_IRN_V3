@@ -29,13 +29,18 @@ export async function POST(req: Request) {
 
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-    const { scenarioId, section, level, text, feedback, studyTimeMinutes } = await req.json();
+    const { scenarioId, section, level, text, feedback, studyTimeMinutes, context } = await req.json();
 
     const aiFeedback = feedback as WritingFeedback | undefined;
 
     if (!text || !aiFeedback) {
       return NextResponse.json({ error: 'Texte ou feedback manquant' }, { status: 400 });
     }
+
+    // 'standalone' par défaut : couvre la page Rédaction (pratique libre) et tout appelant
+    // qui ne précise pas encore ce champ. 'exam' est réservé aux tentatives EE passées dans
+    // le cadre d'un examen blanc complet (/tef-irn/exam), voir item 5 du plan dashboard.
+    const attemptContext = context === 'exam' ? 'exam' : 'standalone';
 
     // 1. Enregistrer la tentative (table dédiée, pas de FK vers exercises)
     const { error: attemptError } = await supabase
@@ -52,6 +57,7 @@ export async function POST(req: Request) {
         general_comment: aiFeedback.conseil_general,
         corrected_text: aiFeedback.texte_corrige_complet,
         study_time_minutes: studyTimeMinutes || 0,
+        context: attemptContext,
       });
 
     if (attemptError) throw attemptError;
