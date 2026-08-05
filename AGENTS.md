@@ -255,6 +255,20 @@ git format-patch main..HEAD       # patch de tous les commits depuis main
 
 Un patch `git diff` n'a pas de métadonnées (`From`, `Date`, `Subject`) et n'est pas applicable avec `git am`.
 
+### Commande à coller après chaque patch livré
+
+En plus du fichier `.patch`, toujours fournir la commande exacte à coller pour l'appliquer. Le patch téléchargé atterrit dans le dossier **Téléchargements** Windows d'Olivier, jamais à la racine du repo :
+
+```
+git am C:\Users\Olivi\Downloads\<nom-du-fichier>.patch
+```
+
+Exemple :
+
+```
+git am C:\Users\Olivi\Downloads\0001-fix-parcours-corrige-le-bouton-invisible-de-la-card-.patch
+```
+
 ---
 
 ## Domaine métier — TEF IRN
