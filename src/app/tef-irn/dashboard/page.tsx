@@ -26,7 +26,6 @@ import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjec
 import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
-import { CivicExamCard } from "@/components/features/dashboard/new/CivicExamCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
@@ -214,7 +213,6 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-6">
               {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
-              <CivicExamCard />
             </div>
           </div>
         </section>
