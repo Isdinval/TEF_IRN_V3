@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shuffle, Loader2, Play } from "lucide-react";
+import { Shuffle, Loader2, Play, Target, Layers, FileText } from "lucide-react";
 
 export type Section = "A" | "B";
 export type Level = "A2" | "B1" | "B2";
@@ -60,72 +60,79 @@ export function WritingScenarioCatalogue({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Section</span>
-            <div className="flex gap-2">
-              {(["all", "A", "B"] as const).map((s) => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant={section === s ? "default" : "outline"}
-                  onClick={() => onSectionChange(s)}
-                >
-                  {s === "all" ? "Toutes" : `Section ${s}`}
-                </Button>
-              ))}
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+            <Layers size={14} className="text-indigo-600" /> Section
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Niveau</span>
-            <div className="flex gap-2">
-              {(["all", "A2", "B1", "B2"] as const).map((l) => (
-                <Button
-                  key={l}
-                  size="sm"
-                  variant={level === l ? "default" : "outline"}
-                  onClick={() => onLevelChange(l)}
-                >
-                  {l === "all" ? "Tous" : l}
-                </Button>
-              ))}
-            </div>
+          <div className="flex gap-2">
+            {(["all", "A", "B"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => onSectionChange(s)}
+                className={`flex-1 h-12 rounded-2xl font-black transition-all ${section === s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+              >
+                {s === "all" ? "Toutes" : s}
+              </button>
+            ))}
           </div>
-          {typesDisponibles.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Type de texte</span>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant={typeTexte === "all" ? "default" : "outline"}
-                  onClick={() => onTypeTexteChange("all")}
-                >
-                  Tous
-                </Button>
-                {typesDisponibles.map((t) => (
-                  <Button
-                    key={t}
-                    size="sm"
-                    variant={typeTexte === t ? "default" : "outline"}
-                    onClick={() => onTypeTexteChange(t)}
-                  >
-                    {TYPE_TEXTE_LABELS[t] ?? t}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        <Button
-          size="lg"
-          variant="outline"
-          className="h-11 rounded-2xl border-indigo-200 bg-indigo-50 font-black text-indigo-600 hover:bg-indigo-100"
+        <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+            <Target size={14} className="text-indigo-600" /> Niveau
+          </div>
+          <div className="flex gap-2">
+            {(["all", "A2", "B1", "B2"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => onLevelChange(l)}
+                className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+              >
+                {l === "all" ? "Tous" : l}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {typesDisponibles.length > 0 && (
+          <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <FileText size={14} className="text-indigo-600" /> Type de texte
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => onTypeTexteChange("all")}
+                className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${typeTexte === "all" ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+              >
+                Tous
+              </button>
+              {typesDisponibles.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => onTypeTexteChange(t)}
+                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${typeTexte === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                >
+                  {TYPE_TEXTE_LABELS[t] ?? t}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div
           onClick={onSurpriseMe}
+          className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
         >
-          <Shuffle className="mr-2" size={18} /> Surprends-moi
-        </Button>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+          <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+            <Shuffle size={14} /> Sujet surprise
+          </div>
+          <h4 className="text-base font-black leading-tight">Laissez-vous surprendre</h4>
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+            <Play size={16} /> Tirage aléatoire
+          </div>
+        </div>
       </div>
 
       {loading ? (
