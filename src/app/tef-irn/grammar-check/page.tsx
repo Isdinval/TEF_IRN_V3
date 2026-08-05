@@ -17,7 +17,6 @@ import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import {
   VICTORY_MASCOT_URLS,
   PERPLEXED_MASCOT_URLS,
-  CATALOGUE_WATERCOLOR_URL,
   pickRandomImage,
 } from "@/data/grammar-check-images";
 
@@ -632,13 +631,6 @@ export function GrammarCheckContent() {
           badge="Coach Repérage d'Erreurs"
           badgeColor="indigo"
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
-          rightElement={
-            <img
-              src={CATALOGUE_WATERCOLOR_URL}
-              alt="Illustration aquarelle : les fondateurs de LlamaKusi corrigeant un texte avec le lama mascotte"
-              className="w-40 h-40 lg:w-48 lg:h-48 rounded-[2.5rem] object-cover shadow-xl border-4 border-white"
-            />
-          }
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
