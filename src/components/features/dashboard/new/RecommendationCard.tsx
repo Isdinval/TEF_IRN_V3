@@ -16,6 +16,7 @@ interface RecommendationCardProps {
   // weak_points -- voir ActionPlanCard). Absent pour les recos sans point
   // faible associé (ex: fallback générique, vocabulaire non lié à user_errors).
   frequency?: number;
+  category?: string | null;
   onDismissed?: () => void;
 }
 
@@ -24,15 +25,16 @@ const TITLES_BY_TYPE: Record<string, string> = {
   vocab: 'Ancrer un mot de vocabulaire',
 };
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, onDismissed }: RecommendationCardProps) {
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
 
   const getTargetUrl = () => {
     switch (type) {
       case 'lesson': return `/tef-irn/lessons/${slug || referenceId}`;
-      case 'exercise': return '/tef-irn/practice';
-      case 'review': return '/tef-irn/practice';
+      case 'exercise':
+      case 'review':
+        return category ? `/tef-irn/practice?topic=${encodeURIComponent(category)}` : '/tef-irn/practice';
       case 'vocab': return '/tef-irn/vocab';
       default: return '/tef-irn/practice';
     }

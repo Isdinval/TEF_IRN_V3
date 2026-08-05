@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-    const { scenarioId, section, level, text, feedback, studyTimeMinutes } = await req.json();
+    const { scenarioId, examQuestionId, section, level, text, feedback, studyTimeMinutes, context } = await req.json();
 
     const aiFeedback = feedback as WritingFeedback | undefined;
 
@@ -37,12 +37,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Texte ou feedback manquant' }, { status: 400 });
     }
 
+    // 'standalone' par défaut : couvre la page Rédaction (pratique libre) et tout appelant
+    // qui ne précise pas encore ce champ. 'exam' est réservé aux tentatives EE passées dans
+    // le cadre d'un examen blanc complet (/tef-irn/exam), voir item 5 du plan dashboard.
+    const attemptContext = context === 'exam' ? 'exam' : 'standalone';
+
     // 1. Enregistrer la tentative (table dédiée, pas de FK vers exercises)
     const { error: attemptError } = await supabase
       .from('writing_scenario_attempts')
       .insert({
         user_id: user.id,
         scenario_id: scenarioId || null,
+        // Rempli uniquement pour context='exam' : la question EE d'un examen blanc vient du
+        // catalogue exam_questions, distinct de writing_exam_scenarios (scenario_id ci-dessus).
+        exam_question_id: examQuestionId || null,
         section: section || null,
         level: level || null,
         submitted_text: text,
@@ -52,6 +60,7 @@ export async function POST(req: Request) {
         general_comment: aiFeedback.conseil_general,
         corrected_text: aiFeedback.texte_corrige_complet,
         study_time_minutes: studyTimeMinutes || 0,
+        context: attemptContext,
       });
 
     if (attemptError) throw attemptError;
@@ -66,8 +75,10 @@ export async function POST(req: Request) {
           .filter(Boolean)
       );
 
+      const sourceLabel = attemptContext === 'exam' ? 'Examen blanc' : 'Écrit';
+
       for (const category of typesDetectes) {
-        await trackUserError(user.id, category, null);
+        await trackUserError(user.id, category, null, sourceLabel);
       }
 
       // Note : on ne résout PAS les erreurs absentes de ce texte (pas de resolveUserError ici).

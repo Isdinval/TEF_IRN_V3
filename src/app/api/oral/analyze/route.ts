@@ -74,11 +74,17 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { transcript, scenario, endedBy } = body as {
+    const { transcript, scenario, endedBy, context } = body as {
       transcript: Turn[];
       scenario: { id: string; section: "A" | "B"; level: "A2" | "B1" | "B2"; sujet: string; objectifs: string[] };
       endedBy: "user" | "ai" | "timeout";
+      context?: string;
     };
+
+    // 'standalone' par défaut : couvre la page Expression Orale (pratique libre) et tout
+    // appelant qui ne précise pas encore ce champ. 'exam' est réservé aux sessions EO passées
+    // dans le cadre d'un examen blanc complet (/tef-irn/exam), voir item 6 du plan dashboard.
+    const sessionContext = context === 'exam' ? 'exam' : 'standalone';
 
     if (!transcript || transcript.length === 0) {
       return NextResponse.json({ error: "Transcription vide" }, { status: 400 });
@@ -257,6 +263,7 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
         strengths: analysis.strengths,
         improvements: analysis.improvements,
         general_comment: analysis.general_comment,
+        context: sessionContext,
       })
       .select()
       .single();
@@ -275,11 +282,12 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     // durable -- seul un signal de faiblesse répété (frequency) doit s'accumuler.
     const WEAK_SCORE_THRESHOLD = 55;
     try {
+      const sourceLabel = sessionContext === 'exam' ? 'Examen blanc' : 'Oral';
       if (scores.correction_grammaticale < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Grammaire");
+        await trackUserError(user.id, "Grammaire", null, sourceLabel);
       }
       if (scores.etendue_et_precision_du_vocabulaire < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Vocabulaire");
+        await trackUserError(user.id, "Vocabulaire", null, sourceLabel);
       }
       await analyzeUserErrorsAndRecommend(user.id);
     } catch (recoError) {

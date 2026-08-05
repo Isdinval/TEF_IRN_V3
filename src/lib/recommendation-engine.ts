@@ -3,8 +3,13 @@ import { createClient } from './supabase-server';
 /**
  * Incrémente (ou crée) le compteur d'erreurs de l'utilisateur pour une catégorie donnée.
  * Alimente user_errors, qui est la source de données de analyzeUserErrorsAndRecommend().
+ *
+ * sourceLabel : origine de CETTE occurrence ('Exercice ciblé', 'Écrit', 'Oral',
+ * 'Examen blanc'...), écrasée à chaque appel pour refléter la dernière occurrence
+ * -- utilisé par la card "En attente d'une action ciblée" du dashboard pour un
+ * rappel contextualisé (item 10.3).
  */
-export async function trackUserError(userId: string, category: string, subCategory: string | null = null) {
+export async function trackUserError(userId: string, category: string, subCategory: string | null = null, sourceLabel: string | null = null) {
   const supabase = await createClient();
 
   let existingQuery = supabase
@@ -24,7 +29,8 @@ export async function trackUserError(userId: string, category: string, subCatego
       .from('user_errors')
       .update({
         frequency: existing.frequency + 1,
-        last_seen_at: new Date().toISOString()
+        last_seen_at: new Date().toISOString(),
+        source_label: sourceLabel
       })
       .eq('id', existing.id);
   } else {
@@ -33,7 +39,8 @@ export async function trackUserError(userId: string, category: string, subCatego
       category,
       sub_category: subCategory,
       frequency: 1,
-      last_seen_at: new Date().toISOString()
+      last_seen_at: new Date().toISOString(),
+      source_label: sourceLabel
     });
   }
 }

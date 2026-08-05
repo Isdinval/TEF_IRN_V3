@@ -13,6 +13,7 @@ interface WeakPoint {
   sub_category: string | null;
   frequency: number;
   last_seen_at: string;
+  source_label: string | null;
 }
 
 interface Recommendation {
@@ -41,6 +42,18 @@ interface ActionPlanCardProps {
 // stocke justement ces deux colonnes sur `recommendations` pour ça.
 function sameIssue(a: { category?: string | null; sub_category?: string | null }, b: { category?: string | null; sub_category?: string | null }) {
   return (a.category || null) === (b.category || null) && (a.sub_category || null) === (b.sub_category || null);
+}
+
+// Rappel contextualisé validé avec Olivier : "Dans ton Examen blanc du 3 août,
+// tu as fait une erreur de type Grammaire (Comparatifs)." source_label peut
+// être absent (lignes créées avant l'item 10.1) -> fallback générique.
+function formatReminder(wp: WeakPoint): string {
+  const dateLabel = new Date(wp.last_seen_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const issueLabel = `${wp.category}${wp.sub_category ? ` (${wp.sub_category})` : ""}`;
+  if (!wp.source_label) {
+    return `Origine non précisée — erreur de type ${issueLabel} détectée le ${dateLabel}.`;
+  }
+  return `Dans ton ${wp.source_label} du ${dateLabel}, tu as fait une erreur de type ${issueLabel}.`;
 }
 
 export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, exerciseReviewsDue, onDismissed }: ActionPlanCardProps) {
@@ -129,6 +142,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                     referenceId={reco.reference_id}
                     slug={reco.slug}
                     frequency={match?.frequency}
+                    category={reco.category}
                     onDismissed={onDismissed}
                   />
                 );
@@ -144,12 +158,21 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                 </h3>
                 <div className="space-y-2">
                   {orphanWeakPoints.map((wp, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-xl bg-white px-4 py-2.5">
-                      <div>
-                        <p className="text-sm font-black text-zinc-900 capitalize">{wp.category}</p>
-                        {wp.sub_category && <p className="text-xs text-zinc-500">{wp.sub_category}</p>}
+                    <div key={i} className="rounded-xl bg-white px-4 py-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-black text-zinc-900 capitalize">{wp.category}</p>
+                          {wp.sub_category && <p className="text-xs text-zinc-500">{wp.sub_category}</p>}
+                        </div>
+                        <span className="text-xs font-black text-rose-500">×{wp.frequency}</span>
                       </div>
-                      <span className="text-xs font-black text-rose-500">×{wp.frequency}</span>
+                      <p className="text-xs text-zinc-500 italic leading-relaxed">{formatReminder(wp)}</p>
+                      <button
+                        onClick={() => router.push(`/tef-irn/practice?topic=${encodeURIComponent(wp.category)}`)}
+                        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:gap-2 transition-all"
+                      >
+                        Travailler ces exercices <ArrowRight size={12} />
+                      </button>
                     </div>
                   ))}
                 </div>

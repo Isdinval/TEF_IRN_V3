@@ -99,7 +99,7 @@ export async function POST(req: Request) {
           const subCategory = exerciseData.tags?.find((t: string) => t !== exerciseData.category) ?? null;
 
           if (score < 50) {
-            await trackUserError(user.id, exerciseData.category, subCategory);
+            await trackUserError(user.id, exerciseData.category, subCategory, 'Exercice ciblé');
           } else {
             await resolveUserError(user.id, exerciseData.category, subCategory);
             if (exerciseData.lesson_id) {

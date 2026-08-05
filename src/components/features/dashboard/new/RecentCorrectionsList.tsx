@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileText, CheckCircle2, ChevronRight, Timer, History, type LucideIcon } from "lucide-react";
+import { FileText, CheckCircle2, ChevronRight, Timer, History, PenTool, Mic, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { InfoTooltip } from "./InfoTooltip";
@@ -15,6 +15,7 @@ interface Correction {
     instructions: string;
     type: string; // 'examen_blanc' pour les sujets du catalogue writing_exam_scenarios
     category: string;
+    skill?: 'EE' | 'EO'; // distingue EE/EO au sein du bloc "Examen blanc" (type seul ne suffit plus)
   };
   ai_feedback?: {
     overall_score: number;
@@ -83,7 +84,7 @@ export function RecentCorrectionsList({
             transition={{ delay: i * 0.1 }}
             className="group cursor-pointer"
             onClick={() => router.push(
-              item.exercise?.type === "entretien_oral"
+              item.exercise?.skill === "EO"
                 ? `/tef-irn/oral/history?id=${item.id}`
                 : `/tef-irn/correction?id=${item.id}`
             )}
@@ -94,11 +95,23 @@ export function RecentCorrectionsList({
                   <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] uppercase font-black tracking-widest">
                     {getTypeBadgeLabel(item.exercise?.type)}
                   </Badge>
+                  {item.exercise?.type === "examen_blanc" && item.exercise?.skill && (
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 border-zinc-200 text-zinc-500 rounded-full px-2 py-1 text-[10px] font-black"
+                    >
+                      {item.exercise.skill === "EO" ? <Mic size={10} /> : <PenTool size={10} />}
+                      {item.exercise.skill}
+                    </Badge>
+                  )}
                   {item.study_time_minutes > 0 && (
                     <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-400">
                       <Timer size={10} /> {item.study_time_minutes}m
                     </div>
                   )}
+                  <span className="text-[10px] font-bold text-zinc-400">
+                    {new Date(item.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                  </span>
                 </div>
                 <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
               </div>
