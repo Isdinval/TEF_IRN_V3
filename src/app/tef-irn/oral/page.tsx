@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Sparkles } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, ListChecks } from "lucide-react";
 import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
 import { OralAnalysisView } from "./components/OralAnalysisView";
 import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
@@ -253,11 +253,20 @@ export default function OralCoach() {
         <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              IA Realtime
+              {scenario ? `Section ${scenario.section} · ${scenario.level}` : "IA Realtime"}
             </Badge>
             <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-              COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span>
+              {scenario ? (
+                scenario.title
+              ) : (
+                <>COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span></>
+              )}
             </h1>
+            {scenario && (
+              <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                Mise en situation
+              </div>
+            )}
             <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
               {scenario
                 ? scenario.sujet
@@ -286,6 +295,22 @@ export default function OralCoach() {
 
         {(status === "connecting" || status === "active" || status === "analyzing") && (
           <div className="flex min-h-0 flex-1 flex-col gap-6">
+            {scenario && scenario.objectifs?.length > 0 && (
+              <Card className="rounded-[2rem] border-none bg-white p-6 shadow-lg shadow-zinc-200/50">
+                <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                  <ListChecks size={14} /> Votre mission
+                </div>
+                <ul className="space-y-2">
+                  {scenario.objectifs.map((objectif, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm font-medium text-zinc-600">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-600" />
+                      {objectif}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
             <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
               {status === "active" && isListening && (
                 <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
