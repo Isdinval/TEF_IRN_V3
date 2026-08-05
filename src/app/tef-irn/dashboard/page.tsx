@@ -111,13 +111,17 @@ export default function DashboardPage() {
   const target_exam_date = profile.target_exam_date || null;
   const league_stats = data.league_stats || null;
 
-  // recent_corrections remonte désormais jusqu'à 5 éléments par catégorie
-  // (migrations 20260731000002/000003) : on répartit ici pour les 3 blocs
-  // distincts demandés (Examen blanc / Écrit / Oral). Le QCM (types 'qcm',
-  // 'trous', 'qcm_centre_entrainement') est explicitement exclu -- il n'est
-  // plus fetché du tout côté RPC depuis 20260731000003, ce filtre est donc
-  // surtout une garde de sécurité côté client.
-  const examCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'examen_blanc');
+  // recent_corrections remonte désormais jusqu'à 5 éléments par branche
+  // (migrations 20260731000002/000003), et depuis 20260805000003 le bloc
+  // "Examen blanc" agrège à la fois des EE et des EO (context='exam'), soit
+  // jusqu'à 10 lignes avant tri -- on les fusionne, trie par date décroissante
+  // et re-limite à 5 ici. Le QCM (types 'qcm', 'trous', 'qcm_centre_entrainement')
+  // est explicitement exclu -- il n'est plus fetché du tout côté RPC depuis
+  // 20260731000003, ce filtre est donc surtout une garde de sécurité côté client.
+  const examCorrections = recent_corrections
+    .filter((c: any) => c.exercise?.type === 'examen_blanc')
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
   const oralCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'entretien_oral');
   const writtenCorrections = recent_corrections.filter((c: any) => c.exercise?.type === 'ecrit');
 
