@@ -142,7 +142,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Filters Sidebar */}
-          <aside className="w-full lg:w-72 space-y-10 shrink-0">
+          <aside className="w-full lg:w-72 space-y-10 shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                 <Filter size={14} /> Filtres
@@ -235,7 +235,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
 
             <AnimatePresence mode="popLayout">
               {filteredGuides.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredGuides.map((guide, i) => (
                     <motion.div
                       key={guide.id}
