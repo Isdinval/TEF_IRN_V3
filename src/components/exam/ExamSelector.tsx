@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
+import { Badge } from '@/components/ui/badge';
 import { Headset, BookOpen, PenTool, Mic, ArrowRight, Loader2, Award } from 'lucide-react';
 
 interface ExamSelectorProps {
@@ -41,9 +42,9 @@ export function ExamSelector({ onSelect }: ExamSelectorProps) {
     <div className="min-h-screen bg-slate-50/30 pb-20">
       <div className="mx-auto max-w-6xl p-4 md:p-10 lg:p-12">
         <div className="mb-8">
-          <p className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-2">
+          <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 mb-3">
             Examens blancs
-          </p>
+          </Badge>
           <h1 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight">
             Choisissez votre examen blanc
           </h1>
