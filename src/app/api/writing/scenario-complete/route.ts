@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-    const { scenarioId, section, level, text, feedback, studyTimeMinutes, context } = await req.json();
+    const { scenarioId, examQuestionId, section, level, text, feedback, studyTimeMinutes, context } = await req.json();
 
     const aiFeedback = feedback as WritingFeedback | undefined;
 
@@ -48,6 +48,9 @@ export async function POST(req: Request) {
       .insert({
         user_id: user.id,
         scenario_id: scenarioId || null,
+        // Rempli uniquement pour context='exam' : la question EE d'un examen blanc vient du
+        // catalogue exam_questions, distinct de writing_exam_scenarios (scenario_id ci-dessus).
+        exam_question_id: examQuestionId || null,
         section: section || null,
         level: level || null,
         submitted_text: text,

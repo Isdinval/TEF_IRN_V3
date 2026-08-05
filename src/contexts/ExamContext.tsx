@@ -332,7 +332,31 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
           }),
         });
         if (response.ok) {
-          feedbacks[q.id] = await response.json();
+          const feedback: WritingFeedback = await response.json();
+          feedbacks[q.id] = feedback;
+
+          // Persistance de la tentative (table dédiée, jamais faite jusqu'ici pour l'EE
+          // d'examen blanc -- voir item 5 du plan dashboard). Best-effort : un échec de
+          // sauvegarde ne doit pas bloquer la suite de l'examen, seulement priver la
+          // tentative de son historique dans le dashboard.
+          try {
+            await fetch('/api/writing/scenario-complete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                examQuestionId: q.id,
+                // Pas de section A/B ici : contrairement au catalogue writing_exam_scenarios
+                // (page Rédaction), exam_questions n'a pas cette notion.
+                section: null,
+                level: activeExam?.level,
+                text,
+                feedback,
+                context: 'exam',
+              }),
+            });
+          } catch (persistError) {
+            console.error(`EE persistence failed for question ${q.id}:`, persistError);
+          }
         }
       } catch (error) {
         console.error(`EE correction failed for question ${q.id}:`, error);
