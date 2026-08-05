@@ -263,6 +263,11 @@ export default function OralCoach() {
               )}
             </h1>
             {scenario && (
+              <p className="mb-4 text-sm font-bold uppercase tracking-wide text-zinc-400">
+                Vous parlez avec : <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
+              </p>
+            )}
+            {scenario && (
               <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                 Mise en situation
               </div>
@@ -353,9 +358,7 @@ export default function OralCoach() {
                   </h3>
                   <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
                     {status === "active"
-                      ? scenario
-                        ? `Vous parlez avec : ${scenario.role_interlocuteur}`
-                        : "Parlez naturellement, comme lors de l'examen."
+                      ? "Parlez naturellement, comme lors de l'examen."
                       : status === "analyzing"
                       ? "Le coach évalue votre prestation selon la grille officielle TEF IRN."
                       : "Préparez-vous, le coach va démarrer l'échange."}
