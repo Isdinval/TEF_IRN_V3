@@ -142,6 +142,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                     referenceId={reco.reference_id}
                     slug={reco.slug}
                     frequency={match?.frequency}
+                    category={reco.category}
                     onDismissed={onDismissed}
                   />
                 );
