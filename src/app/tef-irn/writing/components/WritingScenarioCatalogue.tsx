@@ -62,41 +62,42 @@ export function WritingScenarioCatalogue({
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-            <Layers size={14} className="text-indigo-600" /> Section
+          <div>
+            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+              <Layers size={14} className="text-indigo-600" /> Section
+            </div>
+            <div className="flex gap-2">
+              {(["all", "A", "B"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => onSectionChange(s)}
+                  className={`flex-1 h-10 rounded-xl font-black text-sm transition-all ${section === s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                >
+                  {s === "all" ? "Toutes" : s}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2">
-            {(["all", "A", "B"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => onSectionChange(s)}
-                className={`flex-1 h-12 rounded-2xl font-black transition-all ${section === s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
-              >
-                {s === "all" ? "Toutes" : s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-            <Target size={14} className="text-indigo-600" /> Niveau
-          </div>
-          <div className="flex gap-2">
-            {(["all", "A2", "B1", "B2"] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => onLevelChange(l)}
-                className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
-              >
-                {l === "all" ? "Tous" : l}
-              </button>
-            ))}
+          <div>
+            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+              <Target size={14} className="text-indigo-600" /> Niveau
+            </div>
+            <div className="flex gap-2">
+              {(["all", "A2", "B1", "B2"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => onLevelChange(l)}
+                  className={`flex-1 h-10 rounded-xl font-black text-sm transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                >
+                  {l === "all" ? "Tous" : l}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {typesDisponibles.length > 0 && (
-          <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+          <div className="lg:col-span-2 bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
             <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
               <FileText size={14} className="text-indigo-600" /> Type de texte
             </div>
