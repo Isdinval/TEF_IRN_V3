@@ -8,12 +8,13 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, Calendar, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import {
   VICTORY_MASCOT_URLS,
   PERPLEXED_MASCOT_URLS,
@@ -110,6 +111,8 @@ export function GrammarCheckContent() {
   // pour éviter tout mismatch d'hydratation Next.js.
   const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
   const [emptyStateMascotUrl, setEmptyStateMascotUrl] = useState<string>(PERPLEXED_MASCOT_URLS[0]);
+  const [recommendedExerciseId, setRecommendedExerciseId] = useState<string | null>(null);
+  const [recommendationReason, setRecommendationReason] = useState<string | null>(null);
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
@@ -155,6 +158,37 @@ export function GrammarCheckContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.level, filters.category, supabase]);
+
+  const fetchRecommendation = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setRecommendedExerciseId(null);
+      setRecommendationReason(null);
+      return;
+    }
+    try {
+      const [recommended] = await resolveNextExercises(
+        user.id,
+        {
+          level: filters.level,
+          category: filters.category !== "Toutes" ? filters.category : undefined,
+          type: "trous",
+        },
+        supabase,
+        1
+      );
+      setRecommendedExerciseId(recommended?.id ?? null);
+      setRecommendationReason((recommended as any)?.recommendation_reason ?? null);
+    } catch (err) {
+      console.error("Error fetching recommendation:", err);
+    }
+  }, [filters.level, filters.category, supabase]);
+
+  useEffect(() => {
+    if (mode === "selection" && !exerciseIdFromParams) {
+      fetchRecommendation();
+    }
+  }, [fetchRecommendation, mode, exerciseIdFromParams]);
 
   useEffect(() => {
     if (mode === "selection" && !exerciseIdFromParams) {
@@ -669,18 +703,19 @@ export function GrammarCheckContent() {
 
             <div
                 onClick={() => {
-                    const randomId = catalogue[Math.floor(Math.random() * catalogue.length)]?.id;
-                    if (randomId) startTraining(randomId);
+                    const targetId = recommendedExerciseId
+                      ?? catalogue[Math.floor(Math.random() * catalogue.length)]?.id;
+                    if (targetId) startTraining(targetId);
                 }}
                 className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
               <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                <Zap size={14} /> Flash entraînement
+                <Zap size={14} /> Recommandé pour vous
               </div>
-              <h4 className="text-lg font-black leading-tight">Lancer une session aléatoire</h4>
+              <h4 className="text-lg font-black leading-tight">Lancer mon exercice recommandé</h4>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                <Calendar size={16} /> Entraînement Quotidien
+                <Sparkles size={16} /> {recommendationReason || "Basé sur vos performances"}
               </div>
             </div>
           </div>
