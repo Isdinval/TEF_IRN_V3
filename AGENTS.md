@@ -269,6 +269,10 @@ Exemple :
 git am C:\Users\Olivi\Downloads\0001-fix-parcours-corrige-le-bouton-invisible-de-la-card-.patch
 ```
 
+### Style de communication
+
+Olivier préfère que les réponses (analyses, résumés, "prochaines étapes") parlent de **fonctionnalité** plutôt que de détails de code/implémentation — c'est plus lisible pour lui. Les patchs restent livrés normalement (fichier `.patch` + commande `git am` + nom/description de commit), mais le texte explicatif qui les entoure doit décrire l'effet côté produit, pas le détail technique de la modification.
+
 ### Description de PR à la fin d'un plan
 
 Quand un plan (ensemble d'items validés par Olivier) est entièrement livré — dernier patch du lot — toujours fournir automatiquement, sans qu'il ait à le redemander, un titre de PR suggéré + une description Markdown prête à coller (section "Résumé", "Changements" en liste à puces reprenant les vrais commits du plan via `git log <base>..HEAD --oneline --no-merges`, et "Tests effectués" si des vérifications ont été faites : `tsc --noEmit`, `npm run lint`, `npm run build`, requêtes Supabase de contrôle, etc.). Ne pas inventer de contenu : la description reflète les commits réels, pas un résumé approximatif de la conversation.
