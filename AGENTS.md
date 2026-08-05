@@ -269,6 +269,10 @@ Exemple :
 git am C:\Users\Olivi\Downloads\0001-fix-parcours-corrige-le-bouton-invisible-de-la-card-.patch
 ```
 
+### Description de PR à la fin d'un plan
+
+Quand un plan (ensemble d'items validés par Olivier) est entièrement livré — dernier patch du lot — toujours fournir automatiquement, sans qu'il ait à le redemander, un titre de PR suggéré + une description Markdown prête à coller (section "Résumé", "Changements" en liste à puces reprenant les vrais commits du plan via `git log <base>..HEAD --oneline --no-merges`, et "Tests effectués" si des vérifications ont été faites : `tsc --noEmit`, `npm run lint`, `npm run build`, requêtes Supabase de contrôle, etc.). Ne pas inventer de contenu : la description reflète les commits réels, pas un résumé approximatif de la conversation.
+
 ---
 
 ## Domaine métier — TEF IRN
