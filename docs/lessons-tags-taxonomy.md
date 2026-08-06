@@ -38,8 +38,8 @@ soit elle-même propre, fixe et sans ambiguïté. D'où ce document.
 
 ### Conjugaison (34)
 aller, avoir, concordance des temps, conditionnel passé, conditionnel présent,
-discours rapporté, être, faire, futur antérieur, futur proche, futur simple,
-**gérondif**, imparfait, impératif, négation, **participe présent**, passé composé,
+discours rapporté, être, faire, futur antérieur, futur proche, futur simple, **gérondif**,
+imparfait, impératif, négation, **participe présent**, **passé récent**, passé composé,
 plus-que-parfait, politesse, pouvoir, présent, quotidien, regret, subjonctif passé,
 subjonctif présent, tournures impersonnelles, venir, verbes en -er, verbes en -ir,
 verbes en -re, verbes irréguliers, verbes pronominaux, voix passive, vouloir
