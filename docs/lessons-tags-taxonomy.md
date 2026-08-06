@@ -101,6 +101,12 @@ grammaticale/lexicale précise dans le produit, notamment :
   `lessons.tags` sans le documenter.
 - **Tout nouvel exercice** doit partager au moins une étiquette de cette liste avec
   sa leçon parente (règle vérifiée vraie à 100% aujourd'hui, formalisée à l'item 10.9).
+- **Cross-tagging autorisé** (item 10.10) : un exercice peut porter des étiquettes
+  empruntées à d'autres leçons que la sienne (une notion transversale peut
+  légitimement toucher plusieurs leçons), à condition que ces étiquettes empruntées
+  existent déjà dans cette taxonomie officielle — jamais un mot inventé à la volée.
+  Un garde-fou en base (trigger `check_exercise_shares_lesson_tag`) impose cette
+  règle pour tout nouvel exercice ou toute modification de tags.
 
 ## Mise à jour de ce document
 
