@@ -58,6 +58,19 @@ function normalizeToEEScale(level?: string | null): string | null {
   return EE_LEVEL_ORDER.includes(normalized) ? normalized : null;
 }
 
+// Sous-catégories valides par type d'erreur, alignées sur la taxonomie officielle
+// des étiquettes de leçons (docs/lessons-tags-taxonomy.md) -- c'est ce qui garantit
+// que la sous-catégorie remontée par l'IA pourra toujours être reliée à une vraie
+// leçon (item 10.11 : rapprochement erreur -> leçon via les étiquettes). Pas de
+// liste pour "orthographe" : aucune leçon de cette catégorie n'existe (choix
+// assumé, l'orthographe recoupe les 4 autres catégories).
+const SOUS_CATEGORIES_BY_TYPE: Record<string, string[]> = {
+  grammaire: ['accord des adjectifs', 'accord du participe passé', 'adverbes', 'articles', 'comparatifs', 'connecteurs cause/conséquence', 'constructions participiales', 'démonstratifs', 'formation -ment', 'genre et nombre', 'infinitif', 'interrogation', 'mise en relief', 'négation', 'nominalisation', 'pluriel', 'possessifs', 'préférences', 'prépositions de lieu', 'prépositions de temps', 'pronoms COD/COI', 'pronoms indéfinis', 'pronoms relatifs', 'pronoms relatifs composés', 'pronoms Y/EN', 'quantités', 'registre soutenu', 'subjonctif vs indicatif', 'superlatif'],
+  conjugaison: ['aller', 'avoir', 'concordance des temps', 'conditionnel passé', 'conditionnel présent', 'discours rapporté', 'être', 'faire', 'futur antérieur', 'futur proche', 'futur simple', 'gérondif', 'imparfait', 'impératif', 'négation', 'participe présent', 'passé composé', 'plus-que-parfait', 'politesse', 'pouvoir', 'présent', 'quotidien', 'regret', 'subjonctif passé', 'subjonctif présent', 'tournures impersonnelles', 'venir', 'verbes en -er', 'verbes en -ir', 'verbes en -re', 'verbes irréguliers', 'verbes pronominaux', 'voix passive', 'vouloir'],
+  vocabulaire: ['collocations', 'faux-amis', 'registre de langue', 'registre soutenu', 'vocabulaire administratif', 'vocabulaire arts', 'vocabulaire civique', 'vocabulaire culture', 'vocabulaire économie', 'vocabulaire emploi', 'vocabulaire environnement', 'vocabulaire famille', 'vocabulaire famille/logement', 'vocabulaire horaires', 'vocabulaire logement', 'vocabulaire loisirs', 'vocabulaire médias', 'vocabulaire nombres', 'vocabulaire prix', 'vocabulaire quotidien', 'vocabulaire salutations', 'vocabulaire santé', 'vocabulaire sciences', 'vocabulaire société', 'vocabulaire transports', 'vocabulaire travail', 'vocabulaire ville'],
+  syntaxe: ['argumentation', 'argumentation avancée', 'compréhension écrite', 'compréhension orale', 'connecteurs cause/conséquence', 'connecteurs de but', 'connecteurs de séquence', 'connecteurs logiques complexes', 'connecteurs opposition', 'consignes et panneaux', 'correspondance', 'description', 'discours rapporté', 'expression orale', 'exprimer une opinion', 'hypothèses et conditions', 'interrogation', 'négation', 'ordre des mots', 'rédaction email amical', 'rédaction message simple', 'section b écrit', 'vocabulaire salutations'],
+};
+
 // Validation minimale de la réponse IA : response_format:"json_object" garantit un JSON
 // valide, mais pas la présence/le type des champs attendus par le frontend (FeedbackIA,
 // ZoneRedaction lisent scores_par_competence.* et liste_des_erreurs sans garde-fou et
@@ -75,6 +88,7 @@ const WritingFeedbackSchema = z.object({
     texte_corrige: z.string(),
     explication: z.string(),
     type_erreur: z.enum(['conjugaison', 'grammaire', 'vocabulaire', 'orthographe', 'syntaxe']),
+    sous_categorie: z.string().nullable().optional(),
   })),
   conseil_general: z.string(),
   texte_corrige_complet: z.string(),
@@ -200,6 +214,12 @@ CONSIGNES DE CORRECTION :
    - Le conditionnel de politesse ("je souhaiterais", "pourriez-vous", "il serait utile de") dans un texte formel est CORRECT et même recommandé -- ne JAMAIS le signaler comme une faute de conjugaison.
    - Reformuler une phrase déjà correcte pour la rendre "plus élégante" ou proposer un synonyme d'une phrase déjà juste n'est PAS une erreur -- ne l'ajoute pas à liste_des_erreurs.
    - Si le texte ne contient AUCUNE erreur réelle au sens ci-dessus, liste_des_erreurs doit être vide (ou quasi vide) -- ne fabrique jamais une erreur artificielle pour "remplir" la réponse.
+2ter. Pour chaque erreur (sauf "orthographe", qui n'a pas de sous-catégorie), choisis EXACTEMENT UN mot dans la liste correspondant à son type_erreur -- jamais un mot en dehors de cette liste, jamais une formulation inventée. Si vraiment aucun mot de la liste ne correspond, mets sous_categorie à null plutôt que d'inventer.
+   - grammaire : ${SOUS_CATEGORIES_BY_TYPE.grammaire.join(', ')}
+   - conjugaison : ${SOUS_CATEGORIES_BY_TYPE.conjugaison.join(', ')}
+   - vocabulaire : ${SOUS_CATEGORIES_BY_TYPE.vocabulaire.join(', ')}
+   - syntaxe : ${SOUS_CATEGORIES_BY_TYPE.syntaxe.join(', ')}
+   - orthographe : toujours null (pas de liste pour cette catégorie).
 3. Pour chaque erreur, fournis l'extrait EXACT du texte original.
 4. **EXPLICATION DÉTAILLÉE** : Pour chaque erreur, fournis une explication complète (2-3 phrases). Explique POURQUOI c'est une erreur, quelle est la règle de français appliquée, et donne un conseil pour ne plus la refaire.
 5. Donne un score_global sur 100 et des scores_par_competence -- CHACUN AUSSI SUR 100 (même échelle 0-100, jamais un compte de fautes, jamais une note sur 10). score_global doit être COHÉRENT avec ces 4 sous-scores : à quelques points près, il reflète leur moyenne pondérée par la gravité des erreurs trouvées -- jamais une valeur déconnectée. Un texte dont liste_des_erreurs est vide ou quasi vide doit avoir des scores_par_competence ET un score_global élevés (85-100), jamais l'inverse (sous-scores bas + score_global haut, ou l'inverse, sont tous les deux des incohérences à éviter).
@@ -219,7 +239,8 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
       "texte_original": "extrait exact trouvé dans le texte du candidat",
       "texte_corrige": "version corrigée",
       "explication": "Explication longue et détaillée de la règle grammaticale ou syntaxique. Pourquoi est-ce faux ? Quelle est la règle précise ? Comment s'en souvenir ?",
-      "type_erreur": "conjugaison" | "grammaire" | "vocabulaire" | "orthographe" | "syntaxe"
+      "type_erreur": "conjugaison" | "grammaire" | "vocabulaire" | "orthographe" | "syntaxe",
+      "sous_categorie": "un mot EXACT de la liste correspondante ci-dessus, ou null"
     }
   ],
   "conseil_general": "string",
@@ -260,6 +281,17 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
       ...parsed.data,
       scores_par_competence: { ...parsed.data.scores_par_competence },
     };
+
+    // Garde-fou déterministe (item 10.12) : même consigné dans le prompt, l'IA peut
+    // s'écarter de la liste officielle -- on ne lui fait donc pas confiance à l'aveugle,
+    // même principe que les autres garde-fous serveur de cette route. Toute sous_categorie
+    // hors de la liste valide pour son type_erreur est ramenée à null plutôt que de laisser
+    // passer un mot qui ne correspondra jamais à une leçon (item 10.11).
+    finalData.liste_des_erreurs = finalData.liste_des_erreurs.map((erreur) => {
+      const validList = SOUS_CATEGORIES_BY_TYPE[erreur.type_erreur];
+      const isValid = erreur.sous_categorie && validList?.includes(erreur.sous_categorie);
+      return { ...erreur, sous_categorie: isValid ? erreur.sous_categorie : null };
+    });
     const isInsufficientLength = actualWordCount < halfMinWords;
     if (isInsufficientLength) {
       finalData.score_global = Math.min(finalData.score_global, 20);

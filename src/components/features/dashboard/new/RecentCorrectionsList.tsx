@@ -129,7 +129,11 @@ export function RecentCorrectionsList({
                       className="text-[8px] uppercase tracking-tighter border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/tef-irn/practice?topic=${encodeURIComponent(notion)}`);
+                        // Le badge peut afficher "Grammaire (Comparatifs)" (item 10.12) --
+                        // le filtre de /tef-irn/practice ne connaît que la catégorie,
+                        // pas encore la sous-catégorie, donc on retire la parenthèse ici.
+                        const topic = notion.replace(/\s*\(.+\)$/, '');
+                        router.push(`/tef-irn/practice?topic=${encodeURIComponent(topic)}`);
                       }}
                     >
                       {notion}
