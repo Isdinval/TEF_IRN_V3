@@ -87,10 +87,10 @@ grammaticale/lexicale précise dans le produit, notamment :
   de conjugaison, "orthographe"...) : soit les remplacer par l'étiquette officielle
   la plus proche, soit les faire entrer officiellement dans cette liste si elles
   désignent une vraie notion manquante.
-- **Item 10.11** — Le rapprochement erreur → leçon (`analyzeUserErrorsAndRecommend`)
-  doit chercher une leçon par correspondance sur `tags` (via l'opérateur de
-  recouvrement de tableau, déjà indexé), et non plus par recherche de texte dans
-  le titre.
+- **Item 10.11** ✅ — Le rapprochement erreur → leçon (`analyzeUserErrorsAndRecommend`,
+  `src/lib/recommendation-engine.ts`) cherche désormais une leçon par correspondance
+  sur `tags` (opérateur de recouvrement de tableau, déjà indexé), et non plus par
+  recherche de texte dans le titre.
 - **Item 10.12** — L'IA de correction Écrit (et donc Examen blanc) doit choisir sa
   sous-catégorie d'erreur **dans cette liste**, jamais en la formulant librement —
   c'est ce qui garantit que la sous-catégorie remontée pourra toujours être reliée

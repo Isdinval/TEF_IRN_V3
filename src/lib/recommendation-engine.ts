@@ -187,12 +187,17 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     let lesson = null;
 
     if (topError.sub_category) {
+      // Rapprochement fiable sur les étiquettes (taxonomie officielle, voir
+      // docs/lessons-tags-taxonomy.md) plutôt qu'une recherche de texte dans
+      // le titre -- fragile car le titre d'une leçon ne contient pas
+      // forcément le mot exact de la sous-catégorie (ex. "comparatifs" ne
+      // matchait jamais le titre "Comparer et Exprimer ses Préférences").
       const { data } = await supabase
         .from('lessons')
         .select('id, title, category')
         .eq('category', topError.category.toLowerCase())
         .eq('level', userLevel)
-        .ilike('title', `%${topError.sub_category}%`)
+        .overlaps('tags', [topError.sub_category])
         .order('order_index', { ascending: true })
         .limit(1)
         .maybeSingle();
