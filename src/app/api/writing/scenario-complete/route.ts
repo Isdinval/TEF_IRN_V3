@@ -69,16 +69,22 @@ export async function POST(req: Request) {
     // présent dans cette tentative, pas par occurrence, pour ne pas gonfler artificiellement
     // la fréquence quand une même règle est enfreinte plusieurs fois dans un seul texte).
     try {
-      const typesDetectes = new Set(
-        (aiFeedback.liste_des_erreurs || [])
-          .map((e) => CATEGORY_LABELS[e.type_erreur])
-          .filter(Boolean)
-      );
+      // Dédoublonnage par paire (catégorie, sous-catégorie) plutôt que par catégorie
+      // seule (item 10.12) : deux erreurs "grammaire" mais de sous-catégories
+      // différentes (ex. comparatifs / accord des adjectifs) doivent remonter
+      // séparément, sinon la deuxième perdrait sa précision.
+      const erreursDetectees = new Map<string, { category: string; subCategory: string | null }>();
+      for (const e of aiFeedback.liste_des_erreurs || []) {
+        const category = CATEGORY_LABELS[e.type_erreur];
+        if (!category) continue;
+        const subCategory = e.sous_categorie ?? null;
+        erreursDetectees.set(`${category}|${subCategory ?? ''}`, { category, subCategory });
+      }
 
       const sourceLabel = attemptContext === 'exam' ? 'Examen blanc' : 'Écrit';
 
-      for (const category of typesDetectes) {
-        await trackUserError(user.id, category, null, sourceLabel);
+      for (const { category, subCategory } of erreursDetectees.values()) {
+        await trackUserError(user.id, category, subCategory, sourceLabel);
       }
 
       // Note : on ne résout PAS les erreurs absentes de ce texte (pas de resolveUserError ici).

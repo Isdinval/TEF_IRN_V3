@@ -3,6 +3,10 @@ export interface WritingError {
   texte_corrige: string;
   explication: string;
   type_erreur: 'grammaire' | 'vocabulaire' | 'orthographe' | 'syntaxe' | 'conjugaison' | 'improvement';
+  // Notion précise, alignée sur la taxonomie officielle des étiquettes de leçons
+  // (docs/lessons-tags-taxonomy.md) -- null pour "orthographe" (pas de liste) ou si
+  // l'IA n'a trouvé aucune correspondance pertinente. Voir item 10.12 du plan dashboard.
+  sous_categorie?: string | null;
   position_dans_texte?: number;
 }
 

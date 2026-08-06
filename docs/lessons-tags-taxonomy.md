@@ -91,10 +91,10 @@ grammaticale/lexicale précise dans le produit, notamment :
   `src/lib/recommendation-engine.ts`) cherche désormais une leçon par correspondance
   sur `tags` (opérateur de recouvrement de tableau, déjà indexé), et non plus par
   recherche de texte dans le titre.
-- **Item 10.12** — L'IA de correction Écrit (et donc Examen blanc) doit choisir sa
-  sous-catégorie d'erreur **dans cette liste**, jamais en la formulant librement —
-  c'est ce qui garantit que la sous-catégorie remontée pourra toujours être reliée
-  à une vraie leçon.
+- **Item 10.12** ✅ — L'IA de correction Écrit (et donc Examen blanc, même pipeline)
+  choisit désormais sa sous-catégorie d'erreur **dans cette liste** (garde-fou
+  déterministe côté serveur si elle s'en écarte), jamais en la formulant librement —
+  ce qui garantit que la sous-catégorie remontée pointera toujours vers une vraie leçon.
 - **Toute nouvelle leçon créée à l'avenir** doit être étiquetée avec un ou plusieurs
   mots de cette liste. Si aucune étiquette existante ne convient, c'est le signal
   qu'il faut l'ajouter officiellement ici — pas inventer un mot ponctuel dans
