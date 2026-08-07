@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sparkles,
@@ -16,8 +17,18 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WritingFeedback } from "@/types/writing";
+import { WritingFeedback, WritingScores } from "@/types/writing";
+import { computeWritingLevel } from "@/lib/exam-level";
 import { useRouter } from "next/navigation";
+
+// Mêmes libellés/ordre que la grille officielle affichée à l'oral (ORAL_CRITERIA_LABELS
+// dans src/lib/oral-criteria.ts), déclinés pour les 4 critères de l'Expression Écrite.
+const WRITING_CRITERIA_LABELS: Record<keyof WritingScores, string> = {
+  grammaire: "Grammaire",
+  vocabulaire: "Vocabulaire",
+  coherence: "Cohérence",
+  orthographe: "Orthographe",
+};
 
 interface FeedbackIAProps {
   feedback: WritingFeedback | null;
@@ -72,22 +83,41 @@ export const FeedbackIA = ({
             >
               <ScrollArea className="h-full w-full">
                 <div className="space-y-8 p-8 pb-10">
-                  {/* Scores Section */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm">
-                      <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-400">Score Global</p>
-                      <p className="text-4xl font-black text-white">
-                        {feedback.score_global}<span className="text-lg opacity-40">/100</span>
-                      </p>
-                    </div>
-                    <div className="rounded-[2rem] border border-emerald-500/20 bg-emerald-500/5 p-6 text-center flex flex-col justify-center backdrop-blur-sm">
-                      <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-400">Niveaux</p>
-                      <div className="grid grid-cols-2 gap-1 text-[8px] font-bold uppercase text-emerald-300">
-                        <span>Gr: {feedback.scores_par_competence.grammaire}</span>
-                        <span>Voc: {feedback.scores_par_competence.vocabulaire}</span>
-                        <span>Coh: {feedback.scores_par_competence.coherence}</span>
-                        <span>Orth: {feedback.scores_par_competence.orthographe}</span>
+                  {/* Niveau estimé — même format que /tef-irn/oral (OralAnalysisView) */}
+                  {(() => {
+                    const globalLevel = computeWritingLevel(feedback.scores_par_competence);
+                    return (
+                      <div className="flex flex-col items-center gap-3 rounded-[2rem] bg-black/30 p-8 text-center">
+                        <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
+                          Niveau estimé
+                        </Badge>
+                        <h2 className="text-6xl font-black tracking-tighter text-white">
+                          {globalLevel ? `${globalLevel.level}${globalLevel.plus ? "+" : ""}` : "—"}
+                        </h2>
+                        <p className="text-sm font-medium text-zinc-400">
+                          Score global : <span className="font-black text-white">{feedback.score_global}/100</span>
+                        </p>
                       </div>
+                    );
+                  })()}
+
+                  {/* Détail par critère (grille officielle TEF IRN) */}
+                  <div className="space-y-4">
+                    <h3 className="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                      Détail par critère
+                    </h3>
+                    <div className="flex flex-col gap-4 rounded-[2rem] border border-white/5 bg-white/5 p-6">
+                      {(Object.keys(WRITING_CRITERIA_LABELS) as (keyof WritingScores)[]).map((key) => (
+                        <div key={key} className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-bold text-zinc-300">{WRITING_CRITERIA_LABELS[key]}</span>
+                            <span className="font-black text-indigo-400">
+                              {feedback.scores_par_competence[key]}/100
+                            </span>
+                          </div>
+                          <Progress value={feedback.scores_par_competence[key]} className="h-2" />
+                        </div>
+                      ))}
                     </div>
                   </div>
 
