@@ -1,4 +1,5 @@
 import { ExamResult, ExamSectionType } from '@/types/exam';
+import { WritingScores } from '@/types/writing';
 
 export type CecrlLevel = 'A1' | 'A2' | 'B1' | 'B2';
 
@@ -70,13 +71,33 @@ export interface GlobalLevelResult {
  * STRICTEMENT au-dessus de ce niveau plancher (ex. 2 épreuves > 400 pts et 1 épreuve
  * à 300 pts sur 4 -> plancher B1, 2 épreuves au-dessus -> "B1+").
  */
-export function computeGlobalLevel(skillLevels: SkillLevelResult[]): GlobalLevelResult | null {
-  if (skillLevels.length === 0) return null;
+function computeFloorLevelWithPlus(levels: CecrlLevel[]): GlobalLevelResult | null {
+  if (levels.length === 0) return null;
 
-  const levelIndices = skillLevels.map((s) => LEVEL_ORDER.indexOf(s.level));
+  const levelIndices = levels.map((l) => LEVEL_ORDER.indexOf(l));
   const floorIndex = Math.min(...levelIndices);
   const aboveFloorCount = levelIndices.filter((i) => i > floorIndex).length;
-  const plus = aboveFloorCount >= Math.ceil(skillLevels.length / 2);
+  const plus = aboveFloorCount >= Math.ceil(levels.length / 2);
 
   return { level: LEVEL_ORDER[floorIndex], plus };
+}
+
+export function computeGlobalLevel(skillLevels: SkillLevelResult[]): GlobalLevelResult | null {
+  return computeFloorLevelWithPlus(skillLevels.map((s) => s.level));
+}
+
+/**
+ * Niveau CECRL estimé pour UNE tentative d'Expression Écrite, à partir de ses 4
+ * sous-scores (grammaire, vocabulaire, cohérence, orthographe) — même règle que
+ * computeGlobalLevel (maillon faible + "+" si au moins la moitié des critères sont
+ * strictement au-dessus), mais appliquée aux critères d'une seule épreuve plutôt
+ * qu'aux épreuves d'un examen blanc complet. Recalculé à l'affichage : ne dépend
+ * d'aucune donnée stockée, donc valable aussi pour les anciennes tentatives.
+ */
+export function computeWritingLevel(scores: WritingScores): GlobalLevelResult | null {
+  const subScores = Object.values(scores);
+  if (subScores.length === 0) return null;
+
+  const levels = subScores.map((score) => pointsToLevel(Math.round((score / 100) * 499)));
+  return computeFloorLevelWithPlus(levels);
 }
