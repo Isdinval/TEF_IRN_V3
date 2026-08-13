@@ -166,6 +166,23 @@ questions CE, non adaptatif en interne.
 
 ---
 
+## Règle n°9 — Toute question CE doit avoir une explication de correction
+
+Depuis l'ajout de la colonne `explanation` sur `exam_questions`, toute nouvelle question CE
+doit être livrée avec son explication, affichée systématiquement dans l'écran de résultats
+(bonne et mauvaise réponse — décision produit du 13/08/2026).
+
+L'explication suit le même principe que la reformulation de la bonne réponse (règle 1), mais
+dans l'autre sens : elle **cite ou paraphrase le passage exact du texte** qui justifie la bonne
+réponse, et si un distracteur est particulièrement proche (cas fréquent sur `trous`), elle
+l'écarte explicitement en une phrase.
+
+✅ **Bon exemple** : *"Le texte précise que sans réponse sous deux mois, la demande « sera
+considérée comme abandonnée » — c'est donc une clôture automatique du dossier, pas une pénalité
+financière."*
+
+---
+
 ## Checklist avant de livrer une question CE
 
 - [ ] La bonne réponse ne partage aucune expression de 2+ mots avec le texte
@@ -179,6 +196,8 @@ questions CE, non adaptatif en interne.
 - [ ] (`long_admin`) Sur chaque document à 2 questions, une question générale + une précise
       (règle 8)
 - [ ] Le niveau de difficulté correspond au niveau CECRL de l'examen (voir règle 6)
+- [ ] L'explication de correction est renseignée (règle 9)
+
 
 ---
 

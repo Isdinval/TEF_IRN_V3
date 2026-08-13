@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, FileText, ChevronDown } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, ChevronDown, Lightbulb } from 'lucide-react';
 import { Question, QCMQuestion, ExamResult } from '@/types/exam';
 import { renderClozeText } from '@/lib/ce-format';
 
@@ -19,7 +19,7 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
     <div className="space-y-2">
       {answers.map((ans, idx) => {
         const question = getQuestion(ans.questionId);
-        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length || question?.subTexts?.length);
+        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length || question?.subTexts?.length || question?.explanation);
         const isExpanded = hasContext && ans.questionId === expandedId;
 
         return (
@@ -135,6 +135,14 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+                  {question.explanation && (
+                    <div className="pt-3 border-t border-zinc-200">
+                      <div className="flex items-center gap-1.5 text-xs font-black text-indigo-600 uppercase tracking-widest mb-2">
+                        <Lightbulb size={12} /> Explication
+                      </div>
+                      <p className="text-sm leading-relaxed text-zinc-600">{question.explanation}</p>
                     </div>
                   )}
                 </div>
