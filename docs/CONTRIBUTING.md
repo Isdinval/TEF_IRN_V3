@@ -43,5 +43,16 @@ Si vous modifiez le schéma :
 2. Utilisez un timestamp pour le nom du fichier.
 3. Testez votre SQL localement avant de le commiter.
 
+## 5. Convention pour les PR assistées par Claude
+
+À la fin d'un plan de travail entièrement livré, Claude fournit systématiquement :
+1. Un titre de PR suggéré.
+2. Une description Markdown structurée (Résumé / Changements / Tests effectués), construite
+   à partir des commits réels du plan (`git log base..HEAD --oneline --no-merges`).
+
+Ces informations sont livrées sous forme de **fichier `.md` téléchargeable**, jamais uniquement
+en texte dans la conversation — pour pouvoir être collées directement dans la description de PR
+GitHub sans reformatage.
+
 ---
 Merci de contribuer à LlamaKusi ! 🚀
