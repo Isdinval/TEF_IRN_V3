@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, XCircle, FileText, ChevronDown } from 'lucide-react';
 import { Question, QCMQuestion, ExamResult } from '@/types/exam';
+import { renderClozeText } from '@/lib/ce-format';
 
 interface QuestionDetailPanelProps {
   answers: ExamResult['answers'];
@@ -18,7 +19,7 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
     <div className="space-y-2">
       {answers.map((ans, idx) => {
         const question = getQuestion(ans.questionId);
-        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length);
+        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length || question?.subTexts?.length);
         const isExpanded = hasContext && ans.questionId === expandedId;
 
         return (
@@ -62,8 +63,36 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
                 <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
                   <div className="text-xs font-black text-zinc-400 uppercase tracking-widest">Contexte de la question</div>
 
-                  {question.texte && (
-                    <p className="text-sm leading-relaxed text-zinc-600 italic">{question.texte}</p>
+                  {question.ceFormat === 'multi_texte' && question.subTexts && question.subTexts.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      {question.subTexts.map((st, i) => (
+                        <div key={i} className="p-3 bg-white rounded-xl border border-zinc-200">
+                          <div className="text-[10px] font-black uppercase tracking-wide text-indigo-600 mb-1">
+                            {st.label}
+                          </div>
+                          <p className="text-sm leading-relaxed text-zinc-600">{st.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {question.ceFormat !== 'multi_texte' && question.texte && (
+                    <div className="text-sm leading-relaxed text-zinc-600">
+                      {question.ceFormat === 'trous' ? (
+                        renderClozeText(question.texte, question.highlightGap)
+                      ) : question.ceFormat === 'long_admin' || question.ceFormat === 'article_presse' ? (
+                        question.texte
+                          .split(/\n+/)
+                          .filter((p) => p.trim() !== '')
+                          .map((paragraph, i) => (
+                            <p key={i} className={i > 0 ? 'mt-2' : ''}>
+                              {paragraph}
+                            </p>
+                          ))
+                      ) : (
+                        <p className="italic">{question.texte}</p>
+                      )}
+                    </div>
                   )}
 
                   {question.audioUrl && (
