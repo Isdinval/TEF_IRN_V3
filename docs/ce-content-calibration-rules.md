@@ -7,8 +7,8 @@ quasi-citations verbatim du texte, rendant les questions résolubles par simple 
 mots-clés, sans compréhension réelle.
 
 Recalibré à partir de captures PrepMyFuture montrant le corrigé détaillé (EXPLICATION/CONTEXTE
-pour chaque question, niveau B1-B2), et du PDF officiel CCI ("Le français des affaires") sur le
-format général du TEF.
+pour chaque question, niveau B1-B2), et de la source **officielle et IRN-spécifique** de la CCI
+Paris Île-de-France (voir section Sources ci-dessous).
 
 **Toute génération future de contenu CE (manuelle ou via un futur pipeline) doit respecter
 ces règles.**
@@ -117,6 +117,55 @@ formats.
 
 ---
 
+## Règle n°7 — Format `trous` : deux sous-types à mixer, pas un seul
+
+La vidéo officielle CCI distingue explicitement deux exercices différents, tous deux couverts
+par notre `ce_format = 'trous'` :
+
+- **Phrase à trous** : une seule phrase courte, une seule lacune, 1 question. Difficulté basse,
+  se résout par le sens global de la phrase (ex. officiel : *"Katia aime ___ des livres le soir
+  avant de dormir"* → lire, et non voir/boire/avoir).
+- **Texte à trous** : un paragraphe complet avec plusieurs lacunes numérotées visibles
+  simultanément, 1 question par lacune (`highlight_gap`). Difficulté plus élevée, nécessite de
+  comprendre le sens global du texte pour choisir entre synonymes proches.
+
+**Sur les 4 questions `trous` d'un examen, mixer les deux sous-types** (ex. 1 texte à trous à 2
+lacunes + 2 phrases à trous indépendantes = 4 questions), plutôt que de n'utiliser que la
+variante paragraphe. Les phrases à trous n'ont techniquement qu'une seule lacune ; `highlight_gap`
+vaut alors toujours `1`.
+
+---
+
+## Règle n°8 — Format `long_admin` : 1 question générale + 1 question précise par document
+
+Confirmé par la vidéo officielle CCI (exemple 5) : sur un document de 2 questions, la première
+porte sur le **sens global/le message principal** du document, la seconde sur **un détail
+précis**. Ne pas poser 2 questions de détail sur le même document.
+
+✅ **Bon** (exemple officiel, mail de réservation d'hôtel) :
+> Q1 (générale) : "Quel est le message principal du texte ?" → confirme une réservation
+> Q2 (précise) : détail sur le parking non inclus dans le prix
+
+Cette règle s'applique aux paires de questions sur un même document (2 des 3 documents de
+`long_admin`, qui en compte 5 au total : 2+2+1). Le document à question unique peut rester une
+question générale ou précise selon ce qui convient le mieux au contenu.
+
+---
+
+## Décision produit — pas d'adaptativité de section, choix de l'examen par l'utilisateur
+
+Le TEF IRN réel comporte 2 sections de 10 questions (15 min chacune) : la section 2 est
+*"adaptée à votre niveau"* selon la performance en section 1 — un vrai moteur d'examen
+adaptatif. LlamaKusi ne réplique pas cette adaptativité intra-examen (changement d'architecture
+trop lourd : pool de questions par niveau, branchement dynamique, refonte d'`ExamContext.tsx`).
+
+**Décision (13/08/2026)** : à la place, c'est l'utilisateur qui choisit lui-même le niveau/thème
+de l'examen blanc qu'il souhaite passer, via le choix entre `exam-1` (A2-B1), `exam-2` (B1),
+`exam-3` (B1-B2) — mécanisme déjà existant dans l'app. Chaque examen reste un bloc fixe de 20
+questions CE, non adaptatif en interne.
+
+---
+
 ## Checklist avant de livrer une question CE
 
 - [ ] La bonne réponse ne partage aucune expression de 2+ mots avec le texte
@@ -125,16 +174,32 @@ formats.
 - [ ] (`multi_texte`) Les 4 sous-textes couvrent des thèmes réellement distincts
 - [ ] (`long_admin`/`article_presse`) Au moins certaines questions portent sur la fonction/la
       synthèse du document, pas uniquement sur un détail isolé
+- [ ] (`trous`) Les 4 questions mixent phrase à trous et texte à trous (règle 7), pas uniquement
+      la variante paragraphe
+- [ ] (`long_admin`) Sur chaque document à 2 questions, une question générale + une précise
+      (règle 8)
 - [ ] Le niveau de difficulté correspond au niveau CECRL de l'examen (voir règle 6)
 
 ---
 
 ## Sources
 
+- **Vidéo officielle CCI Paris Île-de-France** (source IRN-spécifique) :
+  ["TEF IRN | Atelier Se préparer à l'épreuve de compréhension écrite"](https://www.youtube.com/watch?v=P1aw5hFmJCY),
+  publiée sur la [page officielle de préparation TEF IRN](https://www.lefrancaisdesaffaires.fr/candidat/test-evaluation-francais/tef-irn/preparation/).
+  Confirme : 20 questions / 30 min, structure en 2 sections de 10 questions (15 min chacune, la
+  2e "adaptée au niveau" — voir décision produit ci-dessus), pas de pénalité pour mauvaise
+  réponse/absence de réponse, et les 6 types d'exercices (affiche/document simple, phrase à
+  trous, texte à trous, lecture rapide multi-documents, questions sur document administratif
+  avec 2 questions générale+précise, article de presse).
 - Captures PrepMyFuture (fournies par Olivier, 13/08/2026) : exemples avec corrigé détaillé
   (EXPLICATION/CONTEXTE) sur `trous`, `multi_texte`, `long_admin` (Section F — "Documents
   administratifs et professionnels"), `article_presse` (Section G — "Articles de presse"),
   niveau B1-B2.
-- [PDF officiel CCI — Exemples de questions Compréhension Écrite](https://www.lefrancaisdesaffaires.fr/wp-content/uploads/2024/10/tef-exemples-epreuves-ce.pdf) :
-  structure générale du TEF (40 questions, 5 sections), utilisé pour la répartition initiale des
-  5 formats CE (voir `docs/tef-irn-reference.md`).
+
+**Correction (13/08/2026)** : une version précédente de ce document citait le
+[PDF d'exemples CCI](https://www.lefrancaisdesaffaires.fr/wp-content/uploads/2024/10/tef-exemples-epreuves-ce.pdf)
+comme référence de structure. Ce PDF documente le **TEF général** (40 questions / 60 min,
+format international/Canada), **pas le TEF IRN**. Il reste valable comme illustration générale
+des types de questions (structure similaire), mais la vidéo ci-dessus est la source à privilégier
+pour tout ce qui est spécifique au format IRN (volume, timing, règles précises par exercice).
