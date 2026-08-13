@@ -7,30 +7,38 @@
 *   **Format** : 20 questions (QCM)
 *   **Objectif** : Comprendre des documents simples, des messages courants, des articles courts.
 
-**Sources** : le TEF IRN n'a pas été concerné par l'évolution du format TEF de décembre 2023
+**Sources** : confirmé par la vidéo officielle CCI Paris Île-de-France, IRN-spécifique
+(["Atelier Se préparer à l'épreuve de compréhension écrite"](https://www.youtube.com/watch?v=P1aw5hFmJCY),
+page officielle [lefrancaisdesaffaires.fr/candidat/.../tef-irn/preparation](https://www.lefrancaisdesaffaires.fr/candidat/test-evaluation-francais/tef-irn/preparation/)) :
+20 questions / 30 min, réparties en 2 sections de 10 questions (15 min chacune), la seconde
+section étant nativement adaptative selon la performance en section 1 (voir décision produit
+ci-dessous — LlamaKusi ne réplique pas cette adaptativité). Le TEF IRN n'a pas été concerné par
+l'évolution du format TEF de décembre 2023
 ([lefrancaisdesaffaires.fr](https://www.lefrancaisdesaffaires.fr/evolutions-tef-2023/)) et garde
-sa propre structure indépendante. Le volume (20 questions / 30 min) est confirmé par plusieurs
-sources mises à jour pour 2026 ([frademy.com](https://frademy.com/tef-irn-presentation),
-[lillangues.com](https://lillangues.com/centre-dexamen/test-devaluation-de-francais-tef/)) ; une
-page CCI de 2023 mentionne 13 questions, probablement non actualisée depuis. Aucune source
-officielle ne publie la répartition par sous-type des 20 questions IRN — la répartition
-ci-dessous est extrapolée de la structure du TEF général (40 questions,
-[PDF officiel CCI](https://www.lefrancaisdesaffaires.fr/wp-content/uploads/2024/10/tef-exemples-epreuves-ce.pdf))
-et recoupée avec des captures d'un concurrent (PrepMyFuture), validée par Olivier le 13/08/2026.
+sa propre structure indépendante — le [PDF d'exemples CCI](https://www.lefrancaisdesaffaires.fr/wp-content/uploads/2024/10/tef-exemples-epreuves-ce.pdf)
+cité dans une version antérieure de ce document concerne le **TEF général** (40 questions, format
+international), pas le TEF IRN ; il reste une illustration valable des types d'exercices mais
+la vidéo ci-dessus prime pour tout ce qui est spécifique au format IRN.
 
 **Répartition retenue (5 formats, `ce_format` en base)** :
 
 | Format (`ce_format`) | Qté | Description |
 |---|---|---|
-| `court` | 4 | Texte court (vie quotidienne), 1 question par texte |
-| `trous` | 4 | 2 textes partagés × 2 lacunes chacun. Lacunes numérotées `___________ (N)` dans le texte ; `highlight_gap` indique la lacune active pour chaque question |
-| `multi_texte` | 2 | Grille de sous-documents (`sub_texts` jsonb), 1 question transversale par set |
-| `long_admin` | 5 | Texte long structuré en paragraphes — documents administratifs/professionnels |
+| `court` | 4 | Texte court (vie quotidienne / document simple), 1 question par texte |
+| `trous` | 4 | Mix de phrase à trous (1 lacune, phrase courte) et texte à trous (paragraphe, 2 lacunes partagées) — voir règle 7 de `ce-content-calibration-rules.md`. Lacunes numérotées `___________ (N)` ; `highlight_gap` indique la lacune active pour chaque question |
+| `multi_texte` | 2 | Grille de sous-documents (`sub_texts` jsonb), 1 question transversale par set — correspond à l'exercice "lecture rapide" officiel |
+| `long_admin` | 5 | Texte long structuré en paragraphes (documents administratifs/professionnels), 1 question générale + 1 précise par document (règle 8) |
 | `article_presse` | 5 | Texte long structuré en paragraphes — articles de presse |
 
 `long_admin` et `article_presse` partagent le même rendu UI (texte en paragraphes) mais sont
-distingués en base pour pouvoir cibler l'un sans l'autre. Détail de la démarche et du contenu :
-voir `CE-refonte-examen-blanc.md` (document de travail, non versionné).
+distingués en base pour pouvoir cibler l'un sans l'autre. Règles de conception détaillées :
+voir `docs/ce-content-calibration-rules.md`.
+
+**Décision produit — pas d'adaptativité, choix de l'examen par l'utilisateur** : plutôt que de
+répliquer la section 2 adaptative du TEF IRN réel, LlamaKusi laisse l'utilisateur choisir
+lui-même le niveau/thème de l'examen blanc (`exam-1`/`exam-2`/`exam-3`). Chaque examen est un
+bloc fixe de 20 questions CE, non adaptatif en interne. Détail dans
+`docs/ce-content-calibration-rules.md`.
 
 **Thématique par examen blanc** (contenu, pas structure — les 3 examens suivent la même
 répartition de formats ci-dessus) :
