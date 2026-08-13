@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { QCMQuestion, WritingQuestion, SpeakingQuestion } from '@/types/exam';
+import { renderClozeText } from '@/lib/ce-format';
 import { AudioPlayer } from './AudioPlayer';
 import { SpeakingSession } from './SpeakingSession';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
@@ -68,9 +69,39 @@ export function QuestionCard() {
           <AudioPlayer url={q.audioUrl || ''} maxPlays={q.maxPlays || 1} questionId={q.id} />
         )}
 
-        {q.texte && (
-          <div className="p-5 bg-zinc-50 rounded-2xl border border-zinc-100 text-base leading-relaxed text-zinc-600 italic">
-            {q.texte}
+        {q.ceFormat === 'multi_texte' && q.subTexts && q.subTexts.length > 0 && (
+          <div className="grid sm:grid-cols-2 gap-3">
+            {q.subTexts.map((st, i) => (
+              <div key={i} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                <h4 className="text-xs font-black uppercase tracking-wide text-indigo-600 mb-1.5">
+                  {st.label}
+                </h4>
+                <p className="text-sm leading-relaxed text-zinc-600">{st.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {q.ceFormat !== 'multi_texte' && q.texte && (
+          <div
+            className={`p-5 bg-zinc-50 rounded-2xl border border-zinc-100 text-base leading-relaxed text-zinc-600 ${
+              q.ceFormat === 'long_admin' || q.ceFormat === 'article_presse' ? '' : 'italic'
+            }`}
+          >
+            {q.ceFormat === 'trous' ? (
+              renderClozeText(q.texte, q.highlightGap)
+            ) : q.ceFormat === 'long_admin' || q.ceFormat === 'article_presse' ? (
+              q.texte
+                .split(/\n+/)
+                .filter((p) => p.trim() !== '')
+                .map((paragraph, i) => (
+                  <p key={i} className={i > 0 ? 'mt-3' : ''}>
+                    {paragraph}
+                  </p>
+                ))
+            ) : (
+              q.texte
+            )}
           </div>
         )}
 

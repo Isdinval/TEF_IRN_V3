@@ -2,6 +2,16 @@ export type ExamSectionType = 'CO' | 'CE' | 'EE' | 'EO';
 
 export type QuestionType = 'audio' | 'text' | 'writing' | 'speaking';
 
+// Sous-format des questions de Compréhension Écrite. `long_admin` et `article_presse`
+// partagent le même rendu (texte structuré en paragraphes) mais sont distingués en base
+// pour pouvoir cibler l'un sans l'autre (cf. docs/tef-irn-reference.md).
+export type CEFormat = 'court' | 'trous' | 'multi_texte' | 'long_admin' | 'article_presse';
+
+export interface SubText {
+  label: string;
+  content: string;
+}
+
 export interface BaseQuestion {
   id: string;
   section: ExamSectionType;
@@ -19,6 +29,10 @@ export interface QCMQuestion extends BaseQuestion {
   transcription?: string;
   texte?: string;
   imageUrl?: string;
+  // CE uniquement (section === 'CE')
+  ceFormat?: CEFormat;
+  highlightGap?: number; // pour ceFormat = 'trous'
+  subTexts?: SubText[]; // pour ceFormat = 'multi_texte'
 }
 
 export interface WritingQuestion extends BaseQuestion {

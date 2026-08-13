@@ -21,6 +21,7 @@ import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
 type Section = "CO" | "CE" | "EE" | "EO";
+type CEFormat = "court" | "trous" | "multi_texte" | "long_admin" | "article_presse";
 
 const SECTIONS: Section[] = ["CO", "CE", "EE", "EO"];
 const SECTION_TYPE: Record<Section, string> = { CO: "audio", CE: "text", EE: "writing", EO: "speaking" };
@@ -29,6 +30,14 @@ const SECTION_LABEL: Record<Section, string> = {
   CE: "Compréhension écrite",
   EE: "Expression écrite",
   EO: "Expression orale",
+};
+const CE_FORMATS: CEFormat[] = ["court", "trous", "multi_texte", "long_admin", "article_presse"];
+const CE_FORMAT_LABEL: Record<CEFormat, string> = {
+  court: "Texte court (vie quotidienne)",
+  trous: "Texte à trous",
+  multi_texte: "Multi-texte (comparaison)",
+  long_admin: "Texte long — document administratif/pro",
+  article_presse: "Texte long — article de presse",
 };
 const LETTERS = ["A", "B", "C", "D"];
 
@@ -52,6 +61,9 @@ interface ExamQuestionRow {
   speak_time: number | null;
   instructions: string | null;
   oral_scenario_id: string | null;
+  ce_format: CEFormat | null;
+  highlight_gap: number | null;
+  sub_texts: { label: string; content: string }[] | null;
 }
 
 interface OralScenarioOption {
@@ -74,7 +86,13 @@ const EMPTY_FORM = {
   maxPlays: 2,
   transcription: "",
   // CE only
+  ceFormat: "court" as CEFormat,
   texte: "",
+  highlightGap: 1,
+  subTexts: [
+    { label: "", content: "" },
+    { label: "", content: "" },
+  ],
   // EE only
   prompt: "",
   minWords: 40,
@@ -147,6 +165,9 @@ export default function ExamQuestionsAdmin() {
     const options = Array.isArray(q.options) ? q.options : [];
     const qcmOptions = LETTERS.map((_, i) => (options[i] || "").replace(/^[A-D]\)\s*/, ""));
     const correctIndex = Math.max(0, LETTERS.indexOf(q.correct_answer || "A"));
+    const subTexts = Array.isArray(q.sub_texts) && q.sub_texts.length > 0
+      ? q.sub_texts
+      : [{ label: "", content: "" }, { label: "", content: "" }];
     setForm({
       section: q.section,
       orderIndex: q.order_index,
@@ -157,7 +178,10 @@ export default function ExamQuestionsAdmin() {
       audioUrl: q.audio_url || "",
       maxPlays: q.max_plays || 2,
       transcription: q.transcription || "",
+      ceFormat: q.ce_format || "court",
       texte: q.texte || "",
+      highlightGap: q.highlight_gap || 1,
+      subTexts,
       prompt: q.prompt || "",
       minWords: q.min_words || 40,
       maxTime: q.max_time || 10,
@@ -174,7 +198,20 @@ export default function ExamQuestionsAdmin() {
     if (form.section === "CO" || form.section === "CE") {
       if (!form.question.trim()) return "L'énoncé de la question est obligatoire.";
       if (form.qcmOptions.some((o) => !o.trim())) return "Les 4 options doivent être remplies.";
-      if (form.section === "CE" && !form.texte.trim()) return "Le texte de lecture est obligatoire pour la CE.";
+      if (form.section === "CE") {
+        if (form.ceFormat === "multi_texte") {
+          const filled = form.subTexts.filter((st) => st.label.trim() && st.content.trim());
+          if (filled.length < 2) return "Le multi-texte nécessite au moins 2 sous-textes (label + contenu) remplis.";
+        } else if (form.ceFormat === "trous") {
+          if (!form.texte.trim()) return "Le texte à trous est obligatoire.";
+          if (!form.highlightGap || form.highlightGap < 1) return "Le numéro de la lacune active est obligatoire (1, 2...).";
+          if (!form.texte.includes(`(${form.highlightGap})`)) {
+            return `Le texte ne contient pas de lacune "___________ (${form.highlightGap})" — vérifiez le numéro.`;
+          }
+        } else if (!form.texte.trim()) {
+          return "Le texte de lecture est obligatoire pour la CE.";
+        }
+      }
     } else if (form.section === "EE") {
       if (!form.prompt.trim()) return "Le sujet est obligatoire.";
       if (form.minWords <= 0) return "Le nombre de mots minimum doit être positif.";
@@ -195,6 +232,9 @@ export default function ExamQuestionsAdmin() {
     };
     if (form.section === "CO" || form.section === "CE") {
       const options = form.qcmOptions.map((o, i) => `${LETTERS[i]}) ${o.trim()}`);
+      const isCE = form.section === "CE";
+      const isMultiTexte = isCE && form.ceFormat === "multi_texte";
+      const isTrous = isCE && form.ceFormat === "trous";
       return {
         ...base,
         question: form.question.trim(),
@@ -203,7 +243,12 @@ export default function ExamQuestionsAdmin() {
         audio_url: form.section === "CO" ? form.audioUrl.trim() || null : null,
         max_plays: form.section === "CO" ? form.maxPlays : null,
         transcription: form.section === "CO" ? form.transcription.trim() || null : null,
-        texte: form.section === "CE" ? form.texte.trim() : null,
+        texte: isCE && !isMultiTexte ? form.texte.trim() : null,
+        ce_format: isCE ? form.ceFormat : null,
+        highlight_gap: isTrous ? form.highlightGap : null,
+        sub_texts: isMultiTexte
+          ? form.subTexts.filter((st) => st.label.trim() && st.content.trim())
+          : null,
       };
     }
     if (form.section === "EE") {
@@ -297,6 +342,11 @@ export default function ExamQuestionsAdmin() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className="text-[10px] font-black uppercase">{q.section} #{q.order_index}</Badge>
                   <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{q.type}</Badge>
+                  {q.section === "CE" && q.ce_format && (
+                    <Badge className="text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border-none">
+                      {CE_FORMAT_LABEL[q.ce_format]}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">
                   {q.question || q.prompt || "(sans énoncé)"}
@@ -355,9 +405,104 @@ export default function ExamQuestionsAdmin() {
                   <Input value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} className="mt-1 bg-white" />
                 </div>
                 {form.section === "CE" && (
-                  <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Texte de lecture</Label>
-                    <Textarea value={form.texte} onChange={(e) => setForm((f) => ({ ...f, texte: e.target.value }))} className="mt-1 bg-white" rows={4} />
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs font-black uppercase text-zinc-400">Format CE</Label>
+                      <select
+                        value={form.ceFormat}
+                        onChange={(e) => setForm((f) => ({ ...f, ceFormat: e.target.value as CEFormat }))}
+                        className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold bg-white"
+                      >
+                        {CE_FORMATS.map((fmt) => (
+                          <option key={fmt} value={fmt}>{CE_FORMAT_LABEL[fmt]}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {form.ceFormat === "multi_texte" ? (
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase text-zinc-400">Sous-textes (grille)</Label>
+                        {form.subTexts.map((st, i) => (
+                          <div key={i} className="p-3 bg-white rounded-xl border border-zinc-200 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={st.label}
+                                onChange={(e) => setForm((f) => ({
+                                  ...f,
+                                  subTexts: f.subTexts.map((s, idx) => idx === i ? { ...s, label: e.target.value } : s),
+                                }))}
+                                placeholder={`Label (ex: Biographie ${i + 1})`}
+                                className="bg-white"
+                              />
+                              {form.subTexts.length > 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setForm((f) => ({ ...f, subTexts: f.subTexts.filter((_, idx) => idx !== i) }))}
+                                  className="w-9 h-9 shrink-0 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                            <Textarea
+                              value={st.content}
+                              onChange={(e) => setForm((f) => ({
+                                ...f,
+                                subTexts: f.subTexts.map((s, idx) => idx === i ? { ...s, content: e.target.value } : s),
+                              }))}
+                              placeholder="Contenu du sous-texte"
+                              className="bg-white"
+                              rows={3}
+                            />
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setForm((f) => ({ ...f, subTexts: [...f.subTexts, { label: "", content: "" }] }))}
+                          className="h-9 px-3 rounded-xl font-black text-xs"
+                        >
+                          <Plus className="mr-1" size={12} /> Ajouter un sous-texte
+                        </Button>
+                      </div>
+                    ) : (
+                      <div>
+                        <Label className="text-xs font-black uppercase text-zinc-400">
+                          {form.ceFormat === "trous" ? "Texte à trous" : "Texte de lecture"}
+                        </Label>
+                        <Textarea
+                          value={form.texte}
+                          onChange={(e) => setForm((f) => ({ ...f, texte: e.target.value }))}
+                          className="mt-1 bg-white"
+                          rows={form.ceFormat === "long_admin" || form.ceFormat === "article_presse" ? 6 : 4}
+                          placeholder={form.ceFormat === "trous" ? "Ex: ...des spectateurs du monde entier autour de créations ___________ (1) qui permettent..." : undefined}
+                        />
+                        {form.ceFormat === "trous" && (
+                          <p className="text-[10px] text-zinc-400 mt-1">
+                            Numérotez chaque lacune avec le format <code>___________ (1)</code>, <code>___________ (2)</code>, etc.
+                            Créez une question distincte par lacune (même texte, "Numéro de la lacune active" différent sur chacune).
+                          </p>
+                        )}
+                        {(form.ceFormat === "long_admin" || form.ceFormat === "article_presse") && (
+                          <p className="text-[10px] text-zinc-400 mt-1">
+                            Séparez les paragraphes par un saut de ligne — ils seront affichés distinctement au candidat.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {form.ceFormat === "trous" && (
+                      <div>
+                        <Label className="text-xs font-black uppercase text-zinc-400">Numéro de la lacune active pour cette question</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={form.highlightGap}
+                          onChange={(e) => setForm((f) => ({ ...f, highlightGap: parseInt(e.target.value, 10) || 1 }))}
+                          className="mt-1 bg-white w-32"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 {form.section === "CO" && (

@@ -138,6 +138,9 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         prepTime: q.prep_time,
         speakTime: q.speak_time,
         oralScenarioId: q.oral_scenario_id,
+        ceFormat: q.ce_format,
+        highlightGap: q.highlight_gap,
+        subTexts: q.sub_texts,
       }));
 
       setAllQuestions(mappedQuestions);
