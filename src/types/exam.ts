@@ -33,6 +33,7 @@ export interface QCMQuestion extends BaseQuestion {
   ceFormat?: CEFormat;
   highlightGap?: number; // pour ceFormat = 'trous'
   subTexts?: SubText[]; // pour ceFormat = 'multi_texte'
+  explanation?: string; // affiché systématiquement dans la revue de correction
 }
 
 export interface WritingQuestion extends BaseQuestion {

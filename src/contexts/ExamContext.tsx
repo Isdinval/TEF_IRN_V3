@@ -141,6 +141,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         ceFormat: q.ce_format,
         highlightGap: q.highlight_gap,
         subTexts: q.sub_texts,
+        explanation: q.explanation,
       }));
 
       setAllQuestions(mappedQuestions);
