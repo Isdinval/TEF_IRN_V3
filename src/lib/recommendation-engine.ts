@@ -195,19 +195,38 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     return;
   }
 
-  // 1. Récupérer les erreurs les plus fréquentes de l'utilisateur
-  const { data: errors } = await supabase
+  // 1. Récupérer les erreurs de l'utilisateur (pool large, pas encore limité
+  // à MAX_PENDING_RECOMMENDATIONS -- la dépriorisation ci-dessous doit voir
+  // l'ensemble avant de décider lesquelles passent en tête).
+  const { data: rawErrors } = await supabase
     .from('user_errors')
     .select('*')
     .eq('user_id', userId)
     .order('frequency', { ascending: false })
-    .limit(MAX_PENDING_RECOMMENDATIONS);
+    .limit(50);
 
-  if (!errors || errors.length === 0) {
+  if (!rawErrors || rawErrors.length === 0) {
     // Fallback : suggérer un type d'exercice général
     await createGenericRecommendation(userId);
     return;
   }
+
+  // Dépriorisation (item 11 du plan "Refonte recommandation erreur -> tag ->
+  // ressource") : un point faible ancien (last_seen_at > 30 jours) ne doit
+  // pas monopoliser un slot de recommandation face à des erreurs plus
+  // récentes, même à fréquence égale ou supérieure -- même principe que le
+  // tri du widget "Points faibles" (get_dashboard_data, migration
+  // 20260817000004). Dépriorisation seulement : la ligne user_errors n'est
+  // ni modifiée ni supprimée ici, uniquement reléguée dans ce tri.
+  const STALE_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const errors = [...rawErrors].sort((a, b) => {
+    const aStale = now - new Date(a.last_seen_at).getTime() > STALE_THRESHOLD_MS;
+    const bStale = now - new Date(b.last_seen_at).getTime() > STALE_THRESHOLD_MS;
+    if (aStale !== bStale) return aStale ? 1 : -1;
+    if (a.frequency !== b.frequency) return b.frequency - a.frequency;
+    return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime();
+  });
 
   // 1bis. Niveau actuel de l'utilisateur, pour ne pas recommander hors niveau
   const { data: profile } = await supabase
