@@ -287,33 +287,85 @@ export function PracticeContent() {
     setIsLoading(false);
   }, [supabase]);
 
-  const autoStart = useCallback(async (lid?: string, t?: string, lvl?: string) => {
+  const autoStart = useCallback(async (lid?: string, t?: string, lvl?: string, tag?: string) => {
     setIsLoading(true);
-    let query = supabase.from('exercises').select('*').eq('type', 'qcm');
-    if (t) query = query.ilike('category', `%${t}%`);
-    if (lvl) query = query.eq('level', lvl);
+    const level = lvl || filters.level;
 
-    const { data } = await query.limit(5);
-    if (data && data.length > 0) {
-      const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
-      setQuestions(allQs.slice(0, 10));
-      setMode("practice");
-    } else if (t) {
-       const { data: searchData } = await supabase
-         .from('exercises')
-         .select('*')
-         .eq('type', 'qcm')
-         .filter('instructions', 'ilike', `%${t}%`)
-         .limit(1)
-         .single();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-       if (searchData) {
-         setQuestions(mapExerciseToQuestions(searchData as ExerciseDB));
-         setMode("practice");
-       }
+      if (user) {
+        // Moteur de recommandation unifié (item 7 du plan dashboard) : filtre sur
+        // tags (notion précise, ex. "subjonctif présent") en plus de category
+        // (large, ex. "Conjugaison"), avec repli sur category seule si le tag ne
+        // matche rien -- remplace l'ancien ilike('category', ...) qui ignorait
+        // tout tag transmis par le dashboard (perte de précision, cf. analyse
+        // du plan "Refonte recommandation erreur -> tag -> ressource").
+        let ranked = await resolveNextExercises(
+          user.id,
+          { level, category: t, tags: tag ? [tag] : undefined, type: 'qcm' },
+          supabase,
+          10
+        );
+
+        if (ranked.length === 0 && tag) {
+          ranked = await resolveNextExercises(
+            user.id,
+            { level, category: t, type: 'qcm' },
+            supabase,
+            10
+          );
+        }
+
+        if (ranked.length > 0) {
+          const { data: fullExercises } = await supabase
+            .from('exercises')
+            .select('*')
+            .in('id', ranked.map(e => e.id));
+
+          if (fullExercises && fullExercises.length > 0) {
+            // Préserve l'ordre de pertinence de resolveNextExercises (le fetch
+            // par .in() ne garantit pas l'ordre de la liste d'ids fournie)
+            const byId = new Map(fullExercises.map((e: any) => [e.id, e]));
+            const ordered = ranked.map(r => byId.get(r.id)).filter(Boolean) as ExerciseDB[];
+            setQuestions(ordered.flatMap(mapExerciseToQuestions).slice(0, 10));
+            setMode("practice");
+            return;
+          }
+        }
+      }
+
+      // Repli (utilisateur non connecté, ou aucun exercice trouvé même sans tag) :
+      // comportement d'origine conservé tel quel.
+      let query = supabase.from('exercises').select('*').eq('type', 'qcm');
+      if (t) query = query.ilike('category', `%${t}%`);
+      if (level) query = query.eq('level', level);
+
+      const { data } = await query.limit(5);
+      if (data && data.length > 0) {
+        const allQs = (data as ExerciseDB[]).flatMap(mapExerciseToQuestions);
+        setQuestions(allQs.slice(0, 10));
+        setMode("practice");
+      } else if (t) {
+         const { data: searchData } = await supabase
+           .from('exercises')
+           .select('*')
+           .eq('type', 'qcm')
+           .filter('instructions', 'ilike', `%${t}%`)
+           .limit(1)
+           .single();
+
+         if (searchData) {
+           setQuestions(mapExerciseToQuestions(searchData as ExerciseDB));
+           setMode("practice");
+         }
+      }
+    } catch (err) {
+      console.error('autoStart error:', err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, [supabase]);
+  }, [supabase, filters.level]);
 
   useEffect(() => {
     if (mode === "practice") {
@@ -324,6 +376,7 @@ export function PracticeContent() {
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
+    const tag = searchParams.get('tag');
     const level = searchParams.get('level');
     const isReviewMode = searchParams.get('mode') === 'review';
 
@@ -332,8 +385,8 @@ export function PracticeContent() {
         await fetchExerciseById(exerciseIdFromParams);
       } else if (lessonId && !topic) {
         await fetchFromLesson(lessonId);
-      } else if (topic) {
-        await autoStart(lessonId || undefined, topic, level || undefined);
+      } else if (topic || tag) {
+        await autoStart(lessonId || undefined, topic || undefined, level || undefined, tag || undefined);
       } else if (isReviewMode) {
         await fetchReviewExercises();
       } else {
