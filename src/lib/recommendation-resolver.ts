@@ -7,6 +7,14 @@ export interface ResolveContext {
    *  Si omis, pool multi-catégories sur tout le level — c'est le seul cas où le boost
    *  "catégorie faible" (user_errors) produit un effet observable. */
   category?: string;
+  /** Si fourni, restreint en plus aux exercices dont `tags` recoupe cette liste —
+   *  typiquement un seul tag précis (la sub_category d'un point faible détecté).
+   *  Filtre appliqué EN PLUS de category, pas à sa place : une même étiquette de la
+   *  taxonomie officielle peut légitimement exister dans plusieurs catégories
+   *  (ex. "négation" en Conjugaison, Grammaire et Syntaxe) — category reste
+   *  nécessaire pour lever cette ambiguïté. Sans category fournie en parallèle,
+   *  le filtre tags s'applique quand même sur tout le level. */
+  tags?: string[];
   /** Leçon en cours ou juste terminée — active le palier "contexte pédagogique". Optionnel. */
   lessonId?: string;
   /** Si fourni, pool restreint à ce type d'exercice (ex: 'trous', 'qcm').
@@ -50,8 +58,8 @@ export async function resolveNextExercises(
   supabase: SupabaseClient,
   limit: number = 6
 ): Promise<Exercise[]> {
-  // 1. Pool candidat : filtrage level (+ category si fourni), même logique de casse
-  //    que l'ancien getRecommendedExercises (exercises.category est contraint en
+  // 1. Pool candidat : filtrage level (+ category et/ou tags si fournis), même logique
+  //    de casse que l'ancien getRecommendedExercises (exercises.category est contraint en
   //    Capitalisé côté DB alors que lessons.category / parcours.category sont en minuscule)
   let query = supabase
     .from('exercises')
@@ -61,6 +69,10 @@ export async function resolveNextExercises(
   if (context.category) {
     const exerciseCategory = context.category.charAt(0).toUpperCase() + context.category.slice(1);
     query = query.or(`category.eq.${exerciseCategory},category.eq.${context.category}`);
+  }
+
+  if (context.tags && context.tags.length > 0) {
+    query = query.overlaps('tags', context.tags);
   }
 
   if (context.type) {
