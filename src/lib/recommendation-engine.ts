@@ -249,16 +249,34 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       // le titre -- fragile car le titre d'une leçon ne contient pas
       // forcément le mot exact de la sous-catégorie (ex. "comparatifs" ne
       // matchait jamais le titre "Comparer et Exprimer ses Préférences").
-      const { data } = await supabase
+      //
+      // Plusieurs leçons peuvent légitimement partager le même tag (ex.
+      // "être"/"avoir" couvrent 12 leçons chacun) -- item 15 du plan : on
+      // récupère jusqu'à 5 candidates et on préfère la première non encore
+      // lue par l'utilisateur, plutôt que de s'arrêter systématiquement à la
+      // première par order_index qui pourrait déjà être connue.
+      const { data: candidates } = await supabase
         .from('lessons')
         .select('id, title, category')
         .eq('category', topError.category.toLowerCase())
         .eq('level', userLevel)
         .overlaps('tags', [topError.sub_category])
         .order('order_index', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      lesson = data;
+        .limit(5);
+
+      if (candidates && candidates.length > 0) {
+        if (candidates.length === 1) {
+          lesson = candidates[0];
+        } else {
+          const { data: readRows } = await supabase
+            .from('lesson_progress')
+            .select('lesson_id')
+            .eq('user_id', userId)
+            .in('lesson_id', candidates.map((c) => c.id));
+          const readIds = new Set((readRows || []).map((r) => r.lesson_id));
+          lesson = candidates.find((c) => !readIds.has(c.id)) || candidates[0];
+        }
+      }
     }
 
     if (!lesson) {
