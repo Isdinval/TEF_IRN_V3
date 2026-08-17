@@ -250,15 +250,28 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       // forcément le mot exact de la sous-catégorie (ex. "comparatifs" ne
       // matchait jamais le titre "Comparer et Exprimer ses Préférences").
       //
-      // Plusieurs leçons peuvent légitimement partager le même tag (ex.
-      // "être"/"avoir" couvrent 12 leçons chacun) -- item 15 du plan : on
-      // récupère jusqu'à 5 candidates et on préfère la première non encore
-      // lue par l'utilisateur, plutôt que de s'arrêter systématiquement à la
-      // première par order_index qui pourrait déjà être connue.
+      // Fix (item 16 du plan) : PAS de filtre .eq('category', ...) ici,
+      // volontairement. exercises.category encode le type de compétence
+      // testée par CETTE question précise (ex. un exercice "Grammaire" sur
+      // une leçon de vocabulaire administratif, qui teste l'accord des
+      // adjectifs dans ce contexte lexical) -- il diverge légitimement de
+      // lessons.category dans la majorité des cas (vérifié en base : ~950
+      // exercices sur ~1050 partagent un tag avec une leçon d'une AUTRE
+      // catégorie que la leur). Filtrer par topError.category (qui vient de
+      // exercises.category) excluait donc la bonne leçon la plupart du
+      // temps, même quand tags matchait parfaitement. Le tag seul suffit à
+      // trouver la bonne leçon ; category ne sert plus qu'en préférence
+      // souple ci-dessous (utile pour les rares tags transversaux comme
+      // "négation", légitimement présents dans plusieurs catégories).
+      //
+      // Plusieurs leçons peuvent aussi partager le même tag au sein d'une
+      // même catégorie (ex. "être"/"avoir" couvrent 12 leçons chacun) --
+      // item 15 : jusqu'à 5 candidates récupérées, préférence à celle(s)
+      // dont la catégorie correspond à topError.category, puis à la
+      // première non encore lue par l'utilisateur, puis à order_index.
       const { data: candidates } = await supabase
         .from('lessons')
         .select('id, title, category')
-        .eq('category', topError.category.toLowerCase())
         .eq('level', userLevel)
         .overlaps('tags', [topError.sub_category])
         .order('order_index', { ascending: true })
@@ -274,7 +287,21 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
             .eq('user_id', userId)
             .in('lesson_id', candidates.map((c) => c.id));
           const readIds = new Set((readRows || []).map((r) => r.lesson_id));
-          lesson = candidates.find((c) => !readIds.has(c.id)) || candidates[0];
+          const errorCategory = topError.category.toLowerCase();
+
+          const ranked = candidates
+            .map((c, idx) => ({
+              c,
+              categoryMismatch: c.category === errorCategory ? 0 : 1,
+              alreadyRead: readIds.has(c.id) ? 1 : 0,
+              idx
+            }))
+            .sort((a, b) =>
+              a.categoryMismatch - b.categoryMismatch ||
+              a.alreadyRead - b.alreadyRead ||
+              a.idx - b.idx
+            );
+          lesson = ranked[0].c;
         }
       }
     }
