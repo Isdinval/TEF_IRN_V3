@@ -46,15 +46,16 @@ export async function trackUserError(userId: string, category: string, subCatego
 }
 
 /**
- * Fait baisser (ou supprime) le compteur d'erreurs de l'utilisateur pour une
- * catégorie donnée, en réaction à une réussite (score >= 50). Symétrique de
- * trackUserError. Un seul succès suffit à faire baisser frequency de 1 ; la
- * ligne user_errors est supprimée quand frequency atteint 0 (le point faible
- * disparaît alors du widget "Points faibles" du dashboard).
+ * Fait baisser (ou supprime) une ligne user_errors précise (category +
+ * sub_category exacts), en réaction à une réussite. Extrait de
+ * resolveUserError() pour être appelable deux fois (cf. fallback ci-dessous).
  */
-export async function resolveUserError(userId: string, category: string, subCategory: string | null = null) {
-  const supabase = await createClient();
-
+async function resolveUserErrorRow(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  category: string,
+  subCategory: string | null
+) {
   let existingQuery = supabase
     .from('user_errors')
     .select('id, frequency')
@@ -76,6 +77,34 @@ export async function resolveUserError(userId: string, category: string, subCate
       .from('user_errors')
       .update({ frequency: existing.frequency - 1 })
       .eq('id', existing.id);
+  }
+}
+
+/**
+ * Fait baisser (ou supprime) le compteur d'erreurs de l'utilisateur pour une
+ * catégorie donnée, en réaction à une réussite (score >= 50). Symétrique de
+ * trackUserError. Un seul succès suffit à faire baisser frequency de 1 ; la
+ * ligne user_errors est supprimée quand frequency atteint 0 (le point faible
+ * disparaît alors du widget "Points faibles" du dashboard).
+ *
+ * Fallback (item 2 du plan "Refonte recommandation erreur -> tag -> ressource") :
+ * un point faible générique (sub_category = null -- typiquement remonté par
+ * l'Oral, qui ne peut pas isoler une notion précise) ne peut jamais matcher
+ * le sub_category d'un exercice ciblé réussi (qui en a presque toujours un,
+ * cf. exercise-complete/route.ts). Sans ce fallback, un tel point faible
+ * restait bloqué indéfiniment dans le dashboard. N'importe quelle réussite
+ * dans la même catégorie compte donc aussi comme un progrès sur ce signal
+ * générique -- contrairement à un point précis (ex. "subjonctif présent"),
+ * qui lui continue d'exiger une réussite sur ce point précis, jamais un
+ * succès générique d'une autre notion de la catégorie.
+ */
+export async function resolveUserError(userId: string, category: string, subCategory: string | null = null) {
+  const supabase = await createClient();
+
+  await resolveUserErrorRow(supabase, userId, category, subCategory);
+
+  if (subCategory) {
+    await resolveUserErrorRow(supabase, userId, category, null);
   }
 }
 
