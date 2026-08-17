@@ -129,11 +129,19 @@ export function RecentCorrectionsList({
                       className="text-[8px] uppercase tracking-tighter border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Le badge peut afficher "Grammaire (Comparatifs)" (item 10.12) --
-                        // le filtre de /tef-irn/practice ne connaît que la catégorie,
-                        // pas encore la sous-catégorie, donc on retire la parenthèse ici.
-                        const topic = notion.replace(/\s*\(.+\)$/, '');
-                        router.push(`/tef-irn/practice?topic=${encodeURIComponent(topic)}`);
+                        // Le badge affiche "Grammaire (Comparatifs)" (item 10.12) -- category
+                        // dans la parenthèse, sous_categorie hors parenthèse. Depuis l'item 8
+                        // (practice/page.tsx sait filtrer sur tag, pas seulement topic), on
+                        // transmet les deux au lieu de tronquer la parenthèse comme avant.
+                        // Lowercase sur le tag : sous_categorie remonte INITCAP côté RPC
+                        // (SQL), la taxonomie officielle (docs/lessons-tags-taxonomy.md) est
+                        // entièrement en minuscules.
+                        const match = notion.match(/^(.+?)(?:\s*\((.+)\))?$/);
+                        const topic = match?.[1]?.trim() || notion;
+                        const tag = match?.[2]?.trim().toLowerCase();
+                        const params = new URLSearchParams({ topic });
+                        if (tag) params.set('tag', tag);
+                        router.push(`/tef-irn/practice?${params.toString()}`);
                       }}
                     >
                       {notion}

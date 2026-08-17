@@ -143,6 +143,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                     slug={reco.slug}
                     frequency={match?.frequency}
                     category={reco.category}
+                    subCategory={reco.sub_category}
                     onDismissed={onDismissed}
                   />
                 );
@@ -168,7 +169,11 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                       </div>
                       <p className="text-xs text-zinc-500 italic leading-relaxed">{formatReminder(wp)}</p>
                       <button
-                        onClick={() => router.push(`/tef-irn/practice?topic=${encodeURIComponent(wp.category)}`)}
+                        onClick={() => {
+                          const params = new URLSearchParams({ topic: wp.category });
+                          if (wp.sub_category) params.set('tag', wp.sub_category);
+                          router.push(`/tef-irn/practice?${params.toString()}`);
+                        }}
                         className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:gap-2 transition-all"
                       >
                         Travailler ces exercices <ArrowRight size={12} />

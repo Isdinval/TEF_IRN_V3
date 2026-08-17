@@ -17,6 +17,11 @@ interface RecommendationCardProps {
   // faible associé (ex: fallback générique, vocabulaire non lié à user_errors).
   frequency?: number;
   category?: string | null;
+  // Tag précis de la taxonomie officielle (docs/lessons-tags-taxonomy.md),
+  // transmis à /tef-irn/practice en plus de category (item 8 du plan) --
+  // sans lui, le bouton "Commencer maintenant" ne filtrait que sur la
+  // catégorie large, jamais sur la notion précise à l'origine de la reco.
+  subCategory?: string | null;
   onDismissed?: () => void;
 }
 
@@ -25,7 +30,7 @@ const TITLES_BY_TYPE: Record<string, string> = {
   vocab: 'Ancrer un mot de vocabulaire',
 };
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, onDismissed }: RecommendationCardProps) {
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
 
@@ -33,8 +38,12 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
     switch (type) {
       case 'lesson': return `/tef-irn/lessons/${slug || referenceId}`;
       case 'exercise':
-      case 'review':
-        return category ? `/tef-irn/practice?topic=${encodeURIComponent(category)}` : '/tef-irn/practice';
+      case 'review': {
+        if (!category) return '/tef-irn/practice';
+        const params = new URLSearchParams({ topic: category });
+        if (subCategory) params.set('tag', subCategory);
+        return `/tef-irn/practice?${params.toString()}`;
+      }
       case 'vocab': return '/tef-irn/vocab';
       default: return '/tef-irn/practice';
     }
