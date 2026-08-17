@@ -108,6 +108,24 @@ grammaticale/lexicale précise dans le produit, notamment :
   Un garde-fou en base (trigger `check_exercise_shares_lesson_tag`) impose cette
   règle pour tout nouvel exercice ou toute modification de tags.
 
+## Usage sur `exam_questions` (CE/CO d'examen blanc)
+
+Depuis la migration `20260817000002`, les questions CE et CO de `exam_questions`
+portent aussi `category`/`tags`, selon la même logique que `exercises` :
+
+- **CE (hors format `trous`) et CO (tous formats)** : tag générique
+  `compréhension écrite` / `compréhension orale` (catégorie `Syntaxe`) — ces
+  formats évaluent une compréhension globale, pas une notion isolée.
+- **CE format `trous`** : tag précis choisi dans cette liste, car ce format
+  teste une distinction lexicale/grammaticale ciblée (règle n°3,
+  `docs/ce-content-calibration-rules.md`), comme un exercice `trous` classique.
+
+**Contrat `user_errors.sub_category` / `recommendations.sub_category`** :
+cette colonne n'est **pas** un synonyme de tag. Elle vaut soit un tag de cette
+liste (garanti pour Exercices, Écrit, et désormais CE format `trous`), soit
+`NULL` quand la source ne permet pas d'isoler une notion précise (Oral, CE
+hors `trous`, CO). Toute nouvelle source d'erreur doit respecter ce contrat.
+
 ## Mise à jour de ce document
 
 Cette liste n'est pas figée pour toujours — elle doit évoluer avec le catalogue de
