@@ -51,6 +51,12 @@ const TIER_REASONS: Record<number, string> = {
  * pool partage déjà la même catégorie. Elle ne redevient utile que si context.category
  * est omis, auquel cas le pool couvre tout le level et le boost peut réellement
  * faire remonter la catégorie où l'utilisateur échoue le plus.
+ *
+ * Anti-répétition (item 13) : troisième niveau de tri, après le palier et le
+ * boost catégorie faible. Au sein d'un même tag, un exercice dont le
+ * point_clés_lesson est déjà couvert par un exercice réussi du même pool est
+ * déprioritisé face à un point encore jamais abordé — évite de retomber sur
+ * le même angle qu'un exercice déjà maîtrisé quand plusieurs sont disponibles.
  */
 export async function resolveNextExercises(
   userId: string,
@@ -63,7 +69,7 @@ export async function resolveNextExercises(
   //    Capitalisé côté DB alors que lessons.category / parcours.category sont en minuscule)
   let query = supabase
     .from('exercises')
-    .select('id, lesson_id, type, level, instructions, category, difficulty')
+    .select('id, lesson_id, type, level, instructions, category, difficulty, point_clés_lesson')
     .eq('level', context.level);
 
   if (context.category) {
@@ -113,6 +119,20 @@ export async function resolveNextExercises(
   );
   const topWeakCategory = errors?.[0]?.category?.toLowerCase();
 
+  // Anti-répétition (item 13 du plan "Refonte recommandation erreur -> tag ->
+  // ressource") : point_clés_lesson distingue plusieurs exercices qui
+  // partagent le même tag (ex. "subjonctif présent" décliné en "formation
+  // -RE" vs "verbes irréguliers"). Un point déjà couvert par un exercice
+  // réussi du pool est déprioritisé face à un point encore jamais abordé,
+  // pour varier les angles proposés plutôt que de toujours retomber sur le
+  // même point_clés_lesson.
+  const coveredPointsCles = new Set(
+    exercises
+      .filter((ex: any) => (attempts || []).some((a: any) => a.exercise_id === ex.id && a.is_completed))
+      .map((ex: any) => ex.point_clés_lesson)
+      .filter(Boolean)
+  );
+
   // 3. Scoring : palier principal (priorité stricte) + boost catégorie faible en tri secondaire
   const scored = exercises.map((ex: any) => {
     const exAttempts = (attempts || []).filter((a: any) => a.exercise_id === ex.id);
@@ -134,12 +154,15 @@ export async function resolveNextExercises(
     }
 
     const weakCategoryBoost = topWeakCategory && ex.category?.toLowerCase() === topWeakCategory ? 0 : 1;
+    const pointCleAlreadyCovered = !isCompleted && ex.point_clés_lesson && coveredPointsCles.has(ex.point_clés_lesson) ? 1 : 0;
+    const reason = ex.point_clés_lesson ? `${TIER_REASONS[tier]} : ${ex.point_clés_lesson}` : TIER_REASONS[tier];
 
     return {
       ...ex,
       tier,
       weakCategoryBoost,
-      recommendation_reason: TIER_REASONS[tier],
+      pointCleAlreadyCovered,
+      recommendation_reason: reason,
       is_completed: isCompleted,
       success_rate: successRate,
       attempts_count: exAttempts.length
@@ -149,6 +172,7 @@ export async function resolveNextExercises(
   scored.sort((a, b) => {
     if (a.tier !== b.tier) return a.tier - b.tier;
     if (a.weakCategoryBoost !== b.weakCategoryBoost) return a.weakCategoryBoost - b.weakCategoryBoost;
+    if (a.pointCleAlreadyCovered !== b.pointCleAlreadyCovered) return a.pointCleAlreadyCovered - b.pointCleAlreadyCovered;
     return (a.success_rate ?? 0) - (b.success_rate ?? 0);
   });
 

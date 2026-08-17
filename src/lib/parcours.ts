@@ -44,6 +44,12 @@ export interface Exercise {
   instructions: string;
   category: string;
   difficulty: 'facile' | 'moyen' | 'difficile';
+  // Libellé différenciateur entre plusieurs exercices d'une même leçon
+  // partageant le même tag (ex. "Formation du subjonctif présent - verbes
+  // en -RE" vs "...verbes irréguliers"). Jamais utilisé pour le matching
+  // (voir docs/lessons-tags-taxonomy.md), uniquement pour varier les
+  // exercices proposés et enrichir le libellé affiché (item 13 du plan).
+  point_clés_lesson?: string | null;
   success_rate?: number;
   attempts_count?: number;
 }
