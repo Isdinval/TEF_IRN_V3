@@ -155,8 +155,8 @@ const MAX_PENDING_RECOMMENDATIONS = 3;
 
 /**
  * Analyse les erreurs les plus fréquentes de l'utilisateur (user_errors) pour
- * générer jusqu'à MAX_PENDING_RECOMMENDATIONS recommandations de leçon ciblées,
- * une par catégorie/sous-catégorie d'erreur la plus critique (triées par
+ * générer jusqu'à MAX_PENDING_RECOMMENDATIONS recommandations ciblées, une
+ * par catégorie/sous-catégorie d'erreur la plus critique (triées par
  * fréquence décroissante).
  *
  * Fix (2026-07) : filtre par niveau utilisateur + matching sur sous-catégorie.
@@ -170,6 +170,15 @@ const MAX_PENDING_RECOMMENDATIONS = 3;
  * category/sub_category (voir migration 20260720000001), nécessaire à
  * completeRecommendationIfResolved() pour détecter la résolution du point
  * faible qui l'a générée.
+ *
+ * Gradation exercice/leçon (item 10 du plan "Refonte recommandation erreur ->
+ * tag -> ressource") : une leçon déjà lue (lesson_progress) n'est pas
+ * reproposée pour une erreur fraîche (frequency=1) -- seuls des exercices
+ * ciblés sur le tag précis sont recommandés, la relire n'apporterait rien de
+ * plus qu'un exercice ciblé. Elle est en revanche reproposée, en rappel,
+ * si l'erreur persiste malgré tout (frequency>=2) : signe que la lecture
+ * seule n'a pas suffi. Une leçon jamais lue reste toujours prioritaire
+ * (comportement inchangé), quelle que soit frequency.
  */
 export async function analyzeUserErrorsAndRecommend(userId: string) {
   const supabase = await createClient();
@@ -246,17 +255,46 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     }
 
     if (lesson) {
-      // 3. Créer la recommandation de leçon (upsert : pas de doublon si une
-      // reco existe déjà pour la même leçon)
-      await supabase.from('recommendations').upsert({
-        user_id: userId,
-        type: 'lesson',
-        reference_id: lesson.id,
-        category: topError.category.toLowerCase(),
-        sub_category: topError.sub_category,
-        reason: `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`,
-        status: 'pending'
-      }, { onConflict: 'user_id, reference_id' });
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', userId)
+        .eq('lesson_id', lesson.id)
+        .maybeSingle();
+
+      const alreadyRead = !!progress;
+      const isPersistent = topError.frequency >= 2;
+
+      if (alreadyRead && !isPersistent) {
+        // Faiblesse légère sur une notion déjà lue : exercices ciblés sur le
+        // tag précis suffisent, pas besoin de reproposer la leçon.
+        await supabase.from('recommendations').insert({
+          user_id: userId,
+          type: 'exercise',
+          category: topError.category.toLowerCase(),
+          sub_category: topError.sub_category,
+          reason: `Un point à retravailler en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''} : quelques exercices ciblés suffiront.`,
+          status: 'pending'
+        });
+      } else {
+        // Leçon jamais lue (comportement d'origine), ou erreur persistante
+        // malgré une leçon déjà lue (rappel explicite dans le libellé).
+        const reason = alreadyRead && isPersistent
+          ? `Cette erreur revient malgré la leçon déjà vue (${topError.frequency}x) en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Un rappel de "${lesson.title}", complété par des exercices ciblés, vous aidera à l'ancrer.`
+          : `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`;
+
+        // 3. Créer la recommandation de leçon (upsert : pas de doublon si une
+        // reco existe déjà pour la même leçon)
+        await supabase.from('recommendations').upsert({
+          user_id: userId,
+          type: 'lesson',
+          reference_id: lesson.id,
+          category: topError.category.toLowerCase(),
+          sub_category: topError.sub_category,
+          reason,
+          status: 'pending'
+        }, { onConflict: 'user_id, reference_id' });
+      }
     } else {
       // 4. Si pas de leçon spécifique, suggérer de l'entraînement dans cette catégorie
       await supabase.from('recommendations').insert({
