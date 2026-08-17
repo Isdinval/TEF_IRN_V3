@@ -49,7 +49,11 @@ export interface Exercise {
   // en -RE" vs "...verbes irréguliers"). Jamais utilisé pour le matching
   // (voir docs/lessons-tags-taxonomy.md), uniquement pour varier les
   // exercices proposés et enrichir le libellé affiché (item 13 du plan).
-  point_clés_lesson?: string | null;
+  // Aliasé en ASCII (point_cles_lesson) côté requête Supabase -- le nom
+  // de colonne réel en base reste point_clés_lesson, mais un identifiant
+  // accentué non guilloté fait échouer le parseur de type de postgrest-js
+  // (cf. recommendation-resolver.ts).
+  point_cles_lesson?: string | null;
   success_rate?: number;
   attempts_count?: number;
 }

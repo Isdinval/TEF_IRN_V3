@@ -69,7 +69,12 @@ export async function resolveNextExercises(
   //    Capitalisé côté DB alors que lessons.category / parcours.category sont en minuscule)
   let query = supabase
     .from('exercises')
-    .select('id, lesson_id, type, level, instructions, category, difficulty, point_clés_lesson')
+    // point_clés_lesson aliasé en point_cles_lesson (ASCII) : le parseur de
+    // type de postgrest-js échoue sur un identifiant accentué non guilloté
+    // dans la chaîne select() ("Unexpected input: és_lesson", cassait le
+    // build Vercel). Alias + guillemets = contournement robuste, plus sûr
+    // qu'un simple guillemetage de l'identifiant d'origine.
+    .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')
     .eq('level', context.level);
 
   if (context.category) {
@@ -129,7 +134,7 @@ export async function resolveNextExercises(
   const coveredPointsCles = new Set(
     exercises
       .filter((ex: any) => (attempts || []).some((a: any) => a.exercise_id === ex.id && a.is_completed))
-      .map((ex: any) => ex.point_clés_lesson)
+      .map((ex: any) => ex.point_cles_lesson)
       .filter(Boolean)
   );
 
@@ -154,8 +159,8 @@ export async function resolveNextExercises(
     }
 
     const weakCategoryBoost = topWeakCategory && ex.category?.toLowerCase() === topWeakCategory ? 0 : 1;
-    const pointCleAlreadyCovered = !isCompleted && ex.point_clés_lesson && coveredPointsCles.has(ex.point_clés_lesson) ? 1 : 0;
-    const reason = ex.point_clés_lesson ? `${TIER_REASONS[tier]} : ${ex.point_clés_lesson}` : TIER_REASONS[tier];
+    const pointCleAlreadyCovered = !isCompleted && ex.point_cles_lesson && coveredPointsCles.has(ex.point_cles_lesson) ? 1 : 0;
+    const reason = ex.point_cles_lesson ? `${TIER_REASONS[tier]} : ${ex.point_cles_lesson}` : TIER_REASONS[tier];
 
     return {
       ...ex,
