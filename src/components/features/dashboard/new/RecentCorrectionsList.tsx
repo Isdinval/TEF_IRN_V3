@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FileText, CheckCircle2, ChevronRight, Timer, History, PenTool, Mic, type LucideIcon } from "lucide-react";
+import { FileText, CheckCircle2, ChevronRight, Timer, History, PenTool, Mic, BookOpen, Headphones, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { InfoTooltip } from "./InfoTooltip";
@@ -15,7 +15,10 @@ interface Correction {
     instructions: string;
     type: string; // 'examen_blanc' pour les sujets du catalogue writing_exam_scenarios
     category: string;
-    skill?: 'EE' | 'EO'; // distingue EE/EO au sein du bloc "Examen blanc" (type seul ne suffit plus)
+    // Distingue les 4 épreuves au sein du bloc "Examen blanc" (type seul ne
+    // suffit plus). CE/CO ajoutés item 12 -- contrairement à EE/EO, aucune
+    // page de détail n'existe pour elles (cf. carte non cliquable ci-dessous).
+    skill?: 'EE' | 'EO' | 'CE' | 'CO';
   };
   ai_feedback?: {
     overall_score: number;
@@ -39,6 +42,13 @@ function getTypeBadgeLabel(type?: string): string {
   if (type === "entretien_oral") return "Oral";
   return type?.toUpperCase() || "EE";
 }
+
+const SKILL_ICONS: Record<string, LucideIcon> = {
+  EO: Mic,
+  EE: PenTool,
+  CE: BookOpen,
+  CO: Headphones,
+};
 
 export function RecentCorrectionsList({
   corrections,
@@ -75,6 +85,12 @@ export function RecentCorrectionsList({
       {corrections.map((item, i) => {
         const score = item.ai_feedback?.overall_score || item.score || 0;
         const notions = item.ai_feedback?.knowledge_references || [];
+        // Option A validée avec Olivier (item 12) : CE/CO n'ont pas de page de
+        // détail (contrairement à EE/EO) -- la carte affiche score et notions
+        // (toujours cliquables individuellement) mais n'est pas cliquable
+        // elle-même, pas de curseur ni de chevron laissant croire à une action.
+        const hasDetailPage = item.exercise?.skill !== "CE" && item.exercise?.skill !== "CO";
+        const SkillIcon = item.exercise?.skill ? (SKILL_ICONS[item.exercise.skill] || PenTool) : PenTool;
 
         return (
           <motion.div
@@ -82,14 +98,14 @@ export function RecentCorrectionsList({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="group cursor-pointer"
-            onClick={() => router.push(
+            className={`group ${hasDetailPage ? "cursor-pointer" : ""}`}
+            onClick={hasDetailPage ? () => router.push(
               item.exercise?.skill === "EO"
                 ? `/tef-irn/oral/history?id=${item.id}`
                 : `/tef-irn/correction?id=${item.id}`
-            )}
+            ) : undefined}
           >
-            <div className="p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30 transition-all">
+            <div className={`p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm transition-all ${hasDetailPage ? "group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30" : ""}`}>
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] uppercase font-black tracking-widest">
@@ -100,7 +116,7 @@ export function RecentCorrectionsList({
                       variant="outline"
                       className="flex items-center gap-1 border-zinc-200 text-zinc-500 rounded-full px-2 py-1 text-[10px] font-black"
                     >
-                      {item.exercise.skill === "EO" ? <Mic size={10} /> : <PenTool size={10} />}
+                      <SkillIcon size={10} />
                       {item.exercise.skill}
                     </Badge>
                   )}
@@ -113,7 +129,9 @@ export function RecentCorrectionsList({
                     {new Date(item.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
                   </span>
                 </div>
-                <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
+                {hasDetailPage && (
+                  <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
+                )}
               </div>
 
               <h3 className="font-black text-zinc-900 leading-snug mb-2">
