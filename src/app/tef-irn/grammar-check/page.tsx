@@ -17,6 +17,7 @@ import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader
 import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { splitTitle } from "@/lib/lessons";
+import { cn } from "@/lib/utils";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import {
   VICTORY_MASCOT_URLS,
@@ -532,9 +533,28 @@ export function GrammarCheckContent() {
   if (mode === "training") {
     const totalQuestions = questions.length;
     const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
+    const activeLesson = current?.lesson_id ? lessonCache[current.lesson_id] : undefined;
+    const showLessonPanel = lessonVisible && !!activeLesson;
+    const lessonPanelContent = activeLesson ? (
+      <>
+        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+          <BookOpen size={14} /> Leçon associée
+        </div>
+        {(() => {
+          const { main, subtitle } = splitTitle(activeLesson.title || "");
+          return (
+            <div className="mb-3">
+              <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
+              {subtitle && <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>}
+            </div>
+          );
+        })()}
+        <LessonMarkdown content={activeLesson.content} />
+      </>
+    ) : null;
 
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col">
+      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showLessonPanel && "lg:h-screen lg:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
@@ -582,8 +602,13 @@ export function GrammarCheckContent() {
           }
         />
 
-        <main className="flex-1 flex items-center justify-center p-3 lg:p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full">
+        <main
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
+            showLessonPanel && "lg:flex-row lg:items-stretch lg:overflow-hidden lg:min-h-0"
+          )}
+        >
+          <div className={cn("max-w-2xl w-full", showLessonPanel && "lg:flex-shrink-0 lg:h-full lg:overflow-y-auto")}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIdx}
@@ -646,29 +671,15 @@ export function GrammarCheckContent() {
                 </div>
 
                 <AnimatePresence>
-                  {lessonVisible && current?.lesson_id && lessonCache[current.lesson_id] && (
+                  {showLessonPanel && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
+                      className="overflow-hidden lg:hidden"
                     >
                       <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                          <BookOpen size={14} /> Leçon associée
-                        </div>
-                        {(() => {
-                          const { main, subtitle } = splitTitle(lessonCache[current.lesson_id].title || "");
-                          return (
-                            <div className="mb-3">
-                              <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
-                              {subtitle && (
-                                <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>
-                              )}
-                            </div>
-                          );
-                        })()}
-                        <LessonMarkdown content={lessonCache[current.lesson_id].content} />
+                        {lessonPanelContent}
                       </Card>
                     </motion.div>
                   )}
@@ -748,6 +759,14 @@ export function GrammarCheckContent() {
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {showLessonPanel && (
+            <div className="hidden lg:block lg:w-[480px] lg:flex-shrink-0 lg:h-full lg:overflow-y-auto">
+              <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                {lessonPanelContent}
+              </Card>
+            </div>
+          )}
         </main>
       </div>
     );
