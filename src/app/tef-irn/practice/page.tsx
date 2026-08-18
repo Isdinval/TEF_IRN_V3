@@ -525,6 +525,20 @@ export function PracticeContent() {
           <div className="space-y-2">
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
+            {(questions[0]?.level || questions[0]?.category) && (
+              <div className="flex items-center justify-center gap-2 pt-1">
+                {questions[0]?.level && (
+                  <Badge className="bg-purple-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                    {questions[0].level}
+                  </Badge>
+                )}
+                {questions[0]?.category && (
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                    {questions[0].category}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
           <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">

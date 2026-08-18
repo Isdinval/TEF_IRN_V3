@@ -1,6 +1,7 @@
 "use client";
 
-import { Target } from "lucide-react";
+import { useState } from "react";
+import { Target, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,8 @@ const accentClasses: Record<"indigo" | "purple", string> = {
   purple: "bg-purple-600 text-white",
 };
 
+const POINT_CLE_TRUNCATE_LENGTH = 100;
+
 /**
  * Bandeau de contexte pédagogique affiché en tête d'un exercice en cours
  * (grammar-check "training" / practice "practice") : catégorie, niveau,
@@ -39,8 +42,15 @@ export function ExerciseContextHeader({
   pointCle,
   accentColor = "indigo",
 }: ExerciseContextHeaderProps) {
+  const [pointCleExpanded, setPointCleExpanded] = useState(false);
   const hasMeta = category || level || difficulty || (tags && tags.length > 0);
   if (!hasMeta && !instructions && !pointCle) return null;
+
+  const pointCleIsLong = !!pointCle && pointCle.length > POINT_CLE_TRUNCATE_LENGTH;
+  const pointCleDisplay =
+    pointCleIsLong && !pointCleExpanded
+      ? `${pointCle!.slice(0, POINT_CLE_TRUNCATE_LENGTH).trimEnd()}…`
+      : pointCle;
 
   return (
     <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
@@ -69,10 +79,25 @@ export function ExerciseContextHeader({
       )}
 
       {pointCle && (
-        <p className="text-xs text-zinc-500 italic flex items-start gap-1.5">
+        <div className="text-xs text-zinc-500 italic flex items-start gap-1.5">
           <Target size={13} className="mt-0.5 shrink-0 text-zinc-400" />
-          {pointCle}
-        </p>
+          <span>
+            {pointCleDisplay}
+            {pointCleIsLong && (
+              <button
+                type="button"
+                onClick={() => setPointCleExpanded((v) => !v)}
+                className="not-italic inline-flex items-center gap-0.5 ml-1.5 text-zinc-400 hover:text-zinc-700 font-bold uppercase tracking-wide text-[9px] align-middle"
+              >
+                {pointCleExpanded ? (
+                  <>Voir moins <ChevronUp size={11} /></>
+                ) : (
+                  <>Voir plus <ChevronDown size={11} /></>
+                )}
+              </button>
+            )}
+          </span>
+        </div>
       )}
 
       {tags && tags.length > 0 && (
