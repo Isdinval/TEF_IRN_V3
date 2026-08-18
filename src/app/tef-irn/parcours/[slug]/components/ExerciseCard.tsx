@@ -4,13 +4,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight } from "lucide-react";
+import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { Exercise } from "@/lib/parcours";
 
 interface ExerciseCardProps {
-  exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean; recommendation_reason?: string };
+  exercise: Exercise & { is_completed?: boolean; is_ai_generated?: boolean; recommendation_reason?: string };
   parcoursId?: string;
+  /** Titre principal (sans le sous-titre) de la leçon d'origine de l'exercice.
+   *  Permet de signaler visuellement que plusieurs cartes appartiennent à la
+   *  même leçon sans devoir les regrouper physiquement dans la grille. */
+  lessonTitle?: string;
   /** "hero" = traitement mis en avant avec la raison de la recommandation affichée.
    *  Réservé au premier exercice recommandé sur /lessons/[slug]/complete.
    *  Par défaut "default" : comportement et rendu strictement inchangés (/parcours, /practice). */
@@ -51,7 +55,7 @@ const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string
   default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
 };
 
-export default function ExerciseCard({ exercise, parcoursId, variant = 'default' }: ExerciseCardProps) {
+export default function ExerciseCard({ exercise, parcoursId, lessonTitle, variant = 'default' }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
@@ -170,14 +174,16 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
             <h4 className={`text-lg font-black text-slate-900 leading-tight ${theme.hoverText} transition-colors`}>
               {exercise.instructions}
             </h4>
-            {exercise.tags && exercise.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {exercise.tags.map(tag => (
-                  <span key={tag} className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md capitalize">
-                    #{tag}
-                  </span>
-                ))}
+            {lessonTitle && (
+              <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <BookOpen size={11} className="shrink-0" />
+                <span className="truncate">{lessonTitle}</span>
               </div>
+            )}
+            {exercise.point_cles_lesson && (
+              <p className="text-xs text-slate-400 font-medium italic leading-snug line-clamp-2">
+                🎯 {exercise.point_cles_lesson}
+              </p>
             )}
           </div>
 

@@ -389,6 +389,29 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    if (state.section === 'CE' || state.section === 'CO') {
+      // Persistance de la section (table dédiée exam_ce_co_attempts, item 4 du plan
+      // dashboard) + remontée des erreurs vers user_errors (item 5). Best-effort :
+      // un échec de sauvegarde ne doit pas bloquer la suite de l'examen, seulement
+      // priver la tentative de son historique et de son effet sur les recommandations.
+      try {
+        await fetch('/api/exam/ce-co-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            section: state.section,
+            results: currentResult.answers.map(a => ({
+              questionId: a.questionId,
+              userAnswer: a.userAnswer,
+              isCorrect: a.isCorrect,
+            })),
+          }),
+        });
+      } catch (persistError) {
+        console.error(`${state.section} persistence failed:`, persistError);
+      }
+    }
+
     setSessionResults(prev => [...prev, currentResult]);
 
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');

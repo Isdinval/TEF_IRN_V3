@@ -8,12 +8,18 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
+import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import { splitTitle } from "@/lib/lessons";
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import {
   VICTORY_MASCOT_URLS,
@@ -39,6 +45,7 @@ interface GrammarQuestion {
   level: string;
   instructions?: string;
   lesson_id?: string;
+  point_cles_lesson?: string;
 }
 
 /** Un token de la phrase, avec l'info "est-ce le mot fautif ?" */
@@ -82,6 +89,8 @@ interface LessonSummary {
   content: string;
 }
 
+const CATALOGUE_PAGE_SIZE = 12;
+
 export function GrammarCheckContent() {
   const router = useRouter();
   const params = useParams();
@@ -103,6 +112,14 @@ export function GrammarCheckContent() {
   const [score, setScore] = useState(0);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogTotalCount, setCatalogTotalCount] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hideCompleted, setHideCompleted] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
+  const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
@@ -117,6 +134,14 @@ export function GrammarCheckContent() {
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
   const sessionStartRef = useRef<number | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const { leftPct, containerRef: splitContainerRef, onDragStart } = useResizableSplit(50);
+
+  // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
@@ -124,9 +149,50 @@ export function GrammarCheckContent() {
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let query = supabase.from("exercises").select("*").eq("type", "trous").eq("level", filters.level);
+
+      let excludeIds: string[] = [];
+      if (user && hideCompleted) {
+        const { data: completed } = await supabase
+          .from("exercise_attempts")
+          .select("exercise_id")
+          .eq("user_id", user.id)
+          .eq("is_completed", true);
+        excludeIds = Array.from(new Set((completed || []).map((c: any) => c.exercise_id).filter(Boolean)));
+      }
+
+      const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
+      const to = from + CATALOGUE_PAGE_SIZE - 1;
+      let query = supabase
+        .from("exercises")
+        .select("*", { count: "exact" })
+        .eq("type", "trous")
+        .eq("level", filters.level);
       if (filters.category !== "Toutes") query = query.ilike("category", `%${filters.category}%`);
-      const { data: exercises } = await query.limit(20);
+      if (searchQuery) query = query.ilike("instructions", `%${searchQuery}%`);
+      if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
+
+      const { data: exercises, count } = await query
+        .order("created_at", { ascending: sortOrder === "ancien" })
+        .range(from, to);
+
+      setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
+      setCatalogTotalCount(count ?? 0);
+
+      if (exercises && exercises.length > 0) {
+        const lessonIds = Array.from(new Set(exercises.map((e: any) => e.lesson_id).filter(Boolean)));
+        if (lessonIds.length > 0) {
+          const { data: lessons } = await supabase.from("lessons").select("id, title").in("id", lessonIds);
+          const titleMap: Record<string, string> = {};
+          (lessons || []).forEach((l: any) => {
+            titleMap[l.id] = splitTitle(l.title || "").main;
+          });
+          setLessonTitles(titleMap);
+        } else {
+          setLessonTitles({});
+        }
+      } else {
+        setLessonTitles({});
+      }
 
       if (exercises && user) {
         const { data: attempts } = await supabase
@@ -139,6 +205,7 @@ export function GrammarCheckContent() {
           const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
           return {
             ...ex,
+            point_cles_lesson: ex["point_clés_lesson"],
             is_completed: exAttempts.some((a: any) => a.is_completed),
             attempts_count: exAttempts.length,
             success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
@@ -147,8 +214,9 @@ export function GrammarCheckContent() {
         setCatalogue(mapped);
         if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       } else {
-        setCatalogue(exercises || []);
-        if (!exercises || exercises.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
+        const mapped = (exercises || []).map((ex: any) => ({ ...ex, point_cles_lesson: ex["point_clés_lesson"] }));
+        setCatalogue(mapped);
+        if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
@@ -157,7 +225,13 @@ export function GrammarCheckContent() {
       isFetchingCatalogue.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.level, filters.category, supabase]);
+  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, sortOrder, supabase]);
+
+  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche/tri.
+  useEffect(() => {
+    setCatalogPage(1);
+  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder]);
+
 
   const fetchRecommendation = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -229,7 +303,8 @@ export function GrammarCheckContent() {
               level: data.level,
               difficulty: data.difficulty,
               instructions: data.instructions,
-              lesson_id: data.lesson_id
+              lesson_id: data.lesson_id,
+              point_cles_lesson: data["point_clés_lesson"]
           }));
       } else if (data.content?.sentence) {
           qs = [{
@@ -243,7 +318,8 @@ export function GrammarCheckContent() {
               level: data.level,
               difficulty: data.difficulty,
               instructions: data.instructions,
-              lesson_id: data.lesson_id
+              lesson_id: data.lesson_id,
+              point_cles_lesson: data["point_clés_lesson"]
           }];
       }
 
@@ -404,6 +480,20 @@ export function GrammarCheckContent() {
           <div className="space-y-2">
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
             <p className="text-sm text-zinc-500 font-medium">Excellent travail de repérage et correction.</p>
+            {(questions[0]?.level || questions[0]?.category) && (
+              <div className="flex items-center justify-center gap-2 pt-1">
+                {questions[0]?.level && (
+                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                    {questions[0].level}
+                  </Badge>
+                )}
+                {questions[0]?.category && (
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                    {questions[0].category}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
           <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
@@ -447,9 +537,29 @@ export function GrammarCheckContent() {
   if (mode === "training") {
     const totalQuestions = questions.length;
     const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
+    const activeLesson = current?.lesson_id ? lessonCache[current.lesson_id] : undefined;
+    const showLessonPanel = lessonVisible && !!activeLesson;
+    const showSplit = showLessonPanel && isDesktop;
+    const lessonPanelContent = activeLesson ? (
+      <>
+        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+          <BookOpen size={14} /> Leçon associée
+        </div>
+        {(() => {
+          const { main, subtitle } = splitTitle(activeLesson.title || "");
+          return (
+            <div className="mb-3">
+              <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
+              {subtitle && <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>}
+            </div>
+          );
+        })()}
+        <LessonMarkdown content={activeLesson.content} />
+      </>
+    ) : null;
 
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col">
+      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showSplit && "md:h-screen md:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
@@ -497,26 +607,39 @@ export function GrammarCheckContent() {
           }
         />
 
-        <main className="flex-1 flex items-center justify-center p-3 lg:p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIdx}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                className="space-y-3"
-              >
+        <main
+          ref={splitContainerRef}
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
+            showSplit && "md:flex-row md:items-stretch md:gap-0 md:overflow-hidden md:min-h-0"
+          )}
+        >
+          <div
+            className={cn("w-full", showSplit && "md:h-full md:overflow-y-auto md:shrink-0")}
+            style={showSplit ? { width: `${leftPct}%` } : undefined}
+          >
+            <div className="max-w-2xl w-full mx-auto md:px-3">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIdx}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  className="space-y-3"
+                >
+                  <ExerciseContextHeader
+                    category={current?.category}
+                    level={current?.level}
+                    difficulty={current?.difficulty}
+                    instructions={current?.instructions}
+                    pointCle={current?.point_cles_lesson}
+                  accentColor="indigo"
+                />
+
                 <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <div className="w-10 h-10 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 rotate-3 group">
                       <Target size={18} className="group-hover:scale-110 transition-transform" />
                    </div>
-
-                   {current?.instructions && (
-                     <div className="inline-block mt-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest">
-                       {current.instructions}
-                     </div>
-                   )}
 
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-3 relative z-10">
                     {currentParsed.tokens.map((token) => {
@@ -558,21 +681,15 @@ export function GrammarCheckContent() {
                 </div>
 
                 <AnimatePresence>
-                  {lessonVisible && current?.lesson_id && lessonCache[current.lesson_id] && (
+                  {showLessonPanel && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
+                      className="overflow-hidden md:hidden"
                     >
                       <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                          <BookOpen size={14} /> Leçon associée
-                        </div>
-                        <h4 className="text-base font-black text-zinc-900 leading-snug mb-3">
-                          {lessonCache[current.lesson_id].title}
-                        </h4>
-                        <LessonMarkdown content={lessonCache[current.lesson_id].content} />
+                        {lessonPanelContent}
                       </Card>
                     </motion.div>
                   )}
@@ -651,7 +768,30 @@ export function GrammarCheckContent() {
                 </div>
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
+
+          {showSplit && (
+            <>
+              <div
+                onPointerDown={onDragStart}
+                className="hidden md:flex w-3 shrink-0 cursor-col-resize items-center justify-center group touch-none"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Redimensionner les panneaux exercice / leçon"
+              >
+                <div className="w-1 h-16 rounded-full bg-zinc-200 group-hover:bg-indigo-400 transition-colors" />
+              </div>
+              <div
+                className="hidden md:block md:h-full md:overflow-y-auto md:shrink-0"
+                style={{ width: `${100 - leftPct}%` }}
+              >
+                <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                  {lessonPanelContent}
+                </Card>
+              </div>
+            </>
+          )}
         </main>
       </div>
     );
@@ -721,6 +861,39 @@ export function GrammarCheckContent() {
           </div>
 
           <section className="mt-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Rechercher un exercice (ex. articles, subjonctif...)"
+                  className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setHideCompleted((v) => !v)}
+                className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
+                  hideCompleted
+                    ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
+                    : "bg-white border-zinc-100 text-zinc-400 hover:border-indigo-200"
+                }`}
+              >
+                Non complétés uniquement
+              </button>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "recent" | "ancien")}
+                className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                aria-label="Trier les exercices"
+              >
+                <option value="recent">Plus récents</option>
+                <option value="ancien">Plus anciens</option>
+              </select>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
@@ -728,7 +901,7 @@ export function GrammarCheckContent() {
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+                {catalogTotalCount} exercice{catalogTotalCount > 1 ? 's' : ''} disponible{catalogTotalCount > 1 ? 's' : ''}
               </div>
             </div>
 
@@ -739,11 +912,19 @@ export function GrammarCheckContent() {
                 ))}
               </div>
             ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((ex: Exercise) => (
-                  <ExerciseCard key={ex.id} exercise={ex} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {catalogue.map((ex: Exercise) => (
+                    <ExerciseCard key={ex.id} exercise={ex} lessonTitle={ex.lesson_id ? lessonTitles[ex.lesson_id] : undefined} />
+                  ))}
+                </div>
+                <CataloguePagination
+                  page={catalogPage}
+                  totalPages={catalogTotalPages}
+                  onPageChange={setCatalogPage}
+                  accentColor="indigo"
+                />
+              </>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <img

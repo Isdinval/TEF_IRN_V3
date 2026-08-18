@@ -17,6 +17,23 @@ interface RecommendationCardProps {
   // faible associé (ex: fallback générique, vocabulaire non lié à user_errors).
   frequency?: number;
   category?: string | null;
+  // Tag précis de la taxonomie officielle (docs/lessons-tags-taxonomy.md),
+  // transmis à /tef-irn/practice en plus de category (item 8 du plan) --
+  // sans lui, le bouton "Commencer maintenant" ne filtrait que sur la
+  // catégorie large, jamais sur la notion précise à l'origine de la reco.
+  subCategory?: string | null;
+  // Niveau CECRL du contenu source de l'erreur (fix critique, test P0) --
+  // sans lui, /tef-irn/practice retombait sur son niveau par défaut (A2
+  // codé en dur), qui ne correspond pas forcément au niveau réel de la
+  // notion recommandée (ex. "subjonctif présent" est B1/B2, pas A2) : la
+  // recherche par tag échouait alors silencieusement et proposait des
+  // exercices sans rapport avec l'erreur.
+  level?: string | null;
+  // item 18 : distingue une leçon jamais lue d'un rappel après erreur
+  // persistante malgré une lecture déjà faite (item 10) -- sans lui, le
+  // titre de carte restait "Maîtriser une nouvelle leçon" même pour un
+  // rappel, ce qui n'a plus de sens ("ce n'est plus une nouvelle leçon").
+  isReminder?: boolean;
   onDismissed?: () => void;
 }
 
@@ -25,16 +42,23 @@ const TITLES_BY_TYPE: Record<string, string> = {
   vocab: 'Ancrer un mot de vocabulaire',
 };
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, onDismissed }: RecommendationCardProps) {
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, level, isReminder, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
+
+  const cardTitle = type === 'lesson' && isReminder ? 'Revoir cette leçon' : (TITLES_BY_TYPE[type] || 'Renforcer vos acquis');
 
   const getTargetUrl = () => {
     switch (type) {
       case 'lesson': return `/tef-irn/lessons/${slug || referenceId}`;
       case 'exercise':
-      case 'review':
-        return category ? `/tef-irn/practice?topic=${encodeURIComponent(category)}` : '/tef-irn/practice';
+      case 'review': {
+        if (!category) return '/tef-irn/practice';
+        const params = new URLSearchParams({ topic: category });
+        if (subCategory) params.set('tag', subCategory);
+        if (level) params.set('level', level);
+        return `/tef-irn/practice?${params.toString()}`;
+      }
       case 'vocab': return '/tef-irn/vocab';
       default: return '/tef-irn/practice';
     }
@@ -72,7 +96,7 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-black leading-tight text-zinc-900">
-              {TITLES_BY_TYPE[type] || 'Renforcer vos acquis'}
+              {cardTitle}
             </h3>
             {typeof frequency === 'number' && (
               <span className="shrink-0 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-black text-rose-500">×{frequency}</span>

@@ -38,6 +38,23 @@ function levelFromScore(score: number): "<A1" | "A1" | "A2" | "B1" | "B2" {
   return LEVEL_THRESHOLDS.find((t) => score >= t.min)!.level;
 }
 
+// Sous-catégories valides pour Grammaire/Vocabulaire, alignées sur la taxonomie
+// officielle des étiquettes de leçons (docs/lessons-tags-taxonomy.md). Sous-ensemble
+// dupliqué depuis SOUS_CATEGORIES_BY_TYPE (src/app/api/writing/correct/route.ts) --
+// les routes API ne s'importent pas entre elles dans ce projet, même précédent que
+// CATEGORY_LABELS dans writing/scenario-complete/route.ts. Seuls Grammaire et
+// Vocabulaire ont un équivalent utile ici (item 14 du plan dashboard) : les 3 autres
+// critères oraux (pertinence, cohérence, aisance) ne correspondent à aucune notion
+// isolable de la taxonomie, les y rattacher n'aurait pas de sens pédagogique.
+//
+// Item 22 : 29 tags précis promus (voir writing/correct/route.ts pour le détail) --
+// grammaire fusionne ici les tags Grammaire ET Conjugaison de la taxonomie (l'Oral
+// ne distingue que 2 critères de score, pas 4 catégories comme l'Écrit).
+const SOUS_CATEGORIES_BY_TYPE: Record<"grammaire" | "vocabulaire", string[]> = {
+  grammaire: ['accord des adjectifs', 'accord du participe passé', 'adjectifs démonstratifs', 'adverbes', 'aller', 'articles', 'avoir', 'choix défini indéfini', 'comparatifs', 'concordance des temps', 'conditionnel passé', 'conditionnel présent', 'connecteurs cause/conséquence', 'constructions participiales', 'depuis', 'discours rapporté', 'distinction adjectif pronom démonstratif', 'distinction adjectif pronom possessif', 'distinction ci là', 'distinction depuis pendant il y a', 'distinction y en', "déclencheurs de l'indicatif", 'déclencheurs du subjonctif', 'démonstratifs', 'est-ce que', 'faire', "familles d'articles", 'formation -ment', 'formes interrogatives', 'futur antérieur', 'futur proche', 'futur simple', 'genre et nombre', 'gérondif', 'il y a', 'imparfait', 'impératif', 'infinitif', 'interrogation', 'inversion sujet-verbe', 'mise en relief', 'mots interrogatifs', 'nominalisation', 'nuances des connecteurs de cause', 'négation', 'négation avec infinitif', 'participe présent', 'passé composé', 'passé récent', 'pendant', 'placement pronoms cod coi', 'placement pronoms y en', 'pluriel', 'plus-que-parfait', 'politesse', 'possessifs', 'pouvoir', 'pronom COD', 'pronom COI', 'pronom en', 'pronom y', 'pronoms COD antéposés', 'pronoms COD/COI', 'pronoms démonstratifs', 'pronoms indéfinis', 'pronoms relatifs', 'pronoms relatifs composés', 'pronoms Y/EN', 'préférences', 'prépositions de lieu', 'prépositions de temps', 'présent', 'quantités', 'quotidien', 'registre soutenu', 'regret', 'subjonctif passé', 'subjonctif présent', 'subjonctif vs indicatif', 'superlatif', 'tournures impersonnelles', 'venir', 'verbes en -er', 'verbes en -ir', 'verbes en -re', 'verbes irréguliers', 'verbes pronominaux', 'voix passive', 'vouloir', 'être'],
+  vocabulaire: ['collocations', 'collocations faire passer prendre avoir', 'faux-amis', 'registre de langue', 'registre soutenu', 'types de collocations', 'vocabulaire administratif', 'vocabulaire arts', 'vocabulaire civique', 'vocabulaire culture', 'vocabulaire emploi', 'vocabulaire environnement', 'vocabulaire famille', 'vocabulaire famille/logement', 'vocabulaire horaires', 'vocabulaire logement', 'vocabulaire loisirs', 'vocabulaire médias', 'vocabulaire nombres', 'vocabulaire prix', 'vocabulaire quotidien', 'vocabulaire salutations', 'vocabulaire santé', 'vocabulaire sciences', 'vocabulaire société', 'vocabulaire transports', 'vocabulaire travail', 'vocabulaire ville', 'vocabulaire économie'],
+};
+
 // Référentiel condensé par niveau CECRL — source détaillée : docs/oral-analysis-levels.md
 // (miroir de LEVEL_GUIDELINES dans src/app/api/writing/correct/route.ts). Sans ça, le prompt
 // n'avait que les bandes de score génériques (0-39/40-54/...), sans consigne sur ce qu'il faut
@@ -59,6 +76,11 @@ const OralFeedbackSchema = z.object({
     correction_grammaticale: z.object({ evidence: z.string(), score: z.number() }),
     aisance_et_fluidite: z.object({ evidence: z.string(), score: z.number() }),
   }),
+  // Notion précise en cause si le score correspondant est faible (item 14 du plan
+  // dashboard) -- optionnel, demandé au modèle uniquement dans ces cas dans le prompt,
+  // validé contre la taxonomie officielle après coup (voir garde-fou plus bas).
+  grammaire_sous_categorie: z.string().nullable().optional(),
+  vocabulaire_sous_categorie: z.string().nullable().optional(),
   strengths: z.array(z.string()),
   improvements: z.array(z.string()),
   general_comment: z.string(),
@@ -158,6 +180,10 @@ Les 5 critères à noter (avec leur focus précis) :
 5. "aisance_et_fluidite" : longueur et fluidité des tours de parole du candidat telles que visibles dans le texte (hésitations transcrites, reformulations, réponses monosyllabiques vs développées).
 
 Ne calcule PAS toi-même de score global ni de niveau CECRL global : ils seront calculés automatiquement à partir de tes 5 notes. Concentre-toi uniquement sur des notes par critère justes et indépendantes les unes des autres.
+
+Si ta note pour "correction_grammaticale" est inférieure à 55, identifie EN PLUS la notion grammaticale précise la plus responsable de ce score faible, en choisissant EXACTEMENT un mot dans cette liste -- jamais un mot en dehors de cette liste, jamais une formulation inventée : ${SOUS_CATEGORIES_BY_TYPE.grammaire.join(", ")}. Si vraiment aucun mot de la liste ne correspond, ou si le score est ≥ 55, mets "grammaire_sous_categorie" à null.
+
+Si ta note pour "etendue_et_precision_du_vocabulaire" est inférieure à 55, identifie EN PLUS le domaine lexical précis le plus en cause, en choisissant EXACTEMENT un mot dans cette liste -- jamais un mot en dehors de cette liste, jamais une formulation inventée : ${SOUS_CATEGORIES_BY_TYPE.vocabulaire.join(", ")}. Si vraiment aucun mot de la liste ne correspond, ou si le score est ≥ 55, mets "vocabulaire_sous_categorie" à null.
 ${calibrationExemplar}
 ${isInsufficientSpeech ? `\nMATIÈRE INSUFFISANTE : le candidat n'a produit que ${candidateWordCount} mots sur toute la session (seuil minimal : ${MIN_CANDIDATE_WORDS}). Note tous les critères bas (10-20), quelle que soit leur qualité apparente, et mentionne ce manque de matière en premier dans "general_comment".` : ""}
 
@@ -172,6 +198,8 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     "correction_grammaticale": { "evidence": "string", "score": number },
     "aisance_et_fluidite": { "evidence": "string", "score": number }
   },
+  "grammaire_sous_categorie": "un mot EXACT de la liste grammaire ci-dessus, ou null",
+  "vocabulaire_sous_categorie": "un mot EXACT de la liste vocabulaire ci-dessus, ou null",
   "strengths": ["string"],
   "improvements": ["string"],
   "general_comment": "string"
@@ -215,6 +243,19 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     for (const key of scoreKeys) {
       scores[key] = parsed.data.scores[key].score;
     }
+
+    // Garde-fou déterministe (item 14, même principe que writing/correct/route.ts
+    // item 10.12) : toute sous_categorie hors taxonomie officielle est ramenée à null
+    // plutôt que remontée telle quelle -- garantit que la sous-catégorie, si présente,
+    // pointera toujours vers une vraie leçon (analyzeUserErrorsAndRecommend).
+    const grammaireSousCategorie =
+      parsed.data.grammaire_sous_categorie && SOUS_CATEGORIES_BY_TYPE.grammaire.includes(parsed.data.grammaire_sous_categorie)
+        ? parsed.data.grammaire_sous_categorie
+        : null;
+    const vocabulaireSousCategorie =
+      parsed.data.vocabulaire_sous_categorie && SOUS_CATEGORIES_BY_TYPE.vocabulaire.includes(parsed.data.vocabulaire_sous_categorie)
+        ? parsed.data.vocabulaire_sous_categorie
+        : null;
 
     // Application déterministe du seuil "matière insuffisante" : la consigne du prompt
     // le demande déjà, mais comme pour l'EE, une règle purement mécanique (nombre de mots
@@ -280,14 +321,20 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     // faibles" sans jamais alimenter de recommandation). Miroir du choix EE : on ne
     // "résout" jamais un point faible ici, une bonne session ne prouve pas une maîtrise
     // durable -- seul un signal de faiblesse répété (frequency) doit s'accumuler.
+    //
+    // Sous-catégorie précise (item 14) : quand l'IA en identifie une (validée par le
+    // garde-fou ci-dessus), elle est transmise à trackUserError au lieu de null --
+    // permet un rapprochement erreur -> leçon aussi précis que pour l'Écrit. Reste
+    // null par défaut (Oral ne peut pas toujours isoler une notion précise), auquel
+    // cas le fallback de résolution générique (item 2) continue de s'appliquer.
     const WEAK_SCORE_THRESHOLD = 55;
     try {
       const sourceLabel = sessionContext === 'exam' ? 'Examen blanc' : 'Oral';
       if (scores.correction_grammaticale < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Grammaire", null, sourceLabel);
+        await trackUserError(user.id, "Grammaire", grammaireSousCategorie, sourceLabel, scenario.level);
       }
       if (scores.etendue_et_precision_du_vocabulaire < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Vocabulaire", null, sourceLabel);
+        await trackUserError(user.id, "Vocabulaire", vocabulaireSousCategorie, sourceLabel, scenario.level);
       }
       await analyzeUserErrorsAndRecommend(user.id);
     } catch (recoError) {
