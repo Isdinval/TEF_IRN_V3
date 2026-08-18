@@ -8,7 +8,7 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
@@ -42,7 +42,7 @@ interface GrammarQuestion {
   level: string;
   instructions?: string;
   lesson_id?: string;
-  "point_clés_lesson"?: string;
+  point_cles_lesson?: string;
 }
 
 /** Un token de la phrase, avec l'info "est-ce le mot fautif ?" */
@@ -112,6 +112,10 @@ export function GrammarCheckContent() {
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hideCompleted, setHideCompleted] = useState(false);
+  const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
@@ -127,12 +131,29 @@ export function GrammarCheckContent() {
   const isFetchingCatalogue = useRef(false);
   const sessionStartRef = useRef<number | null>(null);
 
+  // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
     isFetchingCatalogue.current = true;
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+
+      let excludeIds: string[] = [];
+      if (user && hideCompleted) {
+        const { data: completed } = await supabase
+          .from("exercise_attempts")
+          .select("exercise_id")
+          .eq("user_id", user.id)
+          .eq("is_completed", true);
+        excludeIds = Array.from(new Set((completed || []).map((c: any) => c.exercise_id).filter(Boolean)));
+      }
+
       const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
       const to = from + CATALOGUE_PAGE_SIZE - 1;
       let query = supabase
@@ -141,12 +162,31 @@ export function GrammarCheckContent() {
         .eq("type", "trous")
         .eq("level", filters.level);
       if (filters.category !== "Toutes") query = query.ilike("category", `%${filters.category}%`);
+      if (searchQuery) query = query.ilike("instructions", `%${searchQuery}%`);
+      if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
+
       const { data: exercises, count } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
 
       setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
       setCatalogTotalCount(count ?? 0);
+
+      if (exercises && exercises.length > 0) {
+        const lessonIds = Array.from(new Set(exercises.map((e: any) => e.lesson_id).filter(Boolean)));
+        if (lessonIds.length > 0) {
+          const { data: lessons } = await supabase.from("lessons").select("id, title").in("id", lessonIds);
+          const titleMap: Record<string, string> = {};
+          (lessons || []).forEach((l: any) => {
+            titleMap[l.id] = splitTitle(l.title || "").main;
+          });
+          setLessonTitles(titleMap);
+        } else {
+          setLessonTitles({});
+        }
+      } else {
+        setLessonTitles({});
+      }
 
       if (exercises && user) {
         const { data: attempts } = await supabase
@@ -179,12 +219,12 @@ export function GrammarCheckContent() {
       isFetchingCatalogue.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.level, filters.category, catalogPage, supabase]);
+  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, supabase]);
 
-  // Retour à la page 1 du catalogue à chaque changement de filtre.
+  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche.
   useEffect(() => {
     setCatalogPage(1);
-  }, [filters.level, filters.category]);
+  }, [filters.level, filters.category, searchQuery, hideCompleted]);
 
 
   const fetchRecommendation = useCallback(async () => {
@@ -258,7 +298,7 @@ export function GrammarCheckContent() {
               difficulty: data.difficulty,
               instructions: data.instructions,
               lesson_id: data.lesson_id,
-              "point_clés_lesson": data["point_clés_lesson"]
+              point_cles_lesson: data["point_clés_lesson"]
           }));
       } else if (data.content?.sentence) {
           qs = [{
@@ -273,7 +313,7 @@ export function GrammarCheckContent() {
               difficulty: data.difficulty,
               instructions: data.instructions,
               lesson_id: data.lesson_id,
-              "point_clés_lesson": data["point_clés_lesson"]
+              point_cles_lesson: data["point_clés_lesson"]
           }];
       }
 
@@ -556,7 +596,7 @@ export function GrammarCheckContent() {
                   level={current?.level}
                   difficulty={current?.difficulty}
                   instructions={current?.instructions}
-                  pointCle={current?.["point_clés_lesson"]}
+                  pointCle={current?.point_cles_lesson}
                   accentColor="indigo"
                 />
 
@@ -776,6 +816,30 @@ export function GrammarCheckContent() {
           </div>
 
           <section className="mt-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Rechercher un exercice (ex. articles, subjonctif...)"
+                  className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setHideCompleted((v) => !v)}
+                className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
+                  hideCompleted
+                    ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
+                    : "bg-white border-zinc-100 text-zinc-400 hover:border-indigo-200"
+                }`}
+              >
+                Non complétés uniquement
+              </button>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
@@ -797,7 +861,7 @@ export function GrammarCheckContent() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {catalogue.map((ex: Exercise) => (
-                    <ExerciseCard key={ex.id} exercise={ex} />
+                    <ExerciseCard key={ex.id} exercise={ex} lessonTitle={ex.lesson_id ? lessonTitles[ex.lesson_id] : undefined} />
                   ))}
                 </div>
                 <CataloguePagination

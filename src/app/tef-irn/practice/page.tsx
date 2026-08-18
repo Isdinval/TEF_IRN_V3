@@ -20,7 +20,8 @@ import {
   Sparkles,
   Zap,
   GraduationCap,
-  RotateCcw
+  RotateCcw,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
@@ -48,7 +49,7 @@ interface Question {
   instructions: string;
   explanation?: string;
   lesson_id?: string;
-  "point_clés_lesson"?: string;
+  point_cles_lesson?: string;
 }
 
 interface ExerciseDB {
@@ -95,6 +96,10 @@ export function PracticeContent() {
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hideCompleted, setHideCompleted] = useState(false);
+  const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
@@ -135,6 +140,16 @@ export function PracticeContent() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
+      let excludeIds: string[] = [];
+      if (user && hideCompleted) {
+        const { data: completed } = await supabase
+          .from("exercise_attempts")
+          .select("exercise_id")
+          .eq("user_id", user.id)
+          .eq("is_completed", true);
+        excludeIds = Array.from(new Set((completed || []).map((c: any) => c.exercise_id).filter(Boolean)));
+      }
+
       const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
       const to = from + CATALOGUE_PAGE_SIZE - 1;
 
@@ -147,6 +162,8 @@ export function PracticeContent() {
       if (filters.category !== "Toutes") {
         query = query.ilike("category", `%${filters.category}%`);
       }
+      if (searchQuery) query = query.ilike("instructions", `%${searchQuery}%`);
+      if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
       const { data: exercises, count } = await query
         .order("created_at", { ascending: false })
@@ -154,6 +171,22 @@ export function PracticeContent() {
 
       setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
       setCatalogTotalCount(count ?? 0);
+
+      if (exercises && exercises.length > 0) {
+        const lessonIds = Array.from(new Set(exercises.map((e: any) => e.lesson_id).filter(Boolean)));
+        if (lessonIds.length > 0) {
+          const { data: lessons } = await supabase.from("lessons").select("id, title").in("id", lessonIds);
+          const titleMap: Record<string, string> = {};
+          (lessons || []).forEach((l: any) => {
+            titleMap[l.id] = splitTitle(l.title || "").main;
+          });
+          setLessonTitles(titleMap);
+        } else {
+          setLessonTitles({});
+        }
+      } else {
+        setLessonTitles({});
+      }
 
       if (exercises && user) {
         const { data: attempts } = await supabase
@@ -182,12 +215,18 @@ export function PracticeContent() {
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, catalogPage, supabase]);
+  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, supabase]);
 
-  // Retour à la page 1 du catalogue à chaque changement de filtre.
+  // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche.
   useEffect(() => {
     setCatalogPage(1);
-  }, [filters.level, filters.category]);
+  }, [filters.level, filters.category, searchQuery, hideCompleted]);
 
   useEffect(() => {
     if (mode === "selection") {
@@ -242,7 +281,7 @@ export function PracticeContent() {
       instructions: ex.instructions,
       explanation: ex.content.explanations?.[idx],
       lesson_id: ex.lesson_id,
-      "point_clés_lesson": ex["point_clés_lesson"],
+      point_cles_lesson: ex["point_clés_lesson"],
     }));
   };
 
@@ -662,6 +701,30 @@ export function PracticeContent() {
 
             {/* Catalogue Section */}
             <section className="mt-8">
+              <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Rechercher un exercice (ex. articles, subjonctif...)"
+                    className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-200 transition-all"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHideCompleted((v) => !v)}
+                  className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
+                    hideCompleted
+                      ? "bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-100"
+                      : "bg-white border-zinc-100 text-zinc-400 hover:border-purple-200"
+                  }`}
+                >
+                  Non complétés uniquement
+                </button>
+              </div>
+
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                   <Badge className="bg-purple-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
@@ -683,7 +746,7 @@ export function PracticeContent() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {catalogue.map((ex: Exercise) => (
-                      <ExerciseCard key={ex.id} exercise={ex} />
+                      <ExerciseCard key={ex.id} exercise={ex} lessonTitle={ex.lesson_id ? lessonTitles[ex.lesson_id] : undefined} />
                     ))}
                   </div>
                   <CataloguePagination
@@ -776,7 +839,7 @@ export function PracticeContent() {
                   level={currentQuestion?.level}
                   difficulty={currentQuestion?.difficulty}
                   instructions={currentQuestion?.instructions}
-                  pointCle={currentQuestion?.["point_clés_lesson"]}
+                  pointCle={currentQuestion?.point_cles_lesson}
                   accentColor="purple"
                 />
 
