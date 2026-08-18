@@ -9,7 +9,6 @@ interface ExerciseContextHeaderProps {
   category?: string;
   level?: string;
   difficulty?: string;
-  tags?: string[];
   instructions?: string;
   pointCle?: string | null;
   accentColor?: "indigo" | "purple";
@@ -37,13 +36,12 @@ export function ExerciseContextHeader({
   category,
   level,
   difficulty,
-  tags,
   instructions,
   pointCle,
   accentColor = "indigo",
 }: ExerciseContextHeaderProps) {
   const [pointCleExpanded, setPointCleExpanded] = useState(false);
-  const hasMeta = category || level || difficulty || (tags && tags.length > 0);
+  const hasMeta = category || level || difficulty;
   if (!hasMeta && !instructions && !pointCle) return null;
 
   const pointCleIsLong = !!pointCle && pointCle.length > POINT_CLE_TRUNCATE_LENGTH;
@@ -97,16 +95,6 @@ export function ExerciseContextHeader({
               </button>
             )}
           </span>
-        </div>
-      )}
-
-      {tags && tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-1">
-          {tags.map((tag) => (
-            <span key={tag} className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md capitalize">
-              #{tag}
-            </span>
-          ))}
         </div>
       )}
     </div>

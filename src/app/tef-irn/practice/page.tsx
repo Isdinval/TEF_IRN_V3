@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
+import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { splitTitle } from "@/lib/lessons";
@@ -71,6 +72,7 @@ interface ExerciseDB {
 
 const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
 const LEVELS = ["A1", "A2", "B1", "B2"];
+const CATALOGUE_PAGE_SIZE = 12;
 
 export function PracticeContent() {
   const router = useRouter();
@@ -90,6 +92,9 @@ export function PracticeContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogTotalCount, setCatalogTotalCount] = useState(0);
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
@@ -130,9 +135,12 @@ export function PracticeContent() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
+      const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
+      const to = from + CATALOGUE_PAGE_SIZE - 1;
+
       let query = supabase
         .from("exercises")
-        .select("*")
+        .select("*", { count: "exact" })
         .in("type", ["qcm", "association", "qcm_centre_entrainement"])
         .eq("level", filters.level);
 
@@ -140,7 +148,12 @@ export function PracticeContent() {
         query = query.ilike("category", `%${filters.category}%`);
       }
 
-      const { data: exercises } = await query.limit(20);
+      const { data: exercises, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
+      setCatalogTotalCount(count ?? 0);
 
       if (exercises && user) {
         const { data: attempts } = await supabase
@@ -153,6 +166,7 @@ export function PracticeContent() {
           const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
           return {
             ...ex,
+            point_cles_lesson: ex["point_clés_lesson"],
             is_completed: exAttempts.some((a: any) => a.is_completed),
             attempts_count: exAttempts.length,
             success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
@@ -160,14 +174,20 @@ export function PracticeContent() {
         });
         setCatalogue(mapped);
       } else {
-        setCatalogue(exercises || []);
+        const mapped = (exercises || []).map((ex: any) => ({ ...ex, point_cles_lesson: ex["point_clés_lesson"] }));
+        setCatalogue(mapped);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, supabase]);
+  }, [filters.level, filters.category, catalogPage, supabase]);
+
+  // Retour à la page 1 du catalogue à chaque changement de filtre.
+  useEffect(() => {
+    setCatalogPage(1);
+  }, [filters.level, filters.category]);
 
   useEffect(() => {
     if (mode === "selection") {
@@ -649,7 +669,7 @@ export function PracticeContent() {
                   <span className="capitalize text-zinc-500">{filters.category}</span>
                 </h2>
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+                  {catalogTotalCount} exercice{catalogTotalCount > 1 ? 's' : ''} disponible{catalogTotalCount > 1 ? 's' : ''}
                 </div>
               </div>
 
@@ -660,11 +680,19 @@ export function PracticeContent() {
                   ))}
                 </div>
               ) : catalogue.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {catalogue.map((ex: Exercise) => (
-                    <ExerciseCard key={ex.id} exercise={ex} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {catalogue.map((ex: Exercise) => (
+                      <ExerciseCard key={ex.id} exercise={ex} />
+                    ))}
+                  </div>
+                  <CataloguePagination
+                    page={catalogPage}
+                    totalPages={catalogTotalPages}
+                    onPageChange={setCatalogPage}
+                    accentColor="purple"
+                  />
+                </>
               ) : (
                 <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
                   <Target className="mx-auto mb-4 text-zinc-300" size={40} />
@@ -747,7 +775,6 @@ export function PracticeContent() {
                   category={currentQuestion?.category}
                   level={currentQuestion?.level}
                   difficulty={currentQuestion?.difficulty}
-                  tags={currentQuestion?.tags}
                   instructions={currentQuestion?.instructions}
                   pointCle={currentQuestion?.["point_clés_lesson"]}
                   accentColor="purple"

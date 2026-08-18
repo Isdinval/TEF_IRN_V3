@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Exercise } from "@/lib/parcours";
 
 interface ExerciseCardProps {
-  exercise: Exercise & { is_completed?: boolean; tags?: string[]; is_ai_generated?: boolean; recommendation_reason?: string };
+  exercise: Exercise & { is_completed?: boolean; is_ai_generated?: boolean; recommendation_reason?: string };
   parcoursId?: string;
   /** "hero" = traitement mis en avant avec la raison de la recommandation affichée.
    *  Réservé au premier exercice recommandé sur /lessons/[slug]/complete.
@@ -170,14 +170,10 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
             <h4 className={`text-lg font-black text-slate-900 leading-tight ${theme.hoverText} transition-colors`}>
               {exercise.instructions}
             </h4>
-            {exercise.tags && exercise.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {exercise.tags.map(tag => (
-                  <span key={tag} className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md capitalize">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+            {exercise.point_cles_lesson && (
+              <p className="text-xs text-slate-400 font-medium italic leading-snug line-clamp-2">
+                🎯 {exercise.point_cles_lesson}
+              </p>
             )}
           </div>
 

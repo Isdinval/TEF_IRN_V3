@@ -14,6 +14,7 @@ import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
+import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { splitTitle } from "@/lib/lessons";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
@@ -85,6 +86,8 @@ interface LessonSummary {
   content: string;
 }
 
+const CATALOGUE_PAGE_SIZE = 12;
+
 export function GrammarCheckContent() {
   const router = useRouter();
   const params = useParams();
@@ -106,6 +109,9 @@ export function GrammarCheckContent() {
   const [score, setScore] = useState(0);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogTotalCount, setCatalogTotalCount] = useState(0);
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
@@ -127,9 +133,20 @@ export function GrammarCheckContent() {
     setLoadingCatalogue(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let query = supabase.from("exercises").select("*").eq("type", "trous").eq("level", filters.level);
+      const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
+      const to = from + CATALOGUE_PAGE_SIZE - 1;
+      let query = supabase
+        .from("exercises")
+        .select("*", { count: "exact" })
+        .eq("type", "trous")
+        .eq("level", filters.level);
       if (filters.category !== "Toutes") query = query.ilike("category", `%${filters.category}%`);
-      const { data: exercises } = await query.limit(20);
+      const { data: exercises, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
+      setCatalogTotalCount(count ?? 0);
 
       if (exercises && user) {
         const { data: attempts } = await supabase
@@ -142,6 +159,7 @@ export function GrammarCheckContent() {
           const exAttempts = attempts?.filter((a: any) => a.exercise_id === ex.id) || [];
           return {
             ...ex,
+            point_cles_lesson: ex["point_clés_lesson"],
             is_completed: exAttempts.some((a: any) => a.is_completed),
             attempts_count: exAttempts.length,
             success_rate: exAttempts.length > 0 ? Math.max(...exAttempts.map((a: any) => a.score || 0)) : undefined
@@ -150,8 +168,9 @@ export function GrammarCheckContent() {
         setCatalogue(mapped);
         if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       } else {
-        setCatalogue(exercises || []);
-        if (!exercises || exercises.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
+        const mapped = (exercises || []).map((ex: any) => ({ ...ex, point_cles_lesson: ex["point_clés_lesson"] }));
+        setCatalogue(mapped);
+        if (mapped.length === 0) setEmptyStateMascotUrl(pickRandomImage(PERPLEXED_MASCOT_URLS));
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
@@ -160,7 +179,13 @@ export function GrammarCheckContent() {
       isFetchingCatalogue.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.level, filters.category, supabase]);
+  }, [filters.level, filters.category, catalogPage, supabase]);
+
+  // Retour à la page 1 du catalogue à chaque changement de filtre.
+  useEffect(() => {
+    setCatalogPage(1);
+  }, [filters.level, filters.category]);
+
 
   const fetchRecommendation = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -530,7 +555,6 @@ export function GrammarCheckContent() {
                   category={current?.category}
                   level={current?.level}
                   difficulty={current?.difficulty}
-                  tags={current?.tags}
                   instructions={current?.instructions}
                   pointCle={current?.["point_clés_lesson"]}
                   accentColor="indigo"
@@ -759,7 +783,7 @@ export function GrammarCheckContent() {
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
+                {catalogTotalCount} exercice{catalogTotalCount > 1 ? 's' : ''} disponible{catalogTotalCount > 1 ? 's' : ''}
               </div>
             </div>
 
@@ -770,11 +794,19 @@ export function GrammarCheckContent() {
                 ))}
               </div>
             ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((ex: Exercise) => (
-                  <ExerciseCard key={ex.id} exercise={ex} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {catalogue.map((ex: Exercise) => (
+                    <ExerciseCard key={ex.id} exercise={ex} />
+                  ))}
+                </div>
+                <CataloguePagination
+                  page={catalogPage}
+                  totalPages={catalogTotalPages}
+                  onPageChange={setCatalogPage}
+                  accentColor="indigo"
+                />
+              </>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <img
