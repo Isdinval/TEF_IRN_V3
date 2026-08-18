@@ -164,13 +164,21 @@ export async function resolveUserError(userId: string, category: string, subCate
 async function completeRecommendationIfResolvedExact(userId: string, category: string, subCategory: string | null) {
   const supabase = await createClient();
 
+  // Fix (retest P0, suite) : recommendations.category est TOUJOURS stocké en
+  // minuscules (analyzeUserErrorsAndRecommend fait category.toLowerCase() à
+  // l'écriture), alors que `category` ici arrive capitalisé (exerciseData.category
+  // et consorts, même convention que user_errors.category ci-dessous, qui LUI
+  // reste capitalisé). Sans ce .toLowerCase() ici, la requête sur recommendations
+  // ne matchait jamais rien -- vérifié en base : la carte de leçon restait bloquée
+  // à 'pending' indéfiniment, exactement le bug déjà "corrigé" par l'item 17 mais
+  // qui ne l'était pas vraiment à cause de cette casse.
   let recoQuery = supabase
     .from('recommendations')
     .select('id')
     .eq('user_id', userId)
     .eq('type', 'lesson')
     .eq('status', 'pending')
-    .eq('category', category);
+    .eq('category', category.toLowerCase());
 
   recoQuery = subCategory
     ? recoQuery.eq('sub_category', subCategory)
@@ -301,6 +309,28 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
   // disponibles. Les erreurs les plus fréquentes (donc les plus critiques)
   // sont déjà en tête grâce au tri de l'étape 1.
   for (const topError of errors.slice(0, availableSlots)) {
+    // Garde-fou anti-doublon (retest P0, suite) : si une recommandation pending
+    // existe déjà pour ce couple (category, sub_category) -- lesson OU exercise,
+    // peu importe le type -- ne pas en créer une deuxième. Observé en test : le
+    // bug de casse ci-dessus (desormais corrigé) laissait une carte de leçon
+    // bloquée à 'pending', et une réapparition de la même erreur créait EN PLUS
+    // une carte exercice pour la même notion -- 2 cartes pour un seul point
+    // faible. Ce garde-fou protège aussi contre toute autre cause future du
+    // même symptôme (ex. appels concurrents), pas seulement le bug de casse.
+    let existingRecoQuery = supabase
+      .from('recommendations')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .eq('category', topError.category.toLowerCase());
+    existingRecoQuery = topError.sub_category
+      ? existingRecoQuery.eq('sub_category', topError.sub_category)
+      : existingRecoQuery.is('sub_category', null);
+    const { data: existingRecoForTag } = await existingRecoQuery.limit(1);
+    if (existingRecoForTag && existingRecoForTag.length > 0) {
+      continue;
+    }
+
     let lesson = null;
     // parseLevelRange : gère le cas où topError.level est composite (examen
     // "A2-B1") -- fallback sur [userLevel] (valeur simple) si absent.
