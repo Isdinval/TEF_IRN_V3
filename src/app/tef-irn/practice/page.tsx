@@ -806,7 +806,7 @@ export function PracticeContent() {
     ) : null;
 
     return (
-      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showLessonPanel && "lg:h-screen lg:overflow-hidden")}>
+      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showLessonPanel && "md:h-screen md:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CENTRE D’ENTRAÎNEMENT QCM"
@@ -857,10 +857,10 @@ export function PracticeContent() {
         <main
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
-            showLessonPanel && "lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-6 lg:overflow-hidden lg:min-h-0"
+            showLessonPanel && "md:grid md:grid-cols-2 md:items-stretch md:gap-6 md:overflow-hidden md:min-h-0"
           )}
         >
-          <div className={cn("w-full", showLessonPanel && "lg:h-full lg:overflow-y-auto")}>
+          <div className={cn("w-full", showLessonPanel && "md:h-full md:overflow-y-auto")}>
             <div className="max-w-2xl w-full mx-auto">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -898,7 +898,7 @@ export function PracticeContent() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden lg:hidden"
+                      className="overflow-hidden md:hidden"
                     >
                       <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
                         {lessonPanelContent}
@@ -985,7 +985,7 @@ export function PracticeContent() {
           </div>
 
           {showLessonPanel && (
-            <div className="hidden lg:block lg:h-full lg:overflow-y-auto">
+            <div className="hidden md:block md:h-full md:overflow-y-auto">
               <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
                 {lessonPanelContent}
               </Card>
