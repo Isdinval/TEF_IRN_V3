@@ -1,6 +1,20 @@
 import { createClient } from './supabase-server';
 
 /**
+ * Découpe un niveau CECRL en la liste des niveaux simples qu'il recouvre.
+ * exams.level peut être composite ("A2-B1", "B1-B2" -- vérifié en base,
+ * contrairement à lessons.level/exercises.level qui sont toujours une
+ * valeur simple : "A1"/"A2"/"B1"/"B2"). Un .eq('level', 'A2-B1') sur les
+ * leçons ne matcherait donc jamais rien -- on découpe la plage en niveaux
+ * simples et on matche avec .in(), pour qu'une erreur remontée d'un examen
+ * "A2-B1" puisse retrouver une leçon A2 OU B1.
+ */
+function parseLevelRange(level: string | null | undefined): string[] {
+  if (!level) return [];
+  return level.split('-').map((l) => l.trim()).filter(Boolean);
+}
+
+/**
  * Incrémente (ou crée) le compteur d'erreurs de l'utilisateur pour une catégorie donnée.
  * Alimente user_errors, qui est la source de données de analyzeUserErrorsAndRecommend().
  *
@@ -8,8 +22,18 @@ import { createClient } from './supabase-server';
  * 'Examen blanc'...), écrasée à chaque appel pour refléter la dernière occurrence
  * -- utilisé par la card "En attente d'une action ciblée" du dashboard pour un
  * rappel contextualisé (item 10.3).
+ *
+ * level : niveau CECRL du CONTENU SOURCE de l'erreur (ex. exercises.level,
+ * scenario.level, exams.level selon l'appelant) -- PAS le niveau du profil
+ * utilisateur. Fix critique (test P0) : analyzeUserErrorsAndRecommend()
+ * utilisait jusqu'ici profiles.current_level pour chercher une leçon/des
+ * exercices par tag, ce qui échouait silencieusement dès que ce niveau
+ * divergeait du niveau réel où la notion est enseignée (ex. profil resté à
+ * A1, erreur sur une notion B1) -- repli sur une leçon sans rapport, avec un
+ * texte de recommandation pourtant toujours affirmatif. Écrasé à chaque
+ * appel comme source_label, pour refléter la dernière occurrence.
  */
-export async function trackUserError(userId: string, category: string, subCategory: string | null = null, sourceLabel: string | null = null) {
+export async function trackUserError(userId: string, category: string, subCategory: string | null = null, sourceLabel: string | null = null, level: string | null = null) {
   const supabase = await createClient();
 
   let existingQuery = supabase
@@ -30,7 +54,8 @@ export async function trackUserError(userId: string, category: string, subCatego
       .update({
         frequency: existing.frequency + 1,
         last_seen_at: new Date().toISOString(),
-        source_label: sourceLabel
+        source_label: sourceLabel,
+        level
       })
       .eq('id', existing.id);
   } else {
@@ -40,7 +65,8 @@ export async function trackUserError(userId: string, category: string, subCatego
       sub_category: subCategory,
       frequency: 1,
       last_seen_at: new Date().toISOString(),
-      source_label: sourceLabel
+      source_label: sourceLabel,
+      level
     });
   }
 }
@@ -228,7 +254,11 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime();
   });
 
-  // 1bis. Niveau actuel de l'utilisateur, pour ne pas recommander hors niveau
+  // 1bis. Niveau actuel de l'utilisateur, utilisé UNIQUEMENT en repli quand
+  // une ligne user_errors n'a pas encore de level renseigné (lignes créées
+  // avant ce fix, ou source qui ne le fournit pas). Le niveau réel du
+  // contenu source de l'erreur (topError.level) est désormais prioritaire --
+  // voir doc de trackUserError pour le détail du bug corrigé.
   const { data: profile } = await supabase
     .from('profiles')
     .select('current_level')
@@ -242,6 +272,11 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
   // sont déjà en tête grâce au tri de l'étape 1.
   for (const topError of errors.slice(0, availableSlots)) {
     let lesson = null;
+    // parseLevelRange : gère le cas où topError.level est composite (examen
+    // "A2-B1") -- fallback sur [userLevel] (valeur simple) si absent.
+    const errorLevels = parseLevelRange(topError.level).length > 0
+      ? parseLevelRange(topError.level)
+      : [userLevel];
 
     if (topError.sub_category) {
       // Rapprochement fiable sur les étiquettes (taxonomie officielle, voir
@@ -271,8 +306,8 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       // première non encore lue par l'utilisateur, puis à order_index.
       const { data: candidates } = await supabase
         .from('lessons')
-        .select('id, title, category')
-        .eq('level', userLevel)
+        .select('id, title, category, level')
+        .in('level', errorLevels)
         .overlaps('tags', [topError.sub_category])
         .order('order_index', { ascending: true })
         .limit(5);
@@ -309,14 +344,21 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     if (!lesson) {
       const { data } = await supabase
         .from('lessons')
-        .select('id, title, category')
+        .select('id, title, category, level')
         .eq('category', topError.category.toLowerCase())
-        .eq('level', userLevel)
+        .in('level', errorLevels)
         .order('order_index', { ascending: true })
         .limit(1)
         .maybeSingle();
       lesson = data;
     }
+
+    // Niveau à stocker sur la recommandation : celui de la leçon trouvée
+    // (valeur simple garantie, ex. "B1") si une leçon a matché, sinon le
+    // premier niveau simple de la plage de l'erreur (ex. "A2" pour un
+    // examen "A2-B1") -- utilisé en aval pour propager ?level= vers
+    // /tef-irn/practice (patch applicatif associé).
+    const recommendationLevel = lesson?.level || errorLevels[0] || null;
 
     if (lesson) {
       const { data: progress } = await supabase
@@ -337,6 +379,7 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
           type: 'exercise',
           category: topError.category.toLowerCase(),
           sub_category: topError.sub_category,
+          level: recommendationLevel,
           reason: `Un point à retravailler en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''} : quelques exercices ciblés suffiront.`,
           status: 'pending'
         });
@@ -355,6 +398,7 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
           reference_id: lesson.id,
           category: topError.category.toLowerCase(),
           sub_category: topError.sub_category,
+          level: recommendationLevel,
           reason,
           status: 'pending'
         }, { onConflict: 'user_id, reference_id' });
@@ -366,6 +410,7 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
         type: 'exercise',
         category: topError.category.toLowerCase(),
         sub_category: topError.sub_category,
+        level: recommendationLevel,
         reason: `Besoin d'entraînement en ${topError.category} ? Faire 10 exercices de type QCM pour renforcer vos bases.`,
         status: 'pending'
       });

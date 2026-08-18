@@ -38,16 +38,33 @@ export async function POST(req: Request) {
     }
 
     // 1. Récupérer category/tags des questions concernées (posés par la
-    // migration item 3), pour savoir quel point faible tracker par question.
+    // migration item 3), pour savoir quel point faible tracker par question,
+    // ainsi que exam_id pour en dériver le niveau CECRL (item level fix,
+    // test P0) -- ni exam_questions ni exam_ce_co_attempts n'ont leur propre
+    // colonne level, seul l'examen parent en a une.
     const questionIds = typedResults.map(r => r.questionId);
     const { data: questions, error: questionsError } = await supabase
       .from('exam_questions')
-      .select('id, category, tags')
+      .select('id, category, tags, exam_id')
       .in('id', questionIds);
 
     if (questionsError) throw questionsError;
 
     const questionById = new Map((questions || []).map(q => [q.id, q]));
+
+    // Niveau de l'examen (dérivé côté serveur, jamais fait confiance à une
+    // valeur envoyée par le client) -- une soumission CE/CO porte toujours
+    // sur un seul examen, donc un seul exam_id parmi les questions reçues.
+    let examLevel: string | null = null;
+    const examId = questions?.[0]?.exam_id;
+    if (examId) {
+      const { data: examRow } = await supabase
+        .from('exams')
+        .select('level')
+        .eq('id', examId)
+        .maybeSingle();
+      examLevel = examRow?.level ?? null;
+    }
 
     // 2. Enregistrer la tentative de chaque question (table dédiée, 1 ligne
     // par question répondue -- voir item 4).
@@ -83,7 +100,7 @@ export async function POST(req: Request) {
       }
 
       for (const { category, subCategory } of failed.values()) {
-        await trackUserError(user.id, category, subCategory, 'Examen blanc');
+        await trackUserError(user.id, category, subCategory, 'Examen blanc', examLevel);
       }
       for (const { category, subCategory } of succeeded.values()) {
         await resolveUserError(user.id, category, subCategory);

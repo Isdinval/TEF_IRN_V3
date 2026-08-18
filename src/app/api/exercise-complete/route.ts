@@ -91,7 +91,7 @@ export async function POST(req: Request) {
       try {
         const { data: exerciseData } = await supabase
           .from('exercises')
-          .select('category, tags, lesson_id')
+          .select('category, tags, lesson_id, level')
           .eq('id', exerciseId)
           .single();
 
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
           const subCategory = exerciseData.tags?.find((t: string) => t !== exerciseData.category) ?? null;
 
           if (score < 50) {
-            await trackUserError(user.id, exerciseData.category, subCategory, 'Exercice ciblé');
+            await trackUserError(user.id, exerciseData.category, subCategory, 'Exercice ciblé', exerciseData.level);
           } else {
             await resolveUserError(user.id, exerciseData.category, subCategory);
             if (exerciseData.lesson_id) {

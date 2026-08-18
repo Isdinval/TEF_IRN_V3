@@ -327,10 +327,10 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     try {
       const sourceLabel = sessionContext === 'exam' ? 'Examen blanc' : 'Oral';
       if (scores.correction_grammaticale < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Grammaire", grammaireSousCategorie, sourceLabel);
+        await trackUserError(user.id, "Grammaire", grammaireSousCategorie, sourceLabel, scenario.level);
       }
       if (scores.etendue_et_precision_du_vocabulaire < WEAK_SCORE_THRESHOLD) {
-        await trackUserError(user.id, "Vocabulaire", vocabulaireSousCategorie, sourceLabel);
+        await trackUserError(user.id, "Vocabulaire", vocabulaireSousCategorie, sourceLabel, scenario.level);
       }
       await analyzeUserErrorsAndRecommend(user.id);
     } catch (recoError) {

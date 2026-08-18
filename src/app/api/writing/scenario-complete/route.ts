@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       const sourceLabel = attemptContext === 'exam' ? 'Examen blanc' : 'Écrit';
 
       for (const { category, subCategory } of erreursDetectees.values()) {
-        await trackUserError(user.id, category, subCategory, sourceLabel);
+        await trackUserError(user.id, category, subCategory, sourceLabel, level || null);
       }
 
       // Note : on ne résout PAS les erreurs absentes de ce texte (pas de resolveUserError ici).
