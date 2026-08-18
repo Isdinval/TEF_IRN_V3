@@ -18,6 +18,8 @@ import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { splitTitle } from "@/lib/lessons";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import {
   VICTORY_MASCOT_URLS,
@@ -132,6 +134,8 @@ export function GrammarCheckContent() {
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
   const sessionStartRef = useRef<number | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const { leftPct, containerRef: splitContainerRef, onDragStart } = useResizableSplit(50);
 
   // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
   useEffect(() => {
@@ -535,6 +539,7 @@ export function GrammarCheckContent() {
     const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
     const activeLesson = current?.lesson_id ? lessonCache[current.lesson_id] : undefined;
     const showLessonPanel = lessonVisible && !!activeLesson;
+    const showSplit = showLessonPanel && isDesktop;
     const lessonPanelContent = activeLesson ? (
       <>
         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
@@ -554,7 +559,7 @@ export function GrammarCheckContent() {
     ) : null;
 
     return (
-      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showLessonPanel && "md:h-screen md:overflow-hidden")}>
+      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showSplit && "md:h-screen md:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
@@ -603,13 +608,17 @@ export function GrammarCheckContent() {
         />
 
         <main
+          ref={splitContainerRef}
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
-            showLessonPanel && "md:grid md:grid-cols-2 md:items-stretch md:gap-6 md:overflow-hidden md:min-h-0"
+            showSplit && "md:flex-row md:items-stretch md:gap-0 md:overflow-hidden md:min-h-0"
           )}
         >
-          <div className={cn("w-full", showLessonPanel && "md:h-full md:overflow-y-auto")}>
-            <div className="max-w-2xl w-full mx-auto">
+          <div
+            className={cn("w-full", showSplit && "md:h-full md:overflow-y-auto md:shrink-0")}
+            style={showSplit ? { width: `${leftPct}%` } : undefined}
+          >
+            <div className="max-w-2xl w-full mx-auto md:px-3">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIdx}
@@ -762,12 +771,26 @@ export function GrammarCheckContent() {
             </div>
           </div>
 
-          {showLessonPanel && (
-            <div className="hidden md:block md:h-full md:overflow-y-auto">
-              <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
-                {lessonPanelContent}
-              </Card>
-            </div>
+          {showSplit && (
+            <>
+              <div
+                onPointerDown={onDragStart}
+                className="hidden md:flex w-3 shrink-0 cursor-col-resize items-center justify-center group touch-none"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Redimensionner les panneaux exercice / leçon"
+              >
+                <div className="w-1 h-16 rounded-full bg-zinc-200 group-hover:bg-indigo-400 transition-colors" />
+              </div>
+              <div
+                className="hidden md:block md:h-full md:overflow-y-auto md:shrink-0"
+                style={{ width: `${100 - leftPct}%` }}
+              >
+                <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                  {lessonPanelContent}
+                </Card>
+              </div>
+            </>
           )}
         </main>
       </div>
