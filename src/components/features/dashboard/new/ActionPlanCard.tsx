@@ -14,6 +14,9 @@ interface WeakPoint {
   frequency: number;
   last_seen_at: string;
   source_label: string | null;
+  // Niveau CECRL du contenu source de l'erreur (fix critique, test P0) --
+  // voir RecommendationCard pour le détail du bug corrigé.
+  level?: string | null;
 }
 
 interface Recommendation {
@@ -24,6 +27,7 @@ interface Recommendation {
   slug?: string;
   category?: string | null;
   sub_category?: string | null;
+  level?: string | null;
 }
 
 interface ActionPlanCardProps {
@@ -144,6 +148,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                     frequency={match?.frequency}
                     category={reco.category}
                     subCategory={reco.sub_category}
+                    level={reco.level}
                     onDismissed={onDismissed}
                   />
                 );
@@ -172,6 +177,12 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                         onClick={() => {
                           const params = new URLSearchParams({ topic: wp.category });
                           if (wp.sub_category) params.set('tag', wp.sub_category);
+                          // .split('-')[0] : wp.level (user_errors.level brut) peut être
+                          // composite ("A2-B1", erreur venant d'un examen blanc) --
+                          // contrairement à reco.level (déjà normalisé en amont dans
+                          // recommendation-engine.ts), jamais transmis tel quel ici.
+                          const singleLevel = wp.level?.split('-')[0]?.trim();
+                          if (singleLevel) params.set('level', singleLevel);
                           router.push(`/tef-irn/practice?${params.toString()}`);
                         }}
                         className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:gap-2 transition-all"

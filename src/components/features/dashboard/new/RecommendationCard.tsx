@@ -22,6 +22,13 @@ interface RecommendationCardProps {
   // sans lui, le bouton "Commencer maintenant" ne filtrait que sur la
   // catégorie large, jamais sur la notion précise à l'origine de la reco.
   subCategory?: string | null;
+  // Niveau CECRL du contenu source de l'erreur (fix critique, test P0) --
+  // sans lui, /tef-irn/practice retombait sur son niveau par défaut (A2
+  // codé en dur), qui ne correspond pas forcément au niveau réel de la
+  // notion recommandée (ex. "subjonctif présent" est B1/B2, pas A2) : la
+  // recherche par tag échouait alors silencieusement et proposait des
+  // exercices sans rapport avec l'erreur.
+  level?: string | null;
   onDismissed?: () => void;
 }
 
@@ -30,7 +37,7 @@ const TITLES_BY_TYPE: Record<string, string> = {
   vocab: 'Ancrer un mot de vocabulaire',
 };
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, onDismissed }: RecommendationCardProps) {
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, level, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
 
@@ -42,6 +49,7 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
         if (!category) return '/tef-irn/practice';
         const params = new URLSearchParams({ topic: category });
         if (subCategory) params.set('tag', subCategory);
+        if (level) params.set('level', level);
         return `/tef-irn/practice?${params.toString()}`;
       }
       case 'vocab': return '/tef-irn/vocab';

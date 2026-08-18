@@ -19,6 +19,12 @@ interface Correction {
     // suffit plus). CE/CO ajoutés item 12 -- contrairement à EE/EO, aucune
     // page de détail n'existe pour elles (cf. carte non cliquable ci-dessous).
     skill?: 'EE' | 'EO' | 'CE' | 'CO';
+    // Niveau CECRL du contenu source (fix critique, test P0). Peut être
+    // composite ("A2-B1") pour une correction issue d'un examen blanc --
+    // exams.level n'est pas toujours une valeur simple, contrairement à
+    // exercises.level/lessons.level. Normalisé au clic (voir plus bas) pour
+    // toujours transmettre une valeur simple à /tef-irn/practice.
+    level?: string | null;
   };
   ai_feedback?: {
     overall_score: number;
@@ -159,6 +165,15 @@ export function RecentCorrectionsList({
                         const tag = match?.[2]?.trim().toLowerCase();
                         const params = new URLSearchParams({ topic });
                         if (tag) params.set('tag', tag);
+                        // Fix critique (test P0) : sans level, /tef-irn/practice retombait sur
+                        // son niveau par défaut (A2 codé en dur), sans rapport avec le niveau
+                        // réel de la notion -- recherche par tag qui échouait silencieusement.
+                        // .split('-')[0] : item.exercise.level peut être composite ("A2-B1",
+                        // cas d'un examen blanc) alors que exercises.level est toujours une
+                        // valeur simple -- on ne transmet jamais la forme composite telle
+                        // quelle à practice/page.tsx (qui fait un .eq('level', ...) exact).
+                        const singleLevel = item.exercise?.level?.split('-')[0]?.trim();
+                        if (singleLevel) params.set('level', singleLevel);
                         router.push(`/tef-irn/practice?${params.toString()}`);
                       }}
                     >
