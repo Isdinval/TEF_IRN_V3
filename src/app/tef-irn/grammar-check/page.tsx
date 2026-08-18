@@ -605,24 +605,25 @@ export function GrammarCheckContent() {
         <main
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
-            showLessonPanel && "lg:flex-row lg:items-stretch lg:overflow-hidden lg:min-h-0"
+            showLessonPanel && "lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-6 lg:overflow-hidden lg:min-h-0"
           )}
         >
-          <div className={cn("max-w-2xl w-full", showLessonPanel && "lg:flex-shrink-0 lg:h-full lg:overflow-y-auto")}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIdx}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                className="space-y-3"
-              >
-                <ExerciseContextHeader
-                  category={current?.category}
-                  level={current?.level}
-                  difficulty={current?.difficulty}
-                  instructions={current?.instructions}
-                  pointCle={current?.point_cles_lesson}
+          <div className={cn("w-full", showLessonPanel && "lg:h-full lg:overflow-y-auto")}>
+            <div className="max-w-2xl w-full mx-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIdx}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  className="space-y-3"
+                >
+                  <ExerciseContextHeader
+                    category={current?.category}
+                    level={current?.level}
+                    difficulty={current?.difficulty}
+                    instructions={current?.instructions}
+                    pointCle={current?.point_cles_lesson}
                   accentColor="indigo"
                 />
 
@@ -758,10 +759,11 @@ export function GrammarCheckContent() {
                 </div>
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
 
           {showLessonPanel && (
-            <div className="hidden lg:block lg:w-[480px] lg:flex-shrink-0 lg:h-full lg:overflow-y-auto">
+            <div className="hidden lg:block lg:h-full lg:overflow-y-auto">
               <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
                 {lessonPanelContent}
               </Card>

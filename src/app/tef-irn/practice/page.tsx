@@ -857,29 +857,30 @@ export function PracticeContent() {
         <main
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto",
-            showLessonPanel && "lg:flex-row lg:items-stretch lg:overflow-hidden lg:min-h-0"
+            showLessonPanel && "lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-6 lg:overflow-hidden lg:min-h-0"
           )}
         >
-          <div className={cn("max-w-2xl w-full", showLessonPanel && "lg:flex-shrink-0 lg:h-full lg:overflow-y-auto")}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIdx}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                className="space-y-3"
-              >
-                <ExerciseContextHeader
-                  category={currentQuestion?.category}
-                  level={currentQuestion?.level}
-                  difficulty={currentQuestion?.difficulty}
-                  instructions={currentQuestion?.instructions}
-                  pointCle={currentQuestion?.point_cles_lesson}
-                  accentColor="purple"
-                />
+          <div className={cn("w-full", showLessonPanel && "lg:h-full lg:overflow-y-auto")}>
+            <div className="max-w-2xl w-full mx-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIdx}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  className="space-y-3"
+                >
+                  <ExerciseContextHeader
+                    category={currentQuestion?.category}
+                    level={currentQuestion?.level}
+                    difficulty={currentQuestion?.difficulty}
+                    instructions={currentQuestion?.instructions}
+                    pointCle={currentQuestion?.point_cles_lesson}
+                    accentColor="purple"
+                  />
 
-                {/* Question Text */}
-                <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                  {/* Question Text */}
+                  <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <div className="w-10 h-10 mx-auto bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-200 rotate-3 group">
                       <Target size={18} className="group-hover:scale-110 transition-transform" />
                    </div>
@@ -980,10 +981,11 @@ export function PracticeContent() {
                 </div>
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
 
           {showLessonPanel && (
-            <div className="hidden lg:block lg:w-[480px] lg:flex-shrink-0 lg:h-full lg:overflow-y-auto">
+            <div className="hidden lg:block lg:h-full lg:overflow-y-auto">
               <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
                 {lessonPanelContent}
               </Card>
