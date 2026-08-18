@@ -38,7 +38,8 @@ const TIER_REASONS: Record<number, string> = {
  * practice/page.tsx (fetchFromLesson/autoStart). Priorité stricte par paliers
  * (pas de formule pondérée) :
  *   0. Exercice dû au sens SRS (user_reviews.next_review_at <= maintenant)
- *   1. Même leçon que le contexte fourni (lessonId), pas encore réussi
+ *   1. Même leçon que le contexte fourni (lessonId, explicite OU dérivé du tag
+ *      -- item 19, voir ci-dessous), pas encore réussi
  *   2. Jamais tenté
  *   3. Déjà tenté, tri par score croissant (le moins bien réussi en premier)
  *
@@ -64,6 +65,36 @@ export async function resolveNextExercises(
   supabase: SupabaseClient,
   limit: number = 6
 ): Promise<Exercise[]> {
+  // Item 19 du plan "Refonte recommandation erreur -> tag -> ressource" :
+  // si un tag précis est fourni sans lessonId explicite, on dérive la leçon
+  // "canonique" de ce tag (même logique de matching que
+  // analyzeUserErrorsAndRecommend) pour activer le palier 1 (ci-dessous) sur
+  // SES exercices propres -- sans ça, "Travailler ces exercices" pouvait
+  // proposer en premier un exercice cross-tagué d'une tout autre leçon que
+  // celle effectivement recommandée juste au-dessus (constaté en test :
+  // reco pointant vers la leçon "Subjonctif Présent et Passé", exercices
+  // proposés issus de "Voix Passive et Tournures Impersonnelles" -- les deux
+  // partagent légitimement le tag, mais l'exercice de la leçon recommandée
+  // doit passer en premier).
+  let effectiveLessonId = context.lessonId;
+
+  if (!effectiveLessonId && context.tags && context.tags.length > 0) {
+    const { data: lessonCandidates } = await supabase
+      .from('lessons')
+      .select('id, category')
+      .eq('level', context.level)
+      .overlaps('tags', context.tags)
+      .order('order_index', { ascending: true })
+      .limit(5);
+
+    if (lessonCandidates && lessonCandidates.length > 0) {
+      const preferred = context.category
+        ? lessonCandidates.find((l: { category: string }) => l.category === context.category!.toLowerCase())
+        : null;
+      effectiveLessonId = (preferred || lessonCandidates[0]).id;
+    }
+  }
+
   // 1. Pool candidat : filtrage level (+ category et/ou tags si fournis), même logique
   //    de casse que l'ancien getRecommendedExercises (exercises.category est contraint en
   //    Capitalisé côté DB alors que lessons.category / parcours.category sont en minuscule)
@@ -150,7 +181,7 @@ export async function resolveNextExercises(
     let tier: number;
     if (dueExerciseIds.has(ex.id)) {
       tier = 0;
-    } else if (context.lessonId && ex.lesson_id === context.lessonId && !isCompleted) {
+    } else if (effectiveLessonId && ex.lesson_id === effectiveLessonId && !isCompleted) {
       tier = 1;
     } else if (!isCompleted) {
       tier = 2;
