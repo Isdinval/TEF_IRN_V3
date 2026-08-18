@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
-import { trackUserError, resolveUserError, analyzeUserErrorsAndRecommend } from '@/lib/recommendation-engine';
+import { trackUserError, resolveUserError, completeRecommendationIfResolved, analyzeUserErrorsAndRecommend } from '@/lib/recommendation-engine';
 
 // Route dédiée à la persistance des sections CE/CO d'examen blanc (table
 // exam_ce_co_attempts, item 4 du plan). Appelée une fois par section terminée
@@ -104,6 +104,10 @@ export async function POST(req: Request) {
       }
       for (const { category, subCategory } of succeeded.values()) {
         await resolveUserError(user.id, category, subCategory);
+        // Item 17 : jamais appelée ici jusque-là -- une question CE/CO
+        // réussie pouvait résoudre le point faible sans jamais clôturer la
+        // recommandation de leçon associée.
+        await completeRecommendationIfResolved(user.id, category, subCategory);
       }
     } catch (errorTrackingError) {
       console.error('Error tracking failed (CE/CO exam):', errorTrackingError);

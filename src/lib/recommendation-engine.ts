@@ -135,45 +135,75 @@ export async function resolveUserError(userId: string, category: string, subCate
 }
 
 /**
- * Marque une recommandation de type 'lesson' comme 'completed' si, ET
- * SEULEMENT SI, les deux conditions sont réunies :
- *   1. La leçon recommandée vient d'être terminée (appelé depuis
- *      exercise-complete/route.ts quand le mini-quiz de cette leçon est
- *      réussi, score >= 50).
- *   2. Le point faible (category/sub_category) qui avait généré cette
- *      recommandation n'existe plus dans user_errors (résolu, éventuellement
- *      par un tout autre exercice avant même que la leçon soit terminée).
- * Si le point faible existe encore, la recommandation reste 'pending' —
- * terminer la leçon ne suffit pas à elle seule.
+ * Marque comme 'completed' toute recommandation de type 'lesson' pending
+ * dont le point faible (category/sub_category) vient d'être résolu.
+ *
+ * Fix (item 17 du plan "Refonte recommandation erreur -> tag -> ressource",
+ * test de validation P0) : ancrée jusqu'ici sur lessonId (l'exercice qui
+ * vient d'être réussi devait appartenir À LA LEÇON recommandée), cette
+ * fonction ne se déclenchait jamais dès que l'exercice résolutif était
+ * cross-tagué depuis une AUTRE leçon que celle recommandée -- vérifié en
+ * base : cas structurellement fréquent, pas un cas limite (le cross-tagging
+ * entre leçons est explicitement autorisé par le trigger SQL
+ * check_exercise_shares_lesson_tag, et le matching par tag de l'item 16
+ * privilégie justement le tag sur l'appartenance à une leçon). Résultat
+ * observé en test : point faible résolu (disparu de user_errors), mais
+ * recommandation de leçon bloquée à 'pending' indéfiniment.
+ *
+ * Nouvelle ancre : (category, sub_category), exactement le même couple que
+ * resolveUserError vient de résoudre -- fonctionne quelle que soit la leçon
+ * d'où vient l'exercice résolutif. Même fallback que resolveUserError/
+ * trackUserError (item 2) : si sub_category est fourni, complète aussi les
+ * recommandations (category, null) éventuelles -- symétrique du fallback de
+ * résolution générique.
+ *
+ * Portée élargie : appelée après CHAQUE resolveUserError réussi, pas
+ * seulement depuis exercise-complete -- couvre désormais aussi les
+ * exercices CE/CO d'examen blanc (qui ne l'appelaient jamais).
  */
-export async function completeRecommendationIfResolved(userId: string, lessonId: string) {
+async function completeRecommendationIfResolvedExact(userId: string, category: string, subCategory: string | null) {
   const supabase = await createClient();
 
-  const { data: reco } = await supabase
+  let recoQuery = supabase
     .from('recommendations')
-    .select('id, category, sub_category')
+    .select('id')
     .eq('user_id', userId)
     .eq('type', 'lesson')
-    .eq('reference_id', lessonId)
     .eq('status', 'pending')
-    .maybeSingle();
+    .eq('category', category);
 
-  if (!reco || !reco.category) return;
+  recoQuery = subCategory
+    ? recoQuery.eq('sub_category', subCategory)
+    : recoQuery.is('sub_category', null);
+
+  const { data: recos } = await recoQuery;
+  if (!recos || recos.length === 0) return;
 
   let stillWeakQuery = supabase
     .from('user_errors')
     .select('id')
     .eq('user_id', userId)
-    .eq('category', reco.category);
+    .eq('category', category);
 
-  stillWeakQuery = reco.sub_category
-    ? stillWeakQuery.eq('sub_category', reco.sub_category)
+  stillWeakQuery = subCategory
+    ? stillWeakQuery.eq('sub_category', subCategory)
     : stillWeakQuery.is('sub_category', null);
 
   const { data: stillWeak } = await stillWeakQuery.maybeSingle();
 
   if (!stillWeak) {
-    await supabase.from('recommendations').update({ status: 'completed' }).eq('id', reco.id);
+    await supabase
+      .from('recommendations')
+      .update({ status: 'completed' })
+      .in('id', recos.map((r) => r.id));
+  }
+}
+
+export async function completeRecommendationIfResolved(userId: string, category: string, subCategory: string | null = null) {
+  await completeRecommendationIfResolvedExact(userId, category, subCategory);
+
+  if (subCategory) {
+    await completeRecommendationIfResolvedExact(userId, category, null);
   }
 }
 

@@ -102,9 +102,7 @@ export async function POST(req: Request) {
             await trackUserError(user.id, exerciseData.category, subCategory, 'Exercice ciblé', exerciseData.level);
           } else {
             await resolveUserError(user.id, exerciseData.category, subCategory);
-            if (exerciseData.lesson_id) {
-              await completeRecommendationIfResolved(user.id, exerciseData.lesson_id);
-            }
+            await completeRecommendationIfResolved(user.id, exerciseData.category, subCategory);
           }
         }
       } catch (errorTrackingError) {
