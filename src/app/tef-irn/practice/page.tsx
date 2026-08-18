@@ -99,6 +99,7 @@ export function PracticeContent() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
   const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
@@ -166,7 +167,7 @@ export function PracticeContent() {
       if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
       const { data: exercises, count } = await query
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: sortOrder === "ancien" })
         .range(from, to);
 
       setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
@@ -215,7 +216,7 @@ export function PracticeContent() {
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, supabase]);
+  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, sortOrder, supabase]);
 
   // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
   useEffect(() => {
@@ -223,10 +224,10 @@ export function PracticeContent() {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
-  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche.
+  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche/tri.
   useEffect(() => {
     setCatalogPage(1);
-  }, [filters.level, filters.category, searchQuery, hideCompleted]);
+  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder]);
 
   useEffect(() => {
     if (mode === "selection") {
@@ -723,6 +724,15 @@ export function PracticeContent() {
                 >
                   Non complétés uniquement
                 </button>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as "recent" | "ancien")}
+                  className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-200 transition-all"
+                  aria-label="Trier les exercices"
+                >
+                  <option value="recent">Plus récents</option>
+                  <option value="ancien">Plus anciens</option>
+                </select>
               </div>
 
               <div className="flex items-center justify-between mb-6">
