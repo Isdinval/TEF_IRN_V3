@@ -13,7 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import { splitTitle } from "@/lib/lessons";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import {
   VICTORY_MASCOT_URLS,
@@ -39,6 +41,7 @@ interface GrammarQuestion {
   level: string;
   instructions?: string;
   lesson_id?: string;
+  "point_clés_lesson"?: string;
 }
 
 /** Un token de la phrase, avec l'info "est-ce le mot fautif ?" */
@@ -229,7 +232,8 @@ export function GrammarCheckContent() {
               level: data.level,
               difficulty: data.difficulty,
               instructions: data.instructions,
-              lesson_id: data.lesson_id
+              lesson_id: data.lesson_id,
+              "point_clés_lesson": data["point_clés_lesson"]
           }));
       } else if (data.content?.sentence) {
           qs = [{
@@ -243,7 +247,8 @@ export function GrammarCheckContent() {
               level: data.level,
               difficulty: data.difficulty,
               instructions: data.instructions,
-              lesson_id: data.lesson_id
+              lesson_id: data.lesson_id,
+              "point_clés_lesson": data["point_clés_lesson"]
           }];
       }
 
@@ -507,16 +512,20 @@ export function GrammarCheckContent() {
                 exit={{ opacity: 0, y: -30 }}
                 className="space-y-3"
               >
+                <ExerciseContextHeader
+                  category={current?.category}
+                  level={current?.level}
+                  difficulty={current?.difficulty}
+                  tags={current?.tags}
+                  instructions={current?.instructions}
+                  pointCle={current?.["point_clés_lesson"]}
+                  accentColor="indigo"
+                />
+
                 <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <div className="w-10 h-10 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 rotate-3 group">
                       <Target size={18} className="group-hover:scale-110 transition-transform" />
                    </div>
-
-                   {current?.instructions && (
-                     <div className="inline-block mt-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest">
-                       {current.instructions}
-                     </div>
-                   )}
 
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-3 relative z-10">
                     {currentParsed.tokens.map((token) => {
@@ -569,9 +578,17 @@ export function GrammarCheckContent() {
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
-                        <h4 className="text-base font-black text-zinc-900 leading-snug mb-3">
-                          {lessonCache[current.lesson_id].title}
-                        </h4>
+                        {(() => {
+                          const { main, subtitle } = splitTitle(lessonCache[current.lesson_id].title || "");
+                          return (
+                            <div className="mb-3">
+                              <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
+                              {subtitle && (
+                                <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <LessonMarkdown content={lessonCache[current.lesson_id].content} />
                       </Card>
                     </motion.div>

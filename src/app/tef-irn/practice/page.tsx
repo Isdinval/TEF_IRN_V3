@@ -25,8 +25,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
+import { splitTitle } from "@/lib/lessons";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 
@@ -45,6 +47,7 @@ interface Question {
   instructions: string;
   explanation?: string;
   lesson_id?: string;
+  "point_clés_lesson"?: string;
 }
 
 interface ExerciseDB {
@@ -57,6 +60,7 @@ interface ExerciseDB {
   category: string;
   level: string;
   lesson_id?: string;
+  "point_clés_lesson"?: string;
   content: {
     explanations?: string[];
     questions: string[];
@@ -218,6 +222,7 @@ export function PracticeContent() {
       instructions: ex.instructions,
       explanation: ex.content.explanations?.[idx],
       lesson_id: ex.lesson_id,
+      "point_clés_lesson": ex["point_clés_lesson"],
     }));
   };
 
@@ -724,6 +729,16 @@ export function PracticeContent() {
                 exit={{ opacity: 0, y: -30 }}
                 className="space-y-3"
               >
+                <ExerciseContextHeader
+                  category={currentQuestion?.category}
+                  level={currentQuestion?.level}
+                  difficulty={currentQuestion?.difficulty}
+                  tags={currentQuestion?.tags}
+                  instructions={currentQuestion?.instructions}
+                  pointCle={currentQuestion?.["point_clés_lesson"]}
+                  accentColor="purple"
+                />
+
                 {/* Question Text */}
                 <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <div className="w-10 h-10 mx-auto bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-200 rotate-3 group">
@@ -749,9 +764,17 @@ export function PracticeContent() {
                         <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
                           <BookOpen size={14} /> Leçon associée
                         </div>
-                        <h4 className="text-base font-black text-zinc-900 leading-snug mb-3">
-                          {lessonCache[currentQuestion.lesson_id].title}
-                        </h4>
+                        {(() => {
+                          const { main, subtitle } = splitTitle(lessonCache[currentQuestion.lesson_id].title || "");
+                          return (
+                            <div className="mb-3">
+                              <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
+                              {subtitle && (
+                                <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <LessonMarkdown content={lessonCache[currentQuestion.lesson_id].content} />
                       </Card>
                     </motion.div>
