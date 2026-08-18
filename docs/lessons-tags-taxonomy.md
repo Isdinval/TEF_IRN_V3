@@ -34,36 +34,48 @@ soit elle-même propre, fixe et sans ambiguïté. D'où ce document.
    Présent (Conjugaison, B2) — la catégorie Orthographe reste volontairement absente
    (elle recoupe les 4 autres catégories existantes, décision d'Olivier).
 
-## La liste (113 étiquettes, 4 catégories, mise à jour au 2026-08-06)
+## La liste (135 étiquettes, 4 catégories, mise à jour au 2026-08-18 — item 22)
 
-### Conjugaison (34)
+### Conjugaison (36)
 aller, avoir, concordance des temps, conditionnel passé, conditionnel présent,
-discours rapporté, être, faire, futur antérieur, futur proche, futur simple, **gérondif**,
+discours rapporté, **déclencheurs de l'indicatif**, **déclencheurs du subjonctif**,
+être, faire, futur antérieur, futur proche, futur simple, **gérondif**,
 imparfait, impératif, négation, **participe présent**, **passé récent**, passé composé,
 plus-que-parfait, politesse, pouvoir, présent, quotidien, regret, subjonctif passé,
 subjonctif présent, tournures impersonnelles, venir, verbes en -er, verbes en -ir,
 verbes en -re, verbes irréguliers, verbes pronominaux, voix passive, vouloir
 
-### Grammaire (29)
-accord des adjectifs, accord du participe passé, **adverbes**, articles, comparatifs,
-connecteurs cause/conséquence, constructions participiales, démonstratifs,
-**formation -ment**, genre et nombre, infinitif, interrogation, mise en relief,
-négation, nominalisation, pluriel, possessifs, préférences, prépositions de lieu,
-prépositions de temps, pronoms COD/COI, pronoms indéfinis, pronoms relatifs,
-pronoms relatifs composés, pronoms Y/EN, quantités, registre soutenu,
-subjonctif vs indicatif, **superlatif**
+### Grammaire (56)
+accord des adjectifs, accord du participe passé, **adjectifs démonstratifs**,
+**adverbes**, articles, **choix défini indéfini**, comparatifs,
+connecteurs cause/conséquence, constructions participiales, **depuis**,
+**distinction adjectif pronom démonstratif**, **distinction adjectif pronom possessif**,
+**distinction ci là**, **distinction depuis pendant il y a**, **distinction y en**,
+**déclencheurs de l'indicatif**, **déclencheurs du subjonctif**, démonstratifs,
+**est-ce que**, **familles d'articles**, **formation -ment**, **formes interrogatives**,
+genre et nombre, **il y a**, infinitif, interrogation, **inversion sujet-verbe**,
+mise en relief, **mots interrogatifs**, négation, nominalisation,
+**nuances des connecteurs de cause**, **négation avec infinitif**, **pendant**,
+**placement pronoms cod coi**, **placement pronoms y en**, pluriel, possessifs,
+**pronom COD**, **pronom COI**, **pronom en**, **pronom y**, **pronoms COD antéposés**,
+pronoms COD/COI, **pronoms démonstratifs**, pronoms indéfinis, pronoms relatifs,
+pronoms relatifs composés, pronoms Y/EN, préférences, prépositions de lieu,
+prépositions de temps, quantités, registre soutenu, subjonctif vs indicatif,
+**superlatif**
 
-### Syntaxe (23)
+### Syntaxe (27)
 argumentation, argumentation avancée, compréhension écrite, compréhension orale,
 connecteurs cause/conséquence, connecteurs de but, connecteurs de séquence,
 connecteurs logiques complexes, connecteurs opposition, consignes et panneaux,
-correspondance, description, discours rapporté, expression orale, exprimer une
-opinion, hypothèses et conditions, interrogation, négation, ordre des mots,
-rédaction email amical, rédaction message simple, section b écrit,
+correspondance, description, discours rapporté, **est-ce que**, expression orale,
+exprimer une opinion, **formes interrogatives**, hypothèses et conditions,
+interrogation, **inversion sujet-verbe**, **mots interrogatifs**, négation,
+ordre des mots, rédaction email amical, rédaction message simple, section b écrit,
 vocabulaire salutations
 
-### Vocabulaire (27)
-collocations, faux-amis, registre de langue, registre soutenu, vocabulaire
+### Vocabulaire (29)
+collocations, **collocations faire passer prendre avoir**, faux-amis, registre de
+langue, registre soutenu, **types de collocations**, vocabulaire
 administratif, vocabulaire arts, vocabulaire civique, vocabulaire culture,
 vocabulaire économie, vocabulaire emploi, vocabulaire environnement, vocabulaire
 famille, vocabulaire famille/logement, vocabulaire horaires, vocabulaire logement,
@@ -73,9 +85,26 @@ sciences, vocabulaire société, vocabulaire transports, vocabulaire travail,
 vocabulaire ville
 
 **Note** : plusieurs étiquettes existent légitimement dans deux catégories
-(ex. "négation" en Conjugaison, Grammaire et Syntaxe) — ce n'est pas une erreur,
-ce sont des notions transversales qui peuvent être travaillées sous plusieurs
-angles selon la leçon.
+(ex. "négation" en Conjugaison, Grammaire et Syntaxe ; "déclencheurs du
+subjonctif"/"déclencheurs de l'indicatif" en Conjugaison et Grammaire ;
+"formes interrogatives"/"mots interrogatifs"/"inversion sujet-verbe"/
+"est-ce que" en Grammaire et Syntaxe) — ce n'est pas une erreur, ce sont des
+notions transversales qui peuvent être travaillées sous plusieurs angles
+selon la leçon.
+
+**Item 22 (2026-08-18)** : 29 étiquettes en **gras** ci-dessus ont été promues
+depuis des tags déjà utilisés sur des exercices et des leçons (vérifié :
+elles existaient déjà sur `lessons.tags` avant cette promotion, seule leur
+absence de cette liste empêchait l'IA de correction de les choisir comme
+sous-catégorie). Sélection validée une par une avec Olivier sur deux
+critères : une confusion pédagogique classique et isolable (ex. adjectif vs
+pronom démonstratif, COD vs COI, subjonctif vs indicatif via leurs
+déclencheurs), et un volume d'exercices suffisant pour la justifier — pas
+une promotion automatique des ~200 tags hors taxonomie détectés par le
+diagnostic complémentaire (item 21) : la plupart sont des habillages
+contextuels/thématiques (ex. "annonce immobiliere", "phrases sante"), pas
+de vraies notions grammaticales/lexicales isolables, et restent
+délibérément hors de cette liste.
 
 ## Comment l'utiliser pour la suite du plan
 
@@ -86,7 +115,10 @@ grammaticale/lexicale précise dans le produit, notamment :
   des exercices (celles qui ne figurent pas dans cette liste : verbes précis, groupes
   de conjugaison, "orthographe"...) : soit les remplacer par l'étiquette officielle
   la plus proche, soit les faire entrer officiellement dans cette liste si elles
-  désignent une vraie notion manquante.
+  désignent une vraie notion manquante. Item 22 traite une première vague de ce
+  chantier (29 étiquettes), le reste des ~200 tags hors taxonomie identifiés
+  (item 21) reste délibérément hors de cette liste (contextuel/thématique, pas
+  une notion isolable).
 - **Item 10.11** ✅ — Le rapprochement erreur → leçon (`analyzeUserErrorsAndRecommend`,
   `src/lib/recommendation-engine.ts`) cherche désormais une leçon par correspondance
   sur `tags` (opérateur de recouvrement de tableau, déjà indexé), et non plus par
