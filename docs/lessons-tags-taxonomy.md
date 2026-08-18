@@ -34,9 +34,9 @@ soit elle-même propre, fixe et sans ambiguïté. D'où ce document.
    Présent (Conjugaison, B2) — la catégorie Orthographe reste volontairement absente
    (elle recoupe les 4 autres catégories existantes, décision d'Olivier).
 
-## La liste (135 étiquettes, 4 catégories, mise à jour au 2026-08-18 — item 22)
+## La liste (136 étiquettes, 4 catégories, mise à jour au 2026-08-18 — item 22)
 
-### Conjugaison (36)
+### Conjugaison (37)
 aller, avoir, concordance des temps, conditionnel passé, conditionnel présent,
 discours rapporté, **déclencheurs de l'indicatif**, **déclencheurs du subjonctif**,
 être, faire, futur antérieur, futur proche, futur simple, **gérondif**,
