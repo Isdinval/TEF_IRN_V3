@@ -28,6 +28,7 @@ interface Recommendation {
   category?: string | null;
   sub_category?: string | null;
   level?: string | null;
+  is_reminder?: boolean;
 }
 
 interface ActionPlanCardProps {
@@ -149,6 +150,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                     category={reco.category}
                     subCategory={reco.sub_category}
                     level={reco.level}
+                    isReminder={reco.is_reminder}
                     onDismissed={onDismissed}
                   />
                 );

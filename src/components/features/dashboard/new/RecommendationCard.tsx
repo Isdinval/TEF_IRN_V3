@@ -29,6 +29,11 @@ interface RecommendationCardProps {
   // recherche par tag échouait alors silencieusement et proposait des
   // exercices sans rapport avec l'erreur.
   level?: string | null;
+  // item 18 : distingue une leçon jamais lue d'un rappel après erreur
+  // persistante malgré une lecture déjà faite (item 10) -- sans lui, le
+  // titre de carte restait "Maîtriser une nouvelle leçon" même pour un
+  // rappel, ce qui n'a plus de sens ("ce n'est plus une nouvelle leçon").
+  isReminder?: boolean;
   onDismissed?: () => void;
 }
 
@@ -37,9 +42,11 @@ const TITLES_BY_TYPE: Record<string, string> = {
   vocab: 'Ancrer un mot de vocabulaire',
 };
 
-export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, level, onDismissed }: RecommendationCardProps) {
+export function RecommendationCard({ id, type, reason, referenceId, slug, frequency, category, subCategory, level, isReminder, onDismissed }: RecommendationCardProps) {
   const router = useRouter();
   const [isDismissing, setIsDismissing] = useState(false);
+
+  const cardTitle = type === 'lesson' && isReminder ? 'Revoir cette leçon' : (TITLES_BY_TYPE[type] || 'Renforcer vos acquis');
 
   const getTargetUrl = () => {
     switch (type) {
@@ -89,7 +96,7 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-black leading-tight text-zinc-900">
-              {TITLES_BY_TYPE[type] || 'Renforcer vos acquis'}
+              {cardTitle}
             </h3>
             {typeof frequency === 'number' && (
               <span className="shrink-0 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-black text-rose-500">×{frequency}</span>

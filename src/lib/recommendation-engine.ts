@@ -430,6 +430,10 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
           sub_category: topError.sub_category,
           level: recommendationLevel,
           reason,
+          // item 18 : distingue "jamais lue" de "rappel" pour le titre de
+          // carte côté front (RecommendationCard.tsx) -- le texte `reason`
+          // seul ne suffisait pas, le titre restait statique dans les deux cas.
+          is_reminder: alreadyRead && isPersistent,
           status: 'pending'
         }, { onConflict: 'user_id, reference_id' });
       }
