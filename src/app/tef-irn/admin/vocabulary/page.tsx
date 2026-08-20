@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Volume2, RotateCcw } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -25,6 +25,7 @@ interface VocabRow {
   example: string | null;
   level: string | null;
   category: string;
+  audio_url: string | null;
 }
 
 const LEVELS = ["A1", "A2", "B1", "B2"];
@@ -127,6 +128,15 @@ export default function VocabularyAdmin() {
     if (!error) fetchItems();
   };
 
+  // La génération audio se fait hors-ligne (script Python TTS Gemini, jamais
+  // en runtime). Cette action efface audio_url : le mot sera repris au
+  // prochain lancement du script (qui ne traite que les mots sans audio_url).
+  const handleClearAudio = async (id: string) => {
+    if (!window.confirm("Marquer ce mot pour régénération audio ? Le son actuel sera retiré jusqu'au prochain lancement du script TTS.")) return;
+    const { error } = await supabase.from("vocabulary").update({ audio_url: null }).eq("id", id);
+    if (!error) fetchItems();
+  };
+
   if (authState !== "granted") {
     return <AdminGuardScreen state={authState} />;
   }
@@ -174,8 +184,27 @@ export default function VocabularyAdmin() {
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{v.word}</p>
                 <p className="text-xs text-zinc-400 truncate">{v.definition}</p>
+                <div className="flex items-center gap-2 pt-1">
+                  {v.audio_url ? (
+                    <>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase gap-1 text-emerald-600 border-emerald-100">
+                        <Volume2 size={10} /> Audio prêt
+                      </Badge>
+                      <audio controls src={v.audio_url} className="h-7" style={{ maxWidth: 180 }} />
+                    </>
+                  ) : (
+                    <Badge variant="outline" className="text-[9px] font-black uppercase text-zinc-400 border-zinc-200">
+                      Pas d'audio
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 shrink-0">
+                {v.audio_url && (
+                  <button onClick={() => handleClearAudio(v.id)} title="Marquer pour régénération audio" className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-amber-600">
+                    <RotateCcw size={15} />
+                  </button>
+                )}
                 <button onClick={() => openEditDialog(v)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
