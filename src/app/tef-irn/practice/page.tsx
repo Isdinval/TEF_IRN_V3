@@ -879,7 +879,10 @@ export function PracticeContent() {
           )}
         >
           <div
-            className={cn("w-full", showSplit && "md:h-full md:overflow-y-auto md:shrink-0")}
+            className={cn(
+              "w-full",
+              showSplit && "md:h-full md:overflow-y-auto md:shrink-0 md:flex md:flex-col md:items-center md:justify-center"
+            )}
             style={showSplit ? { width: `${leftPct}%` } : undefined}
           >
             <div className="max-w-2xl w-full mx-auto md:px-3">
