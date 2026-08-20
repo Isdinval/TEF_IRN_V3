@@ -6,7 +6,7 @@
  * manipule le DOM directement et ne supporte pas le rendu serveur.
  */
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Phone, Mail, ExternalLink } from "lucide-react";
@@ -30,7 +30,15 @@ const FRANCE_CENTER: [number, number] = [46.6, 2.4];
 const FRANCE_DEFAULT_ZOOM = 6;
 
 /** Recentre la carte quand la recherche (texte ou ville) change. */
-function MapUpdater({ activeGeo, markers }: { activeGeo: GeoPoint | null; markers: CentreWithDistance[] }) {
+function MapUpdater({
+  activeGeo,
+  markers,
+  radiusKm,
+}: {
+  activeGeo: GeoPoint | null;
+  markers: CentreWithDistance[];
+  radiusKm: number;
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -38,13 +46,15 @@ function MapUpdater({ activeGeo, markers }: { activeGeo: GeoPoint | null; marker
       map.flyTo(FRANCE_CENTER, FRANCE_DEFAULT_ZOOM);
       return;
     }
-    const bounds = L.latLngBounds([[activeGeo.lat, activeGeo.lon]]);
+    // Le cercle de rayon doit rester visible même quand peu (ou aucun) centre
+    // n'est dans le résultat : on inclut ses propres bornes dans le fitBounds.
+    const bounds = L.circle([activeGeo.lat, activeGeo.lon], { radius: radiusKm * 1000 }).getBounds();
     markers.forEach((c) => {
       if (c.latitude !== null && c.longitude !== null) bounds.extend([c.latitude, c.longitude]);
     });
     map.flyToBounds(bounds, { padding: [48, 48], maxZoom: 13 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeGeo, map]);
+  }, [activeGeo, radiusKm, map]);
 
   return null;
 }
@@ -52,9 +62,11 @@ function MapUpdater({ activeGeo, markers }: { activeGeo: GeoPoint | null; marker
 export function CentresMap({
   centres,
   activeGeo,
+  radiusKm,
 }: {
   centres: CentreWithDistance[];
   activeGeo: GeoPoint | null;
+  radiusKm: number;
 }) {
   const markers = centres.filter((c) => c.latitude !== null && c.longitude !== null);
 
@@ -65,7 +77,14 @@ export function CentresMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MapUpdater activeGeo={activeGeo} markers={markers} />
+        <MapUpdater activeGeo={activeGeo} markers={markers} radiusKm={radiusKm} />
+        {activeGeo && (
+          <Circle
+            center={[activeGeo.lat, activeGeo.lon]}
+            radius={radiusKm * 1000}
+            pathOptions={{ color: "#4f46e5", weight: 1.5, fillColor: "#4f46e5", fillOpacity: 0.06 }}
+          />
+        )}
         {markers.map((centre) => (
           <Marker key={centre.id} position={[centre.latitude as number, centre.longitude as number]}>
             <Popup>

@@ -176,7 +176,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           </p>
         )}
 
-        <Tabs defaultValue="map" className="mt-4">
+        <Tabs defaultValue="map" className="mt-4 flex-col">
           <TabsList className="grid w-full grid-cols-2 p-1 bg-zinc-100 rounded-2xl h-11 sm:w-64">
             <TabsTrigger value="map" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
               <MapIcon size={14} /> Carte
@@ -187,7 +187,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           </TabsList>
 
           <TabsContent value="map" className="mt-4">
-            <CentresMap centres={filtered} activeGeo={activeGeo} />
+            <CentresMap centres={filtered} activeGeo={activeGeo} radiusKm={radiusKm} />
           </TabsContent>
 
           <TabsContent value="liste" className="mt-4">
