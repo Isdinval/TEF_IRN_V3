@@ -34,6 +34,19 @@ const markerIcon = L.divIcon({
   popupAnchor: [0, -34],
 });
 
+// Marqueur du point de recherche : forme cible dorée, bien distincte des pins
+// indigo des centres, pour repérer immédiatement le centre du cercle de rayon.
+const searchOriginIcon = L.divIcon({
+  className: "",
+  html: `<svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="13" cy="13" r="11" fill="#D4AF37" fill-opacity="0.18" stroke="#D4AF37" stroke-width="1.5"/>
+    <circle cx="13" cy="13" r="4.5" fill="#D4AF37" stroke="white" stroke-width="2"/>
+  </svg>`,
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -13],
+});
+
 const FRANCE_CENTER: [number, number] = [46.6, 2.4];
 const FRANCE_DEFAULT_ZOOM = 6;
 
@@ -98,11 +111,18 @@ export function CentresMap({
         />
         <MapUpdater activeGeo={activeGeo} markers={markers} radiusKm={radiusKm} />
         {activeGeo && (
-          <Circle
-            center={[activeGeo.lat, activeGeo.lon]}
-            radius={radiusKm * 1000}
-            pathOptions={{ color: "#4f46e5", weight: 1.5, fillColor: "#4f46e5", fillOpacity: 0.06 }}
-          />
+          <>
+            <Circle
+              center={[activeGeo.lat, activeGeo.lon]}
+              radius={radiusKm * 1000}
+              pathOptions={{ color: "#4f46e5", weight: 1.5, fillColor: "#4f46e5", fillOpacity: 0.06 }}
+            />
+            <Marker position={[activeGeo.lat, activeGeo.lon]} icon={searchOriginIcon} zIndexOffset={1000}>
+              <Popup>
+                <p className="text-xs font-black text-zinc-900">{activeGeo.label}</p>
+              </Popup>
+            </Marker>
+          </>
         )}
         <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
           {markers.map((centre) => (
