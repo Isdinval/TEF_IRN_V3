@@ -236,11 +236,8 @@ function EcritMockup() {
               <p className="text-2xl font-black text-white">75<span className="text-xs opacity-40">/100</span></p>
             </div>
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
-              <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-1">Niveaux</p>
-              <div className="grid grid-cols-2 gap-x-2 text-[8px] font-bold text-emerald-300">
-                <span>Gr: 70</span><span>Voc: 80</span>
-                <span>Coh: 80</span><span>Orth: 70</span>
-              </div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-1">Niveau estimé</p>
+              <p className="text-2xl font-black text-white">A2</p>
             </div>
           </div>
 

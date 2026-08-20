@@ -70,8 +70,9 @@ export function CoachAwareness() {
 
   return (
     <section className="py-32 px-6 bg-white dark:bg-slate-900 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        {/* Colonne texte — 1ère dans le DOM (ordre mobile : texte puis chat), à droite en desktop */}
+        <div className="lg:order-2 text-left">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -86,7 +87,7 @@ export function CoachAwareness() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-black leading-tight text-slate-900 dark:text-white mb-6"
+            className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight text-slate-900 dark:text-white mb-6"
           >
             Pas un chatbot générique. <br />
             <span className="text-brand-blue dark:text-brand-gold">Assistant LlamaKusi vous suit, page après page.</span>
@@ -96,18 +97,19 @@ export function CoachAwareness() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto"
+            className="text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
           >
             Sur une leçon, un parcours, un exercice de rédaction ou une simulation orale, Assistant LlamaKusi sait exactement où vous en êtes et adapte ses réponses en conséquence — sans jamais avoir à lui réexpliquer votre situation.
           </motion.p>
         </div>
 
+        {/* Colonne chat animé — 2ᵉ dans le DOM (ordre mobile : après le texte), à gauche en desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="max-w-lg mx-auto"
+          className="lg:order-1 max-w-lg mx-auto lg:mx-0 w-full"
         >
           {/* Bandeau "page consultée" — change selon le scénario, façon barre de contexte */}
           <AnimatePresence mode="wait">
