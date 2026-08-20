@@ -343,7 +343,7 @@ export function VocabCoachContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => setMode("selection")} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-black transition-all">Retourner au catalogue</Button>
+            <Button onClick={() => { setFinished(false); setMode("selection"); }} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-black transition-all">Retourner au catalogue</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
