@@ -5,11 +5,11 @@ import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import VocabCard from "./components/VocabCard";
+import VocabAudioButton from "./components/VocabAudioButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Volume2,
   ArrowRight,
   Loader2,
   Sparkles,
@@ -35,6 +35,7 @@ interface Flashcard {
   example: string;
   level: string;
   category: string;
+  audio_url?: string | null;
 }
 
 type Step = "presentation" | "quiz" | "type";
@@ -417,9 +418,7 @@ export function VocabCoachContent() {
                 `}>
                   <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-2xl shadow-zinc-200 rounded-[2.5rem] group-hover:shadow-emerald-100 transition-all duration-500 bg-white text-center">
                     <h2 className="text-[clamp(1.5rem,3vw+0.75rem,2.25rem)] font-black text-zinc-900 mb-4 tracking-tighter">{current?.word}</h2>
-                    <Button size="icon" variant="secondary" className="rounded-full h-12 w-12 bg-zinc-50 text-zinc-900 hover:bg-emerald-600 hover:text-white transition-colors">
-                      <Volume2 size={24} />
-                    </Button>
+                    <VocabAudioButton audioUrl={current?.audio_url} variant="light" />
                     <p className="absolute bottom-8 text-[10px] text-zinc-300 uppercase font-black tracking-[0.4em] italic">Cliquer pour révéler</p>
                   </Card>
 
@@ -429,8 +428,9 @@ export function VocabCoachContent() {
                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500 rounded-full blur-3xl" />
                     </div>
                     <div className="text-center space-y-6 z-10">
-                      <div className="space-y-2">
+                      <div className="space-y-3 flex flex-col items-center">
                         <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Définition</div>
+                        <VocabAudioButton audioUrl={current?.audio_url} variant="dark" className="h-10 w-10" />
                         <p className="text-base font-bold leading-tight tracking-tight text-white">{current?.definition}</p>
                       </div>
                       <div className="space-y-2">
