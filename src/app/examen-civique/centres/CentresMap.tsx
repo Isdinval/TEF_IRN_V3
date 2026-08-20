@@ -56,7 +56,18 @@ function MapUpdater({
     }
     // Le cercle de rayon doit rester visible même quand peu (ou aucun) centre
     // n'est dans le résultat : on inclut ses propres bornes dans le fitBounds.
-    const bounds = L.circle([activeGeo.lat, activeGeo.lon], { radius: radiusKm * 1000 }).getBounds();
+    // ⚠️ Ne PAS utiliser L.circle(...).getBounds() ici : cette méthode lit
+    // this._map en interne (source Leaflet, Circle.getBounds), qui n'est
+    // défini qu'une fois le cercle ajouté à la carte — sur une instance
+    // autonome comme celle-ci, ça plante avec "Cannot read properties of
+    // undefined (reading 'layerPointToLatLng')" dès qu'une recherche
+    // géocodée aboutit. Calcul géographique direct à la place.
+    const latOffset = radiusKm / 111; // ~111 km par degré de latitude
+    const lonOffset = radiusKm / (111 * Math.cos((activeGeo.lat * Math.PI) / 180));
+    const bounds = L.latLngBounds(
+      [activeGeo.lat - latOffset, activeGeo.lon - lonOffset],
+      [activeGeo.lat + latOffset, activeGeo.lon + lonOffset]
+    );
     markers.forEach((c) => {
       if (c.latitude !== null && c.longitude !== null) bounds.extend([c.latitude, c.longitude]);
     });
