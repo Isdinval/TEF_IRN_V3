@@ -1,6 +1,32 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Exercise } from './parcours';
 
+interface AttemptRow {
+  exercise_id: string;
+  score: number | null;
+  is_completed: boolean;
+}
+
+interface ReviewRow {
+  exercise_id: string;
+  next_review_at: string;
+}
+
+interface ErrorRow {
+  category: string;
+  frequency: number;
+}
+
+/** Exercise enrichi du scoring interne du moteur de recommandation — le champ
+ *  recommendation_reason (et les autres) est utilisé côté UI (ExerciseCard
+ *  variant "hero") pour expliquer pourquoi l'exercice est proposé. */
+export interface ScoredExercise extends Exercise {
+  tier: number;
+  weakCategoryBoost: number;
+  pointCleAlreadyCovered: number;
+  recommendation_reason: string;
+}
+
 export interface ResolveContext {
   level: string;
   /** Si fourni, pool restreint à cette catégorie (cas /parcours/[slug], mono-catégorie).
@@ -64,7 +90,7 @@ export async function resolveNextExercises(
   context: ResolveContext,
   supabase: SupabaseClient,
   limit: number = 6
-): Promise<Exercise[]> {
+): Promise<ScoredExercise[]> {
   // Item 19 du plan "Refonte recommandation erreur -> tag -> ressource" :
   // si un tag précis est fourni sans lessonId explicite, on dérive la leçon
   // "canonique" de ce tag (même logique de matching que
@@ -89,7 +115,7 @@ export async function resolveNextExercises(
 
     if (lessonCandidates && lessonCandidates.length > 0) {
       const preferred = context.category
-        ? lessonCandidates.find((l: { category: string }) => l.category === context.category!.toLowerCase())
+        ? lessonCandidates.find((l: { id: string; category: string }) => l.category === context.category!.toLowerCase())
         : null;
       effectiveLessonId = (preferred || lessonCandidates[0]).id;
     }
@@ -121,14 +147,15 @@ export async function resolveNextExercises(
     query = query.eq('type', context.type);
   }
 
-  const { data: exercises, error: exercisesError } = await query.limit(50);
+  const { data, error: exercisesError } = await query.limit(50);
+  const exercises = data as Exercise[] | null;
 
   if (exercisesError || !exercises || exercises.length === 0) return [];
 
-  const exerciseIds = exercises.map((e: { id: string }) => e.id);
+  const exerciseIds = exercises.map((e) => e.id);
 
   // 2. Signaux, en parallèle
-  const [{ data: attempts }, { data: reviews }, { data: errors }] = await Promise.all([
+  const [attemptsResult, reviewsResult, errorsResult] = await Promise.all([
     supabase
       .from('exercise_attempts')
       .select('exercise_id, score, is_completed')
@@ -146,12 +173,15 @@ export async function resolveNextExercises(
       .order('frequency', { ascending: false })
       .limit(1)
   ]);
+  const attempts = attemptsResult.data as AttemptRow[] | null;
+  const reviews = reviewsResult.data as ReviewRow[] | null;
+  const errors = errorsResult.data as ErrorRow[] | null;
 
   const now = new Date();
   const dueExerciseIds = new Set(
     (reviews || [])
-      .filter((r: { next_review_at: string }) => new Date(r.next_review_at) <= now)
-      .map((r: { exercise_id: string }) => r.exercise_id)
+      .filter((r) => new Date(r.next_review_at) <= now)
+      .map((r) => r.exercise_id)
   );
   const topWeakCategory = errors?.[0]?.category?.toLowerCase();
 
@@ -164,18 +194,18 @@ export async function resolveNextExercises(
   // même point_clés_lesson.
   const coveredPointsCles = new Set(
     exercises
-      .filter((ex: any) => (attempts || []).some((a: any) => a.exercise_id === ex.id && a.is_completed))
-      .map((ex: any) => ex.point_cles_lesson)
+      .filter((ex) => (attempts || []).some((a) => a.exercise_id === ex.id && a.is_completed))
+      .map((ex) => ex.point_cles_lesson)
       .filter(Boolean)
   );
 
   // 3. Scoring : palier principal (priorité stricte) + boost catégorie faible en tri secondaire
-  const scored = exercises.map((ex: any) => {
-    const exAttempts = (attempts || []).filter((a: any) => a.exercise_id === ex.id);
-    const completedAttempts = exAttempts.filter((a: any) => a.is_completed);
+  const scored: ScoredExercise[] = exercises.map((ex) => {
+    const exAttempts = (attempts || []).filter((a) => a.exercise_id === ex.id);
+    const completedAttempts = exAttempts.filter((a) => a.is_completed);
     const isCompleted = completedAttempts.length > 0;
     const successRate = isCompleted
-      ? Math.max(...completedAttempts.map((a: any) => a.score || 0))
+      ? Math.max(...completedAttempts.map((a) => a.score || 0))
       : undefined;
 
     let tier: number;

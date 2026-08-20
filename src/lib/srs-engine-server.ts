@@ -1,5 +1,17 @@
 import { createClient as createServerClient } from './supabase-server';
 
+interface UserReviewRow {
+  id: string;
+  user_id: string;
+  exercise_id: string;
+  next_review_at: string;
+  interval_days: number;
+  ease_factor: number;
+  consecutive_correct: number;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Algorithme SM-2 simplifié pour la répétition espacée (SRS) — Exercices généraux.
  * Utilisé côté serveur uniquement (api/exercise-complete/route.ts), pour avoir accès
@@ -9,12 +21,13 @@ export async function updateSRS(userId: string, exerciseId: string, score: numbe
   const supabase = await createServerClient();
   const isCorrect = score >= 80;
 
-  const { data: existing } = await supabase
+  const { data } = await supabase
     .from('user_reviews')
     .select('*')
     .eq('user_id', userId)
     .eq('exercise_id', exerciseId)
     .maybeSingle();
+  const existing = data as UserReviewRow | null;
 
   let interval = 1;
   let ease = existing?.ease_factor || 2.5;
