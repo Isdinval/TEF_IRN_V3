@@ -28,12 +28,16 @@ export default function robots(): MetadataRoute.Robots {
           '/tef-irn/coach',
           '/tef-irn/correction',
           '/api',
-          '/admin',
+          // Chemin réel du panneau admin : /tef-irn/admin/*, pas /admin/* (qui
+          // n'existe pas). L'ancienne règle '/admin' ne bloquait donc rien —
+          // le panneau admin était crawlable/indexable depuis le lancement.
+          '/tef-irn/admin',
           '/tef-irn/login',
           '/tef-irn/onboarding',
           '/tef-irn/settings',
           '/tef-irn/profile',
           '/tef-irn/lessons/*/complete',
+          '/auth/reset-password',
           '/sitemap-debug',
         ],
       },
