@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Sparkles, ListChecks } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, ListChecks, AlertTriangle } from "lucide-react";
 import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
 import { OralAnalysisView } from "./components/OralAnalysisView";
 import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
@@ -35,6 +35,8 @@ export default function OralCoach() {
 
   const [allScenarios, setAllScenarios] = useState<ScenarioListItem[]>([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
+  const [scenariosError, setScenariosError] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [filterSection, setFilterSection] = useState<Section | "all">("all");
   const [filterLevel, setFilterLevel] = useState<Level | "all">("all");
 
@@ -64,18 +66,29 @@ export default function OralCoach() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenario]);
 
-  useEffect(() => {
+  const fetchScenarios = () => {
+    setLoadingScenarios(true);
+    setScenariosError(false);
     fetch("/api/oral/scenarios")
       .then((r) => r.json())
       .then((data) => {
         if (data.scenarios) setAllScenarios(data.scenarios);
       })
-      .catch((err) => console.error("Erreur chargement scénarios:", err))
+      .catch((err) => {
+        console.error("Erreur chargement scénarios:", err);
+        setScenariosError(true);
+      })
       .finally(() => setLoadingScenarios(false));
+  };
+
+  useEffect(() => {
+    fetchScenarios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startSession = async (scenarioId?: string) => {
     try {
+      setSessionError(null);
       setStatus("connecting");
       turnsRef.current = [];
       currentCoachTurn.current = "";
@@ -181,7 +194,12 @@ export default function OralCoach() {
     } catch (err) {
       console.error("Session start error:", err);
       setStatus("catalogue");
-      alert("Erreur lors de la connexion au micro. Vérifiez les autorisations.");
+      const isMicError = err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "NotFoundError");
+      setSessionError(
+        isMicError
+          ? "Accès au micro refusé ou indisponible. Vérifiez les autorisations de votre navigateur."
+          : "Impossible de démarrer la session. Vérifiez votre connexion, puis réessayez."
+      );
     }
   };
 
@@ -287,16 +305,34 @@ export default function OralCoach() {
         </header>
 
         {status === "catalogue" && (
-          <ScenarioCatalogue
-            scenarios={allScenarios}
-            loading={loadingScenarios}
-            section={filterSection}
-            level={filterLevel}
-            onSectionChange={setFilterSection}
-            onLevelChange={setFilterLevel}
-            onSelectScenario={(id) => startSession(id)}
-            onSurpriseMe={() => startSession()}
-          />
+          <>
+            {sessionError && (
+              <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4">
+                <AlertTriangle className="text-red-400 shrink-0" size={24} />
+                <p className="text-sm font-bold text-zinc-600">{sessionError}</p>
+              </Card>
+            )}
+            {scenariosError ? (
+              <Card className="rounded-[2rem] border-2 border-dashed border-red-200 bg-red-50/50 p-12 text-center">
+                <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+                <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices oraux. Vérifiez votre connexion.</p>
+                <Button onClick={fetchScenarios} variant="outline" className="rounded-2xl font-bold">
+                  Réessayer
+                </Button>
+              </Card>
+            ) : (
+              <ScenarioCatalogue
+                scenarios={allScenarios}
+                loading={loadingScenarios}
+                section={filterSection}
+                level={filterLevel}
+                onSectionChange={setFilterSection}
+                onLevelChange={setFilterLevel}
+                onSelectScenario={(id) => startSession(id)}
+                onSurpriseMe={() => startSession()}
+              />
+            )}
+          </>
         )}
 
         {(status === "connecting" || status === "active" || status === "analyzing") && (

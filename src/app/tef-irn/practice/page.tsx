@@ -21,7 +21,8 @@ import {
   Zap,
   GraduationCap,
   RotateCcw,
-  Search
+  Search,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
@@ -96,6 +97,7 @@ export function PracticeContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogueError, setCatalogueError] = useState(false);
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
@@ -143,6 +145,7 @@ export function PracticeContent() {
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
+    setCatalogueError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -218,6 +221,7 @@ export function PracticeContent() {
       }
     } catch (err) {
       console.error(err);
+      setCatalogueError(true);
     } finally {
       setLoadingCatalogue(false);
     }
@@ -757,6 +761,14 @@ export function PracticeContent() {
                     <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                   ))}
                 </div>
+              ) : catalogueError ? (
+                <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+                  <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+                  <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices. Vérifiez votre connexion.</p>
+                  <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
+                    Réessayer
+                  </Button>
+                </Card>
               ) : catalogue.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

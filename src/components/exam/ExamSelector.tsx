@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useExam, ExamMetadata } from '@/contexts/ExamContext';
 import { Badge } from '@/components/ui/badge';
-import { Headset, BookOpen, PenTool, Mic, ArrowRight, Loader2, Award } from 'lucide-react';
+import { Headset, BookOpen, PenTool, Mic, ArrowRight, Loader2, Award, AlertTriangle } from 'lucide-react';
 
 interface ExamSelectorProps {
   onSelect: (exam: ExamMetadata) => void;
@@ -19,7 +19,7 @@ function totalDuration(exam: ExamMetadata) {
 const ALL_LEVELS = 'Tous';
 
 export function ExamSelector({ onSelect }: ExamSelectorProps) {
-  const { exams, isLoadingExams } = useExam();
+  const { exams, isLoadingExams, examsError, refetchExams } = useExam();
   const [activeLevel, setActiveLevel] = useState<string>(ALL_LEVELS);
 
   const legs = (exam: ExamMetadata) => [
@@ -56,6 +56,17 @@ export function ExamSelector({ onSelect }: ExamSelectorProps) {
         {isLoadingExams ? (
           <div className="flex justify-center py-20 text-zinc-300">
             <Loader2 className="animate-spin" size={28} />
+          </div>
+        ) : examsError ? (
+          <div className="rounded-[2.5rem] border-2 border-dashed border-red-200 bg-red-50/50 p-12 text-center">
+            <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+            <p className="font-bold text-zinc-600 mb-4">Impossible de charger les examens blancs. Vérifiez votre connexion.</p>
+            <button
+              onClick={refetchExams}
+              className="rounded-full px-6 py-2 text-xs font-black uppercase tracking-widest bg-white text-zinc-500 border border-zinc-200 hover:border-indigo-200 hover:text-indigo-600 transition-all"
+            >
+              Réessayer
+            </button>
           </div>
         ) : (
           <>
