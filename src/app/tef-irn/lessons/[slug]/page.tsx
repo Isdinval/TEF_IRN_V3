@@ -9,7 +9,10 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
   const { slug } = await props.params;
   const supabase = await createClient();
 
-  let lesson = await getLessonBySlug(slug, supabase);
+  const [lesson, { data: { user } }] = await Promise.all([
+    getLessonBySlug(slug, supabase),
+    supabase.auth.getUser(),
+  ]);
 
   // Backward compatibility: if slug is a UUID, try to fetch by ID and redirect
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -32,9 +35,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     .eq('type', 'qcm_centre_entrainement')
     .limit(1)
     .maybeSingle();
-
-  // Fetch user session
-  const { data: { user } } = await supabase.auth.getUser();
 
   const lessonUrl = `${siteUrl}/tef-irn/lessons/${lesson.slug}`;
 

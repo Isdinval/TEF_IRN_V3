@@ -231,7 +231,7 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
                     };
                 }
 
-                const recommended = (await resolveNextExercises(user.id, { level: userLevel }, supabase, 6)) as any[];
+                const recommended = await resolveNextExercises(user.id, { level: userLevel }, supabase, 6);
                 if (recommended.length === 0) {
                     return { message: "Je n'ai pas encore assez de données pour te faire une recommandation personnalisée. Commence par un exercice et je pourrai mieux te guider ensuite !" };
                 }

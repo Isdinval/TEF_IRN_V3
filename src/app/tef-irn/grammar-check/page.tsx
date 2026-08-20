@@ -8,7 +8,7 @@ import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard"
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search } from "lucide-react";
+import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
@@ -112,6 +112,7 @@ export function GrammarCheckContent() {
   const [score, setScore] = useState(0);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogueError, setCatalogueError] = useState(false);
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
@@ -147,6 +148,7 @@ export function GrammarCheckContent() {
     if (isFetchingCatalogue.current) return;
     isFetchingCatalogue.current = true;
     setLoadingCatalogue(true);
+    setCatalogueError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -220,6 +222,7 @@ export function GrammarCheckContent() {
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
+      setCatalogueError(true);
     } finally {
       setLoadingCatalogue(false);
       isFetchingCatalogue.current = false;
@@ -615,7 +618,10 @@ export function GrammarCheckContent() {
           )}
         >
           <div
-            className={cn("w-full", showSplit && "md:h-full md:overflow-y-auto md:shrink-0")}
+            className={cn(
+              "w-full",
+              showSplit && "md:h-full md:overflow-y-auto md:shrink-0 md:flex md:flex-col md:items-center md:justify-center"
+            )}
             style={showSplit ? { width: `${leftPct}%` } : undefined}
           >
             <div className="max-w-2xl w-full mx-auto md:px-3">
@@ -911,6 +917,14 @@ export function GrammarCheckContent() {
                   <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                 ))}
               </div>
+            ) : catalogueError ? (
+              <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+                <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+                <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices. Vérifiez votre connexion.</p>
+                <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
+                  Réessayer
+                </Button>
+              </Card>
             ) : catalogue.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

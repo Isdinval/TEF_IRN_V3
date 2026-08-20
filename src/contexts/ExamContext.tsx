@@ -26,6 +26,8 @@ interface ExamContextType {
   activeExam: ExamMetadata | null;
   exams: ExamMetadata[];
   isLoadingExams: boolean;
+  examsError: boolean;
+  refetchExams: () => void;
   startExam: (type: 'single' | 'full', section?: ExamSectionType, examId?: string, isTimed?: boolean) => void;
   nextQuestion: () => void;
   prevQuestion: () => void;
@@ -63,6 +65,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const [activeExam, setActiveExam] = useState<ExamMetadata | null>(null);
   const [exams, setExams] = useState<ExamMetadata[]>([]);
   const [isLoadingExams, setIsLoadingExams] = useState(true);
+  const [examsError, setExamsError] = useState(false);
   const [sessionResults, setSessionResults] = useState<ExamResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrecting, setIsCorrecting] = useState(false);
@@ -72,6 +75,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAllExams = useCallback(async () => {
     setIsLoadingExams(true);
+    setExamsError(false);
     try {
       const { data, error } = await supabase
         .from('exams')
@@ -82,6 +86,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       setExams((data || []) as ExamMetadata[]);
     } catch (error) {
       console.error('Failed to fetch exams list:', error);
+      setExamsError(true);
     } finally {
       setIsLoadingExams(false);
     }
@@ -485,6 +490,8 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       activeExam,
       exams,
       isLoadingExams,
+      examsError,
+      refetchExams: fetchAllExams,
       startExam,
       nextQuestion,
       prevQuestion,

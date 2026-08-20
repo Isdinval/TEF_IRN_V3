@@ -1,13 +1,14 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { Element as HastElement, ElementContent } from "hast";
 import { BookOpen, GraduationCap, Sparkles, MessageSquare, AlertTriangle, CheckCircle2, Lightbulb } from "lucide-react";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-// (identiques à ceux de src/app/tef-irn/lessons/[slug]/LessonInteractive.tsx —
-// gardés en synchro ici pour que toute page affichant du contenu de leçon
-// (lessons/[slug], grammar-check, etc.) ait exactement le même rendu.)
+// Utilisés par LessonMarkdown, importé par toute page affichant du contenu de
+// leçon (lessons/[slug]/LessonInteractive, grammar-check, practice, etc.)
+// pour garantir un rendu identique sur toute l'app.
 
 function stripEmoji(text: string) {
   return text.replace(/^[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]\s*/u, "").trim();
@@ -19,6 +20,14 @@ function isMnemo(text: string) {
 
 function parseMnemoLetters(text: string): string[] {
   return text.trim().split(/[\s·]+/).filter(Boolean);
+}
+
+/** Concatène récursivement le texte brut d'un noeud hast (Element ou ElementContent). */
+function getNodeText(node: ElementContent | HastElement | undefined): string {
+  if (!node) return "";
+  if (node.type === "text") return node.value;
+  if (node.type === "element") return node.children.map(getNodeText).join("");
+  return "";
 }
 
 const DialogueContent = ({ text, isMe }: { text: string; isMe: boolean }) => {
@@ -50,10 +59,15 @@ const DialogueContent = ({ text, isMe }: { text: string; isMe: boolean }) => {
  */
 export default function LessonMarkdown({ content }: { content: string }) {
   let dialogueLineIndex = 0;
+  // react-markdown v10 (API hast) ne fournit plus le prop `ordered` sur li ni
+  // `node.parent` sur les noeuds — ces deux informations doivent être suivies
+  // manuellement au fil du rendu, sur le même principe que dialogueLineIndex.
+  let currentListOrdered = false;
+  let currentColumnIndex = 0;
 
-  const markdownComponents = {
-    h1: ({ children }: any) => <h1 className="hidden">{children}</h1>,
-    h2: ({ children }: any) => {
+  const markdownComponents: Components = {
+    h1: ({ children }) => <h1 className="hidden">{children}</h1>,
+    h2: ({ children }) => {
       const raw = children?.toString() || "";
       const title = stripEmoji(raw);
       const isTheorie = title.includes("Théorie");
@@ -68,9 +82,9 @@ export default function LessonMarkdown({ content }: { content: string }) {
         </div>
       );
     },
-    h3: ({ children }: any) => <h3 className="text-lg font-bold text-slate-700 mt-8 mb-4 border-l-4 border-indigo-200 pl-4">{children}</h3>,
-    p: ({ children, node }: any) => {
-      const isBoldLabel = node?.children?.length === 1 && node.children[0]?.tagName === "strong";
+    h3: ({ children }) => <h3 className="text-lg font-bold text-slate-700 mt-8 mb-4 border-l-4 border-indigo-200 pl-4">{children}</h3>,
+    p: ({ children, node }) => {
+      const isBoldLabel = node?.children?.length === 1 && node.children[0]?.type === "element" && node.children[0].tagName === "strong";
       if (isBoldLabel) {
         dialogueLineIndex = 0;
         return (
@@ -82,10 +96,11 @@ export default function LessonMarkdown({ content }: { content: string }) {
       }
       return <p className="text-slate-600 leading-relaxed mb-4 font-medium">{children}</p>;
     },
-    ul: ({ children }: any) => <ul className="space-y-2 my-6">{children}</ul>,
-    ol: ({ children }: any) => <ol className="space-y-3 my-6 list-none p-0">{children}</ol>,
-    li: ({ children, node, ordered }: any) => {
-      const rawText = node?.children?.map((c: any) => c.value || c.children?.map((cc: any) => cc.value || "").join("") || "").join("") || "";
+    ul: ({ children }) => { currentListOrdered = false; return <ul className="space-y-2 my-6">{children}</ul>; },
+    ol: ({ children }) => { currentListOrdered = true; return <ol className="space-y-3 my-6 list-none p-0">{children}</ol>; },
+    li: ({ children, node }) => {
+      const ordered = currentListOrdered;
+      const rawText = node?.children?.map(getNodeText).join("") || "";
       if (rawText.startsWith("⚠️") || rawText.startsWith("⚠")) {
         return (
           <li className="flex items-start gap-3">
@@ -114,15 +129,14 @@ export default function LessonMarkdown({ content }: { content: string }) {
         </li>
       );
     },
-    em: ({ children, node }: any) => {
+    em: ({ children, node }) => {
       let text = "";
       if (node?.children) {
         for (const child of node.children) {
           if (child.type === "text") text += child.value;
-          else if (child.type === "strong" && child.children) {
-            const strongText = child.children.map((c: any) => c.value || "").join("");
-            text += `**${strongText}**`;
-          } else if (child.children) text += child.children.map((c: any) => c.value || "").join("");
+          else if (child.type === "element" && child.tagName === "strong") {
+            text += `**${child.children.map(getNodeText).join("")}**`;
+          } else if (child.type === "element") text += child.children.map(getNodeText).join("");
         }
       } else text = children?.toString() || "";
       if (text.startsWith("— ")) {
@@ -132,7 +146,7 @@ export default function LessonMarkdown({ content }: { content: string }) {
       }
       return <em className="italic text-slate-600">{children}</em>;
     },
-    strong: ({ children }: any) => {
+    strong: ({ children }) => {
       const text = children?.toString() || "";
       if (isMnemo(text)) {
         const letters = parseMnemoLetters(text);
@@ -146,16 +160,17 @@ export default function LessonMarkdown({ content }: { content: string }) {
       }
       return <strong className="font-black text-indigo-900">{children}</strong>;
     },
-    table: ({ children }: any) => <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm"><table className="w-full text-sm">{children}</table></div>,
-    thead: ({ children }: any) => <thead className="bg-indigo-50 text-indigo-700">{children}</thead>,
-    tbody: ({ children }: any) => <tbody className="divide-y divide-zinc-50 bg-white">{children}</tbody>,
-    tr: ({ children }: any) => <tr className="hover:bg-zinc-50/60 transition-colors">{children}</tr>,
-    th: ({ children }: any) => <th className="px-5 py-3 text-left text-[11px] font-black uppercase tracking-widest">{children}</th>,
-    td: ({ children, node }: any) => {
-      const isFirst = (node?.parent?.children?.indexOf(node) === 0);
+    table: ({ children }) => <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm"><table className="w-full text-sm">{children}</table></div>,
+    thead: ({ children }) => <thead className="bg-indigo-50 text-indigo-700">{children}</thead>,
+    tbody: ({ children }) => <tbody className="divide-y divide-zinc-50 bg-white">{children}</tbody>,
+    tr: ({ children }) => { currentColumnIndex = 0; return <tr className="hover:bg-zinc-50/60 transition-colors">{children}</tr>; },
+    th: ({ children }) => <th className="px-5 py-3 text-left text-[11px] font-black uppercase tracking-widest">{children}</th>,
+    td: ({ children }) => {
+      const isFirst = currentColumnIndex === 0;
+      currentColumnIndex++;
       return <td className={`px-5 py-3 ${isFirst ? "font-bold text-slate-800" : "text-slate-500 font-medium"}`}>{children}</td>;
     },
-    blockquote: ({ children }: any) => (
+    blockquote: ({ children }) => (
       <div className="my-10 p-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-100 rounded-[2rem] relative overflow-hidden shadow-sm">
         <Lightbulb className="absolute -right-4 -top-4 text-amber-200/30 w-32 h-32 rotate-12" />
         <div className="relative z-10">

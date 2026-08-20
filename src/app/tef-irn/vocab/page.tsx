@@ -19,7 +19,8 @@ import {
   Zap,
   GraduationCap,
   Calendar,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle
 } from "lucide-react";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,6 +59,7 @@ export function VocabCoachContent() {
   const [loading, setLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<any[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogueError, setCatalogueError] = useState(false);
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
@@ -79,6 +81,7 @@ export function VocabCoachContent() {
     if (isFetchingCatalogue.current) return;
     isFetchingCatalogue.current = true;
     setLoadingCatalogue(true);
+    setCatalogueError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -110,6 +113,7 @@ export function VocabCoachContent() {
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
+      setCatalogueError(true);
     } finally {
       setLoadingCatalogue(false);
       isFetchingCatalogue.current = false;
@@ -343,7 +347,7 @@ export function VocabCoachContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => setMode("selection")} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-black transition-all">Retourner au catalogue</Button>
+            <Button onClick={() => { setFinished(false); setMode("selection"); }} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-black transition-all">Retourner au catalogue</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
@@ -678,6 +682,14 @@ export function VocabCoachContent() {
                   <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                 ))}
               </div>
+            ) : catalogueError ? (
+              <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+                <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+                <p className="font-bold text-zinc-600 mb-4">Impossible de charger le vocabulaire. Vérifiez votre connexion.</p>
+                <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
+                  Réessayer
+                </Button>
+              </Card>
             ) : catalogue.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {catalogue.map((item: any) => (

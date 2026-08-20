@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
@@ -29,12 +29,58 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<ParcoursProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Cache court-terme : quand nextLesson() vient de recalculer parcours/progression/
+  // leçons juste avant de naviguer, on évite de tout re-télécharger depuis zéro dans
+  // loadParcoursData() sur la page de destination (même Provider, pas de remontage
+  // entre deux navigations client-side). Consommé une seule fois puis vidé.
+  const freshDataRef = useRef<{
+    parcoursId: string;
+    userId: string;
+    parcours: Parcours;
+    progress: ParcoursProgress;
+    lessons: Lesson[];
+  } | null>(null);
+
   const parcoursId = searchParams.get("parcoursId");
   const lessonId = searchParams.get("lessonId");
 
   const loadParcoursData = useCallback(async (pId: string, lId: string | null) => {
     setIsLoading(true);
     try {
+      // Chemin rapide : données déjà fraîches, calculées juste avant la navigation
+      // par nextLesson(). On évite 4 aller-retours Supabase redondants.
+      const cached = freshDataRef.current;
+      if (cached && cached.parcoursId === pId) {
+        freshDataRef.current = null;
+
+        const currentLesson = lId ? cached.lessons.find(l => l.id === lId) || null : null;
+        setActiveParcours(cached.parcours);
+        setProgress(cached.progress);
+        setActiveLesson(currentLesson);
+        setIsLoading(false);
+
+        // Sync with DB en arrière-plan — n'a pas besoin de bloquer l'affichage,
+        // ces écritures ne conditionnent aucun rendu.
+        (async () => {
+          const { error } = await supabase.from('user_parcours_progress').upsert({
+            user_id: cached.userId,
+            parcours_id: pId,
+            current_lesson_id: lId,
+            last_activity_at: new Date().toISOString(),
+            progress_percentage: cached.progress.percent
+          });
+          if (error) console.error("Error syncing user_parcours_progress:", error);
+        })();
+        (async () => {
+          const { error } = await supabase.from('profiles').update({
+            last_active_parcours_id: pId
+          }).eq('id', cached.userId);
+          if (error) console.error("Error syncing profile:", error);
+        })();
+
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setIsLoading(false);
@@ -47,8 +93,10 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const prog = await getParcoursProgress(user.id, p.level, p.category);
-      const lessons = await getLessonsForParcours(p.level, p.category);
+      const [prog, lessons] = await Promise.all([
+        getParcoursProgress(user.id, p.level, p.category),
+        getLessonsForParcours(p.level, p.category),
+      ]);
 
       let currentLesson = null;
       if (lId) {
@@ -59,18 +107,20 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       setProgress(prog);
       setActiveLesson(currentLesson);
 
-      // Sync with DB
-      await supabase.from('user_parcours_progress').upsert({
-        user_id: user.id,
-        parcours_id: pId,
-        current_lesson_id: lId,
-        last_activity_at: new Date().toISOString(),
-        progress_percentage: prog.percent
-      });
-
-      await supabase.from('profiles').update({
-        last_active_parcours_id: pId
-      }).eq('id', user.id);
+      // Sync with DB — les deux écritures sont indépendantes (tables différentes),
+      // exécutées en parallèle plutôt qu'en série.
+      await Promise.all([
+        supabase.from('user_parcours_progress').upsert({
+          user_id: user.id,
+          parcours_id: pId,
+          current_lesson_id: lId,
+          last_activity_at: new Date().toISOString(),
+          progress_percentage: prog.percent
+        }),
+        supabase.from('profiles').update({
+          last_active_parcours_id: pId
+        }).eq('id', user.id),
+      ]);
 
     } catch (error) {
       console.error("Error loading parcours context:", error);
@@ -185,6 +235,13 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (target) {
+      freshDataRef.current = {
+        parcoursId: activeParcours.id,
+        userId: user.id,
+        parcours: activeParcours,
+        progress: freshProgress,
+        lessons,
+      };
       router.push(`/tef-irn/lessons/${target.slug}?parcoursId=${activeParcours.id}`);
     } else {
       router.push(`/tef-irn/parcours/${activeParcours.slug}/complete`);

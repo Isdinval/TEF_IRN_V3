@@ -21,7 +21,8 @@ import {
   Zap,
   GraduationCap,
   RotateCcw,
-  Search
+  Search,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
@@ -96,6 +97,8 @@ export function PracticeContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
+  const [catalogueError, setCatalogueError] = useState(false);
+  const [saveScoreError, setSaveScoreError] = useState(false);
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
@@ -143,6 +146,7 @@ export function PracticeContent() {
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
+    setCatalogueError(false);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -218,6 +222,7 @@ export function PracticeContent() {
       }
     } catch (err) {
       console.error(err);
+      setCatalogueError(true);
     } finally {
       setLoadingCatalogue(false);
     }
@@ -504,6 +509,7 @@ export function PracticeContent() {
     setSelected(null);
     setIsChecked(false);
     setLessonVisible(false);
+    setSaveScoreError(false);
     if (exerciseIdFromParams) {
       fetchExerciseById(exerciseIdFromParams);
     } else {
@@ -531,15 +537,16 @@ export function PracticeContent() {
       setIsChecked(false);
       setLessonVisible(false);
     } else {
-      await saveScore();
+      const saved = await saveScore();
+      setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
     }
   };
 
-  const saveScore = async () => {
+  const saveScore = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return true; // Pas connecté : rien à sauvegarder, pas une erreur.
 
     const finalScore = Math.round((score / questions.length) * 100);
     const exerciseId = questions[0].exercise_id;
@@ -547,16 +554,22 @@ export function PracticeContent() {
       ? Math.round((Date.now() - sessionStartRef.current) / 60000)
       : 0;
 
-    await fetch('/api/exercise-complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        exerciseId,
-        score: finalScore,
-        answers: { correct: score, total: questions.length },
-        studyTimeMinutes
-      })
-    });
+    try {
+      const res = await fetch('/api/exercise-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId,
+          score: finalScore,
+          answers: { correct: score, total: questions.length },
+          studyTimeMinutes
+        })
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Error saving score:", err);
+      return false;
+    }
   };
 
   if (isLoading) {
@@ -616,6 +629,22 @@ export function PracticeContent() {
               <div className="text-2xl font-black text-purple-600">{score} / {questions.length}</div>
             </div>
           </div>
+          {saveScoreError && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex items-center gap-3 text-left">
+              <AlertTriangle className="text-red-400 shrink-0" size={20} />
+              <div className="flex-1">
+                <p className="text-xs font-bold text-zinc-600">Ce score n'a pas pu être enregistré.</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => setSaveScoreError(!(await saveScore()))}
+                className="rounded-xl font-bold text-xs shrink-0"
+              >
+                Réessayer
+              </Button>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <Button
               onClick={handleBackToCatalogue}
@@ -757,6 +786,14 @@ export function PracticeContent() {
                     <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
                   ))}
                 </div>
+              ) : catalogueError ? (
+                <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+                  <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
+                  <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices. Vérifiez votre connexion.</p>
+                  <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
+                    Réessayer
+                  </Button>
+                </Card>
               ) : catalogue.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -867,7 +904,10 @@ export function PracticeContent() {
           )}
         >
           <div
-            className={cn("w-full", showSplit && "md:h-full md:overflow-y-auto md:shrink-0")}
+            className={cn(
+              "w-full",
+              showSplit && "md:h-full md:overflow-y-auto md:shrink-0 md:flex md:flex-col md:items-center md:justify-center"
+            )}
             style={showSplit ? { width: `${leftPct}%` } : undefined}
           >
             <div className="max-w-2xl w-full mx-auto md:px-3">
