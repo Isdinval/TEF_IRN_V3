@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, ExternalLink, MapPin, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Phone, Mail, ExternalLink, MapPin, Loader2, Map as MapIcon, List as ListIcon } from "lucide-react";
 import type { Centre } from "./types";
 import { PRODUIT_LABELS } from "./types";
 import {
@@ -14,6 +16,17 @@ import {
   geocodeCity,
   type GeoPoint,
 } from "./geo";
+
+// react-leaflet manipule le DOM directement (pas de SSR possible) : chargement
+// client uniquement, avec un placeholder le temps du chargement du bundle.
+const CentresMap = dynamic(() => import("./CentresMap").then((m) => m.CentresMap), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[65vh] min-h-[420px] items-center justify-center rounded-[2rem] border border-zinc-100 bg-white text-xs font-bold text-zinc-400">
+      Chargement de la carte…
+    </div>
+  ),
+});
 
 type CentreWithDistance = Centre & { distanceKm?: number };
 
@@ -163,9 +176,24 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           </p>
         )}
 
-        <div className="mt-4">
-          <CentresList centres={filtered} />
-        </div>
+        <Tabs defaultValue="map" className="mt-4">
+          <TabsList className="grid w-full grid-cols-2 p-1 bg-zinc-100 rounded-2xl h-11 sm:w-64">
+            <TabsTrigger value="map" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
+              <MapIcon size={14} /> Carte
+            </TabsTrigger>
+            <TabsTrigger value="liste" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
+              <ListIcon size={14} /> Liste
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="map" className="mt-4">
+            <CentresMap centres={filtered} activeGeo={activeGeo} />
+          </TabsContent>
+
+          <TabsContent value="liste" className="mt-4">
+            <CentresList centres={filtered} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
