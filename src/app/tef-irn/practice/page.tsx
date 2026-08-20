@@ -98,6 +98,7 @@ export function PracticeContent() {
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
+  const [saveScoreError, setSaveScoreError] = useState(false);
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [catalogTotalCount, setCatalogTotalCount] = useState(0);
@@ -508,6 +509,7 @@ export function PracticeContent() {
     setSelected(null);
     setIsChecked(false);
     setLessonVisible(false);
+    setSaveScoreError(false);
     if (exerciseIdFromParams) {
       fetchExerciseById(exerciseIdFromParams);
     } else {
@@ -535,15 +537,16 @@ export function PracticeContent() {
       setIsChecked(false);
       setLessonVisible(false);
     } else {
-      await saveScore();
+      const saved = await saveScore();
+      setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
     }
   };
 
-  const saveScore = async () => {
+  const saveScore = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return true; // Pas connecté : rien à sauvegarder, pas une erreur.
 
     const finalScore = Math.round((score / questions.length) * 100);
     const exerciseId = questions[0].exercise_id;
@@ -551,16 +554,22 @@ export function PracticeContent() {
       ? Math.round((Date.now() - sessionStartRef.current) / 60000)
       : 0;
 
-    await fetch('/api/exercise-complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        exerciseId,
-        score: finalScore,
-        answers: { correct: score, total: questions.length },
-        studyTimeMinutes
-      })
-    });
+    try {
+      const res = await fetch('/api/exercise-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId,
+          score: finalScore,
+          answers: { correct: score, total: questions.length },
+          studyTimeMinutes
+        })
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Error saving score:", err);
+      return false;
+    }
   };
 
   if (isLoading) {
@@ -620,6 +629,22 @@ export function PracticeContent() {
               <div className="text-2xl font-black text-purple-600">{score} / {questions.length}</div>
             </div>
           </div>
+          {saveScoreError && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex items-center gap-3 text-left">
+              <AlertTriangle className="text-red-400 shrink-0" size={20} />
+              <div className="flex-1">
+                <p className="text-xs font-bold text-zinc-600">Ce score n'a pas pu être enregistré.</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => setSaveScoreError(!(await saveScore()))}
+                className="rounded-xl font-bold text-xs shrink-0"
+              >
+                Réessayer
+              </Button>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <Button
               onClick={handleBackToCatalogue}
