@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useChat } from '@ai-sdk/react';
 import {
   X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check
@@ -195,8 +196,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       {/* Fixed Header */}
       <div className="p-4 bg-indigo-600 text-white flex justify-between items-center shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-white/20 rounded-xl w-12 h-12 overflow-hidden shrink-0">
-            <img src={mascotUrl} alt="Mascotte LlamaKusi" className="w-full h-full object-contain object-bottom" />
+          <div className="bg-white/20 rounded-xl w-12 h-12 overflow-hidden shrink-0 relative">
+            <Image src={mascotUrl} alt="Mascotte LlamaKusi" fill sizes="48px" className="object-contain object-bottom" />
           </div>
           <div>
             <h3 className="font-bold text-sm leading-tight text-white">Assistant LlamaKusi</h3>
@@ -267,8 +268,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
           {isLoading && !messages[messages.length - 1]?.content && (
             <div className="flex justify-start">
-              <div className="bg-white p-2 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm w-12 h-12 overflow-hidden">
-                <img src={mascotUrl} alt="Assistant LlamaKusi réfléchit" className="w-full h-full object-contain" />
+              <div className="bg-white p-2 rounded-2xl rounded-tl-none border border-zinc-200 shadow-sm w-12 h-12 overflow-hidden relative">
+                <Image src={mascotUrl} alt="Assistant LlamaKusi réfléchit" fill sizes="48px" className="object-contain" />
               </div>
             </div>
           )}
@@ -285,7 +286,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
           {messages.length === 1 && !isLoading && (
             <div className="flex justify-center pt-2">
-              <img src={idleMascotUrl} alt="Mascotte LlamaKusi" className="w-28 h-28 object-contain" />
+              <Image src={idleMascotUrl} alt="Mascotte LlamaKusi" width={112} height={112} className="w-28 h-28 object-contain" />
             </div>
           )}
 
@@ -367,7 +368,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
             }}
             className="absolute inset-0 bg-white/30 rounded-full"
           />
-          <img src={idleMascotUrl} alt="Ouvrir l'Assistant LlamaKusi" className="w-10 h-10 object-contain relative z-10" />
+          <Image src={idleMascotUrl} alt="Ouvrir l'Assistant LlamaKusi" width={40} height={40} className="w-10 h-10 object-contain relative z-10" />
         </Button>
       </motion.div>
     );
