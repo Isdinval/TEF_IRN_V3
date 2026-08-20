@@ -47,8 +47,10 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const prog = await getParcoursProgress(user.id, p.level, p.category);
-      const lessons = await getLessonsForParcours(p.level, p.category);
+      const [prog, lessons] = await Promise.all([
+        getParcoursProgress(user.id, p.level, p.category),
+        getLessonsForParcours(p.level, p.category),
+      ]);
 
       let currentLesson = null;
       if (lId) {
@@ -59,18 +61,20 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       setProgress(prog);
       setActiveLesson(currentLesson);
 
-      // Sync with DB
-      await supabase.from('user_parcours_progress').upsert({
-        user_id: user.id,
-        parcours_id: pId,
-        current_lesson_id: lId,
-        last_activity_at: new Date().toISOString(),
-        progress_percentage: prog.percent
-      });
-
-      await supabase.from('profiles').update({
-        last_active_parcours_id: pId
-      }).eq('id', user.id);
+      // Sync with DB — les deux écritures sont indépendantes (tables différentes),
+      // exécutées en parallèle plutôt qu'en série.
+      await Promise.all([
+        supabase.from('user_parcours_progress').upsert({
+          user_id: user.id,
+          parcours_id: pId,
+          current_lesson_id: lId,
+          last_activity_at: new Date().toISOString(),
+          progress_percentage: prog.percent
+        }),
+        supabase.from('profiles').update({
+          last_active_parcours_id: pId
+        }).eq('id', user.id),
+      ]);
 
     } catch (error) {
       console.error("Error loading parcours context:", error);

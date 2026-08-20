@@ -80,24 +80,27 @@ export async function getParcoursProgress(
   parcoursId?: string,
   supabase: SupabaseClient = defaultSupabase
 ): Promise<ParcoursProgress> {
-  // 1. Fetch user progress from user_parcours_progress
-  let userProgress = null;
-  if (parcoursId) {
-    const { data } = await supabase
-      .from('user_parcours_progress')
-      .select('status, started_at')
-      .eq('user_id', userId)
-      .eq('parcours_id', parcoursId)
-      .single();
-    userProgress = data;
-  }
+  // 1. Fetch user progress from user_parcours_progress + 2. lessons du niveau/catégorie
+  // Requêtes indépendantes l'une de l'autre : exécutées en parallèle plutôt qu'en
+  // série pour réduire le nombre d'aller-retours réseau séquentiels.
+  const [userProgressResult, lessonsResult] = await Promise.all([
+    parcoursId
+      ? supabase
+          .from('user_parcours_progress')
+          .select('status, started_at')
+          .eq('user_id', userId)
+          .eq('parcours_id', parcoursId)
+          .single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from('lessons')
+      .select('id')
+      .eq('level', level)
+      .eq('category', category),
+  ]);
 
-  // 2. Calculate lesson-based progress
-  const { data: lessons, error: lessonsError } = await supabase
-    .from('lessons')
-    .select('id')
-    .eq('level', level)
-    .eq('category', category);
+  const userProgress = userProgressResult.data;
+  const { data: lessons, error: lessonsError } = lessonsResult;
 
   if (lessonsError || !lessons) {
     return {
