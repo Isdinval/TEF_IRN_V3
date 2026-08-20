@@ -4,7 +4,7 @@
  * La recherche texte (nom/ville/code postal) ne trouve rien pour une commune
  * qui n'a pas de centre agréé (ex. "Gignac-la-Nerthe"), même quand des centres
  * existent à quelques km (Marseille, Aix-en-Provence...). On complète donc avec
- * un géocodage + un filtre par rayon.
+ * un autocomplete d'adresse (API Adresse data.gouv.fr) + un filtre par rayon.
  */
 
 export interface GeoPoint {
@@ -43,23 +43,40 @@ export function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lo
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+export interface AddressSuggestion extends GeoPoint {
+  id: string;
+  /** Contexte secondaire renvoyé par l'API (ex. "13 - Bouches-du-Rhône - Provence-Alpes-Côte d'Azur"). */
+  context?: string;
+}
+
+interface ApiAdresseFeature {
+  geometry: { coordinates: [number, number] };
+  properties: { id?: string; label: string; context?: string };
+}
+
 /**
- * Géocode une commune française via l'API Adresse (data.gouv.fr) : gratuite,
- * sans clé, CORS ouvert pour un appel côté navigateur. `type=municipality`
- * restreint aux communes (on cherche une ville, pas une adresse postale précise).
+ * Recherche d'adresses via l'API Adresse (data.gouv.fr) : gratuite, sans clé,
+ * CORS ouvert pour un appel côté navigateur. Contrairement à l'ancien
+ * `geocodeCity` (restreint aux communes), cet endpoint couvre tous les
+ * niveaux de précision (numéro de rue, rue, lieu-dit, commune) — nécessaire
+ * pour un autocomplete d'adresse fiable. `signal` permet d'annuler une
+ * requête devenue obsolète (l'utilisateur a retapé entre-temps).
  */
-export async function geocodeCity(query: string): Promise<GeoPoint | null> {
-  try {
-    const res = await fetch(
-      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&type=municipality&limit=1`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const feature = data?.features?.[0];
-    if (!feature) return null;
-    const [lon, lat] = feature.geometry.coordinates;
-    return { lat, lon, label: feature.properties.label as string };
-  } catch {
-    return null;
-  }
+export async function searchAddresses(query: string, signal?: AbortSignal): Promise<AddressSuggestion[]> {
+  const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`, {
+    signal,
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  const features: ApiAdresseFeature[] = data?.features ?? [];
+  return features.map((f, i) => {
+    const [lon, lat] = f.geometry.coordinates;
+    return {
+      id: f.properties.id ?? `${lat}-${lon}-${i}`,
+      lat,
+      lon,
+      label: f.properties.label,
+      context: f.properties.context,
+    };
+  });
 }

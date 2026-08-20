@@ -2,10 +2,7 @@
  * page.tsx — Server Component.
  * Récupère les centres agréés depuis Supabase (données mises à jour manuellement
  * ~1x/mois, cf. pipeline scrape → enrich → import), injecte le JSON-LD et délègue
- * le rendu interactif (recherche) à CivicCentres.
- *
- * V1 : liste/cartes uniquement, pas de carte interactive (react-leaflet pas encore
- * en dépendance — voir CentresMap.tsx dans une itération future pour la V2).
+ * le rendu interactif (recherche + double vue Carte/Liste) à CivicCentres.
  */
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase-server";
