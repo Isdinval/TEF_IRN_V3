@@ -7,8 +7,11 @@
  */
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { Phone, Mail, ExternalLink } from "lucide-react";
 import type { Centre } from "./types";
 import { PRODUIT_LABELS } from "./types";
@@ -16,14 +19,19 @@ import type { GeoPoint } from "./geo";
 
 type CentreWithDistance = Centre & { distanceKm?: number };
 
-// Les icônes par défaut de Leaflet référencent des chemins d'images que le
-// bundler Next.js casse. On les recharge explicitement depuis le CDN unpkg
-// (même version que la dépendance "leaflet" installée).
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+// Icône de marqueur custom (pin indigo + point blanc), cohérente avec l'accent
+// visuel déjà utilisé sur cette page (MapPin indigo dans la vue Liste). Évite
+// aussi le hack habituel de rechargement des icônes par défaut de Leaflet
+// depuis un CDN externe — pas de dépendance réseau au runtime.
+const markerIcon = L.divIcon({
+  className: "",
+  html: `<svg width="28" height="38" viewBox="0 0 28 38" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 24 14 24s14-13.5 14-24C28 6.268 21.732 0 14 0z" fill="#4f46e5"/>
+    <circle cx="14" cy="14" r="5.5" fill="white"/>
+  </svg>`,
+  iconSize: [28, 38],
+  iconAnchor: [14, 38],
+  popupAnchor: [0, -34],
 });
 
 const FRANCE_CENTER: [number, number] = [46.6, 2.4];
@@ -85,49 +93,51 @@ export function CentresMap({
             pathOptions={{ color: "#4f46e5", weight: 1.5, fillColor: "#4f46e5", fillOpacity: 0.06 }}
           />
         )}
-        {markers.map((centre) => (
-          <Marker key={centre.id} position={[centre.latitude as number, centre.longitude as number]}>
-            <Popup>
-              <div className="min-w-[200px] text-xs">
-                <p className="text-sm font-black text-zinc-900">{centre.nom}</p>
-                <p className="mt-1 text-zinc-500">{centre.adresse}</p>
-                {centre.distanceKm !== undefined && (
-                  <p className="mt-1 font-bold text-indigo-500">à {Math.round(centre.distanceKm)} km</p>
-                )}
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {centre.produits.map((p) => (
-                    <span
-                      key={p}
-                      className="rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-black uppercase text-zinc-500"
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
+          {markers.map((centre) => (
+            <Marker key={centre.id} position={[centre.latitude as number, centre.longitude as number]} icon={markerIcon}>
+              <Popup>
+                <div className="min-w-[200px] text-xs">
+                  <p className="text-sm font-black text-zinc-900">{centre.nom}</p>
+                  <p className="mt-1 text-zinc-500">{centre.adresse}</p>
+                  {centre.distanceKm !== undefined && (
+                    <p className="mt-1 font-bold text-indigo-500">à {Math.round(centre.distanceKm)} km</p>
+                  )}
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {centre.produits.map((p) => (
+                      <span
+                        key={p}
+                        className="rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-black uppercase text-zinc-500"
+                      >
+                        {PRODUIT_LABELS[p] ?? p}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-2 space-y-1 font-bold text-zinc-600">
+                    {centre.telephone && (
+                      <a href={`tel:${centre.telephone}`} className="flex items-center gap-1 hover:text-indigo-600">
+                        <Phone size={11} /> {centre.telephone}
+                      </a>
+                    )}
+                    {centre.email && (
+                      <a href={`mailto:${centre.email}`} className="flex items-center gap-1 hover:text-indigo-600">
+                        <Mail size={11} /> {centre.email}
+                      </a>
+                    )}
+                    <a
+                      href={centre.url_contact}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-indigo-500 hover:underline"
                     >
-                      {PRODUIT_LABELS[p] ?? p}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-2 space-y-1 font-bold text-zinc-600">
-                  {centre.telephone && (
-                    <a href={`tel:${centre.telephone}`} className="flex items-center gap-1 hover:text-indigo-600">
-                      <Phone size={11} /> {centre.telephone}
+                      <ExternalLink size={11} /> Voir sur le site CCI
                     </a>
-                  )}
-                  {centre.email && (
-                    <a href={`mailto:${centre.email}`} className="flex items-center gap-1 hover:text-indigo-600">
-                      <Mail size={11} /> {centre.email}
-                    </a>
-                  )}
-                  <a
-                    href={centre.url_contact}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-indigo-500 hover:underline"
-                  >
-                    <ExternalLink size={11} /> Voir sur le site CCI
-                  </a>
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );
