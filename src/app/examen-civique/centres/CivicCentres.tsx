@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter, usePathname } from "next/navigation";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +32,9 @@ const CentresMap = dynamic(() => import("./CentresMap").then((m) => m.CentresMap
 type CentreWithDistance = Centre & { distanceKm?: number };
 
 export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState<"map" | "liste">("map");
   const [query, setQuery] = useState("");
   const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_RADIUS_KM);
   const [activeGeo, setActiveGeo] = useState<GeoPoint | null>(null);
@@ -79,6 +83,27 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, textMatches.length]);
+
+  // Lecture au montage uniquement (pas useSearchParams : ce hook forcerait un
+  // Suspense boundary et désactiverait le rendu statique/ISR de la page pour
+  // un simple confort de lien partageable — pas justifié ici).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("vue") === "liste") setActiveTab("liste");
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    const tab = value === "liste" ? "liste" : "map";
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    if (tab === "map") {
+      params.delete("vue");
+    } else {
+      params.set("vue", tab);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const pickCity = (city: GeoPoint) => {
     setQuery(city.label);
@@ -176,7 +201,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           </p>
         )}
 
-        <Tabs defaultValue="map" className="mt-4 flex-col">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4 flex-col">
           <TabsList className="grid w-full grid-cols-2 p-1 bg-zinc-100 rounded-2xl h-11 sm:w-64">
             <TabsTrigger value="map" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
               <MapIcon size={14} /> Carte
