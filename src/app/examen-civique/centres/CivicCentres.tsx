@@ -6,16 +6,28 @@ import { useRouter, usePathname } from "next/navigation";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Phone, Mail, ExternalLink, MapPin, Loader2, Map as MapIcon, List as ListIcon } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  ExternalLink,
+  MapPin,
+  Loader2,
+  Map as MapIcon,
+  List as ListIcon,
+  X,
+  LocateFixed,
+  Navigation,
+} from "lucide-react";
 import type { Centre } from "./types";
-import { PRODUIT_LABELS } from "./types";
+import { PRODUIT_LABELS, directionsUrl } from "./types";
 import {
   DEFAULT_RADIUS_KM,
   RADIUS_OPTIONS_KM,
   MAJOR_CITIES,
   haversineDistanceKm,
-  geocodeCity,
+  searchAddresses,
   type GeoPoint,
+  type AddressSuggestion,
 } from "./geo";
 
 // react-leaflet manipule le DOM directement (pas de SSR possible) : chargement
@@ -38,9 +50,16 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
   const [query, setQuery] = useState("");
   const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_RADIUS_KM);
   const [activeGeo, setActiveGeo] = useState<GeoPoint | null>(null);
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoNotFound, setGeoNotFound] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locateDenied, setLocateDenied] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const textMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -51,31 +70,54 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
     });
   }, [initialCentres, query]);
 
-  // Bascule automatique en recherche géographique : uniquement quand la
-  // recherche texte ne trouve rien (pas d'appel réseau superflu quand
-  // "Marseille" ou un code postal fonctionne déjà tel quel).
+  // Autocomplete d'adresse : uniquement quand la recherche texte locale ne
+  // trouve rien (pas d'appel réseau superflu quand "Marseille" ou un code
+  // postal fonctionne déjà tel quel). Les suggestions sont affichées pour
+  // sélection explicite — plus de résolution silencieuse au 1er résultat.
   useEffect(() => {
     const q = query.trim();
     setGeoNotFound(false);
 
     if (!q) {
       setActiveGeo(null);
+      setSuggestions([]);
+      setSuggestionsOpen(false);
       return;
     }
-    // Déjà résolu pour cette valeur exacte (recherche géocodée ou ville rapide) : rien à refaire.
-    if (activeGeo && activeGeo.label.toLowerCase() === q.toLowerCase()) return;
+    // Déjà résolu pour cette valeur exacte (suggestion sélectionnée ou ville rapide) : rien à refaire.
+    if (activeGeo && activeGeo.label.toLowerCase() === q.toLowerCase()) {
+      setSuggestionsOpen(false);
+      return;
+    }
     if (textMatches.length > 0 || q.length < 3) {
       setActiveGeo(null);
+      setSuggestions([]);
+      setSuggestionsOpen(false);
       return;
     }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
     setGeoLoading(true);
+    setSuggestionsOpen(true);
+
     debounceRef.current = setTimeout(async () => {
-      const result = await geocodeCity(q);
-      setActiveGeo(result);
-      setGeoNotFound(!result);
-      setGeoLoading(false);
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const results = await searchAddresses(q, controller.signal);
+        setSuggestions(results);
+        setHighlightedIndex(-1);
+        setGeoNotFound(results.length === 0);
+      } catch (e) {
+        // AbortError : une recherche plus récente a pris le relais, on ignore silencieusement.
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          setSuggestions([]);
+          setGeoNotFound(true);
+        }
+      } finally {
+        if (abortRef.current === controller) setGeoLoading(false);
+      }
     }, 400);
 
     return () => {
@@ -108,7 +150,70 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
   const pickCity = (city: GeoPoint) => {
     setQuery(city.label);
     setActiveGeo(city);
+    setSuggestions([]);
+    setSuggestionsOpen(false);
     setGeoNotFound(false);
+  };
+
+  const selectSuggestion = (s: AddressSuggestion) => {
+    setQuery(s.label);
+    setActiveGeo(s);
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    setHighlightedIndex(-1);
+    setGeoNotFound(false);
+  };
+
+  const clearSearch = () => {
+    setQuery("");
+    setActiveGeo(null);
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    setHighlightedIndex(-1);
+    setGeoNotFound(false);
+    setLocateDenied(false);
+    inputRef.current?.focus();
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestionsOpen || suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((i) => (i - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter") {
+      if (highlightedIndex >= 0) {
+        e.preventDefault();
+        selectSuggestion(suggestions[highlightedIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setSuggestionsOpen(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    setLocateDenied(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const point: GeoPoint = { lat: pos.coords.latitude, lon: pos.coords.longitude, label: "Votre position" };
+        setQuery(point.label);
+        setActiveGeo(point);
+        setSuggestions([]);
+        setSuggestionsOpen(false);
+        setGeoNotFound(false);
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setLocateDenied(true);
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
   };
 
   const geoMatches: CentreWithDistance[] | null = useMemo(() => {
@@ -139,14 +244,85 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
         />
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher une ville, un code postal ou une adresse…"
-            aria-label="Rechercher un centre par ville ou code postal"
-            className="h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-800 outline-none placeholder:text-zinc-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 sm:max-w-xs"
-          />
+          <div className="relative w-full sm:max-w-xs">
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={() => {
+                if (suggestions.length > 0) setSuggestionsOpen(true);
+              }}
+              onBlur={() => setSuggestionsOpen(false)}
+              placeholder="Rechercher une ville, un code postal ou une adresse…"
+              aria-label="Rechercher un centre par ville, code postal ou adresse"
+              role="combobox"
+              aria-expanded={suggestionsOpen}
+              aria-controls="centres-search-listbox"
+              aria-autocomplete="list"
+              aria-activedescendant={highlightedIndex >= 0 ? `centres-suggestion-${highlightedIndex}` : undefined}
+              className="h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 pr-8 text-sm font-medium text-zinc-800 outline-none placeholder:text-zinc-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+            />
+            {query && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={clearSearch}
+                aria-label="Effacer la recherche"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+              >
+                <X size={14} />
+              </button>
+            )}
+
+            {suggestionsOpen && (
+              <ul
+                id="centres-search-listbox"
+                role="listbox"
+                className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg"
+              >
+                {geoLoading && (
+                  <li className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-zinc-400">
+                    <Loader2 size={12} className="animate-spin" /> Recherche…
+                  </li>
+                )}
+                {!geoLoading && suggestions.length === 0 && geoNotFound && (
+                  <li className="px-3 py-2 text-xs font-bold text-amber-500">
+                    Aucun lieu trouvé — essayez une ville proche ou choisissez-en une ci-dessous.
+                  </li>
+                )}
+                {!geoLoading &&
+                  suggestions.map((s, i) => (
+                    <li
+                      key={s.id}
+                      id={`centres-suggestion-${i}`}
+                      role="option"
+                      aria-selected={i === highlightedIndex}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectSuggestion(s)}
+                      onMouseEnter={() => setHighlightedIndex(i)}
+                      className={`cursor-pointer px-3 py-2 text-xs ${
+                        i === highlightedIndex ? "bg-indigo-50" : "hover:bg-zinc-50"
+                      }`}
+                    >
+                      <p className="font-bold text-zinc-800">{s.label}</p>
+                      {s.context && <p className="text-zinc-400">{s.context}</p>}
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={useMyLocation}
+            disabled={locating}
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
+          >
+            {locating ? <Loader2 size={13} className="animate-spin" /> : <LocateFixed size={13} />}
+            Ma position
+          </button>
 
           {geoMatches !== null && (
             <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
@@ -166,6 +342,12 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           )}
         </div>
 
+        {locateDenied && (
+          <p className="mt-2 px-1 text-[10px] font-black uppercase tracking-widest text-amber-500">
+            Position non disponible — vérifiez l&apos;autorisation de géolocalisation de votre navigateur.
+          </p>
+        )}
+
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Villes principales :</span>
           {MAJOR_CITIES.map((city) => (
@@ -180,16 +362,6 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
           ))}
         </div>
 
-        {geoLoading && (
-          <p className="mt-3 flex items-center gap-1.5 px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            <Loader2 size={12} className="animate-spin" /> Recherche du lieu…
-          </p>
-        )}
-        {!geoLoading && geoNotFound && (
-          <p className="mt-3 px-1 text-[10px] font-black uppercase tracking-widest text-amber-500">
-            Lieu introuvable — essayez une ville proche ou choisissez-en une ci-dessus.
-          </p>
-        )}
         {!geoLoading && geoMatches !== null && !geoNotFound && (
           <p className="mt-3 px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400" aria-live="polite">
             {filtered.length} centre{filtered.length > 1 ? "s" : ""} à moins de {radiusKm} km de {activeGeo?.label}
@@ -277,6 +449,14 @@ function CentresList({ centres }: { centres: CentreWithDistance[] }) {
               className="flex items-center gap-1.5 text-indigo-500 hover:underline"
             >
               <ExternalLink size={12} /> Voir sur le site CCI
+            </a>
+            <a
+              href={directionsUrl(centre)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-indigo-500 hover:underline"
+            >
+              <Navigation size={12} /> Itinéraire
             </a>
           </div>
         </li>

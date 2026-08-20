@@ -12,9 +12,9 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { Phone, Mail, ExternalLink } from "lucide-react";
+import { Phone, Mail, ExternalLink, Navigation } from "lucide-react";
 import type { Centre } from "./types";
-import { PRODUIT_LABELS } from "./types";
+import { PRODUIT_LABELS, directionsUrl } from "./types";
 import type { GeoPoint } from "./geo";
 
 type CentreWithDistance = Centre & { distanceKm?: number };
@@ -162,6 +162,14 @@ export function CentresMap({
                       className="flex items-center gap-1 text-indigo-500 hover:underline"
                     >
                       <ExternalLink size={11} /> Voir sur le site CCI
+                    </a>
+                    <a
+                      href={directionsUrl(centre)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-indigo-500 hover:underline"
+                    >
+                      <Navigation size={11} /> Itinéraire
                     </a>
                   </div>
                 </div>
