@@ -48,9 +48,6 @@ export function Header() {
             </Link>
           ))}
           <ThemeToggle />
-          <Link href="/tef-irn/login">
-            <Button variant="ghost" className="font-bold">Connexion</Button>
-          </Link>
           <Link href="/tef-irn/login?mode=signup">
             <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
               Commencer gratuitement
