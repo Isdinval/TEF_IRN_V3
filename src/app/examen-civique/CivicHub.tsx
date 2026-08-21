@@ -414,51 +414,32 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </div>
 
-        {/* Actions — une seule carte "recommandée", pas trois de front */}
-        <div className="space-y-2">
+        {/* Actions — 2 sous-sections distinctes : Entraînement (la boucle réelle de
+            préparation, forme testée) et Ressources complémentaires (lecture de fond +
+            logistique, utiles mais non indispensables). Pas de badges numérotés : plus
+            aucun de ces éléments n'est une étape obligatoire dans un ordre imposé. */}
+        <div className="space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
             <Badge className="bg-indigo-600 text-white rounded-full">Étapes</Badge> Se préparer
           </h2>
 
-          {/* Livret du citoyen — l'étape 0 : le référentiel à lire avant de s'entraîner dessus */}
-          <Link
-            href="/examen-civique/livret"
-            className="relative bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-start gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
-          >
-            <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">1</span>
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-              <BookOpen size={17} className="text-indigo-600" />
-            </div>
-            <div className="flex-1">
-              <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900">
-                Livret du citoyen 2026
-                <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                  <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. À lire avant de vous entraîner pour donner du sens aux questions." />
-                </span>
-              </p>
-              <p className="text-xs text-zinc-500 font-medium mt-0.5 leading-relaxed">
-                Le référentiel officiel du Ministère de l&apos;Intérieur, à lire avant de vous entraîner. Gratuit, PDF téléchargeable.
-              </p>
-            </div>
-            <ArrowRight size={15} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 mt-1 transition-colors" />
-          </Link>
+          {/* Sous-section : Entraînement — la boucle testée (apprendre/mémoriser,
+              consulter, se tester), celle que le produit recommande activement. */}
+          <div className="space-y-2">
+            <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">Entraînement</p>
 
-          <div className="grid grid-cols-2 gap-2">
-            {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre */}
+            {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre.
+                Pleine largeur pour porter le vrai poids visuel de la section. */}
             <Link
               href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-              className="bg-indigo-600 rounded-[2rem] p-4 flex flex-col gap-3 hover:scale-[1.01] active:scale-[0.99] transition-transform relative"
+              className="relative bg-indigo-600 rounded-[2rem] p-5 flex items-center gap-3 overflow-hidden hover:scale-[1.005] active:scale-[0.99] transition-transform"
             >
-              <div className="absolute inset-0 rounded-[2rem] overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <Brain size={17} className="text-white" />
               </div>
-              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">2</span>
-              <div className="flex items-center justify-between">
-                <Brain size={19} className="text-white shrink-0" />
-                <ArrowRight size={14} className="text-indigo-200 shrink-0" />
-              </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-black text-white leading-tight">
+              <div className="flex-1">
+                <p className="flex items-center gap-1.5 text-sm font-black text-white">
                   {hasDue ? "Mémoriser" : "Apprendre"}
                   <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     <InfoTooltip
@@ -469,88 +450,119 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                     />
                   </span>
                 </p>
-                <p className="text-[11px] text-indigo-200 font-medium mt-1 leading-snug">
+                <p className="text-xs text-indigo-200 font-medium mt-0.5 leading-relaxed">
                   {hasDue
                     ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`
                     : "Nouvelles questions, réponse testée immédiatement."}
                 </p>
               </div>
+              <ArrowRight size={15} className="text-indigo-200 shrink-0 transition-colors" />
             </Link>
 
-            {/* Parcourir — neutre, utilitaire */}
-            <Link
-              href={buildHref("/examen-civique/parcourir")}
-              className="relative bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
-            >
-              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">3</span>
-              <div className="flex items-center justify-between">
-                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
-                  <BookOpen size={15} className="text-zinc-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Parcourir — neutre, utilitaire */}
+              <Link
+                href={buildHref("/examen-civique/parcourir")}
+                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                    <BookOpen size={15} className="text-zinc-500" />
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
-                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
-              </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                  Parcourir
-                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                    <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
-                  </span>
-                </p>
-                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
-                  Toutes les Q&amp;R avec explication et source.
-                </p>
-              </div>
-            </Link>
+                <div>
+                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                    Parcourir
+                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
+                    </span>
+                  </p>
+                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                    Toutes les Q&amp;R avec explication et source.
+                  </p>
+                </div>
+              </Link>
 
-            {/* Examen blanc — icône sombre pour signaler le format formel/chronométré */}
-            <Link
-              href={buildHref("/examen-civique/examen-blanc")}
-              className="relative bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
-            >
-              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">4</span>
-              <div className="flex items-center justify-between">
-                <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
-                  <Clock size={15} className="text-white" />
+              {/* Examen blanc — icône sombre pour signaler le format formel/chronométré */}
+              <Link
+                href={buildHref("/examen-civique/examen-blanc")}
+                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
+                    <Clock size={15} className="text-white" />
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
-                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
-              </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                  Examen blanc
-                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                    <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
-                  </span>
-                </p>
-                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
-                  {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
-                </p>
-              </div>
-            </Link>
+                <div>
+                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                    Examen blanc
+                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
+                    </span>
+                  </p>
+                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                    {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
+                  </p>
+                </div>
+              </Link>
+            </div>
+          </div>
 
-            {/* Centres d'examen — utilitaire, pas de contexte démarche/thème à propager */}
-            <Link
-              href="/examen-civique/centres"
-              className="relative bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
-            >
-              <span className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white text-[11px] font-black shadow-md">5</span>
-              <div className="flex items-center justify-between">
-                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
-                  <MapPin size={15} className="text-zinc-500" />
+          {/* Sous-section : Ressources complémentaires — pertinentes mais non
+              indispensables pour se préparer (lecture de fond, logistique du jour J). */}
+          <div className="space-y-2">
+            <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">Ressources complémentaires</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Livret du citoyen — lecture de fond recommandée, pas une étape obligatoire */}
+              <Link
+                href="/examen-civique/livret"
+                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                    <BookOpen size={15} className="text-indigo-600" />
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
-                <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
-              </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                  Centres d&apos;examen
-                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                    <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
-                  </span>
-                </p>
-                <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug">
-                  Centres agréés CCI, adresse et contact.
-                </p>
-              </div>
-            </Link>
+                <div>
+                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                    Livret du citoyen 2026
+                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. Une lecture utile, mais pas indispensable pour commencer à vous entraîner." />
+                    </span>
+                  </p>
+                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                    Référentiel officiel du Ministère de l&apos;Intérieur. Gratuit, PDF téléchargeable.
+                  </p>
+                </div>
+              </Link>
+
+              {/* Centres d'examen — logistique du jour J, pas de contexte démarche/thème à propager */}
+              <Link
+                href="/examen-civique/centres"
+                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                    <MapPin size={15} className="text-zinc-500" />
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                </div>
+                <div>
+                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
+                    Centres d&apos;examen
+                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
+                    </span>
+                  </p>
+                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                    Centres agréés CCI, adresse et contact.
+                  </p>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
 
