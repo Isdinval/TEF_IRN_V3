@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb, X } from 'lucide-react';
 import { ExamSectionType } from '@/types/exam';
 import { SECTION_BRIEFINGS, pickRandomTips } from '@/lib/exam-briefings';
 import { AudioCheckWidget } from '@/components/exam/AudioCheckWidget';
@@ -17,7 +18,8 @@ const sectionNames: Record<ExamSectionType, string> = {
 };
 
 export function SectionTransition() {
-  const { state, startNextSection, beginCurrentSection, activeExam, sessionResults, allQuestions } = useExam();
+  const { state, startNextSection, beginCurrentSection, resetExam, activeExam, sessionResults, allQuestions } = useExam();
+  const [showAbandonWarning, setShowAbandonWarning] = useState(false);
 
   const order: ExamSectionType[] = ['CO', 'CE', 'EE', 'EO'];
   const currentIndex = order.indexOf(state.section);
@@ -44,7 +46,14 @@ export function SectionTransition() {
   return (
     <div className="min-h-screen bg-slate-50/30 flex items-center justify-center p-4">
       <Card className="max-w-xl w-full rounded-[2.5rem] border-none py-0 shadow-2xl shadow-zinc-200/50 overflow-hidden">
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-10 text-center text-white">
+        <div className="relative bg-gradient-to-br from-indigo-600 to-violet-600 p-10 text-center text-white">
+          <button
+            onClick={() => setShowAbandonWarning(true)}
+            title="Abandonner l'examen"
+            className="absolute top-4 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <X size={18} />
+          </button>
           {!isInitialBriefing && (
             <div className="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
               <CheckCircle2 size={30} />
@@ -126,6 +135,16 @@ export function SectionTransition() {
            </Button>
         </CardFooter>
       </Card>
+
+      <ConfirmDialog
+        open={showAbandonWarning}
+        onOpenChange={setShowAbandonWarning}
+        title="Abandonner l'examen ?"
+        description="Toute votre progression sur cet examen sera perdue et vous reviendrez au catalogue. Cette action est irréversible."
+        confirmLabel="Abandonner"
+        cancelLabel="Continuer l'examen"
+        onConfirm={resetExam}
+      />
     </div>
   );
 }

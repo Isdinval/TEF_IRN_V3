@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Loader2, PhoneCall } from 'lucide-react';
 import { OralAnalysis, OralTurn } from '@/lib/oral-criteria';
@@ -30,6 +30,7 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
   const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const mediaStream = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const turnsRef = useRef<OralTurn[]>([]);
   const currentCoachTurn = useRef<string>('');
@@ -66,6 +67,7 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
       };
 
       const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStream.current = ms;
       pc.addTrack(ms.getTracks()[0]);
 
       const dc = pc.createDataChannel('oai-events');
@@ -134,12 +136,28 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
     }
   };
 
-  const finishSession = async () => {
+  // Ferme la connexion WebRTC et libère le micro. Appelé à la fois en fin normale
+  // d'échange (finishSession) et au démontage du composant (abandon de l'examen,
+  // navigation ailleurs) via l'effet ci-dessous : sans ça, une session Realtime
+  // interrompue brutalement laissait la connexion OpenAI et le micro ouverts.
+  const closeConnection = () => {
     if (sessionTimeout.current) clearTimeout(sessionTimeout.current);
     if (peerConnection.current) {
       peerConnection.current.close();
       peerConnection.current = null;
     }
+    if (mediaStream.current) {
+      mediaStream.current.getTracks().forEach((track) => track.stop());
+      mediaStream.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => closeConnection();
+  }, []);
+
+  const finishSession = async () => {
+    closeConnection();
     setIsListening(false);
 
     const transcript = turnsRef.current;
