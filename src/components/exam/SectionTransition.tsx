@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb } from 'lucide-react';
 import { ExamSectionType } from '@/types/exam';
 import { SECTION_BRIEFINGS, pickRandomTips } from '@/lib/exam-briefings';
+import { AudioCheckWidget } from '@/components/exam/AudioCheckWidget';
 
 const sectionNames: Record<ExamSectionType, string> = {
   CO: 'Compréhension Orale',
@@ -84,6 +85,8 @@ export function SectionTransition() {
                </div>
             </div>
           </div>
+
+          {isInitialBriefing && targetSection === 'CO' && <AudioCheckWidget />}
 
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-black text-zinc-900 uppercase tracking-wide">
