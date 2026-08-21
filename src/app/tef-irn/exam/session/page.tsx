@@ -47,8 +47,10 @@ export default function ExamSessionPage() {
         <ExamHeader />
         <ProgressBar />
         <main className="container mx-auto px-4 flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-          <div className="flex-1 overflow-y-auto p-3 md:p-5">
-            <QuestionCard />
+          <div className="flex-1 overflow-y-auto p-3 md:p-5 flex flex-col">
+            <div className="m-auto w-full">
+              <QuestionCard />
+            </div>
           </div>
           <QuestionNavigator />
         </main>
