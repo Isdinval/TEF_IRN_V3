@@ -25,6 +25,7 @@ import {
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
 import { validateVocabResponse } from "@/lib/vocab/utils";
+import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
@@ -637,7 +638,7 @@ export function VocabCoachContent() {
                 <GraduationCap size={14} className="text-emerald-600" /> Thématiques
               </div>
               <div className="flex flex-wrap gap-2">
-                {["Administration", "Santé", "Travail", "Logement", "Toutes"].map((cat) => (
+                {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setCategory(cat)}
