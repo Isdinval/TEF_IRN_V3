@@ -68,7 +68,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
             current_lesson_id: lId,
             last_activity_at: new Date().toISOString(),
             progress_percentage: cached.progress.percent
-          });
+          }, { onConflict: 'user_id,parcours_id' });
           if (error) console.error("Error syncing user_parcours_progress:", error);
         })();
         (async () => {
@@ -116,7 +116,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
           current_lesson_id: lId,
           last_activity_at: new Date().toISOString(),
           progress_percentage: prog.percent
-        }),
+        }, { onConflict: 'user_id,parcours_id' }),
         supabase.from('profiles').update({
           last_active_parcours_id: pId
         }).eq('id', user.id),
