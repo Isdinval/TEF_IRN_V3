@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Timer, LogOut, Clock } from 'lucide-react';
+import { Timer, LogOut, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useExam } from '@/contexts/ExamContext';
@@ -16,8 +16,9 @@ const sectionNames: Record<ExamSectionType, string> = {
 };
 
 export function ExamHeader() {
-  const { state, questions, finishSection, activeExam, isCorrecting } = useExam();
+  const { state, questions, finishSection, resetExam, activeExam, isCorrecting } = useExam();
   const [showFinishWarning, setShowFinishWarning] = useState(false);
+  const [showAbandonWarning, setShowAbandonWarning] = useState(false);
 
   const getDuration = () => {
     if (!activeExam) return 20 * 60;
@@ -85,6 +86,17 @@ export function ExamHeader() {
             <LogOut size={20} />
             {isCorrecting ? "Correction IA..." : "Terminer l'épreuve"}
           </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={isCorrecting}
+            title="Abandonner l'examen"
+            className="text-white/50 hover:text-white hover:bg-white/10 disabled:opacity-50"
+            onClick={() => setShowAbandonWarning(true)}
+          >
+            <X size={20} />
+          </Button>
         </div>
       </div>
 
@@ -96,6 +108,16 @@ export function ExamHeader() {
         confirmLabel="Terminer"
         cancelLabel="Continuer l'épreuve"
         onConfirm={finishSection}
+      />
+
+      <ConfirmDialog
+        open={showAbandonWarning}
+        onOpenChange={setShowAbandonWarning}
+        title="Abandonner l'examen ?"
+        description="Toute votre progression sur cet examen sera perdue et vous reviendrez au catalogue. Cette action est irréversible."
+        confirmLabel="Abandonner"
+        cancelLabel="Continuer l'examen"
+        onConfirm={resetExam}
       />
     </header>
   );
