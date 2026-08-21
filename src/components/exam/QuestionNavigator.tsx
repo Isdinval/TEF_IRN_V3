@@ -60,7 +60,7 @@ export function QuestionNavigator() {
         })}
       </div>
 
-      <div className="mt-auto space-y-3 pt-6 border-t border-zinc-100 md:block hidden">
+      <div className="space-y-3 pt-6 border-t border-zinc-100 md:block hidden">
         <div className="flex items-center gap-3 text-xs font-bold text-zinc-500">
           <div className="w-4 h-4 rounded-lg bg-indigo-600" /> En cours
         </div>
