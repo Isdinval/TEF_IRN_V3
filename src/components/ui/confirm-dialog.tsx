@@ -23,6 +23,23 @@ export function ConfirmDialog({
   cancelLabel = 'Annuler',
   onConfirm,
 }: ConfirmDialogProps) {
+  // Empêche un double-clic (ou double-tap mobile) sur "Confirmer" de
+  // déclencher onConfirm plusieurs fois pendant que la modale se ferme :
+  // le bouton est désactivé dès le premier clic, et réarmé à chaque
+  // réouverture de la modale.
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) setIsSubmitting(false);
+  }, [open]);
+
+  const handleConfirm = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    onConfirm();
+    onOpenChange(false);
+  };
+
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
@@ -40,16 +57,15 @@ export function ConfirmDialog({
           <div className="flex gap-3">
             <button
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-11 rounded-2xl border border-zinc-200 text-zinc-600 font-bold text-sm hover:bg-zinc-50 transition-colors"
+              disabled={isSubmitting}
+              className="flex-1 h-11 rounded-2xl border border-zinc-200 text-zinc-600 font-bold text-sm hover:bg-zinc-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               {cancelLabel}
             </button>
             <button
-              onClick={() => {
-                onConfirm();
-                onOpenChange(false);
-              }}
-              className="flex-1 h-11 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors"
+              onClick={handleConfirm}
+              disabled={isSubmitting}
+              className="flex-1 h-11 rounded-2xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               {confirmLabel}
             </button>

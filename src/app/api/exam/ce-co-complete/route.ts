@@ -66,12 +66,36 @@ export async function POST(req: Request) {
       examLevel = examRow?.level ?? null;
     }
 
+    // 1bis. Idempotence côté serveur (item 5 du plan bug_affichage_repete_examen) :
+    // en complément des protections client (items 1-3), on ignore ici toute
+    // question déjà enregistrée pour ce user/section il y a moins de 30
+    // secondes -- fenêtre largement suffisante pour couvrir un double-clic ou
+    // une resoumission concurrente, sans risquer de bloquer une reprise
+    // légitime de l'examen (nouvelle tentative, autre jour).
+    const { data: recentAttempts } = await supabase
+      .from('exam_ce_co_attempts')
+      .select('exam_question_id')
+      .eq('user_id', user.id)
+      .eq('section', section)
+      .in('exam_question_id', questionIds)
+      .gte('created_at', new Date(Date.now() - 30_000).toISOString());
+
+    const alreadyRecordedIds = new Set((recentAttempts || []).map(a => a.exam_question_id));
+    const newResults = typedResults.filter(r => !alreadyRecordedIds.has(r.questionId));
+
+    if (newResults.length === 0) {
+      // Soumission entièrement dupliquée : rien de neuf à persister, et on
+      // évite de rappeler trackUserError/resolveUserError/analyzeUserErrorsAndRecommend
+      // en double pour les mêmes catégories.
+      return NextResponse.json({ success: true, skipped: 'duplicate_submission' });
+    }
+
     // 2. Enregistrer la tentative de chaque question (table dédiée, 1 ligne
     // par question répondue -- voir item 4).
     const { error: attemptsError } = await supabase
       .from('exam_ce_co_attempts')
       .insert(
-        typedResults.map(r => ({
+        newResults.map(r => ({
           user_id: user.id,
           exam_question_id: r.questionId,
           section,
@@ -90,7 +114,7 @@ export async function POST(req: Request) {
       const failed = new Map<string, { category: string; subCategory: string | null }>();
       const succeeded = new Map<string, { category: string; subCategory: string | null }>();
 
-      for (const r of typedResults) {
+      for (const r of newResults) {
         const question = questionById.get(r.questionId);
         if (!question?.category) continue; // défensif : question non encore taguée
 

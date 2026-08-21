@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { ExamSectionType, ExamSessionState, Question, ExamResult } from '../types/exam';
 import { WritingFeedback } from '../types/writing';
 import { OralAnalysis } from '@/lib/oral-criteria';
@@ -70,6 +70,12 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [oralAnalyses, setOralAnalyses] = useState<Record<string, OralAnalysis>>({});
+
+  // Verrou de ré-entrance pour finishSection : évite qu'un double-clic (ou
+  // double-tap mobile) sur "Terminer l'épreuve" ne déclenche deux exécutions
+  // concurrentes pendant l'await (correction IA / persistance Supabase),
+  // ce qui dupliquait la section dans sessionResults et les écritures en base.
+  const isFinishingSectionRef = useRef(false);
 
   const supabase = createClient();
 
@@ -376,65 +382,80 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const finishSection = async () => {
-    const currentResult = calculateSectionResults(state.section, state.answers);
+    // Garde de ré-entrance : ignore tout appel concurrent (double-clic,
+    // double-tap mobile, double invocation du ConfirmDialog) pendant qu'une
+    // exécution est déjà en cours pour cette section.
+    if (isFinishingSectionRef.current) return;
+    isFinishingSectionRef.current = true;
 
-    if (state.section === 'EE') {
-      setIsCorrecting(true);
-      currentResult.writingFeedbacks = await correctWritingSection(state.section, state.answers);
-      setIsCorrecting(false);
-    }
+    try {
+      const currentResult = calculateSectionResults(state.section, state.answers);
 
-    if (state.section === 'EO') {
-      const sectionQuestionIds = allQuestions.filter(q => q.section === 'EO').map(q => q.id);
-      const relevantAnalyses = Object.fromEntries(
-        Object.entries(oralAnalyses).filter(([qId]) => sectionQuestionIds.includes(qId))
-      );
-      if (Object.keys(relevantAnalyses).length > 0) {
-        currentResult.oralAnalyses = relevantAnalyses;
+      if (state.section === 'EE') {
+        setIsCorrecting(true);
+        currentResult.writingFeedbacks = await correctWritingSection(state.section, state.answers);
+        setIsCorrecting(false);
       }
-    }
 
-    if (state.section === 'CE' || state.section === 'CO') {
-      // Persistance de la section (table dédiée exam_ce_co_attempts, item 4 du plan
-      // dashboard) + remontée des erreurs vers user_errors (item 5). Best-effort :
-      // un échec de sauvegarde ne doit pas bloquer la suite de l'examen, seulement
-      // priver la tentative de son historique et de son effet sur les recommandations.
-      try {
-        await fetch('/api/exam/ce-co-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            section: state.section,
-            results: currentResult.answers.map(a => ({
-              questionId: a.questionId,
-              userAnswer: a.userAnswer,
-              isCorrect: a.isCorrect,
-            })),
-          }),
-        });
-      } catch (persistError) {
-        console.error(`${state.section} persistence failed:`, persistError);
+      if (state.section === 'EO') {
+        const sectionQuestionIds = allQuestions.filter(q => q.section === 'EO').map(q => q.id);
+        const relevantAnalyses = Object.fromEntries(
+          Object.entries(oralAnalyses).filter(([qId]) => sectionQuestionIds.includes(qId))
+        );
+        if (Object.keys(relevantAnalyses).length > 0) {
+          currentResult.oralAnalyses = relevantAnalyses;
+        }
       }
-    }
 
-    setSessionResults(prev => [...prev, currentResult]);
+      if (state.section === 'CE' || state.section === 'CO') {
+        // Persistance de la section (table dédiée exam_ce_co_attempts, item 4 du plan
+        // dashboard) + remontée des erreurs vers user_errors (item 5). Best-effort :
+        // un échec de sauvegarde ne doit pas bloquer la suite de l'examen, seulement
+        // priver la tentative de son historique et de son effet sur les recommandations.
+        try {
+          await fetch('/api/exam/ce-co-complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              section: state.section,
+              results: currentResult.answers.map(a => ({
+                questionId: a.questionId,
+                userAnswer: a.userAnswer,
+                isCorrect: a.isCorrect,
+              })),
+            }),
+          });
+        } catch (persistError) {
+          console.error(`${state.section} persistence failed:`, persistError);
+        }
+      }
 
-    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([...history, currentResult]));
+      // Filet de sécurité en complément du verrou de ré-entrance ci-dessus :
+      // une même section ne doit jamais apparaître deux fois dans les
+      // résultats affichés (ResultsScreen.tsx itère sur sessionResults avec
+      // key={result.section}). On remplace l'entrée existante au lieu de
+      // l'ajouter si jamais un doublon venait à se produire malgré tout.
+      setSessionResults(prev => [...prev.filter(r => r.section !== currentResult.section), currentResult]);
 
-    if (state.examType === 'full') {
-      const order: ExamSectionType[] = ['CO', 'CE', 'EE', 'EO'];
-      const currentIndex = order.indexOf(state.section);
-      if (currentIndex < order.length - 1) {
-        setState(prev => ({
-          ...prev,
-          status: 'paused',
-        }));
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      localStorage.setItem(HISTORY_KEY, JSON.stringify([...history, currentResult]));
+
+      if (state.examType === 'full') {
+        const order: ExamSectionType[] = ['CO', 'CE', 'EE', 'EO'];
+        const currentIndex = order.indexOf(state.section);
+        if (currentIndex < order.length - 1) {
+          setState(prev => ({
+            ...prev,
+            status: 'paused',
+          }));
+        } else {
+          finishExam();
+        }
       } else {
         finishExam();
       }
-    } else {
-      finishExam();
+    } finally {
+      isFinishingSectionRef.current = false;
     }
   };
 
