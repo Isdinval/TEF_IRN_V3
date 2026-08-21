@@ -430,7 +430,12 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      setSessionResults(prev => [...prev, currentResult]);
+      // Filet de sécurité en complément du verrou de ré-entrance ci-dessus :
+      // une même section ne doit jamais apparaître deux fois dans les
+      // résultats affichés (ResultsScreen.tsx itère sur sessionResults avec
+      // key={result.section}). On remplace l'entrée existante au lieu de
+      // l'ajouter si jamais un doublon venait à se produire malgré tout.
+      setSessionResults(prev => [...prev.filter(r => r.section !== currentResult.section), currentResult]);
 
       const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
       localStorage.setItem(HISTORY_KEY, JSON.stringify([...history, currentResult]));
