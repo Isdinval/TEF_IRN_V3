@@ -17,6 +17,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2, Volume2, RotateCcw } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
 
 interface VocabRow {
   id: string;
@@ -29,7 +30,7 @@ interface VocabRow {
 }
 
 const LEVELS = ["A1", "A2", "B1", "B2"];
-const CATEGORIES = ["Administration", "Logement", "Santé", "Travail", "Vie Sociale"];
+const CATEGORIES: string[] = [...VOCAB_CATEGORIES];
 
 const EMPTY_FORM = {
   word: "",
