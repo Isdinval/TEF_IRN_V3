@@ -60,6 +60,7 @@ export function VocabCoachContent() {
   const [catalogue, setCatalogue] = useState<any[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
+  const [cataloguePage, setCataloguePage] = useState(1);
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
@@ -76,6 +77,23 @@ export function VocabCoachContent() {
 
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
+
+  // Regroupe le catalogue par catégorie (ordre = VOCAB_CATEGORIES, catégories
+  // absentes du résultat filtrées). En mode "Toutes", ça permet d'afficher les
+  // mots par thématique (avec en-têtes) plutôt qu'en vrac ; en mode catégorie
+  // unique, un seul groupe est produit — la pagination se désactive naturellement.
+  const CATEGORIES_PER_PAGE = 2;
+  const catalogueGroups = useMemo(() => {
+    return VOCAB_CATEGORIES
+      .map((cat) => ({ category: cat, items: catalogue.filter((item) => item.category === cat) }))
+      .filter((group) => group.items.length > 0);
+  }, [catalogue]);
+
+  const catalogueTotalPages = Math.max(1, Math.ceil(catalogueGroups.length / CATEGORIES_PER_PAGE));
+  const catalogueGroupsForPage = catalogueGroups.slice(
+    (cataloguePage - 1) * CATEGORIES_PER_PAGE,
+    cataloguePage * CATEGORIES_PER_PAGE
+  );
 
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
@@ -94,7 +112,7 @@ export function VocabCoachContent() {
         query = query.ilike("category", `%${filters.category}%`);
       }
 
-      const { data: items } = await query.limit(20);
+      const { data: items } = await query;
 
       if (items && user) {
         const { data: reviews } = await supabase
@@ -130,6 +148,7 @@ export function VocabCoachContent() {
 
   useEffect(() => {
     if (mode === "selection") {
+      setCataloguePage(1);
       fetchCatalogue();
     }
   }, [fetchCatalogue, mode]);
@@ -184,11 +203,15 @@ export function VocabCoachContent() {
             if (reviews && reviews.length > 0) {
                 query = query.in('id', reviews.map((r: any) => r.vocab_id));
             } else {
-                query = query.eq('level', targetLvl).eq('category', targetCat).limit(10);
+                query = query.eq('level', targetLvl);
+                if (targetCat !== "Toutes") query = query.eq('category', targetCat);
+                query = query.limit(10);
             }
         } else {
             setIsReviewMode(false);
-            query = query.eq('level', targetLvl).eq('category', targetCat).limit(10);
+            query = query.eq('level', targetLvl);
+            if (targetCat !== "Toutes") query = query.eq('category', targetCat);
+            query = query.limit(10);
         }
 
         const { data, error } = await query;
@@ -623,8 +646,8 @@ export function VocabCoachContent() {
           badgeColor="emerald"
           description="Enrichissez votre lexique thématique pour le TEF IRN. Nous ciblons vos mots à réviser au bon moment pour une mémorisation durable."
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="bg-white p-6 rounded-[2rem] border border-zinc-100 space-y-4 shadow-sm">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <Target size={14} className="text-emerald-600" /> Choisir votre niveau
               </div>
@@ -641,45 +664,43 @@ export function VocabCoachContent() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <GraduationCap size={14} className="text-emerald-600" /> Thématiques
+            <div
+                onClick={() => startTraining(false)}
+                className="bg-zinc-900 p-6 rounded-[2rem] text-white space-y-2 shadow-sm relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform flex flex-col justify-center"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl" />
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-2">
+                <GraduationCap size={14} /> Nouveaux mots
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategory(cat)}
-                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div
-                  onClick={() => startTraining(false)}
-                  className="flex-1 bg-zinc-900 p-5 rounded-[2rem] text-white space-y-2 shadow-xl shadow-zinc-200 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-2">
-                  <GraduationCap size={14} /> Nouveaux mots
-                </div>
-                <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
+            <div
+                onClick={() => startTraining(true)}
+                className="bg-emerald-600 p-6 rounded-[2rem] text-white space-y-2 shadow-sm relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform flex flex-col justify-center"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                <Brain size={14} /> Flash révision
               </div>
+              <h4 className="text-sm font-black leading-tight">Réviser mes mots</h4>
+            </div>
+          </div>
 
-              <div
-                  onClick={() => startTraining(true)}
-                  className="flex-1 bg-emerald-600 p-5 rounded-[2rem] text-white space-y-2 shadow-xl shadow-emerald-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                  <Brain size={14} /> Flash révision
-                </div>
-                <h4 className="text-sm font-black leading-tight">Réviser mes mots</h4>
-              </div>
+          <div className="bg-white p-6 rounded-[2rem] border border-zinc-100 space-y-4 shadow-sm mt-4">
+            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <GraduationCap size={14} className="text-emerald-600" /> Thématiques
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -709,8 +730,34 @@ export function VocabCoachContent() {
                   Réessayer
                 </Button>
               </Card>
-            ) : catalogue.length > 0 ? (
-              <VocabCatalogueTable items={catalogue} />
+            ) : catalogueGroups.length > 0 ? (
+              <div className="space-y-6">
+                <VocabCatalogueTable groups={catalogueGroupsForPage} showCategoryHeaders={filters.category === "Toutes"} />
+
+                {catalogueTotalPages > 1 && (
+                  <div className="flex items-center justify-between px-2">
+                    <Button
+                      onClick={() => setCataloguePage((p) => Math.max(1, p - 1))}
+                      disabled={cataloguePage === 1}
+                      variant="outline"
+                      className="rounded-2xl font-black text-xs h-10 disabled:opacity-30"
+                    >
+                      Précédent
+                    </Button>
+                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                      Page {cataloguePage} / {catalogueTotalPages}
+                    </span>
+                    <Button
+                      onClick={() => setCataloguePage((p) => Math.min(catalogueTotalPages, p + 1))}
+                      disabled={cataloguePage === catalogueTotalPages}
+                      variant="outline"
+                      className="rounded-2xl font-black text-xs h-10 disabled:opacity-30"
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <Target className="mx-auto mb-4 text-zinc-300" size={40} />
