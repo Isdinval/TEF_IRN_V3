@@ -107,10 +107,13 @@ export function PracticeContent() {
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
-  // Titre de leçon seul (sans le contenu), pour le fil d'Ariane du bandeau de
-  // contexte — toujours visible sans clic, indépendant du panneau complet
-  // "Voir la leçon" (lessonCache) qui charge aussi le content markdown.
-  const [lessonTitleById, setLessonTitleById] = useState<Record<string, string>>({});
+  // Titre + slug de leçon (sans le contenu), pour le fil d'Ariane cliquable du
+  // bandeau de contexte — toujours visible sans clic, indépendant du panneau
+  // complet "Voir la leçon" (lessonCache) qui charge aussi le content markdown.
+  const [lessonBreadcrumbById, setLessonBreadcrumbById] = useState<Record<string, { title: string; slug: string }>>({});
+  // Slug de chaque parcours (level+category), pour le 1er maillon cliquable du
+  // fil d'Ariane. Liste courte (~20 parcours) : un seul fetch, mis en cache.
+  const [parcoursSlugs, setParcoursSlugs] = useState<{ slug: string; level: string; category: string }[] | null>(null);
   const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
   const [recommendedExerciseId, setRecommendedExerciseId] = useState<string | null>(null);
   const [recommendationReason, setRecommendationReason] = useState<string | null>(null);
@@ -129,13 +132,13 @@ export function PracticeContent() {
       try {
         const { data, error } = await supabase
           .from("lessons")
-          .select("title, content")
+          .select("title, content, slug")
           .eq("id", lessonId)
           .single();
         if (error) throw error;
         if (data) {
           setLessonCache(prev => ({ ...prev, [lessonId]: data as { title: string; content: string } }));
-          setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title || "").main }));
+          setLessonBreadcrumbById(prev => ({ ...prev, [lessonId]: { title: splitTitle(data.title || "").main, slug: data.slug } }));
         }
       } catch (err) {
         console.error("Error fetching lesson:", err);
@@ -146,22 +149,40 @@ export function PracticeContent() {
     setLessonVisible(true);
   }, [lessonVisible, lessonCache, supabase]);
 
-  // Fetch léger (title only) du fil d'Ariane pédagogique, dès qu'un exercice avec
-  // lesson_id est affiché — indépendant du clic "Voir la leçon" (toggleLesson
-  // ci-dessus, qui charge en plus le content markdown complet).
+  // Fetch léger (title + slug, sans le content) du fil d'Ariane pédagogique, dès
+  // qu'un exercice avec lesson_id est affiché — indépendant du clic "Voir la
+  // leçon" (toggleLesson ci-dessus, qui charge en plus le content markdown).
   useEffect(() => {
     const lessonId = questions[currentIdx]?.lesson_id;
-    if (!lessonId || lessonTitleById[lessonId]) return;
+    if (!lessonId || lessonBreadcrumbById[lessonId]) return;
     let active = true;
     (async () => {
-      const { data } = await supabase.from("lessons").select("title").eq("id", lessonId).single();
+      const { data } = await supabase.from("lessons").select("title, slug").eq("id", lessonId).single();
       if (active && data?.title) {
-        setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title).main }));
+        setLessonBreadcrumbById(prev => ({ ...prev, [lessonId]: { title: splitTitle(data.title).main, slug: data.slug } }));
       }
     })();
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, currentIdx, supabase]);
+
+  // Slugs de parcours (level+category -> slug), pour le lien "Grammaire A2" du
+  // fil d'Ariane — chargés une seule fois, liste courte (~20 parcours).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.from("parcours").select("slug, level, category");
+      if (active) setParcoursSlugs(data || []);
+    })();
+    return () => { active = false; };
+  }, [supabase]);
+
+  const getParcoursSlug = useCallback((level?: string, category?: string) => {
+    if (!level || !category || !parcoursSlugs) return undefined;
+    return parcoursSlugs.find(
+      (p) => p.level === level && p.category.toLowerCase() === category.toLowerCase()
+    )?.slug;
+  }, [parcoursSlugs]);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -850,7 +871,7 @@ export function PracticeContent() {
     ) : null;
 
     return (
-      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showSplit && "md:h-screen md:overflow-hidden")}>
+      <div className={cn("h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CENTRE D’ENTRAÎNEMENT QCM"
@@ -928,7 +949,16 @@ export function PracticeContent() {
                     instructions={currentQuestion?.instructions}
                     pointCle={currentQuestion?.point_cles_lesson}
                     parcoursLabel={currentQuestion ? `${currentQuestion.category} ${currentQuestion.level}` : undefined}
-                    lessonTitle={currentQuestion?.lesson_id ? lessonTitleById[currentQuestion.lesson_id] : undefined}
+                    parcoursHref={(() => {
+                      const slug = getParcoursSlug(currentQuestion?.level, currentQuestion?.category);
+                      return slug ? `/tef-irn/parcours/${slug}` : undefined;
+                    })()}
+                    lessonTitle={currentQuestion?.lesson_id ? lessonBreadcrumbById[currentQuestion.lesson_id]?.title : undefined}
+                    lessonHref={
+                      currentQuestion?.lesson_id && lessonBreadcrumbById[currentQuestion.lesson_id]?.slug
+                        ? `/tef-irn/lessons/${lessonBreadcrumbById[currentQuestion.lesson_id].slug}`
+                        : undefined
+                    }
                     accentColor="purple"
                   />
 

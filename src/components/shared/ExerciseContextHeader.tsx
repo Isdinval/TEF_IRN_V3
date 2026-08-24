@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Target, ChevronRight, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -13,8 +14,14 @@ interface ExerciseContextHeaderProps {
   /** Libellé du parcours d'origine, ex. "Grammaire A2" — 1er maillon du fil
    *  d'Ariane pédagogique affiché au-dessus des badges. */
   parcoursLabel?: string | null;
+  /** Lien vers la page du parcours (/tef-irn/parcours/[slug]). Sans lien
+   *  fourni, le libellé reste affiché mais non cliquable. */
+  parcoursHref?: string | null;
   /** Titre de la leçon d'origine de l'exercice — 2e maillon du fil d'Ariane. */
   lessonTitle?: string | null;
+  /** Lien vers la page de la leçon (/tef-irn/lessons/[slug]). Sans lien
+   *  fourni, le titre reste affiché mais non cliquable. */
+  lessonHref?: string | null;
   accentColor?: "indigo" | "purple";
 }
 
@@ -42,7 +49,9 @@ export function ExerciseContextHeader({
   instructions,
   pointCle,
   parcoursLabel,
+  parcoursHref,
   lessonTitle,
+  lessonHref,
   accentColor = "indigo",
 }: ExerciseContextHeaderProps) {
   const hasMeta = category || level || difficulty;
@@ -54,9 +63,28 @@ export function ExerciseContextHeader({
       {hasBreadcrumb && (
         <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
           <BookOpen size={12} className="shrink-0" />
-          {parcoursLabel && <span>{parcoursLabel}</span>}
+          {parcoursLabel && (
+            parcoursHref ? (
+              <Link href={parcoursHref} className="hover:text-zinc-700 hover:underline transition-colors">
+                {parcoursLabel}
+              </Link>
+            ) : (
+              <span>{parcoursLabel}</span>
+            )
+          )}
           {parcoursLabel && lessonTitle && <ChevronRight size={11} className="shrink-0 text-zinc-300" />}
-          {lessonTitle && <span className="text-zinc-600 normal-case tracking-normal font-bold">{lessonTitle}</span>}
+          {lessonTitle && (
+            lessonHref ? (
+              <Link
+                href={lessonHref}
+                className="text-zinc-600 normal-case tracking-normal font-bold hover:text-indigo-600 hover:underline transition-colors"
+              >
+                {lessonTitle}
+              </Link>
+            ) : (
+              <span className="text-zinc-600 normal-case tracking-normal font-bold">{lessonTitle}</span>
+            )
+          )}
         </div>
       )}
 
