@@ -95,8 +95,20 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
       .sort((a, b) => a.orderIndex - b.orderIndex || a.title.localeCompare(b.title));
   }, [exercises, lessonMeta]);
 
+  // Scroll automatique vers le haut de la leçon qu'on vient d'ouvrir — sans ça,
+  // le contenu déplié reste hors champ en bas d'écran sur les longues listes.
+  // scroll-mt-24 compense ParcoursTopBar (sticky top-0, ~64px) quand elle est
+  // affichée, pour ne pas caler le titre de la leçon juste sous la barre.
+  const handleValueChange = (value: string[]) => {
+    const openedId = value[0];
+    if (!openedId) return;
+    requestAnimationFrame(() => {
+      document.getElementById(`lesson-${openedId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   return (
-    <Accordion className="space-y-3">
+    <Accordion className="space-y-3" onValueChange={handleValueChange}>
       {lessonGroups.map((group) => {
         const { main } = splitTitle(group.title);
 
@@ -114,7 +126,8 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
           <AccordionItem
             key={group.lessonId}
             value={group.lessonId}
-            className={`rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${
+            id={`lesson-${group.lessonId}`}
+            className={`scroll-mt-24 rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${
               group.isFullyDone ? completionCardStyles(true) : "bg-white border-zinc-100"
             }`}
           >

@@ -470,7 +470,7 @@ export function VocabCoachContent() {
     const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0;
 
     return (
-      <div className="min-h-screen bg-zinc-50 flex flex-col">
+      <div className="h-full bg-zinc-50 flex flex-col">
         <ExerciseLayout
           variant="compact"
           title="COACH VOCABULAIRE"
@@ -820,12 +820,25 @@ export function VocabCoachContent() {
               // Accordéon strict (une seule thématique ouverte à la fois — comportement
               // par défaut de @base-ui/react/accordion, cf. CivicCatalogue.tsx). Toutes
               // les thématiques sont listées sur une seule page, repliées par défaut.
-              <Accordion className="space-y-3">
+              // Scroll automatique vers le haut de la thématique qu'on vient d'ouvrir —
+              // scroll-mt-24 compense ParcoursTopBar (sticky top-0, ~64px) si affichée.
+              <Accordion
+                className="space-y-3"
+                onValueChange={(value: string[]) => {
+                  const openedCategory = value[0];
+                  if (!openedCategory) return;
+                  const slug = openedCategory.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                  requestAnimationFrame(() => {
+                    document.getElementById(`vocab-category-${slug}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  });
+                }}
+              >
                 {catalogueGroups.map((group) => (
                   <AccordionItem
                     key={group.category}
                     value={group.category}
-                    className={`rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${group.isFullyMastered ? completionCardStyles(true) : 'bg-white border-zinc-100'}`}
+                    id={`vocab-category-${group.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                    className={`scroll-mt-24 rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${group.isFullyMastered ? completionCardStyles(true) : 'bg-white border-zinc-100'}`}
                   >
                     <AccordionTrigger className="hover:no-underline py-5">
                       <div className="flex items-center gap-3 text-left flex-1">
