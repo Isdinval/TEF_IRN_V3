@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "rea
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
+import GrammarCheckTreeCatalogue, { LessonMeta } from "./components/GrammarCheckTreeCatalogue";
 import { Exercise } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,6 @@ import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
-import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { splitTitle } from "@/lib/lessons";
 import { cn } from "@/lib/utils";
@@ -87,9 +86,8 @@ function parseVoltaireSentence(sentence: string): {
 interface LessonSummary {
   title: string;
   content: string;
+  slug?: string;
 }
-
-const CATALOGUE_PAGE_SIZE = 12;
 
 export function GrammarCheckContent() {
   const router = useRouter();
@@ -113,17 +111,23 @@ export function GrammarCheckContent() {
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
-  const [catalogPage, setCatalogPage] = useState(1);
-  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
-  const [catalogTotalCount, setCatalogTotalCount] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
-  const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
+  // Titre + order_index de chaque leçon référencée par le catalogue courant, utilisés
+  // par GrammarCheckTreeCatalogue pour titrer et trier le niveau 1 de l'arbre.
+  const [lessonMeta, setLessonMeta] = useState<Record<string, LessonMeta>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
+  // Titre + slug de leçon (sans le contenu), pour le fil d'Ariane cliquable du
+  // bandeau de contexte — toujours visible sans clic, indépendant du panneau
+  // complet "Voir la leçon" (lessonCache) qui charge aussi le content markdown.
+  const [lessonBreadcrumbById, setLessonBreadcrumbById] = useState<Record<string, { title: string; slug: string }>>({});
+  // Slug de chaque parcours (level+category), pour le 1er maillon cliquable du
+  // fil d'Ariane. Liste courte (~20 parcours) : un seul fetch, mis en cache.
+  const [parcoursSlugs, setParcoursSlugs] = useState<{ slug: string; level: string; category: string }[] | null>(null);
   // Défaut = 1ère pose (identique SSR/CSR), tirage aléatoire déclenché ensuite
   // uniquement via des événements 100% client (cf. handleNextAction / fetchCatalogue)
   // pour éviter tout mismatch d'hydratation Next.js.
@@ -162,38 +166,36 @@ export function GrammarCheckContent() {
         excludeIds = Array.from(new Set((completed || []).map((c: any) => c.exercise_id).filter(Boolean)));
       }
 
-      const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
-      const to = from + CATALOGUE_PAGE_SIZE - 1;
       let query = supabase
         .from("exercises")
-        .select("*", { count: "exact" })
+        .select("*")
         .eq("type", "trous")
         .eq("level", filters.level);
       if (filters.category !== "Toutes") query = query.ilike("category", `%${filters.category}%`);
       if (searchQuery) query = query.ilike("instructions", `%${searchQuery}%`);
       if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
-      const { data: exercises, count } = await query
-        .order("created_at", { ascending: sortOrder === "ancien" })
-        .range(from, to);
-
-      setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
-      setCatalogTotalCount(count ?? 0);
+      // Pas de pagination : tout le catalogue filtré est chargé en une fois puis
+      // organisé en arbre (leçon > point clé) par GrammarCheckTreeCatalogue, replié
+      // par défaut. Vérifié en base : pire cas actuel ~220 exercices / 22 leçons
+      // (B1 Grammaire), même ordre de grandeur que l'accordéon vocab par catégorie.
+      const { data: exercises } = await query
+        .order("created_at", { ascending: sortOrder === "ancien" });
 
       if (exercises && exercises.length > 0) {
         const lessonIds = Array.from(new Set(exercises.map((e: any) => e.lesson_id).filter(Boolean)));
         if (lessonIds.length > 0) {
-          const { data: lessons } = await supabase.from("lessons").select("id, title").in("id", lessonIds);
-          const titleMap: Record<string, string> = {};
+          const { data: lessons } = await supabase.from("lessons").select("id, title, order_index").in("id", lessonIds);
+          const metaMap: Record<string, LessonMeta> = {};
           (lessons || []).forEach((l: any) => {
-            titleMap[l.id] = splitTitle(l.title || "").main;
+            metaMap[l.id] = { title: l.title || "", order_index: l.order_index ?? 0 };
           });
-          setLessonTitles(titleMap);
+          setLessonMeta(metaMap);
         } else {
-          setLessonTitles({});
+          setLessonMeta({});
         }
       } else {
-        setLessonTitles({});
+        setLessonMeta({});
       }
 
       if (exercises && user) {
@@ -228,13 +230,7 @@ export function GrammarCheckContent() {
       isFetchingCatalogue.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, sortOrder, supabase]);
-
-  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche/tri.
-  useEffect(() => {
-    setCatalogPage(1);
-  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder]);
-
+  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder, supabase]);
 
   const fetchRecommendation = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -432,12 +428,13 @@ export function GrammarCheckContent() {
       try {
         const { data, error } = await supabase
           .from("lessons")
-          .select("title, content")
+          .select("title, content, slug")
           .eq("id", lessonId)
           .single();
         if (error) throw error;
         if (data) {
           setLessonCache(prev => ({ ...prev, [lessonId]: data as LessonSummary }));
+          setLessonBreadcrumbById(prev => ({ ...prev, [lessonId]: { title: splitTitle(data.title || "").main, slug: data.slug as string } }));
         }
       } catch (err) {
         console.error("Error fetching lesson:", err);
@@ -447,6 +444,41 @@ export function GrammarCheckContent() {
     }
     setLessonVisible(true);
   }, [lessonVisible, lessonCache, supabase]);
+
+  // Fetch léger (title + slug, sans le content) du fil d'Ariane pédagogique, dès
+  // qu'un exercice avec lesson_id est affiché — indépendant du clic "Voir la
+  // leçon" (toggleLesson ci-dessus, qui charge en plus le content markdown).
+  useEffect(() => {
+    const lessonId = questions[currentIdx]?.lesson_id;
+    if (!lessonId || lessonBreadcrumbById[lessonId]) return;
+    let active = true;
+    (async () => {
+      const { data } = await supabase.from("lessons").select("title, slug").eq("id", lessonId).single();
+      if (active && data?.title) {
+        setLessonBreadcrumbById(prev => ({ ...prev, [lessonId]: { title: splitTitle(data.title).main, slug: data.slug } }));
+      }
+    })();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, currentIdx, supabase]);
+
+  // Slugs de parcours (level+category -> slug), pour le lien "Grammaire A2" du
+  // fil d'Ariane — chargés une seule fois, liste courte (~20 parcours).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.from("parcours").select("slug, level, category");
+      if (active) setParcoursSlugs(data || []);
+    })();
+    return () => { active = false; };
+  }, [supabase]);
+
+  const getParcoursSlug = useCallback((level?: string, category?: string) => {
+    if (!level || !category || !parcoursSlugs) return undefined;
+    return parcoursSlugs.find(
+      (p) => p.level === level && p.category.toLowerCase() === category.toLowerCase()
+    )?.slug;
+  }, [parcoursSlugs]);
 
   const handleBack = () => {
     if (mode === "selection") {
@@ -562,7 +594,7 @@ export function GrammarCheckContent() {
     ) : null;
 
     return (
-      <div className={cn("min-h-screen bg-zinc-50 flex flex-col", showSplit && "md:h-screen md:overflow-hidden")}>
+      <div className={cn("h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
@@ -639,15 +671,22 @@ export function GrammarCheckContent() {
                     difficulty={current?.difficulty}
                     instructions={current?.instructions}
                     pointCle={current?.point_cles_lesson}
+                    parcoursLabel={current ? `${current.category} ${current.level}` : undefined}
+                    parcoursHref={(() => {
+                      const slug = getParcoursSlug(current?.level, current?.category);
+                      return slug ? `/tef-irn/parcours/${slug}` : undefined;
+                    })()}
+                    lessonTitle={current?.lesson_id ? lessonBreadcrumbById[current.lesson_id]?.title : undefined}
+                    lessonHref={
+                      current?.lesson_id && lessonBreadcrumbById[current.lesson_id]?.slug
+                        ? `/tef-irn/lessons/${lessonBreadcrumbById[current.lesson_id].slug}`
+                        : undefined
+                    }
                   accentColor="indigo"
                 />
 
                 <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="w-10 h-10 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 rotate-3 group">
-                      <Target size={18} className="group-hover:scale-110 transition-transform" />
-                   </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-2 mt-3 relative z-10">
+                  <div className="flex flex-wrap items-center justify-center gap-2 relative z-10">
                     {currentParsed.tokens.map((token) => {
                       const isSelected = selectedWordIndex === token.index;
                       const isTheError = currentParsed.hasError && token.index === currentParsed.errorIndex;
@@ -907,14 +946,14 @@ export function GrammarCheckContent() {
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {catalogTotalCount} exercice{catalogTotalCount > 1 ? 's' : ''} disponible{catalogTotalCount > 1 ? 's' : ''}
+                {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
               </div>
             </div>
 
             {loadingCatalogue ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                  <div key={i} className="h-16 rounded-[2rem] bg-zinc-100 animate-pulse" />
                 ))}
               </div>
             ) : catalogueError ? (
@@ -926,19 +965,11 @@ export function GrammarCheckContent() {
                 </Button>
               </Card>
             ) : catalogue.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {catalogue.map((ex: Exercise) => (
-                    <ExerciseCard key={ex.id} exercise={ex} lessonTitle={ex.lesson_id ? lessonTitles[ex.lesson_id] : undefined} />
-                  ))}
-                </div>
-                <CataloguePagination
-                  page={catalogPage}
-                  totalPages={catalogTotalPages}
-                  onPageChange={setCatalogPage}
-                  accentColor="indigo"
-                />
-              </>
+              <GrammarCheckTreeCatalogue
+                exercises={catalogue}
+                lessonMeta={lessonMeta}
+                basePath="/tef-irn/grammar-check"
+              />
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <img

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Target, ChevronDown, ChevronUp } from "lucide-react";
+import Link from "next/link";
+import { Target, ChevronRight, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,17 @@ interface ExerciseContextHeaderProps {
   difficulty?: string;
   instructions?: string;
   pointCle?: string | null;
+  /** Libellé du parcours d'origine, ex. "Grammaire A2" — 1er maillon du fil
+   *  d'Ariane pédagogique affiché au-dessus des badges. */
+  parcoursLabel?: string | null;
+  /** Lien vers la page du parcours (/tef-irn/parcours/[slug]). Sans lien
+   *  fourni, le libellé reste affiché mais non cliquable. */
+  parcoursHref?: string | null;
+  /** Titre de la leçon d'origine de l'exercice — 2e maillon du fil d'Ariane. */
+  lessonTitle?: string | null;
+  /** Lien vers la page de la leçon (/tef-irn/lessons/[slug]). Sans lien
+   *  fourni, le titre reste affiché mais non cliquable. */
+  lessonHref?: string | null;
   accentColor?: "indigo" | "purple";
 }
 
@@ -25,12 +36,11 @@ const accentClasses: Record<"indigo" | "purple", string> = {
   purple: "bg-purple-600 text-white",
 };
 
-const POINT_CLE_TRUNCATE_LENGTH = 100;
-
 /**
  * Bandeau de contexte pédagogique affiché en tête d'un exercice en cours
- * (grammar-check "training" / practice "practice") : catégorie, niveau,
- * difficulté, tags, instructions et point clé de la leçon associée.
+ * (grammar-check "training" / practice "practice") : fil d'Ariane
+ * parcours > leçon, catégorie, niveau, difficulté, instructions et point clé
+ * de la leçon associée.
  */
 export function ExerciseContextHeader({
   category,
@@ -38,20 +48,46 @@ export function ExerciseContextHeader({
   difficulty,
   instructions,
   pointCle,
+  parcoursLabel,
+  parcoursHref,
+  lessonTitle,
+  lessonHref,
   accentColor = "indigo",
 }: ExerciseContextHeaderProps) {
-  const [pointCleExpanded, setPointCleExpanded] = useState(false);
   const hasMeta = category || level || difficulty;
-  if (!hasMeta && !instructions && !pointCle) return null;
-
-  const pointCleIsLong = !!pointCle && pointCle.length > POINT_CLE_TRUNCATE_LENGTH;
-  const pointCleDisplay =
-    pointCleIsLong && !pointCleExpanded
-      ? `${pointCle!.slice(0, POINT_CLE_TRUNCATE_LENGTH).trimEnd()}…`
-      : pointCle;
+  const hasBreadcrumb = !!(parcoursLabel || lessonTitle);
+  if (!hasMeta && !instructions && !pointCle && !hasBreadcrumb) return null;
 
   return (
     <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
+      {hasBreadcrumb && (
+        <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+          <BookOpen size={12} className="shrink-0" />
+          {parcoursLabel && (
+            parcoursHref ? (
+              <Link href={parcoursHref} className="hover:text-zinc-700 hover:underline transition-colors">
+                {parcoursLabel}
+              </Link>
+            ) : (
+              <span>{parcoursLabel}</span>
+            )
+          )}
+          {parcoursLabel && lessonTitle && <ChevronRight size={11} className="shrink-0 text-zinc-300" />}
+          {lessonTitle && (
+            lessonHref ? (
+              <Link
+                href={lessonHref}
+                className="text-zinc-600 normal-case tracking-normal font-bold hover:text-indigo-600 hover:underline transition-colors"
+              >
+                {lessonTitle}
+              </Link>
+            ) : (
+              <span className="text-zinc-600 normal-case tracking-normal font-bold">{lessonTitle}</span>
+            )
+          )}
+        </div>
+      )}
+
       {hasMeta && (
         <div className="flex flex-wrap items-center gap-2">
           {level && (
@@ -79,22 +115,7 @@ export function ExerciseContextHeader({
       {pointCle && (
         <div className="text-xs text-zinc-500 italic flex items-start gap-1.5">
           <Target size={13} className="mt-0.5 shrink-0 text-zinc-400" />
-          <span>
-            {pointCleDisplay}
-            {pointCleIsLong && (
-              <button
-                type="button"
-                onClick={() => setPointCleExpanded((v) => !v)}
-                className="not-italic inline-flex items-center gap-0.5 ml-1.5 text-zinc-400 hover:text-zinc-700 font-bold uppercase tracking-wide text-[9px] align-middle"
-              >
-                {pointCleExpanded ? (
-                  <>Voir moins <ChevronUp size={11} /></>
-                ) : (
-                  <>Voir plus <ChevronDown size={11} /></>
-                )}
-              </button>
-            )}
-          </span>
+          <span>{pointCle}</span>
         </div>
       )}
     </div>
