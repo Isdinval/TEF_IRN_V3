@@ -65,6 +65,10 @@ export function VocabCoachContent() {
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
+  // Nombre réel de mots dus à révision aujourd'hui, tous niveaux/thématiques
+  // confondus (reflète le comportement effectif de startTraining(true), qui
+  // ignore les filtres level/category sur son chemin principal — cf. analyse).
+  const [reviewDueCount, setReviewDueCount] = useState<number | null>(null);
 
   // Quiz state
   const [quizOptions, setQuizOptions] = useState<string[]>([]);
@@ -145,11 +149,35 @@ export function VocabCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.level, filters.category, supabase]);
 
+  // Compte réel des mots dus à révision aujourd'hui, indépendant des filtres
+  // level/category (cf. startTraining : le chemin "review" est global). Pas
+  // de dépendance aux filtres ici volontairement, pour ne pas refaire cette
+  // requête à chaque changement de niveau/thématique alors que le résultat
+  // ne varie pas avec eux.
+  const fetchReviewDueCount = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setReviewDueCount(0); return; }
+
+      const { count } = await supabase
+        .from("user_vocabulary_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .lte("next_review_at", new Date().toISOString());
+
+      setReviewDueCount(count ?? 0);
+    } catch (err) {
+      console.error("Error fetching review due count:", err);
+      setReviewDueCount(0);
+    }
+  }, [supabase]);
+
   useEffect(() => {
     if (mode === "selection") {
       fetchCatalogue();
+      fetchReviewDueCount();
     }
-  }, [fetchCatalogue, mode]);
+  }, [fetchCatalogue, fetchReviewDueCount, mode]);
 
   const startSpecificCard = useCallback(async (id: string) => {
     setLoading(true);
@@ -696,6 +724,11 @@ export function VocabCoachContent() {
                 <GraduationCap size={14} /> Nouveaux mots
               </div>
               <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
+              <p className="text-[11px] text-zinc-400 font-medium leading-snug">
+                {loadingCatalogue
+                  ? "Chargement…"
+                  : `${Math.min(catalogue.length, 10)} mot${Math.min(catalogue.length, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
+              </p>
             </div>
 
             <div
@@ -707,6 +740,11 @@ export function VocabCoachContent() {
                 <Brain size={14} /> Flash révision
               </div>
               <h4 className="text-sm font-black leading-tight">Réviser mes mots</h4>
+              <p className="text-[11px] text-emerald-100 font-medium leading-snug">
+                {reviewDueCount === null
+                  ? "Chargement…"
+                  : `${Math.min(reviewDueCount, 10)} mot${Math.min(reviewDueCount, 10) > 1 ? "s" : ""} à réviser aujourd'hui · toutes thématiques`}
+              </p>
             </div>
           </div>
 
