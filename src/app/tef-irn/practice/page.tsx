@@ -107,6 +107,10 @@ export function PracticeContent() {
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
+  // Titre de leçon seul (sans le contenu), pour le fil d'Ariane du bandeau de
+  // contexte — toujours visible sans clic, indépendant du panneau complet
+  // "Voir la leçon" (lessonCache) qui charge aussi le content markdown.
+  const [lessonTitleById, setLessonTitleById] = useState<Record<string, string>>({});
   const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
   const [recommendedExerciseId, setRecommendedExerciseId] = useState<string | null>(null);
   const [recommendationReason, setRecommendationReason] = useState<string | null>(null);
@@ -131,6 +135,7 @@ export function PracticeContent() {
         if (error) throw error;
         if (data) {
           setLessonCache(prev => ({ ...prev, [lessonId]: data as { title: string; content: string } }));
+          setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title || "").main }));
         }
       } catch (err) {
         console.error("Error fetching lesson:", err);
@@ -140,6 +145,23 @@ export function PracticeContent() {
     }
     setLessonVisible(true);
   }, [lessonVisible, lessonCache, supabase]);
+
+  // Fetch léger (title only) du fil d'Ariane pédagogique, dès qu'un exercice avec
+  // lesson_id est affiché — indépendant du clic "Voir la leçon" (toggleLesson
+  // ci-dessus, qui charge en plus le content markdown complet).
+  useEffect(() => {
+    const lessonId = questions[currentIdx]?.lesson_id;
+    if (!lessonId || lessonTitleById[lessonId]) return;
+    let active = true;
+    (async () => {
+      const { data } = await supabase.from("lessons").select("title").eq("id", lessonId).single();
+      if (active && data?.title) {
+        setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title).main }));
+      }
+    })();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, currentIdx, supabase]);
 
   const fetchCatalogue = useCallback(async () => {
     setLoadingCatalogue(true);
@@ -905,16 +927,14 @@ export function PracticeContent() {
                     difficulty={currentQuestion?.difficulty}
                     instructions={currentQuestion?.instructions}
                     pointCle={currentQuestion?.point_cles_lesson}
+                    parcoursLabel={currentQuestion ? `${currentQuestion.category} ${currentQuestion.level}` : undefined}
+                    lessonTitle={currentQuestion?.lesson_id ? lessonTitleById[currentQuestion.lesson_id] : undefined}
                     accentColor="purple"
                   />
 
                   {/* Question Text */}
                   <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="w-10 h-10 mx-auto bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-200 rotate-3 group">
-                      <Target size={18} className="group-hover:scale-110 transition-transform" />
-                   </div>
-
-                   <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight mt-2 relative z-10">
+                   <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
                     {currentQuestion?.text}
                   </h3>
                   <div className="absolute top-0 right-0 w-80 h-80 bg-purple-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
@@ -938,7 +958,7 @@ export function PracticeContent() {
 
                 {/* Options Grid */}
                 <div className="grid grid-cols-1 gap-2">
-                   <p className="text-center text-[9px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-0.5">Sélectionnez la bonne réponse</p>
+                   <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
                   {currentQuestion?.options.map((option: string, i: number) => {
                     const isCorrect = i === currentQuestion.correctAnswer;
                     const isSelected = selected === i;

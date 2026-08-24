@@ -120,6 +120,10 @@ export function GrammarCheckContent() {
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, LessonSummary>>({});
+  // Titre de leçon seul (sans le contenu), pour le fil d'Ariane du bandeau de
+  // contexte — toujours visible sans clic, indépendant du panneau complet
+  // "Voir la leçon" (lessonCache) qui charge aussi le content markdown.
+  const [lessonTitleById, setLessonTitleById] = useState<Record<string, string>>({});
   // Défaut = 1ère pose (identique SSR/CSR), tirage aléatoire déclenché ensuite
   // uniquement via des événements 100% client (cf. handleNextAction / fetchCatalogue)
   // pour éviter tout mismatch d'hydratation Next.js.
@@ -426,6 +430,7 @@ export function GrammarCheckContent() {
         if (error) throw error;
         if (data) {
           setLessonCache(prev => ({ ...prev, [lessonId]: data as LessonSummary }));
+          setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title || "").main }));
         }
       } catch (err) {
         console.error("Error fetching lesson:", err);
@@ -435,6 +440,23 @@ export function GrammarCheckContent() {
     }
     setLessonVisible(true);
   }, [lessonVisible, lessonCache, supabase]);
+
+  // Fetch léger (title only) du fil d'Ariane pédagogique, dès qu'un exercice avec
+  // lesson_id est affiché — indépendant du clic "Voir la leçon" (toggleLesson
+  // ci-dessus, qui charge en plus le content markdown complet).
+  useEffect(() => {
+    const lessonId = questions[currentIdx]?.lesson_id;
+    if (!lessonId || lessonTitleById[lessonId]) return;
+    let active = true;
+    (async () => {
+      const { data } = await supabase.from("lessons").select("title").eq("id", lessonId).single();
+      if (active && data?.title) {
+        setLessonTitleById(prev => ({ ...prev, [lessonId]: splitTitle(data.title).main }));
+      }
+    })();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, currentIdx, supabase]);
 
   const handleBack = () => {
     if (mode === "selection") {
@@ -627,15 +649,13 @@ export function GrammarCheckContent() {
                     difficulty={current?.difficulty}
                     instructions={current?.instructions}
                     pointCle={current?.point_cles_lesson}
+                    parcoursLabel={current ? `${current.category} ${current.level}` : undefined}
+                    lessonTitle={current?.lesson_id ? lessonTitleById[current.lesson_id] : undefined}
                   accentColor="indigo"
                 />
 
                 <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                   <div className="w-10 h-10 mx-auto bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 rotate-3 group">
-                      <Target size={18} className="group-hover:scale-110 transition-transform" />
-                   </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-2 mt-3 relative z-10">
+                  <div className="flex flex-wrap items-center justify-center gap-2 relative z-10">
                     {currentParsed.tokens.map((token) => {
                       const isSelected = selectedWordIndex === token.index;
                       const isTheError = currentParsed.hasError && token.index === currentParsed.errorIndex;
