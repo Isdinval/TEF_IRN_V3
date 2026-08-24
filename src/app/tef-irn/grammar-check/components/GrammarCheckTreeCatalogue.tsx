@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
 import { ChevronRight } from "lucide-react";
 import { splitTitle } from "@/lib/lessons";
 
@@ -12,6 +13,7 @@ export type TreeExerciseStatus = "new" | "in_progress" | "completed";
 export interface TreeExercise {
   id: string;
   instructions?: string;
+  category?: string;
   lesson_id: string | null;
   point_cles_lesson?: string | null;
   is_completed?: boolean;
@@ -30,6 +32,22 @@ const STATUS_CONFIG: Record<TreeExerciseStatus, { label: string; className: stri
   in_progress: { label: "En cours", className: "bg-amber-50 text-amber-600" },
   completed: { label: "Terminé", className: "bg-emerald-50 text-emerald-600" },
 };
+
+// Pastille de couleur par thématique, affichée sur chaque ligne d'exercice — utile
+// dès que le filtre "Toutes" mélange plusieurs catégories sous une même leçon
+// (exercises.category diverge parfois de lessons.category, par design). Couvre les
+// 4 boutons de filtre du catalogue (Grammaire, Conjugaison, Syntaxe, Orthographe).
+const CATEGORY_COLORS: Record<string, string> = {
+  grammaire: "bg-emerald-50 text-emerald-700",
+  conjugaison: "bg-blue-50 text-blue-700",
+  syntaxe: "bg-violet-50 text-violet-700",
+  orthographe: "bg-amber-50 text-amber-700",
+  default: "bg-zinc-100 text-zinc-500",
+};
+
+function getCategoryColor(category?: string): string {
+  return CATEGORY_COLORS[category?.toLowerCase() || ""] || CATEGORY_COLORS.default;
+}
 
 const NO_LESSON_KEY = "__sans_lecon__";
 const DEFAULT_POINT_CLE_LABEL = "Général";
@@ -97,7 +115,7 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
             key={group.lessonId}
             value={group.lessonId}
             className={`rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${
-              group.isFullyDone ? "bg-emerald-50/50 border-emerald-100" : "bg-white border-zinc-100"
+              group.isFullyDone ? completionCardStyles(true) : "bg-white border-zinc-100"
             }`}
           >
             <AccordionTrigger className="hover:no-underline py-5">
@@ -106,6 +124,7 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                   {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
                 </span>
+                {group.isFullyDone && <CompletionBadge />}
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-6 space-y-5">
@@ -123,14 +142,25 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
                           href={`${basePath}/${ex.id}`}
                           className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors group rounded-2xl border border-zinc-50"
                         >
+                          {ex.category && (
+                            <Badge
+                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getCategoryColor(ex.category)}`}
+                            >
+                              {ex.category}
+                            </Badge>
+                          )}
                           <p className="flex-1 min-w-0 text-sm font-bold text-zinc-800 line-clamp-2 group-hover:text-indigo-600 transition-colors">
                             {ex.instructions || "Exercice"}
                           </p>
-                          <Badge
-                            className={`shrink-0 border-none rounded-full px-3 py-1 text-[9px] font-black uppercase ${STATUS_CONFIG[st].className}`}
-                          >
-                            {STATUS_CONFIG[st].label}
-                          </Badge>
+                          {st === "completed" ? (
+                            <CompletionBadge />
+                          ) : (
+                            <Badge
+                              className={`shrink-0 border-none rounded-full px-3 py-1 text-[9px] font-black uppercase ${STATUS_CONFIG[st].className}`}
+                            >
+                              {STATUS_CONFIG[st].label}
+                            </Badge>
+                          )}
                           <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
                         </Link>
                       );
