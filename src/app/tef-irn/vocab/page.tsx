@@ -83,6 +83,8 @@ export function VocabCoachContent() {
   const hasInitialized = useRef(false);
   const isFetchingCatalogue = useRef(false);
 
+  const catalogueScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Regroupe le catalogue par catégorie (ordre = VOCAB_CATEGORIES, catégories
   // absentes du résultat filtrées). Utilisé pour afficher chaque thématique
   // comme une section accordéon indépendante (toute la page, pas de pagination).
@@ -822,15 +824,20 @@ export function VocabCoachContent() {
               // les thématiques sont listées sur une seule page, repliées par défaut.
               // Scroll automatique vers le haut de la thématique qu'on vient d'ouvrir —
               // scroll-mt-24 compense ParcoursTopBar (sticky top-0, ~64px) si affichée.
+              // Délai de 220ms (> 200ms, durée de l'animation CSS accordion-down/up dans
+              // globals.css) : si une autre thématique était ouverte, elle continue de se
+              // replier pendant l'ouverture de la nouvelle, décalant la cible tant que
+              // l'animation n'est pas terminée.
               <Accordion
                 className="space-y-3"
                 onValueChange={(value: string[]) => {
                   const openedCategory = value[0];
+                  if (catalogueScrollTimeoutRef.current) clearTimeout(catalogueScrollTimeoutRef.current);
                   if (!openedCategory) return;
                   const slug = openedCategory.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                  requestAnimationFrame(() => {
+                  catalogueScrollTimeoutRef.current = setTimeout(() => {
                     document.getElementById(`vocab-category-${slug}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  });
+                  }, 220);
                 }}
               >
                 {catalogueGroups.map((group) => (
