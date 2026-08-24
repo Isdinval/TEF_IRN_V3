@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
+import PracticeTreeCatalogue, { LessonMeta } from "./components/PracticeTreeCatalogue";
 import { Exercise } from "@/lib/parcours";
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,7 +28,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
-import { CataloguePagination } from "@/components/shared/CataloguePagination";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
 import { splitTitle } from "@/lib/lessons";
@@ -77,7 +76,6 @@ interface ExerciseDB {
 
 const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
 const LEVELS = ["A1", "A2", "B1", "B2"];
-const CATALOGUE_PAGE_SIZE = 12;
 
 export function PracticeContent() {
   const router = useRouter();
@@ -99,14 +97,13 @@ export function PracticeContent() {
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
   const [saveScoreError, setSaveScoreError] = useState(false);
-  const [catalogPage, setCatalogPage] = useState(1);
-  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
-  const [catalogTotalCount, setCatalogTotalCount] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
-  const [lessonTitles, setLessonTitles] = useState<Record<string, string>>({});
+  // Titre + order_index de chaque leçon référencée par le catalogue courant, utilisés
+  // par PracticeTreeCatalogue pour titrer et trier le niveau 1 de l'arbre.
+  const [lessonMeta, setLessonMeta] = useState<Record<string, LessonMeta>>({});
   const [lessonVisible, setLessonVisible] = useState(false);
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [lessonCache, setLessonCache] = useState<Record<string, { title: string; content: string }>>({});
@@ -160,12 +157,9 @@ export function PracticeContent() {
         excludeIds = Array.from(new Set((completed || []).map((c: any) => c.exercise_id).filter(Boolean)));
       }
 
-      const from = (catalogPage - 1) * CATALOGUE_PAGE_SIZE;
-      const to = from + CATALOGUE_PAGE_SIZE - 1;
-
       let query = supabase
         .from("exercises")
-        .select("*", { count: "exact" })
+        .select("*")
         .in("type", ["qcm", "association", "qcm_centre_entrainement"])
         .eq("level", filters.level);
 
@@ -175,27 +169,26 @@ export function PracticeContent() {
       if (searchQuery) query = query.ilike("instructions", `%${searchQuery}%`);
       if (excludeIds.length > 0) query = query.not("id", "in", `(${excludeIds.join(",")})`);
 
-      const { data: exercises, count } = await query
-        .order("created_at", { ascending: sortOrder === "ancien" })
-        .range(from, to);
-
-      setCatalogTotalPages(Math.max(1, Math.ceil((count ?? 0) / CATALOGUE_PAGE_SIZE)));
-      setCatalogTotalCount(count ?? 0);
+      // Pas de pagination : tout le catalogue filtré est chargé en une fois puis
+      // organisé en arbre (leçon > point clé) par PracticeTreeCatalogue, replié
+      // par défaut (même approche que GrammarCheckTreeCatalogue).
+      const { data: exercises } = await query
+        .order("created_at", { ascending: sortOrder === "ancien" });
 
       if (exercises && exercises.length > 0) {
         const lessonIds = Array.from(new Set(exercises.map((e: any) => e.lesson_id).filter(Boolean)));
         if (lessonIds.length > 0) {
-          const { data: lessons } = await supabase.from("lessons").select("id, title").in("id", lessonIds);
-          const titleMap: Record<string, string> = {};
+          const { data: lessons } = await supabase.from("lessons").select("id, title, order_index").in("id", lessonIds);
+          const metaMap: Record<string, LessonMeta> = {};
           (lessons || []).forEach((l: any) => {
-            titleMap[l.id] = splitTitle(l.title || "").main;
+            metaMap[l.id] = { title: l.title || "", order_index: l.order_index ?? 0 };
           });
-          setLessonTitles(titleMap);
+          setLessonMeta(metaMap);
         } else {
-          setLessonTitles({});
+          setLessonMeta({});
         }
       } else {
-        setLessonTitles({});
+        setLessonMeta({});
       }
 
       if (exercises && user) {
@@ -226,18 +219,13 @@ export function PracticeContent() {
     } finally {
       setLoadingCatalogue(false);
     }
-  }, [filters.level, filters.category, catalogPage, searchQuery, hideCompleted, sortOrder, supabase]);
+  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder, supabase]);
 
   // Debounce de la recherche texte (300ms) pour éviter une requête par frappe.
   useEffect(() => {
     const timeout = setTimeout(() => setSearchQuery(searchInput.trim()), 300);
     return () => clearTimeout(timeout);
   }, [searchInput]);
-
-  // Retour à la page 1 du catalogue à chaque changement de filtre/recherche/tri.
-  useEffect(() => {
-    setCatalogPage(1);
-  }, [filters.level, filters.category, searchQuery, hideCompleted, sortOrder]);
 
   useEffect(() => {
     if (mode === "selection") {
@@ -776,14 +764,14 @@ export function PracticeContent() {
                   <span className="capitalize text-zinc-500">{filters.category}</span>
                 </h2>
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  {catalogTotalCount} exercice{catalogTotalCount > 1 ? 's' : ''} disponible{catalogTotalCount > 1 ? 's' : ''}
+                  {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
                 </div>
               </div>
 
               {loadingCatalogue ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   {[1, 2, 3, 4].map((i: number) => (
-                    <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                    <div key={i} className="h-16 rounded-[2rem] bg-zinc-100 animate-pulse" />
                   ))}
                 </div>
               ) : catalogueError ? (
@@ -795,19 +783,11 @@ export function PracticeContent() {
                   </Button>
                 </Card>
               ) : catalogue.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {catalogue.map((ex: Exercise) => (
-                      <ExerciseCard key={ex.id} exercise={ex} lessonTitle={ex.lesson_id ? lessonTitles[ex.lesson_id] : undefined} />
-                    ))}
-                  </div>
-                  <CataloguePagination
-                    page={catalogPage}
-                    totalPages={catalogTotalPages}
-                    onPageChange={setCatalogPage}
-                    accentColor="purple"
-                  />
-                </>
+                <PracticeTreeCatalogue
+                  exercises={catalogue}
+                  lessonMeta={lessonMeta}
+                  basePath="/tef-irn/practice"
+                />
               ) : (
                 <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
                   <Target className="mx-auto mb-4 text-zinc-300" size={40} />
