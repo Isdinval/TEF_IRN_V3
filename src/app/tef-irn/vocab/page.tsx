@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
 import {
   ArrowRight,
   Loader2,
@@ -81,9 +82,15 @@ export function VocabCoachContent() {
   // Regroupe le catalogue par catégorie (ordre = VOCAB_CATEGORIES, catégories
   // absentes du résultat filtrées). Utilisé pour afficher chaque thématique
   // comme une section accordéon indépendante (toute la page, pas de pagination).
+  // isFullyMastered signale qu'une thématique est 100% maîtrisée (tous les mots
+  // au statut "mastered") pour afficher un indicateur visuel sans avoir à
+  // ouvrir l'accordéon (cf. CompletionVisuals, réutilisé tel quel).
   const catalogueGroups = useMemo(() => {
     return VOCAB_CATEGORIES
-      .map((cat) => ({ category: cat, items: catalogue.filter((item) => item.category === cat) }))
+      .map((cat) => {
+        const items = catalogue.filter((item) => item.category === cat);
+        return { category: cat, items, isFullyMastered: items.length > 0 && items.every((item) => item.status === "mastered") };
+      })
       .filter((group) => group.items.length > 0);
   }, [catalogue]);
 
@@ -738,7 +745,7 @@ export function VocabCoachContent() {
                   <AccordionItem
                     key={group.category}
                     value={group.category}
-                    className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6 border-b-0"
+                    className={`rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${group.isFullyMastered ? completionCardStyles(true) : 'bg-white border-zinc-100'}`}
                   >
                     <AccordionTrigger className="hover:no-underline py-5">
                       <div className="flex items-center gap-3 text-left flex-1">
@@ -746,6 +753,7 @@ export function VocabCoachContent() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                           {group.items.length} mot{group.items.length > 1 ? "s" : ""}
                         </span>
+                        {group.isFullyMastered && <CompletionBadge />}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-6">
