@@ -98,6 +98,14 @@ export function VocabCoachContent() {
       .filter((group) => group.items.length > 0);
   }, [catalogue]);
 
+  // Nombre de mots du filtre actuel effectivement servis par "Apprendre mes
+  // mots" (qui exclut désormais les mots déjà maîtrisés) — utilisé pour le
+  // sous-titre chiffré du CTA, afin qu'il reste honnête vis-à-vis du résultat.
+  const unmasteredCatalogueCount = useMemo(
+    () => catalogue.filter((item) => item.status !== "mastered").length,
+    [catalogue]
+  );
+
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
     isFetchingCatalogue.current = true;
@@ -149,28 +157,36 @@ export function VocabCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.level, filters.category, supabase]);
 
-  // Compte réel des mots dus à révision aujourd'hui, indépendant des filtres
-  // level/category (cf. startTraining : le chemin "review" est global). Pas
-  // de dépendance aux filtres ici volontairement, pour ne pas refaire cette
-  // requête à chaque changement de niveau/thématique alors que le résultat
-  // ne varie pas avec eux.
+  // Compte réel des mots dus à révision aujourd'hui, désormais scopé aux
+  // filtres level/category — cf. startTraining, qui respecte maintenant ces
+  // filtres sur le chemin "review" (avant : comptage global, indépendant des
+  // filtres). 2 requêtes (candidats du filtre, puis comptage des reviews
+  // dues parmi ces IDs) plutôt qu'un embed PostgREST, pour rester cohérent
+  // avec le pattern déjà utilisé dans fetchCatalogue().
   const fetchReviewDueCount = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setReviewDueCount(0); return; }
 
+      let candidatesQuery = supabase.from("vocabulary").select("id").eq("level", filters.level);
+      if (filters.category !== "Toutes") candidatesQuery = candidatesQuery.eq("category", filters.category);
+      const { data: candidates } = await candidatesQuery;
+      const candidateIds = (candidates || []).map((c: any) => c.id);
+      if (candidateIds.length === 0) { setReviewDueCount(0); return; }
+
       const { count } = await supabase
         .from("user_vocabulary_reviews")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .lte("next_review_at", new Date().toISOString());
+        .lte("next_review_at", new Date().toISOString())
+        .in("vocab_id", candidateIds);
 
       setReviewDueCount(count ?? 0);
     } catch (err) {
       console.error("Error fetching review due count:", err);
       setReviewDueCount(0);
     }
-  }, [supabase]);
+  }, [supabase, filters.level, filters.category]);
 
   useEffect(() => {
     if (mode === "selection") {
@@ -212,10 +228,10 @@ export function VocabCoachContent() {
         const { data: authData } = await supabase.auth.getUser();
         const user = authData?.user;
 
-        let query = supabase.from('vocabulary').select('*');
-
         const targetLvl = lvl || filters.level;
         const targetCat = cat || filters.category;
+
+        let data: any[] | null = null;
 
         if (review && user) {
             setIsReviewMode(true);
@@ -227,21 +243,47 @@ export function VocabCoachContent() {
                 .limit(10);
 
             if (reviews && reviews.length > 0) {
-                query = query.in('id', reviews.map((r: any) => r.vocab_id));
+                // Les mots dus sont maintenant aussi filtrés par niveau/thématique
+                // (avant : ignorait totalement les filtres affichés à l'écran).
+                let dueQuery = supabase.from('vocabulary').select('*').in('id', reviews.map((r: any) => r.vocab_id)).eq('level', targetLvl);
+                if (targetCat !== "Toutes") dueQuery = dueQuery.eq('category', targetCat);
+                const { data: dueData, error: dueErr } = await dueQuery;
+                if (dueErr) throw dueErr;
+                data = dueData;
             } else {
-                query = query.eq('level', targetLvl);
-                if (targetCat !== "Toutes") query = query.eq('category', targetCat);
-                query = query.limit(10);
+                let fallbackQuery = supabase.from('vocabulary').select('*').eq('level', targetLvl);
+                if (targetCat !== "Toutes") fallbackQuery = fallbackQuery.eq('category', targetCat);
+                const { data: fallbackData, error: fallbackErr } = await fallbackQuery.limit(10);
+                if (fallbackErr) throw fallbackErr;
+                data = fallbackData;
             }
         } else {
             setIsReviewMode(false);
-            query = query.eq('level', targetLvl);
-            if (targetCat !== "Toutes") query = query.eq('category', targetCat);
-            query = query.limit(10);
-        }
+            // 2 requêtes (candidats du niveau/catégorie, puis reviews de
+            // l'utilisateur sur ces candidats) pour exclure côté client les
+            // mots déjà maîtrisés (consecutive_correct >= 2) — même pattern
+            // que fetchCatalogue(), pas de nouvelle technique introduite.
+            let candidatesQuery = supabase.from('vocabulary').select('*').eq('level', targetLvl);
+            if (targetCat !== "Toutes") candidatesQuery = candidatesQuery.eq('category', targetCat);
+            const { data: candidates, error: candErr } = await candidatesQuery.order('word', { ascending: true });
+            if (candErr) throw candErr;
 
-        const { data, error } = await query;
-        if (error) throw error;
+            let pool = candidates || [];
+            if (user && pool.length > 0) {
+                const { data: masteryReviews } = await supabase
+                    .from('user_vocabulary_reviews')
+                    .select('vocab_id, consecutive_correct')
+                    .eq('user_id', user.id)
+                    .in('vocab_id', pool.map((c: any) => c.id));
+                const masteredIds = new Set(
+                    (masteryReviews || [])
+                        .filter((r: any) => (r.consecutive_correct || 0) >= 2)
+                        .map((r: any) => r.vocab_id)
+                );
+                pool = pool.filter((c: any) => !masteredIds.has(c.id));
+            }
+            data = pool.slice(0, 10);
+        }
 
         if (data && data.length > 0) {
             setCards(data as Flashcard[]);
@@ -727,7 +769,7 @@ export function VocabCoachContent() {
               <p className="text-[11px] text-zinc-400 font-medium leading-snug">
                 {loadingCatalogue
                   ? "Chargement…"
-                  : `${Math.min(catalogue.length, 10)} mot${Math.min(catalogue.length, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
+                  : `${Math.min(unmasteredCatalogueCount, 10)} mot${Math.min(unmasteredCatalogueCount, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
               </p>
             </div>
 
@@ -743,7 +785,7 @@ export function VocabCoachContent() {
               <p className="text-[11px] text-emerald-100 font-medium leading-snug">
                 {reviewDueCount === null
                   ? "Chargement…"
-                  : `${Math.min(reviewDueCount, 10)} mot${Math.min(reviewDueCount, 10) > 1 ? "s" : ""} à réviser aujourd'hui · toutes thématiques`}
+                  : `${Math.min(reviewDueCount, 10)} mot${Math.min(reviewDueCount, 10) > 1 ? "s" : ""} à réviser · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
               </p>
             </div>
           </div>
