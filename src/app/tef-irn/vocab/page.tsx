@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "rea
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import VocabCard from "./components/VocabCard";
+import VocabCatalogueTable from "./components/VocabCatalogueTable";
 import VocabAudioButton from "./components/VocabAudioButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import {
   Trophy,
   Brain,
   Target,
-  Zap,
   GraduationCap,
   Calendar,
   RotateCcw,
@@ -100,17 +99,24 @@ export function VocabCoachContent() {
       if (items && user) {
         const { data: reviews } = await supabase
           .from("user_vocabulary_reviews")
-          .select("vocab_id")
+          .select("vocab_id, consecutive_correct")
           .eq("user_id", user.id)
           .in("vocab_id", items.map((i: any) => i.id));
 
-        const mapped = items.map((item: any) => ({
-          ...item,
-          is_completed: reviews?.some((r: any) => r.vocab_id === item.id)
-        }));
+        // Même seuil de maîtrise que CivicCatalogue.tsx (consecutive_correct >= 2)
+        // pour garder une définition de "mot appris" cohérente entre les 2 verticales.
+        const mapped = items.map((item: any) => {
+          const review = reviews?.find((r: any) => r.vocab_id === item.id);
+          const status: "new" | "learning" | "mastered" = !review
+            ? "new"
+            : (review.consecutive_correct || 0) >= 2
+            ? "mastered"
+            : "learning";
+          return { ...item, status };
+        });
         setCatalogue(mapped);
       } else {
-        setCatalogue(items || []);
+        setCatalogue((items || []).map((item: any) => ({ ...item, status: "new" as const })));
       }
     } catch (err) {
       console.error("Error fetching catalogue:", err);
@@ -423,8 +429,10 @@ export function VocabCoachContent() {
                 `}>
                   <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-2xl shadow-zinc-200 rounded-[2.5rem] group-hover:shadow-emerald-100 transition-all duration-500 bg-white text-center">
                     <h2 className="text-[clamp(1.5rem,3vw+0.75rem,2.25rem)] font-black text-zinc-900 mb-4 tracking-tighter">{current?.word}</h2>
-                    <VocabAudioButton audioUrl={current?.audio_url} variant="light" />
-                    <p className="absolute bottom-8 text-[10px] text-zinc-300 uppercase font-black tracking-[0.4em] italic">Cliquer pour révéler</p>
+                    <VocabAudioButton audioUrl={current?.audio_url} variant="light" onPlay={() => setFlipped(true)} />
+                    <div className="absolute bottom-8 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-wider">
+                      <RotateCcw size={14} /> Cliquer pour révéler
+                    </div>
                   </Card>
 
                   <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border-none bg-zinc-900 text-white shadow-2xl rounded-[2.5rem] overflow-hidden text-center">
@@ -650,17 +658,27 @@ export function VocabCoachContent() {
               </div>
             </div>
 
-            <div
-                onClick={() => startTraining(true)}
-                className="bg-emerald-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-emerald-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                <Brain size={14} /> Flash révision
+            <div className="flex flex-col gap-4">
+              <div
+                  onClick={() => startTraining(false)}
+                  className="flex-1 bg-zinc-900 p-5 rounded-[2rem] text-white space-y-2 shadow-xl shadow-zinc-200 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl" />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-2">
+                  <GraduationCap size={14} /> Nouveaux mots
+                </div>
+                <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
               </div>
-              <h4 className="text-base font-black leading-tight">Lancer mes mots à réviser</h4>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                <Zap size={16} /> Recommandé pour vous
+
+              <div
+                  onClick={() => startTraining(true)}
+                  className="flex-1 bg-emerald-600 p-5 rounded-[2rem] text-white space-y-2 shadow-xl shadow-emerald-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                  <Brain size={14} /> Flash révision
+                </div>
+                <h4 className="text-sm font-black leading-tight">Réviser mes mots</h4>
               </div>
             </div>
           </div>
@@ -678,9 +696,9 @@ export function VocabCoachContent() {
             </div>
 
             {loadingCatalogue ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-[2rem] border border-zinc-100 divide-y divide-zinc-50 overflow-hidden">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-64 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                  <div key={i} className="h-16 bg-zinc-100 animate-pulse" />
                 ))}
               </div>
             ) : catalogueError ? (
@@ -692,11 +710,7 @@ export function VocabCoachContent() {
                 </Button>
               </Card>
             ) : catalogue.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {catalogue.map((item: any) => (
-                  <VocabCard key={item.id} item={item} />
-                ))}
-              </div>
+              <VocabCatalogueTable items={catalogue} />
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <Target className="mx-auto mb-4 text-zinc-300" size={40} />
