@@ -9,6 +9,7 @@ import VocabAudioButton from "./components/VocabAudioButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import {
   ArrowRight,
   Loader2,
@@ -60,7 +61,6 @@ export function VocabCoachContent() {
   const [catalogue, setCatalogue] = useState<any[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
-  const [cataloguePage, setCataloguePage] = useState(1);
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
@@ -79,21 +79,13 @@ export function VocabCoachContent() {
   const isFetchingCatalogue = useRef(false);
 
   // Regroupe le catalogue par catégorie (ordre = VOCAB_CATEGORIES, catégories
-  // absentes du résultat filtrées). En mode "Toutes", ça permet d'afficher les
-  // mots par thématique (avec en-têtes) plutôt qu'en vrac ; en mode catégorie
-  // unique, un seul groupe est produit — la pagination se désactive naturellement.
-  const CATEGORIES_PER_PAGE = 2;
+  // absentes du résultat filtrées). Utilisé pour afficher chaque thématique
+  // comme une section accordéon indépendante (toute la page, pas de pagination).
   const catalogueGroups = useMemo(() => {
     return VOCAB_CATEGORIES
       .map((cat) => ({ category: cat, items: catalogue.filter((item) => item.category === cat) }))
       .filter((group) => group.items.length > 0);
   }, [catalogue]);
-
-  const catalogueTotalPages = Math.max(1, Math.ceil(catalogueGroups.length / CATEGORIES_PER_PAGE));
-  const catalogueGroupsForPage = catalogueGroups.slice(
-    (cataloguePage - 1) * CATEGORIES_PER_PAGE,
-    cataloguePage * CATEGORIES_PER_PAGE
-  );
 
   const fetchCatalogue = useCallback(async () => {
     if (isFetchingCatalogue.current) return;
@@ -148,7 +140,6 @@ export function VocabCoachContent() {
 
   useEffect(() => {
     if (mode === "selection") {
-      setCataloguePage(1);
       fetchCatalogue();
     }
   }, [fetchCatalogue, mode]);
@@ -451,6 +442,10 @@ export function VocabCoachContent() {
                   ${flipped ? 'rotate-y-180' : ''}
                 `}>
                   <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-2xl shadow-zinc-200 rounded-[2.5rem] group-hover:shadow-emerald-100 transition-all duration-500 bg-white text-center">
+                    <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-50 text-zinc-500 text-[9px] font-black uppercase tracking-widest">{current?.level}</span>
+                    </div>
                     <h2 className="text-[clamp(1.5rem,3vw+0.75rem,2.25rem)] font-black text-zinc-900 mb-4 tracking-tighter">{current?.word}</h2>
                     <VocabAudioButton audioUrl={current?.audio_url} variant="light" onPlay={() => setFlipped(true)} />
                     <div className="absolute bottom-8 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-wider">
@@ -462,6 +457,10 @@ export function VocabCoachContent() {
                     <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full blur-3xl" />
                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500 rounded-full blur-3xl" />
+                    </div>
+                    <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2 z-10">
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[9px] font-black uppercase tracking-widest">{current?.level}</span>
                     </div>
                     <div className="text-center space-y-6 z-10">
                       <div className="space-y-3 flex flex-col items-center">
@@ -646,7 +645,24 @@ export function VocabCoachContent() {
           badgeColor="emerald"
           description="Enrichissez votre lexique thématique pour le TEF IRN. Nous ciblons vos mots à réviser au bon moment pour une mémorisation durable."
         >
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-white p-6 rounded-[2rem] border border-zinc-100 space-y-4 shadow-sm">
+            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <GraduationCap size={14} className="text-emerald-600" /> Thématiques
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="bg-white p-6 rounded-[2rem] border border-zinc-100 space-y-4 shadow-sm">
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <Target size={14} className="text-emerald-600" /> Choisir votre niveau
@@ -687,23 +703,6 @@ export function VocabCoachContent() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[2rem] border border-zinc-100 space-y-4 shadow-sm mt-4">
-            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <GraduationCap size={14} className="text-emerald-600" /> Thématiques
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <section className="mt-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
@@ -731,33 +730,30 @@ export function VocabCoachContent() {
                 </Button>
               </Card>
             ) : catalogueGroups.length > 0 ? (
-              <div className="space-y-6">
-                <VocabCatalogueTable groups={catalogueGroupsForPage} showCategoryHeaders={filters.category === "Toutes"} />
-
-                {catalogueTotalPages > 1 && (
-                  <div className="flex items-center justify-between px-2">
-                    <Button
-                      onClick={() => setCataloguePage((p) => Math.max(1, p - 1))}
-                      disabled={cataloguePage === 1}
-                      variant="outline"
-                      className="rounded-2xl font-black text-xs h-10 disabled:opacity-30"
-                    >
-                      Précédent
-                    </Button>
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      Page {cataloguePage} / {catalogueTotalPages}
-                    </span>
-                    <Button
-                      onClick={() => setCataloguePage((p) => Math.min(catalogueTotalPages, p + 1))}
-                      disabled={cataloguePage === catalogueTotalPages}
-                      variant="outline"
-                      className="rounded-2xl font-black text-xs h-10 disabled:opacity-30"
-                    >
-                      Suivant
-                    </Button>
-                  </div>
-                )}
-              </div>
+              // Accordéon strict (une seule thématique ouverte à la fois — comportement
+              // par défaut de @base-ui/react/accordion, cf. CivicCatalogue.tsx). Toutes
+              // les thématiques sont listées sur une seule page, repliées par défaut.
+              <Accordion className="space-y-3">
+                {catalogueGroups.map((group) => (
+                  <AccordionItem
+                    key={group.category}
+                    value={group.category}
+                    className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6 border-b-0"
+                  >
+                    <AccordionTrigger className="hover:no-underline py-5">
+                      <div className="flex items-center gap-3 text-left flex-1">
+                        <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{group.category}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          {group.items.length} mot{group.items.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-6">
+                      <VocabCatalogueTable items={group.items} />
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             ) : (
               <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
                 <Target className="mx-auto mb-4 text-zinc-300" size={40} />
