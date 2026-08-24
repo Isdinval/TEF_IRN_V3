@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -100,12 +100,19 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
   // le contenu déplié reste hors champ en bas d'écran sur les longues listes.
   // scroll-mt-24 compense ParcoursTopBar (sticky top-0, ~64px) quand elle est
   // affichée, pour ne pas caler le titre de la leçon juste sous la barre.
+  // Délai de 220ms (> 200ms, durée de l'animation CSS accordion-down/up dans
+  // globals.css) : si une autre leçon était ouverte, elle continue de se
+  // replier pendant l'ouverture de la nouvelle, décalant la cible tant que
+  // l'animation n'est pas terminée — scroller trop tôt (ex: au frame suivant)
+  // vise une position qui n'est plus la bonne une fois l'animation finie.
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleValueChange = (value: string[]) => {
     const openedId = value[0];
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     if (!openedId) return;
-    requestAnimationFrame(() => {
+    scrollTimeoutRef.current = setTimeout(() => {
       document.getElementById(`lesson-${openedId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    }, 220);
   };
 
   return (
