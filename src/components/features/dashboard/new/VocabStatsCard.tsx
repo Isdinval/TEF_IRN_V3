@@ -22,7 +22,41 @@ const LEVEL_COLORS: Record<string, string> = {
 export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps) {
   const router = useRouter();
 
-  if (!total || total === 0) return null;
+  // Le RPC get_dashboard_data renvoie toujours un objet vocab_stats (jamais
+  // null), y compris pour un compte neuf / reset -- total=0 est donc un cas
+  // normal à afficher explicitement plutôt qu'à masquer (sinon la colonne
+  // droite de l'onglet "Ma progression" reste vide sans explication).
+  if (!total || total === 0) {
+    return (
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+        <CardContent className="p-8">
+          <div className="mb-6 space-y-1">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
+              <Languages size={14} /> Vocabulaire
+            </h3>
+            <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
+              Aucun mot maîtrisé
+              <InfoTooltip text="Un mot est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS)." />
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+            <Languages size={40} className="text-zinc-200 mb-3" />
+            <p className="text-sm font-bold text-zinc-400">Aucun mot maîtrisé pour l'instant.</p>
+            <p className="text-xs text-zinc-300 mt-1">Révisez du vocabulaire pour voir votre progression ici.</p>
+          </div>
+
+          <Button
+            onClick={() => router.push("/tef-irn/vocab")}
+            variant="outline"
+            className="mt-6 h-12 w-full rounded-2xl border-2 border-zinc-100 font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all flex items-center justify-center gap-2"
+          >
+            Commencer le vocabulaire <ArrowRight size={16} />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">

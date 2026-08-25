@@ -38,12 +38,46 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
   let recommendedExercises: Exercise[] = [];
 
   if (user) {
-    const [progressData, exercisesData] = await Promise.all([
+    // progress doit être connu avant d'appeler resolveNextExercises() : on en
+    // dérive la leçon "en cours" (currentLessonId) pour activer les paliers
+    // 1/2 du moteur (contexte-leçon), inertes tant que lessonId est absent --
+    // cf. resolveNextExercises() dans recommendation-resolver.ts. weakTags
+    // ne dépend pas de progress, donc requêté en parallèle.
+    const [progressData, weakTagsResult] = await Promise.all([
       getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
-      resolveNextExercises(user.id, { level: parcours.level, category: parcours.category }, supabase)
+      // user_errors.category est Capitalisé en base (ex. "Grammaire") alors
+      // que parcours.category est en minuscule (ex. "grammaire") -- vérifié
+      // en base live, même divergence de casse que exercises.category déjà
+      // gérée dans recommendation-resolver.ts.
+      supabase
+        .from('user_errors')
+        .select('sub_category, frequency')
+        .eq('user_id', user.id)
+        .eq('category', parcours.category.charAt(0).toUpperCase() + parcours.category.slice(1))
+        .not('sub_category', 'is', null)
+        .order('frequency', { ascending: false })
+        .limit(5)
     ]);
     progress = progressData;
-    recommendedExercises = exercisesData;
+
+    const currentLessonId = allLessons.find(
+      (lesson) => !progress!.completedLessons.includes(lesson.id)
+    )?.id;
+
+    const weakTags = (weakTagsResult.data || [])
+      .map((row: { sub_category: string | null }) => row.sub_category)
+      .filter((tag): tag is string => !!tag);
+
+    recommendedExercises = await resolveNextExercises(
+      user.id,
+      {
+        level: parcours.level,
+        category: parcours.category,
+        lessonId: currentLessonId,
+        tags: weakTags.length > 0 ? weakTags : undefined
+      },
+      supabase
+    );
   }
 
   const { data: guideData } = await supabase
