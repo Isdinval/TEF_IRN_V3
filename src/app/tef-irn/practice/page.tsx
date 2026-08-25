@@ -449,12 +449,21 @@ export function PracticeContent() {
 
           if (fullExercises && fullExercises.length > 0) {
             // Préserve l'ordre de pertinence de resolveNextExercises (le fetch
-            // par .in() ne garantit pas l'ordre de la liste d'ids fournie)
-            const byId = new Map(fullExercises.map((e: any) => [e.id, e]));
-            const ordered = ranked
-              .map(r => byId.get(r.id))
-              .filter(Boolean)
-              .map(e => ({ ...e, isDegradedMatch: isDegradedFallback })) as ExerciseDB[];
+            // par .in() ne garantit pas l'ordre de la liste d'ids fournie).
+            // Boucle explicite plutôt qu'une chaîne .map().filter(Boolean).map() :
+            // le narrowing via `if (full)` est fiable pour tsc (contrairement à
+            // filter(Boolean) seul, qui a cassé le build Vercel du 25/08 avec
+            // "Spread types may only be created from object types").
+            const byId = new Map<string, ExerciseDB>(
+              (fullExercises as ExerciseDB[]).map((e) => [e.id, e])
+            );
+            const ordered: ExerciseDB[] = [];
+            for (const r of ranked) {
+              const full = byId.get(r.id);
+              if (full) {
+                ordered.push({ ...full, isDegradedMatch: isDegradedFallback });
+              }
+            }
             setQuestions(ordered.flatMap(mapExerciseToQuestions).slice(0, 10));
             setMode("practice");
             return;
