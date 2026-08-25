@@ -53,8 +53,9 @@ export interface ResolveContext {
 const TIER_REASONS: Record<number, string> = {
   0: 'À réviser aujourd\u2019hui',
   1: 'Lié à la leçon que tu viens de terminer',
-  2: 'Pour découvrir ce point',
-  3: 'Pour progresser sur ce point'
+  2: 'Un autre exercice de cette leçon',
+  3: 'Pour découvrir ce point',
+  4: 'Pour progresser sur ce point'
 };
 
 /**
@@ -65,9 +66,11 @@ const TIER_REASONS: Record<number, string> = {
  * (pas de formule pondérée) :
  *   0. Exercice dû au sens SRS (user_reviews.next_review_at <= maintenant)
  *   1. Même leçon que le contexte fourni (lessonId, explicite OU dérivé du tag
- *      -- item 19, voir ci-dessous), pas encore réussi
- *   2. Jamais tenté
- *   3. Déjà tenté, tri par score croissant (le moins bien réussi en premier)
+ *      -- item 19, voir ci-dessous) ET tag précis matché, pas encore réussi
+ *   2. Même leçon que le contexte fourni, tag précis non matché sur CET
+ *      exercice précis (voir "Palier 2" ci-dessous), pas encore réussi
+ *   3. Jamais tenté (pool hors leçon canonique, ex. autre leçon partageant le tag)
+ *   4. Déjà tenté, tri par score croissant (le moins bien réussi en premier)
  *
  * Chaque exercice retourné porte un champ recommendation_reason dérivé de son palier —
  * utilisé côté UI pour expliquer pourquoi il est proposé (cf. ExerciseCard variant "hero").
@@ -148,9 +151,44 @@ export async function resolveNextExercises(
   }
 
   const { data, error: exercisesError } = await query.limit(50);
-  const exercises = data as Exercise[] | null;
+  if (exercisesError) return [];
+  let exercises = (data as Exercise[] | null) || [];
 
-  if (exercisesError || !exercises || exercises.length === 0) return [];
+  // Palier 2 (plan "Refonte matching Leçon -> Exercices", item 1) : le filtre
+  // `tags overlap` ci-dessus peut ne matcher AUCUN exercice pour un tag pourtant
+  // légitime (whitelisté), alors même que la leçon canonique (effectiveLessonId)
+  // en possède -- vérifié en base live : 8 couples (tag, niveau) rien que sur la
+  // catégorie Conjugaison n'ont aucun exercice tagué exactement, alors qu'AUCUNE
+  // leçon n'a jamais 0 exercice (FK exercises.lesson_id garantie non vide, par
+  // construction du pipeline de production -- skill llamakusi-tef-exercise-qa
+  // génère toujours les exercices lesson par lesson). Sans ce palier, un tag sans
+  // exercice exact faisait retomber tout le pool sur le fallback catégorie large
+  // de practice/page.tsx#autoStart, sans lien avec la leçon recommandée (bug
+  // observé : reco "conjugaison (présent)" niveau B1 -> exercices de "Passé
+  // Composé, Imparfait et Plus-que-Parfait", une tout autre leçon). On complète
+  // donc TOUJOURS le pool avec les exercices propres à la leçon canonique, tag
+  // exact ou pas -- le tri plus bas (tier 1 vs tier 2) garde la priorité au match
+  // tag exact quand il existe, ce palier ne fait que combler les trous.
+  const tagMatchedIds = new Set(exercises.map((e) => e.id));
+
+  if (effectiveLessonId && context.tags && context.tags.length > 0) {
+    let lessonPoolQuery = supabase
+      .from('exercises')
+      .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')
+      .eq('level', context.level)
+      .eq('lesson_id', effectiveLessonId);
+
+    if (context.type) {
+      lessonPoolQuery = lessonPoolQuery.eq('type', context.type);
+    }
+
+    const { data: lessonPoolData } = await lessonPoolQuery.limit(50);
+    const lessonPoolExercises = (lessonPoolData as Exercise[] | null) || [];
+    const newOnes = lessonPoolExercises.filter((e) => !tagMatchedIds.has(e.id));
+    exercises = [...exercises, ...newOnes];
+  }
+
+  if (exercises.length === 0) return [];
 
   const exerciseIds = exercises.map((e) => e.id);
 
@@ -211,12 +249,14 @@ export async function resolveNextExercises(
     let tier: number;
     if (dueExerciseIds.has(ex.id)) {
       tier = 0;
-    } else if (effectiveLessonId && ex.lesson_id === effectiveLessonId && !isCompleted) {
+    } else if (effectiveLessonId && ex.lesson_id === effectiveLessonId && tagMatchedIds.has(ex.id) && !isCompleted) {
       tier = 1;
-    } else if (!isCompleted) {
+    } else if (effectiveLessonId && ex.lesson_id === effectiveLessonId && !isCompleted) {
       tier = 2;
-    } else {
+    } else if (!isCompleted) {
       tier = 3;
+    } else {
+      tier = 4;
     }
 
     const weakCategoryBoost = topWeakCategory && ex.category?.toLowerCase() === topWeakCategory ? 0 : 1;
