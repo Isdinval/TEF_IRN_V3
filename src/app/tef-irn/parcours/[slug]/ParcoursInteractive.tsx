@@ -299,7 +299,16 @@ export default function ParcoursInteractive({
                   {recommendedExercises.length > 1 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {recommendedExercises.slice(1).map((exercise) => (
-                        <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcours.id} />
+                        <ExerciseCard
+                          key={exercise.id}
+                          exercise={exercise}
+                          parcoursId={parcours.id}
+                          lessonTitle={
+                            exercise.lesson_id
+                              ? allLessons.find((l) => l.id === exercise.lesson_id)?.title
+                              : undefined
+                          }
+                        />
                       ))}
                     </div>
                   )}

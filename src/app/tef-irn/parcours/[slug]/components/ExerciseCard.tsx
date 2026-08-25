@@ -15,9 +15,10 @@ interface ExerciseCardProps {
    *  Permet de signaler visuellement que plusieurs cartes appartiennent à la
    *  même leçon sans devoir les regrouper physiquement dans la grille. */
   lessonTitle?: string;
-  /** "hero" = traitement mis en avant avec la raison de la recommandation affichée.
-   *  Réservé au premier exercice recommandé sur /lessons/[slug]/complete.
-   *  Par défaut "default" : comportement et rendu strictement inchangés (/parcours, /practice). */
+  /** "hero" = traitement mis en avant, réservé au 1er exercice recommandé
+   *  (/lessons/[slug]/complete et /parcours/[slug]).
+   *  "default" (les autres cartes de la grille) affiche aussi
+   *  recommendation_reason depuis l'item 5, en plus compact que le hero. */
   variant?: 'default' | 'hero';
 }
 
@@ -171,6 +172,11 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 <Badge className="bg-amber-50 text-amber-600 border-none text-[8px] font-black px-1.5 h-4 uppercase">AI</Badge>
               )}
             </div>
+            {exercise.recommendation_reason && (
+              <p className={`text-[9px] font-black uppercase tracking-widest ${theme.text} flex items-center gap-1`}>
+                <span aria-hidden="true">✦</span> {exercise.recommendation_reason}
+              </p>
+            )}
             <h4 className={`text-lg font-black text-slate-900 leading-tight ${theme.hoverText} transition-colors`}>
               {exercise.instructions}
             </h4>
