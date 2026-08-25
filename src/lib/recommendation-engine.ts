@@ -332,6 +332,13 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
     }
 
     let lesson = null;
+    // Item 4 du plan "Refonte matching Leçon -> Exercices" : distingue un
+    // rapprochement précis (candidates ci-dessous, leçon dont un tag matche
+    // exactement topError.sub_category) d'un repli plus large (bloc "if
+    // (!lesson)" plus bas, leçon choisie uniquement par category+level, sans
+    // lien garanti avec le point précis) -- sert à nuancer le texte `reason`
+    // plutôt que d'afficher la même formulation affirmative dans les deux cas.
+    let lessonMatchedByTag = false;
     // parseLevelRange : gère le cas où topError.level est composite (examen
     // "A2-B1") -- fallback sur [userLevel] (valeur simple) si absent.
     const errorLevels = parseLevelRange(topError.level).length > 0
@@ -373,6 +380,7 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
         .limit(5);
 
       if (candidates && candidates.length > 0) {
+        lessonMatchedByTag = true;
         if (candidates.length === 1) {
           lesson = candidates[0];
         } else {
@@ -446,9 +454,15 @@ export async function analyzeUserErrorsAndRecommend(userId: string) {
       } else {
         // Leçon jamais lue (comportement d'origine), ou erreur persistante
         // malgré une leçon déjà lue (rappel explicite dans le libellé).
+        // Item 4 : formulation nuancée quand lesson vient du repli category-only
+        // (lessonMatchedByTag=false) -- pas de lien garanti avec le point précis,
+        // contrairement au cas tag-matché où la leçon couvre le point exact.
+        const lessonReference = lessonMatchedByTag
+          ? `Cette leçon sur "${lesson.title}" vous aidera à progresser.`
+          : `Cette leçon de ${topError.category}, "${lesson.title}", couvre ce thème et devrait vous aider à progresser, même si elle ne traite pas ce point précis de façon exhaustive.`;
         const reason = alreadyRead && isPersistent
           ? `Cette erreur revient malgré la leçon déjà vue (${topError.frequency}x) en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Un rappel de "${lesson.title}", complété par des exercices ciblés, vous aidera à l'ancrer.`
-          : `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. Cette leçon sur "${lesson.title}" vous aidera à progresser.`;
+          : `Nous avons remarqué des difficultés récurrentes en ${topError.category}${topError.sub_category ? ` (${topError.sub_category})` : ''}. ${lessonReference}`;
 
         // 3. Créer la recommandation de leçon (upsert : pas de doublon si une
         // reco existe déjà pour la même leçon)
