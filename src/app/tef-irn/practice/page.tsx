@@ -36,6 +36,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
+import { captureEvent } from "@/lib/analytics";
 
 // --- Types ---
 interface Question {
@@ -53,6 +54,12 @@ interface Question {
   explanation?: string;
   lesson_id?: string;
   point_cles_lesson?: string;
+  // Item 2 du plan "Refonte matching Leçon -> Exercices" : true uniquement quand
+  // aucun exercice ciblé (tag précis, ni même leçon canonique -- paliers 1/2 de
+  // resolveNextExercises) n'a pu être trouvé et qu'on est retombé sur le pool
+  // large de la catégorie (voir autoStart ci-dessous). Sert à afficher un
+  // message honnête côté UI plutôt que de laisser croire à un ciblage précis.
+  isDegradedMatch?: boolean;
 }
 
 interface ExerciseDB {
@@ -66,6 +73,7 @@ interface ExerciseDB {
   level: string;
   lesson_id?: string;
   "point_clés_lesson"?: string;
+  isDegradedMatch?: boolean;
   content: {
     explanations?: string[];
     questions: string[];
@@ -92,6 +100,13 @@ export function PracticeContent() {
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
+  // Item 3ter du plan "Refonte matching Leçon -> Exercices" : trace chaque réponse
+  // avec l'exercice DB dont elle provient. saveScore() ne pouvait jusqu'ici
+  // enregistrer qu'un seul exercise_attempts (celui de questions[0]), même quand
+  // la session piochait des sous-questions dans plusieurs exercices différents --
+  // les autres exercices réellement pratiqués n'étaient jamais trackés (ni pour
+  // l'anti-répétition item 13, ni pour le SRS, ni pour user_errors).
+  const [answersLog, setAnswersLog] = useState<{ exerciseId: string; correct: boolean }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -324,6 +339,7 @@ export function PracticeContent() {
       explanation: ex.content.explanations?.[idx],
       lesson_id: ex.lesson_id,
       point_cles_lesson: ex["point_clés_lesson"],
+      isDegradedMatch: ex.isDegradedMatch,
     }));
   };
 
@@ -414,7 +430,26 @@ export function PracticeContent() {
           10
         );
 
+        // Item 2 du plan "Refonte matching Leçon -> Exercices" : depuis le palier 2
+        // (item 1, recommendation-resolver.ts), ce repli ne se déclenche plus que
+        // dans le cas réellement dégradé -- aucun exercice au tag exact NI à la
+        // leçon canonique du tag (donc `effectiveLessonId` n'a pas pu être dérivé,
+        // ou la leçon dérivée n'a elle-même aucun exercice). On le signale
+        // explicitement (isDegradedMatch) pour que l'UI ne laisse pas croire à un
+        // ciblage précis qu'elle n'a pas pu tenir -- au lieu de rester silencieuse
+        // comme avant (bug "présent"/B1 -> exercices sans rapport).
+        let isDegradedFallback = false;
         if (ranked.length === 0 && tag) {
+          isDegradedFallback = true;
+          // Item 5 du plan "Refonte matching Leçon -> Exercices" : log best-effort
+          // (non bloquant) à chaque déclenchement réel du palier 3 -- le seul cas
+          // encore réellement dégradé après les items 1/3bis. Mesure en prod, sur
+          // des couples (topic, tag, level) concrets, où prioriser le comblement
+          // de contenu (item 7) plutôt que deviner. Événement client (posthog-js,
+          // pattern déjà utilisé ailleurs dans le projet, ex. login/page.tsx) --
+          // c'est ici, côté /practice, que le cas se manifeste réellement pour
+          // l'utilisateur, contrairement au palier 2 qui reste interne au moteur.
+          captureEvent("recommendation_degraded_match", { topic: t, tag, level });
           ranked = await resolveNextExercises(
             user.id,
             { level, category: t, type: 'qcm' },
@@ -431,9 +466,21 @@ export function PracticeContent() {
 
           if (fullExercises && fullExercises.length > 0) {
             // Préserve l'ordre de pertinence de resolveNextExercises (le fetch
-            // par .in() ne garantit pas l'ordre de la liste d'ids fournie)
-            const byId = new Map(fullExercises.map((e: any) => [e.id, e]));
-            const ordered = ranked.map(r => byId.get(r.id)).filter(Boolean) as ExerciseDB[];
+            // par .in() ne garantit pas l'ordre de la liste d'ids fournie).
+            // Boucle explicite plutôt qu'une chaîne .map().filter(Boolean).map() :
+            // le narrowing via `if (full)` est fiable pour tsc (contrairement à
+            // filter(Boolean) seul, qui a cassé le build Vercel du 25/08 avec
+            // "Spread types may only be created from object types").
+            const byId = new Map<string, ExerciseDB>(
+              (fullExercises as ExerciseDB[]).map((e) => [e.id, e])
+            );
+            const ordered: ExerciseDB[] = [];
+            for (const r of ranked) {
+              const full = byId.get(r.id);
+              if (full) {
+                ordered.push({ ...full, isDegradedMatch: isDegradedFallback });
+              }
+            }
             setQuestions(ordered.flatMap(mapExerciseToQuestions).slice(0, 10));
             setMode("practice");
             return;
@@ -478,6 +525,12 @@ export function PracticeContent() {
       sessionStartRef.current = Date.now();
     }
   }, [mode]);
+
+  // Item 3ter : nouvelle session (nouvelle référence de tableau `questions`,
+  // posée par chaque fetch* / autoStart) -> journal de réponses réinitialisé.
+  useEffect(() => {
+    setAnswersLog([]);
+  }, [questions]);
 
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
@@ -556,9 +609,11 @@ export function PracticeContent() {
   const handleCheck = () => {
     if (selected === null || isChecked) return;
     setIsChecked(true);
-    if (selected === questions[currentIdx].correctAnswer) {
+    const isCorrect = selected === questions[currentIdx].correctAnswer;
+    if (isCorrect) {
       setScore(s => s + 1);
     }
+    setAnswersLog(log => [...log, { exerciseId: questions[currentIdx].exercise_id, correct: isCorrect }]);
   };
 
   const handleNext = async () => {
@@ -579,24 +634,48 @@ export function PracticeContent() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return true; // Pas connecté : rien à sauvegarder, pas une erreur.
 
-    const finalScore = Math.round((score / questions.length) * 100);
-    const exerciseId = questions[0].exercise_id;
     const studyTimeMinutes = sessionStartRef.current
       ? Math.round((Date.now() - sessionStartRef.current) / 60000)
       : 0;
 
+    // Item 3ter : un exercise_attempts par exercice DB distinct réellement
+    // répondu pendant la session (answersLog), au lieu d'un seul attaché à
+    // questions[0] -- sinon les autres exercices pratiqués (souvent 2 à 3 par
+    // session sur un pool multi-points) n'étaient jamais enregistrés, cassant
+    // silencieusement l'anti-répétition (item 13), le SRS et user_errors pour
+    // tout sauf le premier exercice de la liste.
+    const byExercise = new Map<string, { correct: number; total: number }>();
+    for (const a of answersLog) {
+      const entry = byExercise.get(a.exerciseId) || { correct: 0, total: 0 };
+      entry.total += 1;
+      if (a.correct) entry.correct += 1;
+      byExercise.set(a.exerciseId, entry);
+    }
+
+    // Repli (ne devrait pas arriver en usage normal, mais évite de perdre la
+    // session si answersLog est vide pour une raison quelconque) : comportement
+    // d'origine, un seul attempt sur questions[0].
+    if (byExercise.size === 0 && questions.length > 0) {
+      byExercise.set(questions[0].exercise_id, { correct: score, total: questions.length });
+    }
+
     try {
-      const res = await fetch('/api/exercise-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exerciseId,
-          score: finalScore,
-          answers: { correct: score, total: questions.length },
-          studyTimeMinutes
+      const results = await Promise.all(
+        Array.from(byExercise.entries()).map(([exerciseId, { correct, total }]) => {
+          const finalScore = Math.round((correct / total) * 100);
+          return fetch('/api/exercise-complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              exerciseId,
+              score: finalScore,
+              answers: { correct, total },
+              studyTimeMinutes
+            })
+          });
         })
-      });
-      return res.ok;
+      );
+      return results.every((res) => res.ok);
     } catch (err) {
       console.error("Error saving score:", err);
       return false;
@@ -960,6 +1039,11 @@ export function PracticeContent() {
                         : undefined
                     }
                     accentColor="purple"
+                    degradedMatchNotice={
+                      currentQuestion?.isDegradedMatch
+                        ? `Pas d'exercice ciblé pour cette notion précise : voici des exercices de ${currentQuestion.category} ${currentQuestion.level} pour t'entraîner sur des notions proches.`
+                        : undefined
+                    }
                   />
 
                   {/* Question Text */}

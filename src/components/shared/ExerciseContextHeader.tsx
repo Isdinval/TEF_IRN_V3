@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Target, ChevronRight, BookOpen } from "lucide-react";
+import { Target, ChevronRight, BookOpen, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,12 @@ interface ExerciseContextHeaderProps {
    *  fourni, le titre reste affiché mais non cliquable. */
   lessonHref?: string | null;
   accentColor?: "indigo" | "purple";
+  /** Item 2 du plan "Refonte matching Leçon -> Exercices" : message affiché
+   *  quand aucun exercice ciblé sur la notion précise n'a pu être trouvé et
+   *  que l'exercice proposé vient d'un pool plus large (catégorie entière),
+   *  sans lien garanti avec le point faible d'origine. Absent = pas de mention
+   *  (comportement inchangé quand le ciblage a réussi). */
+  degradedMatchNotice?: string | null;
 }
 
 const difficultyColors: Record<string, string> = {
@@ -53,10 +59,11 @@ export function ExerciseContextHeader({
   lessonTitle,
   lessonHref,
   accentColor = "indigo",
+  degradedMatchNotice,
 }: ExerciseContextHeaderProps) {
   const hasMeta = category || level || difficulty;
   const hasBreadcrumb = !!(parcoursLabel || lessonTitle);
-  if (!hasMeta && !instructions && !pointCle && !hasBreadcrumb) return null;
+  if (!hasMeta && !instructions && !pointCle && !hasBreadcrumb && !degradedMatchNotice) return null;
 
   return (
     <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
@@ -85,6 +92,13 @@ export function ExerciseContextHeader({
               <span className="text-zinc-600 normal-case tracking-normal font-bold">{lessonTitle}</span>
             )
           )}
+        </div>
+      )}
+
+      {degradedMatchNotice && (
+        <div className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+          <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+          <span>{degradedMatchNotice}</span>
         </div>
       )}
 
