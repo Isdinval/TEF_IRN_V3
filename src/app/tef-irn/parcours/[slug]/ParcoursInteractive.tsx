@@ -287,25 +287,36 @@ export default function ParcoursInteractive({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {recommendedExercises.length > 0 ? (
-                  recommendedExercises.map((exercise) => (
-                    <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcours.id} />
-                  ))
-                ) : (
-                  <div className="col-span-full bg-white rounded-[3.5rem] p-20 text-center space-y-6 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
-                    <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
-                      <BookText size={48} className="text-slate-200" />
+              {recommendedExercises.length > 0 ? (
+                <div className="space-y-8">
+                  {/* 1er exercice en "hero" : seul variant qui affiche
+                      recommendation_reason (cf. ExerciseCard.tsx), pour que
+                      l'utilisateur voie pourquoi CET exercice est proposé en
+                      premier (SRS dû, leçon en cours, point faible...) --
+                      même pattern que /lessons/[slug]/complete. */}
+                  <ExerciseCard exercise={recommendedExercises[0]} parcoursId={parcours.id} variant="hero" />
+
+                  {recommendedExercises.length > 1 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {recommendedExercises.slice(1).map((exercise) => (
+                        <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcours.id} />
+                      ))}
                     </div>
-                    <div className="space-y-2">
-                       <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Pas encore de recommandations</h3>
-                       <p className="text-sm font-medium text-slate-400 max-w-md mx-auto">
-                        Terminez quelques leçons pour que notre IA puisse vous proposer des exercices adaptés !
-                       </p>
-                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-[3.5rem] p-20 text-center space-y-6 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
+                  <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
+                    <BookText size={48} className="text-slate-200" />
                   </div>
-                )}
-              </div>
+                  <div className="space-y-2">
+                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Pas encore de recommandations</h3>
+                     <p className="text-sm font-medium text-slate-400 max-w-md mx-auto">
+                      Terminez quelques leçons pour que notre IA puisse vous proposer des exercices adaptés !
+                     </p>
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
