@@ -25,6 +25,29 @@ import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 // par catégorie d'exercice -- exercises.category ne vaut jamais 'Vocabulaire' et
 // diverge légitimement de la thématique dans la majorité des cas (item 3bis). Filtrer
 // par catégorie ici referait exactement l'erreur d'audit qu'on a déjà commise une fois.
+//
+// ATTENTION troncature silencieuse PostgREST (voir docs/postgrest-max-rows-truncation.md) :
+// un .select().limit(N) ne garantit PAS de récupérer N lignes -- PostgREST plafonne
+// chaque requête REST à son réglage serveur "Max Rows" (1000 par défaut sur Supabase),
+// quel que soit le limit() demandé côté client, sans erreur ni avertissement. D'où
+// fetchAllRows() ci-dessous, qui pagine explicitement au lieu de faire confiance à limit().
+
+const REST_PAGE_SIZE = 1000; // doit rester <= Max Rows du projet Supabase (Project Settings > API)
+
+async function fetchAllRows<T>(
+  query: (from: number, to: number) => PromiseLike<{ data: T[] | null }>
+): Promise<T[]> {
+  const all: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data } = await query(from, from + REST_PAGE_SIZE - 1);
+    const page = data || [];
+    all.push(...page);
+    if (page.length < REST_PAGE_SIZE) break;
+    from += REST_PAGE_SIZE;
+  }
+  return all;
+}
 
 interface LessonTagRow {
   category: string;
@@ -62,13 +85,16 @@ export default function RecommendationCoverageAdmin() {
       // Deux requêtes larges plutôt qu'un croisement SQL complexe : volumes modestes
       // (~99 leçons, ~1700 exercices), le calcul de couverture se fait ensuite en
       // mémoire -- plus simple à lire et à maintenir qu'une requête SQL imbriquée.
-      const [{ data: lessonsData }, { data: exercisesData }] = await Promise.all([
-        supabase.from("lessons").select("category, level, tags").limit(500),
-        supabase.from("exercises").select("level, tags").limit(5000),
+      // Paginées via fetchAllRows() : voir note en tête de fichier sur la troncature
+      // silencieuse à 1000 lignes de PostgREST.
+      const [lessons, exercises] = await Promise.all([
+        fetchAllRows<LessonTagRow>((from, to) =>
+          supabase.from("lessons").select("category, level, tags").range(from, to)
+        ),
+        fetchAllRows<ExerciseTagRow>((from, to) =>
+          supabase.from("exercises").select("level, tags").range(from, to)
+        ),
       ]);
-
-      const lessons = (lessonsData as LessonTagRow[] | null) || [];
-      const exercises = (exercisesData as ExerciseTagRow[] | null) || [];
 
       // Ensemble (level|tag) -- category volontairement absente, voir note en tête
       // de fichier : la couverture exercice ne doit jamais dépendre de la catégorie
