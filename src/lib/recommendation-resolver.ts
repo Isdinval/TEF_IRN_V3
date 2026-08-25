@@ -22,6 +22,7 @@ interface ErrorRow {
  *  variant "hero") pour expliquer pourquoi l'exercice est proposé. */
 export interface ScoredExercise extends Exercise {
   tier: number;
+  categoryMismatch: number;
   weakCategoryBoost: number;
   pointCleAlreadyCovered: number;
   recommendation_reason: string;
@@ -29,9 +30,18 @@ export interface ScoredExercise extends Exercise {
 
 export interface ResolveContext {
   level: string;
-  /** Si fourni, pool restreint à cette catégorie (cas /parcours/[slug], mono-catégorie).
-   *  Si omis, pool multi-catégories sur tout le level — c'est le seul cas où le boost
-   *  "catégorie faible" (user_errors) produit un effet observable. */
+  /** Si fourni, pool restreint à cette catégorie QUAND tags est absent (cas
+   *  /parcours/[slug], navigation mono-catégorie sans tag précis -- filtre dur
+   *  inchangé). Quand tags EST fourni, category redevient une PRÉFÉRENCE souple
+   *  (voir categoryMismatch, item 3bis du plan "Refonte matching Leçon ->
+   *  Exercices") plutôt qu'un filtre bloquant : exercises.category diverge
+   *  légitimement de la thématique pédagogique dans la majorité des cas (ex. un
+   *  exercice catégorisé "Grammaire" peut tester un point tagué "connecteurs
+   *  logiques complexes", thème par ailleurs classé "Syntaxe" sur la leçon) --
+   *  filtrer en dur sur category en plus de tags pouvait exclure la quasi-totalité
+   *  du pool légitime pour ce tag (vérifié en base : 12 exercices sur 20 exclus
+   *  pour un seul tag/leçon), forçant l'anti-répétition (item 13) à tourner en
+   *  boucle sur les seuls exercices restants au lieu de varier les points clés. */
   category?: string;
   /** Si fourni, restreint en plus aux exercices dont `tags` recoupe cette liste —
    *  typiquement un seul tag précis (la sub_category d'un point faible détecté).
@@ -81,6 +91,14 @@ const TIER_REASONS: Record<number, string> = {
  * pool partage déjà la même catégorie. Elle ne redevient utile que si context.category
  * est omis, auquel cas le pool couvre tout le level et le boost peut réellement
  * faire remonter la catégorie où l'utilisateur échoue le plus.
+ *
+ * categoryMismatch (item 3bis) : deuxième niveau de tri, avant weakCategoryBoost.
+ * Uniquement actif quand tags est fourni (le filtre category dur est alors retiré
+ * de la requête, voir plus bas) -- préfère les exercices dont la category propre
+ * correspond à context.category, sans jamais exclure les autres. Nécessaire car
+ * exercises.category diverge légitimement de la thématique du tag dans la majorité
+ * des cas ; un filtre dur pouvait exclure l'essentiel du pool d'un tag et faire
+ * tourner l'anti-répétition (item 13) en boucle sur les quelques exercices restants.
  *
  * Anti-répétition (item 13) : troisième niveau de tri, après le palier et le
  * boost catégorie faible. Au sein d'un même tag, un exercice dont le
@@ -137,7 +155,14 @@ export async function resolveNextExercises(
     .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')
     .eq('level', context.level);
 
-  if (context.category) {
+  // Item 3bis (plan "Refonte matching Leçon -> Exercices") : filtre catégorie dur
+  // UNIQUEMENT quand tags est absent (navigation mono-catégorie, /parcours/[slug]).
+  // Quand tags est fourni, category ne doit plus exclure le pool -- voir
+  // categoryMismatch dans le scoring plus bas, même principe que le fix déjà
+  // appliqué à la recherche de LEÇON (analyzeUserErrorsAndRecommend, item 16 du
+  // plan historique), jamais répercuté jusqu'ici à la recherche d'EXERCICES.
+  const hasTags = !!(context.tags && context.tags.length > 0);
+  if (context.category && !hasTags) {
     const exerciseCategory = context.category.charAt(0).toUpperCase() + context.category.slice(1);
     query = query.or(`category.eq.${exerciseCategory},category.eq.${context.category}`);
   }
@@ -260,12 +285,18 @@ export async function resolveNextExercises(
     }
 
     const weakCategoryBoost = topWeakCategory && ex.category?.toLowerCase() === topWeakCategory ? 0 : 1;
+    // Item 3bis : préférence souple sur la catégorie demandée (ex. le "Syntaxe" du
+    // badge cliqué), plutôt que le filtre dur retiré ci-dessus quand tags est fourni.
+    // Un exercice dont la category propre ne correspond pas à context.category reste
+    // proposé (contrairement à avant), mais après ceux qui correspondent.
+    const categoryMismatch = context.category && ex.category?.toLowerCase() !== context.category.toLowerCase() ? 1 : 0;
     const pointCleAlreadyCovered = !isCompleted && ex.point_cles_lesson && coveredPointsCles.has(ex.point_cles_lesson) ? 1 : 0;
     const reason = ex.point_cles_lesson ? `${TIER_REASONS[tier]} : ${ex.point_cles_lesson}` : TIER_REASONS[tier];
 
     return {
       ...ex,
       tier,
+      categoryMismatch,
       weakCategoryBoost,
       pointCleAlreadyCovered,
       recommendation_reason: reason,
@@ -277,6 +308,7 @@ export async function resolveNextExercises(
 
   scored.sort((a, b) => {
     if (a.tier !== b.tier) return a.tier - b.tier;
+    if (a.categoryMismatch !== b.categoryMismatch) return a.categoryMismatch - b.categoryMismatch;
     if (a.weakCategoryBoost !== b.weakCategoryBoost) return a.weakCategoryBoost - b.weakCategoryBoost;
     if (a.pointCleAlreadyCovered !== b.pointCleAlreadyCovered) return a.pointCleAlreadyCovered - b.pointCleAlreadyCovered;
     return (a.success_rate ?? 0) - (b.success_rate ?? 0);
