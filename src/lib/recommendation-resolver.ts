@@ -41,7 +41,17 @@ export interface ResolveContext {
    *  filtrer en dur sur category en plus de tags pouvait exclure la quasi-totalité
    *  du pool légitime pour ce tag (vérifié en base : 12 exercices sur 20 exclus
    *  pour un seul tag/leçon), forçant l'anti-répétition (item 13) à tourner en
-   *  boucle sur les seuls exercices restants au lieu de varier les points clés. */
+   *  boucle sur les seuls exercices restants au lieu de varier les points clés.
+   *
+   *  Exception structurelle (item 7, doc vocabulaire-particularites-recommandation.md) :
+   *  quand category vaut "vocabulaire", le filtre dur ne s'applique JAMAIS, même
+   *  sans tags. exercises.category ne vaut jamais 'Vocabulaire' en base (vérifié :
+   *  0 ligne, quel que soit le contenu) -- les exercices de vocabulaire sont
+   *  catégorisés selon la compétence réellement testée (Grammaire/Conjugaison/
+   *  Syntaxe/Orthographe). Sans cette exception, un parcours Vocabulaire sans tag
+   *  fourni (utilisateur sans erreur encore trackée dans cette catégorie) obtenait
+   *  un pool vide à 100% du temps -- vérifié en base : 391 exercices réels existent
+   *  pourtant pour les 24 leçons category='vocabulaire'. */
   category?: string;
   /** Si fourni, restreint en plus aux exercices dont `tags` recoupe cette liste —
    *  typiquement un seul tag précis (la sub_category d'un point faible détecté).
@@ -161,8 +171,15 @@ export async function resolveNextExercises(
   // categoryMismatch dans le scoring plus bas, même principe que le fix déjà
   // appliqué à la recherche de LEÇON (analyzeUserErrorsAndRecommend, item 16 du
   // plan historique), jamais répercuté jusqu'ici à la recherche d'EXERCICES.
+  //
+  // Item 7 : deuxième exception, indépendante de tags -- "vocabulaire" ne doit
+  // JAMAIS subir ce filtre dur, tags fourni ou pas. exercises.category ne vaut
+  // jamais "Vocabulaire" en base (voir docs/vocabulaire-particularites-recommandation.md),
+  // donc le filtre y exclurait systématiquement 100% du pool, y compris quand tags
+  // est absent (utilisateur sans erreur encore trackée dans cette catégorie).
   const hasTags = !!(context.tags && context.tags.length > 0);
-  if (context.category && !hasTags) {
+  const isVocabulaireCategory = context.category?.toLowerCase() === 'vocabulaire';
+  if (context.category && !hasTags && !isVocabulaireCategory) {
     const exerciseCategory = context.category.charAt(0).toUpperCase() + context.category.slice(1);
     query = query.or(`category.eq.${exerciseCategory},category.eq.${context.category}`);
   }
@@ -194,9 +211,17 @@ export async function resolveNextExercises(
   // donc TOUJOURS le pool avec les exercices propres à la leçon canonique, tag
   // exact ou pas -- le tri plus bas (tier 1 vs tier 2) garde la priorité au match
   // tag exact quand il existe, ce palier ne fait que combler les trous.
+  //
+  // Item 7 : même risque pour "vocabulaire" sans tags -- la requête initiale
+  // (limit 50, sans ORDER BY) ne garantit pas d'inclure les exercices de la
+  // leçon ciblée (effectiveLessonId vient alors de context.lessonId, pas d'un
+  // matching par tag). Vérifié en base live : sur une leçon vocabulaire A2 de
+  // 25 exercices réels, seuls 15 apparaissaient dans un pool de 50 sans filtre
+  // lesson_id -- pas fiable, dépend de l'ordre physique en base. On déclenche
+  // donc ce palier aussi pour vocabulaire même sans tags.
   const tagMatchedIds = new Set(exercises.map((e) => e.id));
 
-  if (effectiveLessonId && context.tags && context.tags.length > 0) {
+  if (effectiveLessonId && ((context.tags && context.tags.length > 0) || isVocabulaireCategory)) {
     let lessonPoolQuery = supabase
       .from('exercises')
       .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')

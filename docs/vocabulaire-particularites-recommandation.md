@@ -50,6 +50,18 @@ par tag, sans filtre sur `exercises.category`), la couverture leçon/exercice
 du Vocabulaire est à **100 %** partout où une leçon existe — comme pour les 3
 autres catégories.
 
+**Mise à jour du 2026-08-25 (item 7, plan "Refonte recommandation
+/parcours/[slug]") :** le trou restant concernait le cas *sans* tags — un
+utilisateur sans erreur encore trackée dans cette catégorie (typiquement,
+première visite d'un parcours Vocabulaire) obtenait un pool vide à 100% du
+temps, le filtre dur `category` s'appliquant alors normalement. Corrigé
+directement dans `resolveNextExercises` : le filtre dur `category` saute
+désormais systématiquement pour `vocabulaire`, tags fourni ou non. Le palier
+2 (comblement par `lesson_id`, déjà existant pour le cas tags-fourni) a été
+étendu au même cas, pour ne pas dépendre de l'ordre physique retourné par le
+pool initial (vérifié en base : sans cette extension, seuls 15 exercices sur
+25 d'une leçon réelle apparaissaient dans le pool ; avec, 25/25).
+
 ---
 
 ## 2. Le SRS vocabulaire est un système entièrement séparé
