@@ -34,18 +34,20 @@ soit elle-même propre, fixe et sans ambiguïté. D'où ce document.
    Présent (Conjugaison, B2) — la catégorie Orthographe reste volontairement absente
    (elle recoupe les 4 autres catégories existantes, décision d'Olivier).
 
-## La liste (136 étiquettes, 4 catégories, mise à jour au 2026-08-18 — item 22)
+## La liste (145 étiquettes, 4 catégories, mise à jour au 2026-08-25 — comblement des 12 derniers trous de couverture)
 
-### Conjugaison (37)
+### Conjugaison (42)
 aller, avoir, concordance des temps, conditionnel passé, conditionnel présent,
 discours rapporté, **déclencheurs de l'indicatif**, **déclencheurs du subjonctif**,
-être, faire, futur antérieur, futur proche, futur simple, **gérondif**,
-imparfait, impératif, négation, **participe présent**, **passé récent**, passé composé,
-plus-que-parfait, politesse, pouvoir, présent, quotidien, regret, subjonctif passé,
-subjonctif présent, tournures impersonnelles, venir, verbes en -er, verbes en -ir,
-verbes en -re, verbes irréguliers, verbes pronominaux, voix passive, vouloir
+**distinction subjonctif présent passé**, être, faire, futur antérieur, futur proche,
+futur simple, **gérondif**, imparfait, impératif, **liaisons orales**, négation,
+**participe présent**, **passé récent**, passé composé, plus-que-parfait, politesse,
+pouvoir, présent, quotidien, regret, subjonctif passé, subjonctif présent,
+tournures impersonnelles, **usages de l'imparfait**, **usages du passé composé**,
+**usages du plus-que-parfait**, venir, verbes en -er, verbes en -ir, verbes en -re,
+verbes irréguliers, verbes pronominaux, voix passive, vouloir
 
-### Grammaire (56)
+### Grammaire (57)
 accord des adjectifs, accord du participe passé, **adjectifs démonstratifs**,
 **adverbes**, articles, **choix défini indéfini**, comparatifs,
 connecteurs cause/conséquence, constructions participiales, **depuis**,
@@ -60,10 +62,10 @@ mise en relief, **mots interrogatifs**, négation, nominalisation,
 **pronom COD**, **pronom COI**, **pronom en**, **pronom y**, **pronoms COD antéposés**,
 pronoms COD/COI, **pronoms démonstratifs**, pronoms indéfinis, pronoms relatifs,
 pronoms relatifs composés, pronoms Y/EN, préférences, prépositions de lieu,
-prépositions de temps, quantités, registre soutenu, subjonctif vs indicatif,
-**superlatif**
+prépositions de temps, quantités, registre soutenu, **savoir**,
+subjonctif vs indicatif, **superlatif**
 
-### Syntaxe (27)
+### Syntaxe (28)
 argumentation, argumentation avancée, compréhension écrite, compréhension orale,
 connecteurs cause/conséquence, connecteurs de but, connecteurs de séquence,
 connecteurs logiques complexes, connecteurs opposition, consignes et panneaux,
@@ -71,18 +73,19 @@ correspondance, description, discours rapporté, **est-ce que**, expression oral
 exprimer une opinion, **formes interrogatives**, hypothèses et conditions,
 interrogation, **inversion sujet-verbe**, **mots interrogatifs**, négation,
 ordre des mots, rédaction email amical, rédaction message simple, section b écrit,
-vocabulaire salutations
+vocabulaire salutations, **vue ensemble discours rapporté present**
 
-### Vocabulaire (29)
-collocations, **collocations faire passer prendre avoir**, faux-amis, registre de
-langue, registre soutenu, **types de collocations**, vocabulaire
+### Vocabulaire (31)
+collocations, **collocations faire passer prendre avoir**, faux-amis,
+**prepositions spatiales**, registre de langue, registre soutenu,
+**types de collocations**, vocabulaire
 administratif, vocabulaire arts, vocabulaire civique, vocabulaire culture,
 vocabulaire économie, vocabulaire emploi, vocabulaire environnement, vocabulaire
 famille, vocabulaire famille/logement, vocabulaire horaires, vocabulaire logement,
 vocabulaire loisirs, vocabulaire médias, vocabulaire nombres, vocabulaire prix,
 vocabulaire quotidien, vocabulaire salutations, vocabulaire santé, vocabulaire
 sciences, vocabulaire société, vocabulaire transports, vocabulaire travail,
-vocabulaire ville
+vocabulaire ville, **villes et pays prepositions**
 
 **Note** : plusieurs étiquettes existent légitimement dans deux catégories
 (ex. "négation" en Conjugaison, Grammaire et Syntaxe ; "déclencheurs du
@@ -105,6 +108,22 @@ diagnostic complémentaire (item 21) : la plupart sont des habillages
 contextuels/thématiques (ex. "annonce immobiliere", "phrases sante"), pas
 de vraies notions grammaticales/lexicales isolables, et restent
 délibérément hors de cette liste.
+
+**Comblement des 12 derniers trous de couverture (2026-08-25)** : 9 étiquettes
+supplémentaires en **gras** ont été ajoutées après l'audit complet de
+`/tef-irn/admin/recommendation-coverage` (0 trou restant, 100% de couverture
+`lessons.tags`/`exercises.tags`) — `distinction subjonctif présent passé`,
+`liaisons orales`, `usages de l'imparfait`, `usages du passé composé`,
+`usages du plus-que-parfait` (Conjugaison) ; `savoir` (Grammaire) ; `vue
+ensemble discours rapporté present` (Syntaxe) ; `prepositions spatiales`,
+`villes et pays prepositions` (Vocabulaire). Même critère que l'item 22 :
+chacune désigne une confusion pédagogique isolable et dispose désormais
+d'exercices dédiés (créés ou retagués depuis un exercice existant couvrant
+déjà le point). Les trois étiquettes "usages de/du ..." coexistent
+délibérément avec `imparfait`/`passé composé`/`plus-que-parfait` : elles
+désignent la distinction d'emploi entre les temps du passé (quand utiliser
+lequel), pas la conjugaison brute déjà couverte par les étiquettes plus
+courtes.
 
 ## Comment l'utiliser pour la suite du plan
 
