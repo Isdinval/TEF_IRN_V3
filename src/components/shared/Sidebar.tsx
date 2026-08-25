@@ -33,7 +33,8 @@ import {
   MapPin,
   BookMarked,
   Map,
-  Users
+  Users,
+  Gauge
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -141,6 +142,7 @@ function SidebarContent() {
         { label: "Centres examen civique", icon: MapPin, href: "/tef-irn/admin/centres-civiques" },
         { label: "Guides", icon: BookMarked, href: "/tef-irn/admin/guides" },
         { label: "Profils", icon: Users, href: "/tef-irn/admin/profiles" },
+        { label: "Couverture reco", icon: Gauge, href: "/tef-irn/admin/recommendation-coverage" },
         { label: "Sitemap Debug", icon: Map, href: "/sitemap-debug" },
       ],
     });
