@@ -53,6 +53,12 @@ interface Question {
   explanation?: string;
   lesson_id?: string;
   point_cles_lesson?: string;
+  // Item 2 du plan "Refonte matching Leçon -> Exercices" : true uniquement quand
+  // aucun exercice ciblé (tag précis, ni même leçon canonique -- paliers 1/2 de
+  // resolveNextExercises) n'a pu être trouvé et qu'on est retombé sur le pool
+  // large de la catégorie (voir autoStart ci-dessous). Sert à afficher un
+  // message honnête côté UI plutôt que de laisser croire à un ciblage précis.
+  isDegradedMatch?: boolean;
 }
 
 interface ExerciseDB {
@@ -66,6 +72,7 @@ interface ExerciseDB {
   level: string;
   lesson_id?: string;
   "point_clés_lesson"?: string;
+  isDegradedMatch?: boolean;
   content: {
     explanations?: string[];
     questions: string[];
@@ -324,6 +331,7 @@ export function PracticeContent() {
       explanation: ex.content.explanations?.[idx],
       lesson_id: ex.lesson_id,
       point_cles_lesson: ex["point_clés_lesson"],
+      isDegradedMatch: ex.isDegradedMatch,
     }));
   };
 
@@ -414,7 +422,17 @@ export function PracticeContent() {
           10
         );
 
+        // Item 2 du plan "Refonte matching Leçon -> Exercices" : depuis le palier 2
+        // (item 1, recommendation-resolver.ts), ce repli ne se déclenche plus que
+        // dans le cas réellement dégradé -- aucun exercice au tag exact NI à la
+        // leçon canonique du tag (donc `effectiveLessonId` n'a pas pu être dérivé,
+        // ou la leçon dérivée n'a elle-même aucun exercice). On le signale
+        // explicitement (isDegradedMatch) pour que l'UI ne laisse pas croire à un
+        // ciblage précis qu'elle n'a pas pu tenir -- au lieu de rester silencieuse
+        // comme avant (bug "présent"/B1 -> exercices sans rapport).
+        let isDegradedFallback = false;
         if (ranked.length === 0 && tag) {
+          isDegradedFallback = true;
           ranked = await resolveNextExercises(
             user.id,
             { level, category: t, type: 'qcm' },
@@ -433,7 +451,10 @@ export function PracticeContent() {
             // Préserve l'ordre de pertinence de resolveNextExercises (le fetch
             // par .in() ne garantit pas l'ordre de la liste d'ids fournie)
             const byId = new Map(fullExercises.map((e: any) => [e.id, e]));
-            const ordered = ranked.map(r => byId.get(r.id)).filter(Boolean) as ExerciseDB[];
+            const ordered = ranked
+              .map(r => byId.get(r.id))
+              .filter(Boolean)
+              .map(e => ({ ...e, isDegradedMatch: isDegradedFallback })) as ExerciseDB[];
             setQuestions(ordered.flatMap(mapExerciseToQuestions).slice(0, 10));
             setMode("practice");
             return;
@@ -960,6 +981,11 @@ export function PracticeContent() {
                         : undefined
                     }
                     accentColor="purple"
+                    degradedMatchNotice={
+                      currentQuestion?.isDegradedMatch
+                        ? `Pas d'exercice ciblé pour cette notion précise : voici des exercices de ${currentQuestion.category} ${currentQuestion.level} pour t'entraîner sur des notions proches.`
+                        : undefined
+                    }
                   />
 
                   {/* Question Text */}
