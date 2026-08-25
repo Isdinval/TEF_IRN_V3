@@ -15,7 +15,8 @@ import {
   History,
   ClipboardCheck,
   PenTool,
-  Mic
+  Mic,
+  Compass
 } from "lucide-react";
 import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHeader";
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
@@ -167,18 +168,18 @@ export default function DashboardPage() {
             Aujourd'hui
           </h2>
 
-          {in_progress_parcours.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 flex items-center gap-2">
-                  <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
-                  Mes parcours
-                  <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
-                </h3>
-                <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
-                  Tout voir
-                </Link>
-              </div>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 flex items-center gap-2">
+                <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
+                Mes parcours
+                <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
+              </h3>
+              <Link href="/tef-irn/parcours" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
+                Tout voir
+              </Link>
+            </div>
+            {in_progress_parcours.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {in_progress_parcours.map((p: any) => (
                   <ParcoursCard
@@ -191,8 +192,20 @@ export default function DashboardPage() {
                   />
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-200 bg-white">
+                <Compass size={48} className="text-zinc-200 mb-4" />
+                <p className="text-sm font-bold text-zinc-400">Aucun parcours en cours pour l'instant.</p>
+                <p className="text-xs text-zinc-300 mt-1 mb-4">Choisissez un parcours pour démarrer votre préparation.</p>
+                <Link
+                  href="/tef-irn/parcours"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-black transition-all"
+                >
+                  Découvrir les parcours
+                </Link>
+              </div>
+            )}
+          </div>
 
           <ActionPlanCard
             weakPoints={weak_points}
