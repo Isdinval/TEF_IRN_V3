@@ -36,6 +36,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
+import { captureEvent } from "@/lib/analytics";
 
 // --- Types ---
 interface Question {
@@ -440,6 +441,15 @@ export function PracticeContent() {
         let isDegradedFallback = false;
         if (ranked.length === 0 && tag) {
           isDegradedFallback = true;
+          // Item 5 du plan "Refonte matching Leçon -> Exercices" : log best-effort
+          // (non bloquant) à chaque déclenchement réel du palier 3 -- le seul cas
+          // encore réellement dégradé après les items 1/3bis. Mesure en prod, sur
+          // des couples (topic, tag, level) concrets, où prioriser le comblement
+          // de contenu (item 7) plutôt que deviner. Événement client (posthog-js,
+          // pattern déjà utilisé ailleurs dans le projet, ex. login/page.tsx) --
+          // c'est ici, côté /practice, que le cas se manifeste réellement pour
+          // l'utilisateur, contrairement au palier 2 qui reste interne au moteur.
+          captureEvent("recommendation_degraded_match", { topic: t, tag, level });
           ranked = await resolveNextExercises(
             user.id,
             { level, category: t, type: 'qcm' },

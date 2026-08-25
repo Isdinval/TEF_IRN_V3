@@ -210,6 +210,25 @@ export async function resolveNextExercises(
     const { data: lessonPoolData } = await lessonPoolQuery.limit(50);
     const lessonPoolExercises = (lessonPoolData as Exercise[] | null) || [];
     const newOnes = lessonPoolExercises.filter((e) => !tagMatchedIds.has(e.id));
+
+    // Item 5 du plan "Refonte matching Leçon -> Exercices" : log best-effort
+    // (non bloquant, jamais throw) à chaque déclenchement réel du palier 2 --
+    // seul moyen de mesurer en prod, sur des couples (category, tag, level)
+    // concrets, où prioriser le comblement de contenu (item 7) plutôt que de
+    // deviner. console.log plutôt qu'un événement PostHog : cette fonction
+    // tourne aussi bien côté serveur (parcours/[slug], coach) que côté client
+    // (practice, grammar-check) -- un simple log reste visible des deux côtés
+    // (logs Vercel / console navigateur) sans dépendance supplémentaire.
+    if (newOnes.length > 0) {
+      console.log('[reco-engine] palier2 (leçon canonique sans tag exact)', {
+        level: context.level,
+        category: context.category ?? null,
+        tags: context.tags,
+        effectiveLessonId,
+        addedCount: newOnes.length
+      });
+    }
+
     exercises = [...exercises, ...newOnes];
   }
 
