@@ -99,6 +99,13 @@ export function PracticeContent() {
   const [selected, setSelected] = useState<number | null>(null);
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
+  // Item 3ter du plan "Refonte matching Leçon -> Exercices" : trace chaque réponse
+  // avec l'exercice DB dont elle provient. saveScore() ne pouvait jusqu'ici
+  // enregistrer qu'un seul exercise_attempts (celui de questions[0]), même quand
+  // la session piochait des sous-questions dans plusieurs exercices différents --
+  // les autres exercices réellement pratiqués n'étaient jamais trackés (ni pour
+  // l'anti-répétition item 13, ni pour le SRS, ni pour user_errors).
+  const [answersLog, setAnswersLog] = useState<{ exerciseId: string; correct: boolean }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -509,6 +516,12 @@ export function PracticeContent() {
     }
   }, [mode]);
 
+  // Item 3ter : nouvelle session (nouvelle référence de tableau `questions`,
+  // posée par chaque fetch* / autoStart) -> journal de réponses réinitialisé.
+  useEffect(() => {
+    setAnswersLog([]);
+  }, [questions]);
+
   useEffect(() => {
     const lessonId = searchParams.get('lessonId');
     const topic = searchParams.get('topic');
@@ -586,9 +599,11 @@ export function PracticeContent() {
   const handleCheck = () => {
     if (selected === null || isChecked) return;
     setIsChecked(true);
-    if (selected === questions[currentIdx].correctAnswer) {
+    const isCorrect = selected === questions[currentIdx].correctAnswer;
+    if (isCorrect) {
       setScore(s => s + 1);
     }
+    setAnswersLog(log => [...log, { exerciseId: questions[currentIdx].exercise_id, correct: isCorrect }]);
   };
 
   const handleNext = async () => {
@@ -609,24 +624,48 @@ export function PracticeContent() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return true; // Pas connecté : rien à sauvegarder, pas une erreur.
 
-    const finalScore = Math.round((score / questions.length) * 100);
-    const exerciseId = questions[0].exercise_id;
     const studyTimeMinutes = sessionStartRef.current
       ? Math.round((Date.now() - sessionStartRef.current) / 60000)
       : 0;
 
+    // Item 3ter : un exercise_attempts par exercice DB distinct réellement
+    // répondu pendant la session (answersLog), au lieu d'un seul attaché à
+    // questions[0] -- sinon les autres exercices pratiqués (souvent 2 à 3 par
+    // session sur un pool multi-points) n'étaient jamais enregistrés, cassant
+    // silencieusement l'anti-répétition (item 13), le SRS et user_errors pour
+    // tout sauf le premier exercice de la liste.
+    const byExercise = new Map<string, { correct: number; total: number }>();
+    for (const a of answersLog) {
+      const entry = byExercise.get(a.exerciseId) || { correct: 0, total: 0 };
+      entry.total += 1;
+      if (a.correct) entry.correct += 1;
+      byExercise.set(a.exerciseId, entry);
+    }
+
+    // Repli (ne devrait pas arriver en usage normal, mais évite de perdre la
+    // session si answersLog est vide pour une raison quelconque) : comportement
+    // d'origine, un seul attempt sur questions[0].
+    if (byExercise.size === 0 && questions.length > 0) {
+      byExercise.set(questions[0].exercise_id, { correct: score, total: questions.length });
+    }
+
     try {
-      const res = await fetch('/api/exercise-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          exerciseId,
-          score: finalScore,
-          answers: { correct: score, total: questions.length },
-          studyTimeMinutes
+      const results = await Promise.all(
+        Array.from(byExercise.entries()).map(([exerciseId, { correct, total }]) => {
+          const finalScore = Math.round((correct / total) * 100);
+          return fetch('/api/exercise-complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              exerciseId,
+              score: finalScore,
+              answers: { correct, total },
+              studyTimeMinutes
+            })
+          });
         })
-      });
-      return res.ok;
+      );
+      return results.every((res) => res.ok);
     } catch (err) {
       console.error("Error saving score:", err);
       return false;
