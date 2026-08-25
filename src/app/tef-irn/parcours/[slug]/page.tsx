@@ -38,12 +38,22 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
   let recommendedExercises: Exercise[] = [];
 
   if (user) {
-    const [progressData, exercisesData] = await Promise.all([
-      getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase),
-      resolveNextExercises(user.id, { level: parcours.level, category: parcours.category }, supabase)
-    ]);
-    progress = progressData;
-    recommendedExercises = exercisesData;
+    // progress doit être connu avant d'appeler resolveNextExercises() : on en
+    // dérive la leçon "en cours" (currentLessonId) pour activer les paliers
+    // 1/2 du moteur (contexte-leçon), inertes tant que lessonId est absent --
+    // cf. resolveNextExercises() dans recommendation-resolver.ts. Perte de
+    // parallélisme assumée, cette dépendance étant désormais réelle.
+    progress = await getParcoursProgress(user.id, parcours.level, parcours.category, parcours.id, supabase);
+
+    const currentLessonId = allLessons.find(
+      (lesson) => !progress!.completedLessons.includes(lesson.id)
+    )?.id;
+
+    recommendedExercises = await resolveNextExercises(
+      user.id,
+      { level: parcours.level, category: parcours.category, lessonId: currentLessonId },
+      supabase
+    );
   }
 
   const { data: guideData } = await supabase
