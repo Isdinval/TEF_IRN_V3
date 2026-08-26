@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import VocabCatalogueTable from "./components/VocabCatalogueTable";
 import VocabAudioButton from "./components/VocabAudioButton";
+import VocabLevelSwitcher from "./components/VocabLevelSwitcher";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -309,6 +310,17 @@ export function VocabCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.level, filters.category, supabase]);
 
+  // Changement de niveau sans quitter le thème en cours (même category,
+  // filters.category inchangé) -- corrige l'absence de tout sélecteur de
+  // niveau en mode "training" (seul moyen avant : bouton retour, qui
+  // renvoie à l'écran de sélection). Réutilise startTraining tel quel,
+  // avec le même review/category, seul le niveau change.
+  const handleLevelSwitch = useCallback((newLevel: string) => {
+    if (newLevel === filters.level) return;
+    setLevel(newLevel);
+    startTraining(isReviewMode, newLevel, filters.category);
+  }, [filters.level, filters.category, isReviewMode, setLevel, startTraining]);
+
   useEffect(() => {
     if (hasInitialized.current) return;
     if (mode !== "selection" || loading) return;
@@ -464,6 +476,18 @@ export function VocabCoachContent() {
                 <RotateCcw size={14} className="mr-2" /> Recommencer la session
               </Button>
           </div>
+
+          {/* Item 3 du plan "Changement de niveau sans quitter le thème (B+D)" :
+              propose de poursuivre le même thème à un autre niveau plutôt
+              qu'un simple retour générique au catalogue -- même thème,
+              vocabulary a toujours les 4 niveaux remplis (vérifié en base). */}
+          {filters.category !== "Toutes" && (
+            <VocabLevelSwitcher
+              currentLevel={filters.level}
+              onSelectLevel={handleLevelSwitch}
+              variant="card"
+            />
+          )}
         </motion.div>
       </div>
     );
@@ -505,6 +529,17 @@ export function VocabCoachContent() {
             </div>
           }
         />
+
+        {/* Item 2 du plan "Changement de niveau sans quitter le thème (B+D)" :
+            seul point d'accès à un changement de niveau depuis le mode
+            entraînement -- avant, uniquement possible via "retour" (perte
+            de contexte visuel du thème en cours). */}
+        <div className="max-w-5xl mx-auto w-full px-4 lg:px-12 pt-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+            Thème : <span className="text-zinc-700">{filters.category}</span>
+          </div>
+          <VocabLevelSwitcher currentLevel={filters.level} onSelectLevel={handleLevelSwitch} />
+        </div>
 
         <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto">
            <AnimatePresence mode="wait">
