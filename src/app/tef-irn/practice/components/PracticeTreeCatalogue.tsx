@@ -121,7 +121,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
   return (
     <Accordion className="space-y-3" onValueChange={handleValueChange}>
       {lessonGroups.map((group) => {
-        const { main } = splitTitle(group.title);
+        const { main, subtitle } = splitTitle(group.title);
 
         // Niveau 2 : sous-groupement par point clé de la leçon, en en-tête de section
         // fixe (pas de sous-accordéon) — toujours visible une fois la leçon dépliée.
@@ -143,12 +143,23 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
             }`}
           >
             <AccordionTrigger className="hover:no-underline py-5">
-              <div className="flex items-center gap-3 text-left flex-1">
-                <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
-                </span>
-                {group.isFullyDone && <CompletionBadge />}
+              <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                    {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
+                  </span>
+                  {group.isFullyDone && <CompletionBadge />}
+                </div>
+                {/* Sous-titre pédagogique de la leçon, calculé par splitTitle
+                    mais jusqu'ici jamais affiché (même fix que
+                    GrammarCheckTreeCatalogue.tsx). Item 8 du plan
+                    "point-clés pédagogiques". */}
+                {subtitle && (
+                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-400 line-clamp-1">
+                    {subtitle}
+                  </p>
+                )}
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-6 space-y-5">
