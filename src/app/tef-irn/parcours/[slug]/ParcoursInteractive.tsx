@@ -280,7 +280,16 @@ export default function ParcoursInteractive({
 
           {user && currentVocabLesson && currentVocabLesson.vocab_theme_categories && currentVocabLesson.vocab_theme_categories.length > 0 && (
             <section className="space-y-6">
-              <div className={`grid grid-cols-1 ${currentVocabLesson.vocab_theme_categories.length > 1 ? 'md:grid-cols-2' : ''} gap-6`}>
+              <div className="px-4 space-y-1">
+                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                  Vocabulaire à réviser
+                </h2>
+                <p className="text-slate-400 font-medium italic">Le lexique de votre leçon en cours, à consolider dans le module de révision.</p>
+              </div>
+              {/* Toujours grid-cols-2 (pas conditionné au nombre de thèmes) : une
+                  carte seule garde la même largeur de cellule qu'à 2 cartes,
+                  plutôt que de s'étirer sur toute la largeur du conteneur. */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {currentVocabLesson.vocab_theme_categories.map((theme) => (
                   <VocabThemeCard
                     key={theme}
