@@ -59,6 +59,11 @@ export interface Exercise {
   // accentué non guilloté fait échouer le parseur de type de postgrest-js
   // (cf. recommendation-resolver.ts).
   point_cles_lesson?: string | null;
+  // Intitulé pédagogique court dérivé de point_cles_lesson (skill
+  // llamakusi-point-cle-pedagogique), utilisé comme label d'affichage dans
+  // les catalogues à la place du point-clé factuel brut. Colonne ASCII pure,
+  // pas d'alias nécessaire côté requête Supabase.
+  point_cle_pedagogique?: string | null;
   success_rate?: number;
   attempts_count?: number;
 }
