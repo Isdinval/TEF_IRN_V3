@@ -34,7 +34,7 @@ soit elle-même propre, fixe et sans ambiguïté. D'où ce document.
    Présent (Conjugaison, B2) — la catégorie Orthographe reste volontairement absente
    (elle recoupe les 4 autres catégories existantes, décision d'Olivier).
 
-## La liste (145 étiquettes, 4 catégories, mise à jour au 2026-08-25 — comblement des 12 derniers trous de couverture)
+## La liste (148 étiquettes, 4 catégories, mise à jour au 2026-08-26 — ajout de 3 étiquettes pour combler le trou de couverture Éducation & Formation / Vie Quotidienne & Consommation, skill llamakusi-tef-lesson-creator)
 
 ### Conjugaison (42)
 aller, avoir, concordance des temps, conditionnel passé, conditionnel présent,
@@ -75,17 +75,18 @@ interrogation, **inversion sujet-verbe**, **mots interrogatifs**, négation,
 ordre des mots, rédaction email amical, rédaction message simple, section b écrit,
 vocabulaire salutations, **vue ensemble discours rapporté present**
 
-### Vocabulaire (31)
+### Vocabulaire (34)
 collocations, **collocations faire passer prendre avoir**, faux-amis,
 **prepositions spatiales**, registre de langue, registre soutenu,
 **types de collocations**, vocabulaire
-administratif, vocabulaire arts, vocabulaire civique, vocabulaire culture,
-vocabulaire économie, vocabulaire emploi, vocabulaire environnement, vocabulaire
-famille, vocabulaire famille/logement, vocabulaire horaires, vocabulaire logement,
-vocabulaire loisirs, vocabulaire médias, vocabulaire nombres, vocabulaire prix,
-vocabulaire quotidien, vocabulaire salutations, vocabulaire santé, vocabulaire
-sciences, vocabulaire société, vocabulaire transports, vocabulaire travail,
-vocabulaire ville, **villes et pays prepositions**
+administratif, vocabulaire arts, vocabulaire civique, vocabulaire consommation,
+vocabulaire culture, vocabulaire économie, vocabulaire education, vocabulaire
+emploi, vocabulaire environnement, vocabulaire famille, vocabulaire
+famille/logement, vocabulaire formation, vocabulaire horaires, vocabulaire
+logement, vocabulaire loisirs, vocabulaire médias, vocabulaire nombres,
+vocabulaire prix, vocabulaire quotidien, vocabulaire salutations, vocabulaire
+santé, vocabulaire sciences, vocabulaire société, vocabulaire transports,
+vocabulaire travail, vocabulaire ville, **villes et pays prepositions**
 
 **Note** : plusieurs étiquettes existent légitimement dans deux catégories
 (ex. "négation" en Conjugaison, Grammaire et Syntaxe ; "déclencheurs du
