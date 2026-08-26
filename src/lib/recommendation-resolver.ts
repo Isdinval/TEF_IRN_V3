@@ -162,7 +162,7 @@ export async function resolveNextExercises(
     // dans la chaîne select() ("Unexpected input: és_lesson", cassait le
     // build Vercel). Alias + guillemets = contournement robuste, plus sûr
     // qu'un simple guillemetage de l'identifiant d'origine.
-    .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')
+    .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson", point_cle_pedagogique')
     .eq('level', context.level);
 
   // Item 3bis (plan "Refonte matching Leçon -> Exercices") : filtre catégorie dur
@@ -224,7 +224,7 @@ export async function resolveNextExercises(
   if (effectiveLessonId && ((context.tags && context.tags.length > 0) || isVocabulaireCategory)) {
     let lessonPoolQuery = supabase
       .from('exercises')
-      .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson"')
+      .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson", point_cle_pedagogique')
       .eq('level', context.level)
       .eq('lesson_id', effectiveLessonId);
 
@@ -335,7 +335,12 @@ export async function resolveNextExercises(
     // proposé (contrairement à avant), mais après ceux qui correspondent.
     const categoryMismatch = context.category && ex.category?.toLowerCase() !== context.category.toLowerCase() ? 1 : 0;
     const pointCleAlreadyCovered = !isCompleted && ex.point_cles_lesson && coveredPointsCles.has(ex.point_cles_lesson) ? 1 : 0;
-    const reason = ex.point_cles_lesson ? `${TIER_REASONS[tier]} : ${ex.point_cles_lesson}` : TIER_REASONS[tier];
+    // Le texte affiché (carte "Recommandé pour vous") utilise le libellé
+    // pédagogique court -- ex.point_cles_lesson reste la clé de dédoublonnage
+    // ci-dessus (identité factuelle), pas le texte à afficher : la version
+    // longue provoquait une troncature visuelle sur la carte hero.
+    const pointCleLabel = ex.point_cle_pedagogique || ex.point_cles_lesson;
+    const reason = pointCleLabel ? `${TIER_REASONS[tier]} : ${pointCleLabel}` : TIER_REASONS[tier];
 
     return {
       ...ex,

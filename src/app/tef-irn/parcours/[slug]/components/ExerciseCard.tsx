@@ -186,9 +186,9 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 <span className="truncate">{lessonTitle}</span>
               </div>
             )}
-            {exercise.point_cles_lesson && (
+            {(exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
               <p className="text-xs text-slate-400 font-medium italic leading-snug line-clamp-2">
-                🎯 {exercise.point_cles_lesson}
+                🎯 {exercise.point_cle_pedagogique || exercise.point_cles_lesson}
               </p>
             )}
           </div>
