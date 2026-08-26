@@ -27,6 +27,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
+import { DestinationLandmarkDecoration } from "@/components/decorative/DestinationLandmarkDecoration";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
@@ -950,7 +952,9 @@ export function PracticeContent() {
     ) : null;
 
     return (
-      <div className={cn("h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
+      <div className={cn("relative h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
+        <LlamaMountainDecoration variant="practice" />
+        <DestinationLandmarkDecoration variant="practice" />
         <ExerciseLayout
           variant="compact"
           title="CENTRE D’ENTRAÎNEMENT QCM"

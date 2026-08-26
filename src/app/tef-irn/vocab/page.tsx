@@ -29,6 +29,8 @@ import { validateVocabResponse } from "@/lib/vocab/utils";
 import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
+import { DestinationLandmarkDecoration } from "@/components/decorative/DestinationLandmarkDecoration";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 
 interface Flashcard {
@@ -472,7 +474,9 @@ export function VocabCoachContent() {
     const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0;
 
     return (
-      <div className="h-full bg-zinc-50 flex flex-col">
+      <div className="relative h-full bg-zinc-50 flex flex-col">
+        <LlamaMountainDecoration variant="vocab" />
+        <DestinationLandmarkDecoration variant="vocab" />
         <ExerciseLayout
           variant="compact"
           title="COACH VOCABULAIRE"
