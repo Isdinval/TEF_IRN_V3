@@ -16,6 +16,9 @@ export interface TreeExercise {
   category?: string;
   lesson_id: string | null;
   point_cles_lesson?: string | null;
+  // Intitulé pédagogique court, prioritaire sur point_cles_lesson pour
+  // l'affichage (cf. skill llamakusi-point-cle-pedagogique).
+  point_cle_pedagogique?: string | null;
   is_completed?: boolean;
   attempts_count?: number;
 }
@@ -117,13 +120,13 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
   return (
     <Accordion className="space-y-3" onValueChange={handleValueChange}>
       {lessonGroups.map((group) => {
-        const { main } = splitTitle(group.title);
+        const { main, subtitle } = splitTitle(group.title);
 
         // Niveau 2 : sous-groupement par point clé de la leçon, en en-tête de section
         // fixe (pas de sous-accordéon) — toujours visible une fois la leçon dépliée.
         const pointCleMap = new Map<string, TreeExercise[]>();
         group.items.forEach((ex) => {
-          const label = ex.point_cles_lesson?.trim() || DEFAULT_POINT_CLE_LABEL;
+          const label = ex.point_cle_pedagogique?.trim() || ex.point_cles_lesson?.trim() || DEFAULT_POINT_CLE_LABEL;
           if (!pointCleMap.has(label)) pointCleMap.set(label, []);
           pointCleMap.get(label)!.push(ex);
         });
@@ -139,12 +142,24 @@ export default function GrammarCheckTreeCatalogue({ exercises, lessonMeta, baseP
             }`}
           >
             <AccordionTrigger className="hover:no-underline py-5">
-              <div className="flex items-center gap-3 text-left flex-1">
-                <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
-                </span>
-                {group.isFullyDone && <CompletionBadge />}
+              <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                    {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
+                  </span>
+                  {group.isFullyDone && <CompletionBadge />}
+                </div>
+                {/* Sous-titre pédagogique de la leçon (ex. "Les structures qui
+                    rapportent des points à l'oral et à l'écrit") : calculé par
+                    splitTitle mais jusqu'ici jamais affiché nulle part -- donne
+                    au premier coup d'oeil le "pourquoi" de la leçon, avant même
+                    de la déplier. Item 8 du plan "point-clés pédagogiques". */}
+                {subtitle && (
+                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-400 line-clamp-1">
+                    {subtitle}
+                  </p>
+                )}
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-6 space-y-5">
