@@ -29,6 +29,7 @@ import { validateVocabResponse } from "@/lib/vocab/utils";
 import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
+import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 
 interface Flashcard {
@@ -473,6 +474,7 @@ export function VocabCoachContent() {
 
     return (
       <div className="h-full bg-zinc-50 flex flex-col">
+        <LlamaMountainDecoration variant="vocab" />
         <ExerciseLayout
           variant="compact"
           title="COACH VOCABULAIRE"

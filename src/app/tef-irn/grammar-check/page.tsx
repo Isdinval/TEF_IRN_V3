@@ -17,6 +17,7 @@ import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { splitTitle } from "@/lib/lessons";
 import { cn } from "@/lib/utils";
+import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
@@ -595,6 +596,7 @@ export function GrammarCheckContent() {
 
     return (
       <div className={cn("h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
+        <LlamaMountainDecoration variant="grammar" />
         <ExerciseLayout
           variant="compact"
           title="CHASSE AUX ERREURS"
