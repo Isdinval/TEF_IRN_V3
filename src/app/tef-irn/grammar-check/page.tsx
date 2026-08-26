@@ -595,7 +595,7 @@ export function GrammarCheckContent() {
     ) : null;
 
     return (
-      <div className={cn("h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
+      <div className={cn("relative h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
         <LlamaMountainDecoration variant="grammar" />
         <ExerciseLayout
           variant="compact"

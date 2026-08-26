@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
  * arrière-plan des vues exercice (vocab / grammar-check / practice) pour
  * combler l'espace vide autour de la carte d'exercice sans distraire.
  *
+ * Position absolute (pas fixed) ancrée en bas-gauche du conteneur racine
+ * de la vue exercice — ce conteneur DOIT avoir `position: relative` — afin
+ * de rester confinée à la zone de contenu (à droite de la sidebar, sous
+ * les topbars) et ne jamais déborder sur la sidebar ou les topbars.
+ *
  * Purement décoratif : aria-hidden, pointer-events désactivés, masqué
  * sous le breakpoint lg (pas de place utile en mobile/tablette portrait).
  */
@@ -52,10 +57,10 @@ export function LlamaMountainDecoration({
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none fixed bottom-0 left-0 z-0 hidden select-none lg:block",
+        "pointer-events-none absolute bottom-0 left-0 z-0 hidden select-none lg:block",
         VARIANT_COLOR_CLASS[variant]
       )}
-      style={{ width: "clamp(140px, 14vw, 260px)" }}
+      style={{ width: "clamp(200px, 22vw, 380px)" }}
     >
       <LlamaMountainSvg className="h-auto w-full" />
     </div>

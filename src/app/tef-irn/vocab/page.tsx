@@ -473,7 +473,7 @@ export function VocabCoachContent() {
     const progress = cards.length > 0 ? ((index + 1) / cards.length) * 100 : 0;
 
     return (
-      <div className="h-full bg-zinc-50 flex flex-col">
+      <div className="relative h-full bg-zinc-50 flex flex-col">
         <LlamaMountainDecoration variant="vocab" />
         <ExerciseLayout
           variant="compact"
