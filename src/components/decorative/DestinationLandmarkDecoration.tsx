@@ -135,7 +135,14 @@ export function DestinationLandmarkDecoration({
   const [Landmark, setLandmark] = useState<(typeof LANDMARK_POOL)[number] | null>(null);
 
   useEffect(() => {
-    setLandmark(LANDMARK_POOL[Math.floor(Math.random() * LANDMARK_POOL.length)]);
+    // Important : envelopper dans une arrow function. Passer directement
+    // une entrée de LANDMARK_POOL (qui EST une fonction, un composant
+    // React) au setter useState la ferait interpréter comme un updater
+    // `(prevState) => newState` — React l'exécuterait alors immédiatement
+    // avec prevState (null) en argument, stockerait l'élément React
+    // résultant comme state, et <Landmark /> tenterait de rendre cet
+    // objet au lieu d'un composant (React error #130 : "got: object").
+    setLandmark(() => LANDMARK_POOL[Math.floor(Math.random() * LANDMARK_POOL.length)]);
   }, []);
 
   if (!Landmark) return null;
