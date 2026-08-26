@@ -16,6 +16,9 @@ export interface TreeExercise {
   category?: string;
   lesson_id: string | null;
   point_cles_lesson?: string | null;
+  // Intitulé pédagogique court, prioritaire sur point_cles_lesson pour
+  // l'affichage (cf. skill llamakusi-point-cle-pedagogique).
+  point_cle_pedagogique?: string | null;
   is_completed?: boolean;
   attempts_count?: number;
 }
@@ -124,7 +127,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
         // fixe (pas de sous-accordéon) — toujours visible une fois la leçon dépliée.
         const pointCleMap = new Map<string, TreeExercise[]>();
         group.items.forEach((ex) => {
-          const label = ex.point_cles_lesson?.trim() || DEFAULT_POINT_CLE_LABEL;
+          const label = ex.point_cle_pedagogique?.trim() || ex.point_cles_lesson?.trim() || DEFAULT_POINT_CLE_LABEL;
           if (!pointCleMap.has(label)) pointCleMap.set(label, []);
           pointCleMap.get(label)!.push(ex);
         });
