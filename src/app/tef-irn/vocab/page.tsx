@@ -30,6 +30,7 @@ import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
+import { EiffelParisDecoration } from "@/components/decorative/EiffelParisDecoration";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 
 interface Flashcard {
@@ -475,6 +476,7 @@ export function VocabCoachContent() {
     return (
       <div className="relative h-full bg-zinc-50 flex flex-col">
         <LlamaMountainDecoration variant="vocab" />
+        <EiffelParisDecoration variant="vocab" />
         <ExerciseLayout
           variant="compact"
           title="COACH VOCABULAIRE"

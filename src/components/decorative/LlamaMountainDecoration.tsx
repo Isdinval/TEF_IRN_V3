@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils";
 type LlamaMountainVariant = "vocab" | "grammar" | "practice";
 
 const VARIANT_COLOR_CLASS: Record<LlamaMountainVariant, string> = {
-  vocab: "text-emerald-600/[0.12]",
-  grammar: "text-blue-600/[0.12]",
-  practice: "text-violet-600/[0.12]",
+  vocab: "text-emerald-600/[0.22]",
+  grammar: "text-blue-600/[0.22]",
+  practice: "text-violet-600/[0.22]",
 };
 
 function LlamaMountainSvg(props: SVGProps<SVGSVGElement>) {

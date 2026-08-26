@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParcours } from '@/contexts/ParcoursContext';
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
+import { EiffelParisDecoration } from "@/components/decorative/EiffelParisDecoration";
 import { ExerciseContextHeader } from "@/components/shared/ExerciseContextHeader";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import LessonMarkdown from "@/components/shared/LessonMarkdown";
@@ -953,6 +954,7 @@ export function PracticeContent() {
     return (
       <div className={cn("relative h-full bg-zinc-50 flex flex-col", showSplit && "md:overflow-hidden")}>
         <LlamaMountainDecoration variant="practice" />
+        <EiffelParisDecoration variant="practice" />
         <ExerciseLayout
           variant="compact"
           title="CENTRE D’ENTRAÎNEMENT QCM"
