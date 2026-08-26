@@ -124,6 +124,15 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 <h3 className="text-2xl font-black text-slate-900 leading-tight">
                   {exercise.instructions}
                 </h3>
+
+                {/* Point-clé affiché seulement si recommendation_reason ne l'inclut pas déjà
+                    (cf. TIER_REASONS + pointCleLabel dans recommendation-resolver.ts) --
+                    évite de répéter deux fois la même information sur la carte. */}
+                {!exercise.recommendation_reason && (exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
+                  <p className="text-sm text-slate-400 font-medium italic leading-snug">
+                    🎯 {exercise.point_cle_pedagogique || exercise.point_cles_lesson}
+                  </p>
+                )}
               </div>
 
               <Link href={getExerciseUrl()} className="w-full md:w-auto shrink-0">
@@ -186,7 +195,10 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 <span className="truncate">{lessonTitle}</span>
               </div>
             )}
-            {(exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
+            {/* Point-clé affiché seulement si recommendation_reason ne l'inclut pas déjà
+                (cf. TIER_REASONS + pointCleLabel dans recommendation-resolver.ts) --
+                évite de répéter deux fois la même information sur la carte. */}
+            {!exercise.recommendation_reason && (exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
               <p className="text-xs text-slate-400 font-medium italic leading-snug line-clamp-2">
                 🎯 {exercise.point_cle_pedagogique || exercise.point_cles_lesson}
               </p>
