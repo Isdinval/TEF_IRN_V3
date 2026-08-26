@@ -34,6 +34,11 @@ export interface Lesson {
   difficulty?: 'facile' | 'moyen' | 'difficile';
   objective?: string;
   content?: string;
+  /** Thématique(s) VOCAB_CATEGORIES (src/lib/vocab/categories.ts) associée(s) à
+   *  cette leçon, uniquement pertinent pour category='vocabulaire'. [] ou
+   *  undefined légitime pour les leçons sans ancrage thématique-lexical
+   *  (Registre de Langue, Collocations, Valeurs de la République). */
+  vocab_theme_categories?: string[];
 }
 
 export interface Exercise {
@@ -194,7 +199,7 @@ export async function getParcoursBySlug(slug: string, supabase: SupabaseClient =
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
-    .select('id, slug, title, order_index, level, category, duration, difficulty, objective')
+    .select('id, slug, title, order_index, level, category, duration, difficulty, objective, vocab_theme_categories')
     .eq('level', level)
     .eq('category', category)
     .order('order_index', { ascending: true });

@@ -21,6 +21,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import LessonCard from "./components/LessonCard";
 import ExerciseCard from "./components/ExerciseCard";
+import VocabThemeCard from "./components/VocabThemeCard";
 import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
 
 interface ParcoursInteractiveProps {
@@ -92,6 +93,14 @@ export default function ParcoursInteractive({
       return { ...lesson, status };
     });
   }, [allLessons, progress, user]);
+
+  // Leçon "en cours" pour la carte vocab thématique -- même critère que
+  // status='next' ci-dessus (première leçon non complétée), mais dérivé
+  // séparément pour ne pas dépendre du calcul complet de lessonsWithStatus.
+  const currentVocabLesson = useMemo(() => {
+    if (parcours.category !== 'vocabulaire') return null;
+    return lessonsWithStatus.find((l) => l.status === 'next') ?? null;
+  }, [parcours.category, lessonsWithStatus]);
 
   return (
     <article className="min-h-screen bg-zinc-50/50 pb-24">
@@ -268,6 +277,21 @@ export default function ParcoursInteractive({
               ))}
             </div>
           </section>
+
+          {user && currentVocabLesson && currentVocabLesson.vocab_theme_categories && currentVocabLesson.vocab_theme_categories.length > 0 && (
+            <section className="space-y-6">
+              <div className={`grid grid-cols-1 ${currentVocabLesson.vocab_theme_categories.length > 1 ? 'md:grid-cols-2' : ''} gap-6`}>
+                {currentVocabLesson.vocab_theme_categories.map((theme) => (
+                  <VocabThemeCard
+                    key={theme}
+                    lessonId={currentVocabLesson.id}
+                    theme={theme}
+                    level={parcours.level}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           {user && (
             <section className="space-y-10">
