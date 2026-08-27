@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 type FreeTrialLevel = "A2" | "B1" | "B2";
 type Step = "level" | "quiz" | "writing" | "speaking" | "finished";
@@ -250,7 +251,7 @@ export default function FreeExercisePage() {
   // mini-test (et sa progression EE/EO) ouverte pendant qu'il crée son compte.
   const goToSignup = (from: string) => {
     captureEvent("free_trial_signup_click", { from, level });
-    window.open(`/tef-irn/login?email=${encodeURIComponent(email)}&from=${from}`, "_blank", "noopener,noreferrer");
+    window.open(`/tef-irn/login?mode=signup&email=${encodeURIComponent(email)}&from=${from}`, "_blank", "noopener,noreferrer");
   };
 
   const startRecording = async () => {
@@ -321,7 +322,9 @@ export default function FreeExercisePage() {
       <header className="shrink-0 w-full bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/tef-irn" className="flex items-center gap-2 font-black text-white text-sm shrink-0">
-            <div className="w-6 h-6 bg-white/15 rounded-md flex items-center justify-center text-white text-xs">M</div>
+            <div className="relative w-6 h-6 rounded-md overflow-hidden shrink-0">
+              <Image src="/logo.png" alt="LlamaKusi" fill className="object-cover" />
+            </div>
             <span className="hidden sm:inline">LlamaKusi</span>
           </Link>
           <div className="flex flex-col items-end">
@@ -349,7 +352,8 @@ export default function FreeExercisePage() {
       )}
 
       <main className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-xl mx-auto">
+        <div className="min-h-full flex items-center justify-center">
+        <div className="max-w-xl w-full">
           <AnimatePresence mode="wait">
             {step === "level" ? (
               <motion.div key="level" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
@@ -710,7 +714,7 @@ export default function FreeExercisePage() {
                     {levelReadout.detail}
                   </p>
                   <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">
-                    Créez votre compte gratuitement pour continuer votre préparation avec un parcours personnalisé basé sur ce résultat.
+                    Créez votre compte gratuitement pour continuer votre préparation TEF IRN.
                   </p>
 
                   <form onSubmit={handleEmailSubmit} className="space-y-2.5 max-w-sm mx-auto">
@@ -737,6 +741,7 @@ export default function FreeExercisePage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
         </div>
       </main>
     </div>
