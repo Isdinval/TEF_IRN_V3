@@ -52,6 +52,7 @@ export async function middleware(request: NextRequest) {
   // Routes protégées
   const protectedRoutes = [
     '/tef-irn/dashboard',
+    '/tef-irn/exam',
     '/tef-irn/practice',
     '/tef-irn/writing',
     '/tef-irn/grammar-check',
