@@ -710,7 +710,7 @@ export default function FreeExercisePage() {
                     {levelReadout.detail}
                   </p>
                   <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">
-                    Entrez votre email pour recevoir votre plan de progression personnalisé.
+                    Créez votre compte gratuitement pour continuer votre préparation avec un parcours personnalisé basé sur ce résultat.
                   </p>
 
                   <form onSubmit={handleEmailSubmit} className="space-y-2.5 max-w-sm mx-auto">
@@ -726,7 +726,7 @@ export default function FreeExercisePage() {
                       type="submit"
                       className="w-full h-11 text-sm font-black bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                     >
-                      <Sparkles className="mr-2" size={16} /> Voir mes résultats
+                      <Sparkles className="mr-2" size={16} /> Créer mon compte
                       <ExternalLink className="ml-2" size={13} />
                     </Button>
                     <p className="text-[11px] text-zinc-400 font-medium">
