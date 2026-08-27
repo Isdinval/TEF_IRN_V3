@@ -285,6 +285,17 @@ export default function FreeExercisePage() {
   };
 
   const score = answers.reduce((acc, ans, idx) => acc + (ans === questions[idx].correctAnswer ? 1 : 0), 0);
+  const scoreRatio = questions.length > 0 ? score / questions.length : 0;
+
+  // Lecture indicative, pas une calibration psychométrique officielle (même
+  // logique de prudence que EXAMPLE_ORAL_FEEDBACK / docs/oral-analysis-levels.md) :
+  // sur 18 questions CE/CO, on ne peut pas prétendre à un niveau CECRL précis,
+  // juste situer le candidat par rapport au niveau qu'il vient de choisir.
+  const levelReadout = (() => {
+    if (scoreRatio >= 0.75) return { label: "Bon niveau", detail: `Vous semblez à l'aise avec le niveau ${level} — peut-être même prêt pour la suite.` };
+    if (scoreRatio >= 0.5) return { label: "Sur la bonne voie", detail: `Vous êtes globalement dans les clous du niveau ${level}, avec encore quelques points à consolider.` };
+    return { label: "Des bases à renforcer", detail: `Le niveau ${level} demande encore du travail — un parcours personnalisé vous aidera à progresser vite.` };
+  })();
 
   const questionPrompt = (q: FreeTrialQuestion) =>
     q.ceFormat === "trous" ? "Quel mot complète le texte surligné ?" : q.question;
@@ -655,12 +666,19 @@ export default function FreeExercisePage() {
               <Card className="p-8 lg:p-12 rounded-[2.5rem] border-none shadow-2xl shadow-indigo-100 text-center bg-white overflow-hidden relative">
                 {/* Score Circle */}
                 <div className="relative z-10">
-                  <div className="w-24 h-24 bg-indigo-600 text-white rounded-full flex flex-col items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-200 ring-8 ring-indigo-50">
+                  <div className="w-24 h-24 bg-indigo-600 text-white rounded-full flex flex-col items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-200 ring-8 ring-indigo-50">
                     <span className="text-3xl font-black">{score}</span>
                     <span className="text-[10px] font-bold opacity-70">/ {questions.length}</span>
                   </div>
 
-                  <h2 className="text-3xl font-black mb-4 text-zinc-900">Analyse terminée !</h2>
+                  <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-none font-bold px-3 py-1 uppercase tracking-wider text-[10px] mb-4">
+                    {levelReadout.label} — indicatif
+                  </Badge>
+
+                  <h2 className="text-3xl font-black mb-3 text-zinc-900">Analyse terminée !</h2>
+                  <p className="text-slate-500 text-base mb-2 max-w-sm mx-auto">
+                    {levelReadout.detail}
+                  </p>
                   <p className="text-slate-500 text-lg mb-10 max-w-sm mx-auto">
                     Entrez votre email pour recevoir votre **plan de progression personnalisé** et débloquer vos statistiques détaillées.
                   </p>
