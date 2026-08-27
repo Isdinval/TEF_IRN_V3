@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { AudioPlayer } from "@/components/exam/AudioPlayer";
 import { renderClozeText } from "@/lib/ce-format";
 import { ORAL_CRITERIA_LABELS, OralCriterionKey } from "@/lib/oral-criteria";
+import { captureEvent } from "@/lib/analytics";
 import {
   CheckCircle2,
   Sparkles,
@@ -218,6 +219,7 @@ export default function FreeExercisePage() {
       setAnswers([]);
       setIsShowingFeedback(false);
       setStep("quiz");
+      captureEvent("free_trial_level_selected", { level: chosenLevel });
     } catch {
       setLoadError("Impossible de charger le mini-test. Vérifiez votre connexion et réessayez.");
     } finally {
@@ -235,11 +237,13 @@ export default function FreeExercisePage() {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
+      captureEvent("free_trial_quiz_completed", { level, score, total: questions.length });
       setStep(writing ? "writing" : speaking ? "speaking" : "finished");
     }
   };
 
   const goToSignup = (from: string) => {
+    captureEvent("free_trial_signup_click", { from, level });
     window.location.href = `/tef-irn/login?email=${encodeURIComponent(email)}&from=${from}`;
   };
 
@@ -258,6 +262,7 @@ export default function FreeExercisePage() {
         setEoAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach((track) => track.stop());
         setRecordingState("recorded");
+        captureEvent("free_trial_eo_recorded", { level });
       };
       mediaRecorderRef.current = recorder;
       recorder.start();
@@ -585,7 +590,7 @@ export default function FreeExercisePage() {
 
                 {recordingState === "recorded" && !showOralExample && (
                   <Button
-                    onClick={() => setShowOralExample(true)}
+                    onClick={() => { setShowOralExample(true); captureEvent("free_trial_eo_example_viewed", { level }); }}
                     variant="outline"
                     className="w-full h-12 font-bold rounded-xl border-2 border-indigo-100 text-indigo-700 hover:bg-indigo-50"
                   >
