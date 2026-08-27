@@ -518,7 +518,7 @@ export default function FreeExercisePage() {
                     disabled={eeAnswer.trim() === ""}
                     className="w-full h-14 text-lg font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-40"
                   >
-                    <Sparkles className="mr-2" size={18} /> Obtenir ma correction IA
+                    <Sparkles className="mr-2" size={18} /> Créer un compte pour continuer
                   </Button>
                   <button
                     onClick={() => setStep(speaking ? "speaking" : "finished")}
@@ -700,6 +700,7 @@ export default function FreeExercisePage() {
                       />
                     </div>
                     <Button
+                      type="submit"
                       className="w-full h-14 lg:h-16 text-xl font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95"
                       disabled={submitting}
                     >
