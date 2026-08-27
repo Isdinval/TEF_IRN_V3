@@ -114,13 +114,20 @@ function AuthForm() {
     setFormMessage(null);
     try {
       if (mode === "signup") {
+        const from = searchParams.get("from");
+        // Redirige les inscriptions issues du mini-test gratuit vers le dashboard
+        // avec un flag dédié : ça prépare la relance du brouillon EE sauvegardé en
+        // localStorage (item 6c), sans rien changer au dashboard pour l'instant.
+        const next = from?.startsWith("test_gratuit")
+          ? `?next=${encodeURIComponent("/tef-irn/dashboard?claim_free_trial=1")}`
+          : "";
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback${next}` },
         });
         if (error) throw error;
-        captureEvent("signup_success");
+        captureEvent("signup_success", from ? { from } : undefined);
         setFormMessage({
           type: "success",
           text: "Vérifiez votre boîte mail pour confirmer votre inscription !",

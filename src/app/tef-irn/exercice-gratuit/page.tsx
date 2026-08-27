@@ -281,11 +281,7 @@ export default function FreeExercisePage() {
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    // Simulation of lead capture
-    setTimeout(() => {
-      setSubmitting(false);
-      window.location.href = `/tef-irn/login?email=${encodeURIComponent(email)}&from=test_gratuit`;
-    }, 1500);
+    goToSignup("test_gratuit");
   };
 
   const score = answers.reduce((acc, ans, idx) => acc + (ans === questions[idx].correctAnswer ? 1 : 0), 0);
