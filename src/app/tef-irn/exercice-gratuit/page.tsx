@@ -1,16 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { AudioPlayer } from "@/components/exam/AudioPlayer";
 import { renderClozeText } from "@/lib/ce-format";
-import { CheckCircle2, Sparkles, Loader2, ArrowRight, BookOpen, Brain, Zap, AlertTriangle } from "lucide-react";
+import { ORAL_CRITERIA_LABELS, OralCriterionKey } from "@/lib/oral-criteria";
+import {
+  CheckCircle2,
+  Sparkles,
+  Loader2,
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Zap,
+  AlertTriangle,
+  Info,
+  Mic,
+  Square,
+  RotateCcw,
+  TrendingUp,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 type FreeTrialLevel = "A2" | "B1" | "B2";
+type Step = "level" | "quiz" | "writing" | "speaking" | "finished";
 
 interface FreeTrialSubText {
   label: string;
@@ -34,6 +52,22 @@ interface FreeTrialQuestion {
   explanation?: string;
 }
 
+interface FreeTrialWriting {
+  id: string;
+  prompt: string;
+  instructions?: string;
+  minWords?: number;
+  maxTime?: number;
+}
+
+interface FreeTrialSpeaking {
+  id: string;
+  prompt: string;
+  instructions?: string;
+  prepTime?: number;
+  speakTime?: number;
+}
+
 const LEVELS: { value: FreeTrialLevel; label: string; description: string }[] = [
   { value: "A2", label: "A2", description: "Carte de séjour pluriannuelle" },
   { value: "B1", label: "B1", description: "Carte de résident" },
@@ -52,10 +86,72 @@ const FORMAT_LABELS: Record<string, string> = {
   repondeur: "Répondeur",
 };
 
+const EE_DRAFT_STORAGE_KEY = "tef_irn_free_trial_ee_draft";
+
+// Exemple de correction statique (rédigé une fois, jamais généré à la volée) —
+// montre le format réel de la grille TEF IRN sans jamais appeler l'API oral.
+// Volontairement générique : ce n'est PAS une correction de l'enregistrement de
+// l'utilisateur, juste un aperçu fidèle de ce que le vrai produit délivre.
+interface StaticOralExample {
+  overallScore: number;
+  estimatedLevel: string;
+  scores: Record<OralCriterionKey, number>;
+  strengths: string[];
+  improvements: string[];
+  generalComment: string;
+}
+
+const EXAMPLE_ORAL_FEEDBACK: Record<FreeTrialLevel, StaticOralExample> = {
+  A2: {
+    overallScore: 58,
+    estimatedLevel: "A2",
+    scores: {
+      pertinence_et_adequation_au_sujet: 65,
+      coherence_et_interaction: 55,
+      etendue_et_precision_du_vocabulaire: 50,
+      correction_grammaticale: 55,
+      aisance_et_fluidite: 60,
+    },
+    strengths: ["Réponses courtes mais compréhensibles", "Vocabulaire de base bien maîtrisé"],
+    improvements: ["Développer un peu plus chaque réponse", "Travailler la conjugaison au présent"],
+    generalComment: "Un niveau A2 solide sur les bases, avec une marge de progression sur la longueur des réponses.",
+  },
+  B1: {
+    overallScore: 72,
+    estimatedLevel: "B1",
+    scores: {
+      pertinence_et_adequation_au_sujet: 78,
+      coherence_et_interaction: 68,
+      etendue_et_precision_du_vocabulaire: 70,
+      correction_grammaticale: 65,
+      aisance_et_fluidite: 75,
+    },
+    strengths: ["Bonne justification des choix (parce que, car)", "Réaction naturelle aux relances de l'interlocuteur"],
+    improvements: ["Varier les connecteurs logiques", "Quelques hésitations à réduire sur les temps du passé"],
+    generalComment: "Un profil B1 cohérent : la communication passe bien, avec encore quelques imprécisions grammaticales.",
+  },
+  B2: {
+    overallScore: 84,
+    estimatedLevel: "B2",
+    scores: {
+      pertinence_et_adequation_au_sujet: 88,
+      coherence_et_interaction: 82,
+      etendue_et_precision_du_vocabulaire: 80,
+      correction_grammaticale: 82,
+      aisance_et_fluidite: 88,
+    },
+    strengths: ["Argumentation nuancée avec concession puis contre-argument", "Bonne fluidité, peu d'hésitations"],
+    improvements: ["Affiner le registre dans les tournures les plus formelles"],
+    generalComment: "Un très bon niveau B2 : l'échange est naturel et l'argumentation convainc l'interlocuteur.",
+  },
+};
+
 export default function FreeExercisePage() {
-  const [step, setStep] = useState<"level" | "quiz" | "finished">("level");
+  const [step, setStep] = useState<Step>("level");
   const [level, setLevel] = useState<FreeTrialLevel | null>(null);
   const [questions, setQuestions] = useState<FreeTrialQuestion[]>([]);
+  const [writing, setWriting] = useState<FreeTrialWriting | null>(null);
+  const [speaking, setSpeaking] = useState<FreeTrialSpeaking | null>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -65,7 +161,47 @@ export default function FreeExercisePage() {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // --- EE (écrit) ---
+  const [eeAnswer, setEeAnswer] = useState("");
+
+  // --- EO (oral) ---
+  const [recordingState, setRecordingState] = useState<"idle" | "recording" | "recorded">("idle");
+  const [eoAudioUrl, setEoAudioUrl] = useState<string | null>(null);
+  const [micError, setMicError] = useState<string | null>(null);
+  const [showOralExample, setShowOralExample] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const currentQuestion = questions[currentQuestionIndex];
+
+  // Restaure le brouillon EE tant qu'il correspond au sujet tiré pour cette session.
+  useEffect(() => {
+    if (!writing) return;
+    try {
+      const saved = localStorage.getItem(EE_DRAFT_STORAGE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (parsed.questionId === writing.id && typeof parsed.text === "string") {
+        setEeAnswer(parsed.text);
+      }
+    } catch {
+      // brouillon corrompu ou absent : on repart d'un texte vide, sans bloquer l'utilisateur
+    }
+  }, [writing]);
+
+  const handleEeChange = (text: string) => {
+    setEeAnswer(text);
+    if (!writing) return;
+    localStorage.setItem(EE_DRAFT_STORAGE_KEY, JSON.stringify({ questionId: writing.id, text }));
+  };
+
+  useEffect(() => {
+    // Coupe le micro si l'utilisateur quitte l'étape EO en cours d'enregistrement.
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
 
   const startLevel = async (chosenLevel: FreeTrialLevel) => {
     setLevel(chosenLevel);
@@ -76,6 +212,8 @@ export default function FreeExercisePage() {
       if (!res.ok) throw new Error("Erreur lors du chargement des questions");
       const data = await res.json();
       setQuestions(data.questions);
+      setWriting(data.writing ?? null);
+      setSpeaking(data.speaking ?? null);
       setCurrentQuestionIndex(0);
       setAnswers([]);
       setIsShowingFeedback(false);
@@ -97,8 +235,47 @@ export default function FreeExercisePage() {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      setStep("finished");
+      setStep(writing ? "writing" : speaking ? "speaking" : "finished");
     }
+  };
+
+  const goToSignup = (from: string) => {
+    window.location.href = `/tef-irn/login?email=${encodeURIComponent(email)}&from=${from}`;
+  };
+
+  const startRecording = async () => {
+    setMicError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setEoAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((track) => track.stop());
+        setRecordingState("recorded");
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecordingState("recording");
+    } catch {
+      setMicError("Impossible d'accéder au microphone. Vérifiez les autorisations de votre navigateur.");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+  };
+
+  const retryRecording = () => {
+    if (eoAudioUrl) URL.revokeObjectURL(eoAudioUrl);
+    setEoAudioUrl(null);
+    setShowOralExample(false);
+    setRecordingState("idle");
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
@@ -115,6 +292,11 @@ export default function FreeExercisePage() {
 
   const questionPrompt = (q: FreeTrialQuestion) =>
     q.ceFormat === "trous" ? "Quel mot complète le texte surligné ?" : q.question;
+
+  const eeWordCount = eeAnswer.trim() === "" ? 0 : eeAnswer.trim().split(/\s+/).length;
+  const eeMinReached = writing?.minWords ? eeWordCount >= writing.minWords : true;
+
+  const oralExample = level ? EXAMPLE_ORAL_FEEDBACK[level] : null;
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 flex flex-col items-center py-12 px-6">
@@ -283,10 +465,187 @@ export default function FreeExercisePage() {
                       onClick={nextQuestion}
                       className="w-full mt-6 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl group shadow-lg shadow-indigo-600/20"
                     >
-                      {currentQuestionIndex === questions.length - 1 ? "Voir mon score" : "Question suivante"}
+                      {currentQuestionIndex === questions.length - 1 ? "Continuer" : "Question suivante"}
                       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
                     </Button>
                   </motion.div>
+                )}
+              </Card>
+            </motion.div>
+          ) : step === "writing" && writing ? (
+            <motion.div key="writing" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full">
+              <Card className="p-8 lg:p-12 rounded-[2.5rem] border-none shadow-xl shadow-indigo-100/50 bg-white">
+                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-none font-bold px-3 py-1 uppercase tracking-wider text-[10px] mb-6">
+                  Expression écrite
+                </Badge>
+
+                <div className="p-5 bg-indigo-50/60 rounded-2xl border-l-4 border-indigo-600 mb-6">
+                  <h3 className="font-black text-zinc-900 flex items-center gap-2 mb-1.5 text-sm">
+                    <Info size={16} /> Sujet
+                  </h3>
+                  <p className="text-zinc-600 leading-relaxed font-medium text-sm">{writing.prompt}</p>
+                </div>
+
+                <div className="relative">
+                  <Textarea
+                    value={eeAnswer}
+                    onChange={(e) => handleEeChange(e.target.value)}
+                    placeholder="Rédigez votre réponse ici..."
+                    className="min-h-[220px] p-5 text-base rounded-2xl border border-zinc-100 focus:border-indigo-600 focus:ring-0 transition-all shadow-inner bg-white"
+                  />
+                  {writing.minWords && (
+                    <div className={`absolute bottom-3 right-4 px-3 py-1 rounded-full text-xs font-bold ${eeMinReached ? "bg-emerald-50 text-emerald-600" : "bg-zinc-100 text-zinc-400"}`}>
+                      {eeWordCount} mots {eeMinReached ? "(Minimum atteint ✅)" : `(Min. ${writing.minWords} mots)`}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 space-y-3">
+                  <Button
+                    onClick={() => goToSignup("test_gratuit_ee")}
+                    disabled={eeAnswer.trim() === ""}
+                    className="w-full h-14 text-lg font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95 disabled:opacity-40"
+                  >
+                    <Sparkles className="mr-2" size={18} /> Obtenir ma correction IA
+                  </Button>
+                  <button
+                    onClick={() => setStep(speaking ? "speaking" : "finished")}
+                    className="w-full text-center text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Continuer sans correction
+                  </button>
+                </div>
+              </Card>
+            </motion.div>
+          ) : step === "speaking" && speaking ? (
+            <motion.div key="speaking" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="w-full">
+              <Card className="p-8 lg:p-12 rounded-[2.5rem] border-none shadow-xl shadow-indigo-100/50 bg-white">
+                <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-none font-bold px-3 py-1 uppercase tracking-wider text-[10px] mb-6">
+                  Expression orale
+                </Badge>
+
+                <div className="p-5 bg-indigo-50/60 rounded-2xl border-l-4 border-indigo-600 mb-8">
+                  <h3 className="font-black text-zinc-900 flex items-center gap-2 mb-1.5 text-sm">
+                    <Info size={16} /> Mise en situation
+                  </h3>
+                  <p className="text-zinc-600 leading-relaxed font-medium text-sm">{speaking.prompt}</p>
+                </div>
+
+                <div className="flex flex-col items-center gap-4 py-6">
+                  {recordingState === "idle" && (
+                    <Button
+                      onClick={startRecording}
+                      className="w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200"
+                    >
+                      <Mic size={28} />
+                    </Button>
+                  )}
+                  {recordingState === "recording" && (
+                    <>
+                      <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                        Enregistrement en cours...
+                      </div>
+                      <Button
+                        onClick={stopRecording}
+                        className="w-20 h-20 rounded-full bg-rose-500 hover:bg-rose-600 shadow-xl shadow-rose-200"
+                      >
+                        <Square size={24} fill="currentColor" />
+                      </Button>
+                    </>
+                  )}
+                  {recordingState === "recorded" && eoAudioUrl && (
+                    <div className="w-full flex flex-col items-center gap-4">
+                      <audio controls src={eoAudioUrl} className="w-full" />
+                      <button
+                        onClick={retryRecording}
+                        className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        <RotateCcw size={14} /> Recommencer
+                      </button>
+                    </div>
+                  )}
+                  {micError && (
+                    <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-700 text-sm font-medium">
+                      <AlertTriangle size={18} className="shrink-0" />
+                      {micError}
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-400 font-medium text-center max-w-xs">
+                    Votre enregistrement reste sur votre appareil — il n'est jamais envoyé à nos serveurs.
+                  </p>
+                </div>
+
+                {recordingState === "recorded" && !showOralExample && (
+                  <Button
+                    onClick={() => setShowOralExample(true)}
+                    variant="outline"
+                    className="w-full h-12 font-bold rounded-xl border-2 border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    Voir un exemple de correction IA
+                  </Button>
+                )}
+
+                {showOralExample && oralExample && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 space-y-4">
+                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-amber-800 text-xs font-bold">
+                      Exemple illustratif — pas une correction de votre enregistrement. Créez un compte pour recevoir la vôtre.
+                    </div>
+
+                    <div className="p-6 bg-slate-950 rounded-2xl text-center">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Niveau estimé (exemple)</div>
+                      <div className="text-4xl font-black text-white">{oralExample.estimatedLevel}</div>
+                      <div className="text-sm text-slate-400 font-medium mt-1">Score global : <span className="font-black text-white">{oralExample.overallScore}/100</span></div>
+                    </div>
+
+                    <div className="p-6 bg-white border border-zinc-100 rounded-2xl space-y-4">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Détail par critère (grille officielle TEF IRN)</div>
+                      {(Object.keys(ORAL_CRITERIA_LABELS) as OralCriterionKey[]).map((key) => (
+                        <div key={key} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-bold text-zinc-700">{ORAL_CRITERIA_LABELS[key]}</span>
+                            <span className="font-black text-indigo-600">{oralExample.scores[key]}/100</span>
+                          </div>
+                          <Progress value={oralExample.scores[key]} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="p-5 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-2">
+                          <CheckCircle2 size={14} /> Points forts
+                        </div>
+                        <ul className="text-sm font-medium text-zinc-600 space-y-1">
+                          {oralExample.strengths.map((s, i) => <li key={i}>• {s}</li>)}
+                        </ul>
+                      </div>
+                      <div className="p-5 bg-amber-50 border border-amber-100 rounded-2xl">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-700 mb-2">
+                          <TrendingUp size={14} /> À travailler
+                        </div>
+                        <ul className="text-sm font-medium text-zinc-600 space-y-1">
+                          {oralExample.improvements.map((s, i) => <li key={i}>• {s}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => goToSignup("test_gratuit_eo")}
+                      className="w-full h-14 text-lg font-black bg-indigo-600 hover:bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95"
+                    >
+                      <Sparkles className="mr-2" size={18} /> Obtenir ma vraie correction IA
+                    </Button>
+                  </motion.div>
+                )}
+
+                {recordingState !== "recorded" && (
+                  <button
+                    onClick={() => setStep("finished")}
+                    className="w-full mt-4 text-center text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Passer cette étape
+                  </button>
                 )}
               </Card>
             </motion.div>

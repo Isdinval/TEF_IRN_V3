@@ -33,6 +33,17 @@ interface ExamQuestionRow {
   explanation: string | null;
 }
 
+interface WritingOrSpeakingRow {
+  id: string;
+  section: string;
+  prompt: string;
+  instructions: string | null;
+  min_words: number | null;
+  max_time: number | null;
+  prep_time: number | null;
+  speak_time: number | null;
+}
+
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -55,6 +66,13 @@ function pickPerFormat(
     picked.push(...shuffle(pool).slice(0, QUESTIONS_PER_FORMAT));
   }
   return picked;
+}
+
+// EE/EO : chaque examen propose 2 sujets (Section A / Section B). On en pioche
+// un seul au hasard, pas de format à respecter contrairement à CE/CO.
+function pickOne<T>(rows: T[]): T | null {
+  if (rows.length === 0) return null;
+  return shuffle(rows)[0];
 }
 
 function toClientQuestion(row: ExamQuestionRow) {
@@ -115,6 +133,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Erreur lors de la récupération des questions" }, { status: 500 });
   }
 
+  const { data: writingSpeakingRows, error: wsError } = await supabase
+    .from("exam_questions")
+    .select("id, section, prompt, instructions, min_words, max_time, prep_time, speak_time")
+    .eq("exam_id", exam.id)
+    .in("section", ["EE", "EO"])
+    .returns<WritingOrSpeakingRow[]>();
+
+  if (wsError || !writingSpeakingRows) {
+    console.error("Free trial: EE/EO fetch error:", wsError);
+    return NextResponse.json({ error: "Erreur lors de la récupération des sujets EE/EO" }, { status: 500 });
+  }
+
   const coRows = questions.filter((q) => q.section === "CO");
   const ceRows = questions.filter((q) => q.section === "CE");
 
@@ -124,9 +154,30 @@ export async function GET(req: Request) {
   // CO avant CE : on respecte l'ordre de passage réel du TEF IRN.
   const orderedQuestions = [...selectedCo, ...selectedCe].map(toClientQuestion);
 
+  const writingRow = pickOne(writingSpeakingRows.filter((r) => r.section === "EE"));
+  const speakingRow = pickOne(writingSpeakingRows.filter((r) => r.section === "EO"));
+
   return NextResponse.json({
     level,
     examLabel: exam.label,
     questions: orderedQuestions,
+    writing: writingRow
+      ? {
+          id: writingRow.id,
+          prompt: writingRow.prompt,
+          instructions: writingRow.instructions ?? undefined,
+          minWords: writingRow.min_words ?? undefined,
+          maxTime: writingRow.max_time ?? undefined,
+        }
+      : null,
+    speaking: speakingRow
+      ? {
+          id: speakingRow.id,
+          prompt: speakingRow.prompt,
+          instructions: speakingRow.instructions ?? undefined,
+          prepTime: speakingRow.prep_time ?? undefined,
+          speakTime: speakingRow.speak_time ?? undefined,
+        }
+      : null,
   });
 }
