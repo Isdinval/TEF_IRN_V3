@@ -98,6 +98,12 @@ export function Hero() {
                 <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
+            <Link
+              href="/tef-irn/exercice-gratuit"
+              className="block mt-4 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-brand-blue dark:hover:text-brand-gold transition-colors underline underline-offset-4"
+            >
+              Ou testez sans créer de compte →
+            </Link>
           </motion.div>
 
           <motion.div

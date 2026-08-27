@@ -72,6 +72,7 @@ function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const initialTab = searchParams.get("mode") === "signup" ? "signup" : "login";
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -114,13 +115,20 @@ function AuthForm() {
     setFormMessage(null);
     try {
       if (mode === "signup") {
+        const from = searchParams.get("from");
+        // Redirige les inscriptions issues du mini-test gratuit vers le dashboard
+        // avec un flag dédié : ça prépare la relance du brouillon EE sauvegardé en
+        // localStorage (item 6c), sans rien changer au dashboard pour l'instant.
+        const next = from?.startsWith("test_gratuit")
+          ? `?next=${encodeURIComponent("/tef-irn/dashboard?claim_free_trial=1")}`
+          : "";
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback${next}` },
         });
         if (error) throw error;
-        captureEvent("signup_success");
+        captureEvent("signup_success", from ? { from } : undefined);
         setFormMessage({
           type: "success",
           text: "Vérifiez votre boîte mail pour confirmer votre inscription !",
@@ -262,7 +270,7 @@ function AuthForm() {
             </div>
           </div>
 
-          <Tabs defaultValue="login" className="w-full flex flex-col gap-6">
+          <Tabs defaultValue={initialTab} className="w-full flex flex-col gap-6">
             <TabsList className="grid w-full grid-cols-2 p-1.5 bg-zinc-100 rounded-2xl h-14">
               <TabsTrigger value="login" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Connexion</TabsTrigger>
               <TabsTrigger value="signup" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Inscription</TabsTrigger>

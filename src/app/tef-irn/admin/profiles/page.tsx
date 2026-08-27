@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck, ShieldOff, RotateCcw, Eye, FlaskConical } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, RotateCcw, Eye, FlaskConical, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
@@ -52,7 +52,7 @@ function formatRelative(iso: string): string {
 interface LogEntry {
   id: string;
   admin_email: string;
-  action: "promote_admin" | "demote_admin" | "reset_progress";
+  action: "promote_admin" | "demote_admin" | "reset_progress" | "delete_account";
   target_email: string;
   details: { deletedCount?: number } | null;
   created_at: string;
@@ -62,6 +62,7 @@ const ACTION_LABELS: Record<LogEntry["action"], string> = {
   promote_admin: "a promu admin",
   demote_admin: "a rétrogradé",
   reset_progress: "a réinitialisé",
+  delete_account: "a supprimé",
 };
 
 interface CategoryStat {
@@ -82,6 +83,7 @@ interface UserStats {
 
 const CONFIRM_PHRASE = "RETROGRADER";
 const RESET_CONFIRM_PHRASE = "RESET";
+const DELETE_CONFIRM_PHRASE = "SUPPRIMER";
 
 export default function ProfilesAdmin() {
   const supabase = useMemo(() => createClient(), []);
@@ -101,6 +103,11 @@ export default function ProfilesAdmin() {
   const [resetConfirmText, setResetConfirmText] = useState("");
   const [resetPendingId, setResetPendingId] = useState<string | null>(null);
   const [resetResultMsg, setResetResultMsg] = useState<string | null>(null);
+  // Suppression définitive d'un compte : contrairement au reset, ceci
+  // supprime auth.users et cascade sur tout (profil + données liées).
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [testFilter, setTestFilter] = useState<TestFilter>("all");
   const [sortBy, setSortBy] = useState<SortBy>("last_activity");
@@ -241,6 +248,29 @@ export default function ProfilesAdmin() {
     }
   };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeletePendingId(deleteTarget.id);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/admin/profiles/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: deleteTarget.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur lors de la suppression.");
+      setDeleteTarget(null);
+      setResetResultMsg(`Compte "${deleteTarget.email}" supprimé définitivement.`);
+      await fetchProfiles();
+      await fetchActionsLog();
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors de la suppression.");
+    } finally {
+      setDeletePendingId(null);
+    }
+  };
+
   const toggleTestAccount = async (profile: ProfileRow) => {
     const nextValue = !profile.is_test_account;
     setTestTogglingId(profile.id);
@@ -335,6 +365,29 @@ export default function ProfilesAdmin() {
             <Loader2 className="animate-spin" size={14} />
           ) : (
             <><RotateCcw size={14} className="mr-1.5" /> Réinitialiser</>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          disabled={
+            deletePendingId === profile.id ||
+            profile.is_admin ||
+            (!!profile.subscription_tier && profile.subscription_tier !== "free")
+          }
+          onClick={() => { setDeleteConfirmText(""); setDeleteTarget(profile); }}
+          title={
+            profile.is_admin
+              ? "Rétrogradez d'abord ce compte avant de le supprimer."
+              : profile.subscription_tier && profile.subscription_tier !== "free"
+              ? "Abonnement actif : annulez-le côté Stripe avant de supprimer le compte."
+              : undefined
+          }
+          className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50 disabled:opacity-40"
+        >
+          {deletePendingId === profile.id ? (
+            <Loader2 className="animate-spin" size={14} />
+          ) : (
+            <><Trash2 size={14} className="mr-1.5" /> Supprimer</>
           )}
         </Button>
         <Button
@@ -494,6 +547,38 @@ export default function ProfilesAdmin() {
               className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
             >
               {resetPendingId === resetTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la réinitialisation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Supprimer définitivement ce compte ?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-zinc-600">
+              Le compte <strong>{deleteTarget?.email}</strong> et <strong>toutes ses données</strong> (progression,
+              tentatives, examens blancs, SRS, historique du chat coach, statistiques...) seront supprimés
+              définitivement. Cette action est <strong>irréversible</strong> et ne peut pas être annulée.
+              Pour confirmer, tapez <strong>{DELETE_CONFIRM_PHRASE}</strong> ci-dessous.
+            </p>
+            <div>
+              <Label className="text-xs font-black uppercase text-zinc-400">Confirmation</Label>
+              <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} className="mt-1" placeholder={DELETE_CONFIRM_PHRASE} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)} className="rounded-2xl font-black text-sm">
+              Annuler
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={deleteConfirmText !== DELETE_CONFIRM_PHRASE || deletePendingId === deleteTarget?.id}
+              className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
+            >
+              {deletePendingId === deleteTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la suppression"}
             </Button>
           </DialogFooter>
         </DialogContent>
