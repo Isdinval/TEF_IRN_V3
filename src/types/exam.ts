@@ -23,7 +23,10 @@ export interface QCMQuestion extends BaseQuestion {
   type: 'audio' | 'text';
   question: string;
   options: string[];
-  correctAnswer: string; // 'A', 'B', 'C', 'D'
+  // Audit sécurité item 1 : jamais renvoyée au chargement de la question
+  // (exam_questions_public l'exclut) -- seulement disponible a posteriori,
+  // par question, dans ExamResult.answers une fois la section corrigée.
+  correctAnswer?: string; // 'A', 'B', 'C', 'D'
   audioUrl?: string;
   maxPlays?: number;
   transcription?: string;
@@ -76,6 +79,9 @@ export interface ExamResult {
     userAnswer: string;
     isCorrect: boolean;
     correctAnswer: string;
+    // Audit sécurité item 1 : renvoyée par /api/exam/ce-co-complete avec la
+    // correction, jamais connue du client avant la fin de la section.
+    explanation?: string;
   }>;
   writingProductions?: Record<string, string>;
   writingFeedbacks?: Record<string, import('./writing').WritingFeedback>;
