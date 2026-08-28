@@ -150,11 +150,19 @@ EXEMPLES D'AMBIGUÏTÉ À TRANCHER (registre texte long) :
   marqueur B1, PAS A2, même si le reste du texte semble simple -- ce sont les connecteurs
   listés au niveau B1 ci-dessus.
 - Le conditionnel ("l'entreprise devrait...", "cela permettrait...") est un marqueur B1 --
-  un texte qui l'emploie n'est pas A2, même si ses phrases restent par ailleurs courtes.
+  un texte qui l'emploie n'est pas A2, même si ses phrases restent par ailleurs courtes. Le
+  conditionnel seul, MÊME RÉPÉTÉ PLUSIEURS FOIS dans le texte, reste un marqueur B1 -- sa
+  répétition ne le fait PAS basculer en B2 à lui seul : seule la présence d'une concession
+  EXPLICITE (voir ci-dessous) ou d'une subordination développée justifie un niveau B2.
 - Une concession simple ("il ne faut pas supprimer complètement...") est B1. Une concession
   EXPLICITE avec un connecteur de concession dédié ("certes"/"il est vrai que" suivi de
   "néanmoins"/"cependant") est B2 -- ne confonds pas les deux : la présence du connecteur de
-  concession lui-même (pas seulement l'idée de nuance) est ce qui distingue B1 de B2 ici.`;
+  concession lui-même (pas seulement l'idée de nuance) est ce qui distingue B1 de B2 ici.
+  ATTENTION : "cependant" utilisé SEUL, sans "certes"/"il est vrai que" avant lui dans le
+  texte, n'est PAS une concession B2 -- c'est une simple opposition B1 (ex. "Cependant, il ne
+  faut pas supprimer le travail au bureau" isolé = B1). Seule la paire complète ("certes"/"il
+  est vrai que" + "néanmoins"/"cependant") constitue le marqueur B2 -- vérifie que les DEUX
+  éléments de la paire sont présents avant de conclure à une concession B2.`;
 
 function getLevelDetectionMarkers(effectiveMinWords: number): string {
   const registerMarkers = effectiveMinWords < 100
