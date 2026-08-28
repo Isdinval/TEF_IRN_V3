@@ -44,6 +44,164 @@ function getLevelGuidelines(level: string): string {
   return LEVEL_GUIDELINES[normalized] || LEVEL_GUIDELINES['B1'];
 }
 
+// Référentiel de DÉTECTION du niveau apparent — distinct de LEVEL_GUIDELINES ci-dessus.
+// LEVEL_GUIDELINES calibre la CORRECTION (quoi tolérer/signaler) relativement au niveau
+// VISÉ par le sujet ; ce bloc calibre une évaluation INDÉPENDANTE de la richesse
+// linguistique réellement observée dans le texte, quel que soit le sujet. Sans ce bloc,
+// un texte A1 sans fautes obtenait un score de conformité proche de 100 (comportement
+// voulu, cf. docs/writing-correction-levels.md règle transverse #4), ensuite mal
+// réinterprété côté client comme "niveau CECRL absolu" (computeWritingLevel) -- d'où un
+// niveau B2 quasi systématique dès qu'il n'y avait aucune faute, peu importe le texte.
+// Toujours donné, indépendamment de effectiveLevel (contrairement à LEVEL_GUIDELINES, qui
+// n'a pas d'entrée A1 -- ici A1 est un résultat possible, pas seulement un défaut vers B1).
+// Miroir du pattern déjà en prod côté Oral (RÈGLE ANTI-BIAIS, src/app/api/oral/analyze/route.ts:159),
+// mais avec un résultat catégoriel direct (enum) plutôt qu'un score+seuils : suffisant ici
+// car déjà protégé par WritingFeedbackSchema (z.enum ci-dessous rejette toute valeur hors liste),
+// pas besoin de dupliquer le mécanisme "score brut + fonction de seuillage" de l'Oral.
+//
+// Deux registres distincts (Section A = message court informel/semi-formel, Section B =
+// texte long formel/argumentatif) car les exemples lexicaux d'un registre sonnent faux dans
+// l'autre -- "je voulais t'informer que" (message) n'a pas d'équivalent naturel dans une
+// lettre de réclamation ou un texte argumentatif, et inversement. Les 4 CECRL restent les
+// mêmes, seuls les exemples illustrant chaque marqueur changent. Pas de découpage plus fin
+// par type_texte (message_informatif/lettre_formelle/texte_argumentatif/lettre_reclamation) :
+// les 3 types de la Section B partagent les mêmes attendus grammaticaux CECRL (subordination,
+// connecteurs, nuance), ils diffèrent en convention de politesse, pas en complexité
+// linguistique -- et exam_questions (examen blanc) n'a de toute façon aucune colonne
+// type_texte, seulement min_words (40 ou 100), qui distingue déjà A/B de façon fiable.
+const LEVEL_DETECTION_COMMON_RULES = `
+ANALYSE INDÉPENDANTE DU NIVEAU RÉELLEMENT DÉMONTRÉ (distincte de ta correction ci-dessus) :
+En plus de ta notation de conformité au niveau visé, indique le niveau CECRL que ce texte
+démontrerait s'il était lu SANS connaître le niveau visé.
+
+RÈGLE ANTI-BIAIS : ignore le niveau visé pour cette partie précise de l'analyse. Base-toi
+UNIQUEMENT sur les marqueurs linguistiques objectivement présents dans le texte du candidat.
+
+RÈGLE DE PRIORITÉ EN CAS D'AMBIGUÏTÉ : plusieurs marqueurs de niveaux différents peuvent
+coexister dans un même texte -- ne te fie JAMAIS uniquement à la phrase d'ouverture ou au
+marqueur le plus visible en premier. Repère TOUS les marqueurs présents dans le texte entier,
+puis retiens le niveau du marqueur le PLUS SPÉCIFIQUE et le PLUS ÉLEVÉ, même s'il apparaît
+en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
+
+NE JAMAIS redescendre le niveau à cause de la LONGUEUR du texte, de sa SIMPLICITÉ GLOBALE, ou
+d'une impression d'ensemble -- un texte majoritairement simple qui contient UNE SEULE occurrence
+d'un marqueur clairement identifié à un niveau supérieur DOIT être classé à ce niveau supérieur.
+Le niveau apparent se détermine par le marqueur le plus élevé présent, pas par une moyenne ou
+une tendance générale du texte.
+
+AUTO-COHÉRENCE (vérifie avant de répondre) : ta justification (niveau_apparent_justification)
+doit s'accorder avec le niveau que tu donnes (niveau_apparent_cecrl). Si ta justification décrit
+un marqueur associé à un niveau X dans la liste ci-dessous, le niveau que tu renvoies DOIT être
+ce niveau X -- ne conclus jamais à un niveau inférieur après avoir toi-même identifié et cité un
+marqueur supérieur.`;
+
+// Section A : message court (10 min, ~40 mots), registre informel ou semi-formel.
+const LEVEL_DETECTION_MARKERS_SECTION_A = `
+MARQUEURS DE NIVEAU (message court) :
+- A1 : phrases courtes juxtaposées (sujet + verbe + complément), quasi exclusivement le
+  présent, connecteurs limités ("et", "mais", "si"), vocabulaire concret et basique, peu ou
+  pas de développement des idées.
+- A2 : structures un peu plus variées ("je voulais t'informer que...", "je voudrais..."),
+  emploi du futur proche ET/OU du futur simple, message organisé répondant clairement à
+  chaque point de la consigne, vocabulaire courant mais sans nuance.
+- B1 : ajout d'une justification ou d'un point de vue personnel (pas seulement transmettre
+  l'info), connecteurs ("comme", "donc", "parce que") utilisés pour articuler une raison,
+  tournures un peu plus élaborées, expression idiomatique courante ("ça te dirait que...").
+- B2 : proposition ou opinion formulée de façon indirecte et nuancée ("je pensais que...",
+  "il me semble que..."), vocabulaire plus précis et moins répétitif, syntaxe plus complexe
+  (subordonnées), enchaînement logique fluide entre les idées.
+
+EXEMPLES D'AMBIGUÏTÉ À TRANCHER (registre message court) :
+- Une tournure d'ouverture comme "je voulais te prévenir que..." ressemble à l'exemple A2
+  "je voulais t'informer que...", mais si le texte ajoute ENSUITE une justification
+  introduite par "comme"/"donc"/"parce que"/"car" (ex. "Comme je termine souvent le travail
+  tard, ces horaires m'arrangent"), c'est un marqueur B1 qui prime -- le texte est B1, pas A2,
+  malgré la ressemblance de surface de sa première phrase.
+- "je pensais que..." / "il me semble que..." sont des marqueurs B2 explicites (proposition
+  formulée de façon indirecte et nuancée) -- ne les redescends PAS à B1 en les qualifiant
+  génériquement de "point de vue personnel" : un simple point de vue direct ("je pense que...")
+  est B1, une proposition reformulée indirectement ("je pensais QUE... on pourrait...") est B2.`;
+
+// Section B : texte long (20 min, ~100 mots), registre formel/argumentatif (texte
+// argumentatif, lettre formelle, lettre de réclamation -- mêmes attendus grammaticaux
+// CECRL pour les 3, voir commentaire ci-dessus).
+const LEVEL_DETECTION_MARKERS_SECTION_B = `
+MARQUEURS DE NIVEAU (texte long, formel/argumentatif) :
+- A1 : phrases courtes juxtaposées, quasi exclusivement le présent, structures répétitives
+  ("Les salariés sont contents. Ils travaillent bien."), connecteurs limités ("et", "aussi",
+  "mais"), argumentation réduite à une succession d'affirmations sans lien développé entre
+  elles, vocabulaire concret et basique.
+- A2 : futur proche ET/OU futur simple pour projeter une conséquence ("les salariés vont
+  gagner du temps", "cela sera positif"), causalité simple avec "parce que", texte organisé
+  qui répond point par point à la consigne mais sans article développé, vocabulaire courant
+  sans nuance.
+- B1 : conditionnel (serait, permettrait, pourrait) pour formuler une proposition ou une
+  recommandation, connecteurs logiques simples ("donc", "cependant", "par contre", "d'abord/
+  ensuite/enfin", "de plus"), justification causale introduite par "comme" ou "parce que",
+  une nuance simple ("il ne faut pas... complètement").
+- B2 : concession explicite ("certes... néanmoins...", "il est vrai que... cependant..."),
+  connecteurs précis et variés ("par conséquent", "par ailleurs", "notamment", "dans la
+  mesure où"), subordination développée (relatives/complétives enchâssées, "ce qui" de
+  reprise), vocabulaire abstrait précis (modalités, autonomie, productivité), conclusion
+  reformulée à un niveau plus abstrait plutôt que simplement répétée.
+
+EXEMPLES D'AMBIGUÏTÉ À TRANCHER (registre texte long) :
+- Une accumulation de connecteurs structurants ("Tout d'abord... Ensuite... Enfin...") est un
+  marqueur B1, PAS A2, même si le reste du texte semble simple -- ce sont les connecteurs
+  listés au niveau B1 ci-dessus.
+- Le conditionnel ("l'entreprise devrait...", "cela permettrait...") est un marqueur B1 --
+  un texte qui l'emploie n'est pas A2, même si ses phrases restent par ailleurs courtes. Le
+  conditionnel seul, MÊME RÉPÉTÉ PLUSIEURS FOIS dans le texte, reste un marqueur B1 -- sa
+  répétition ne le fait PAS basculer en B2 à lui seul : seule la présence d'une concession
+  EXPLICITE (voir ci-dessous) ou d'une subordination développée justifie un niveau B2.
+- Une concession simple ("il ne faut pas supprimer complètement...") est B1. Une concession
+  EXPLICITE avec un connecteur de concession dédié ("certes"/"il est vrai que" suivi de
+  "néanmoins"/"cependant") est B2 -- ne confonds pas les deux : la présence du connecteur de
+  concession lui-même (pas seulement l'idée de nuance) est ce qui distingue B1 de B2 ici.
+  ATTENTION : "cependant" utilisé SEUL, sans "certes"/"il est vrai que" avant lui dans le
+  texte, n'est PAS une concession B2 -- c'est une simple opposition B1 (ex. "Cependant, il ne
+  faut pas supprimer le travail au bureau" isolé = B1). Seule la paire complète ("certes"/"il
+  est vrai que" + "néanmoins"/"cependant") constitue le marqueur B2 -- vérifie que les DEUX
+  éléments de la paire sont présents avant de conclure à une concession B2.`;
+
+function getLevelDetectionMarkers(effectiveMinWords: number): string {
+  const registerMarkers = effectiveMinWords < 100
+    ? LEVEL_DETECTION_MARKERS_SECTION_A
+    : LEVEL_DETECTION_MARKERS_SECTION_B;
+  return `${LEVEL_DETECTION_COMMON_RULES}\n${registerMarkers}\n\nDétermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
+fautes ne suffit PAS à elle seule : un texte A1 sans aucune faute reste un texte A1 si sa
+structure et son vocabulaire restent basiques. Fournis aussi une justification courte (1
+phrase) citant un marqueur CONCRET tiré du texte du candidat (ex. "emploi du futur proche et
+du futur simple, structure organisée" plutôt qu'une remarque générique).`;
+}
+
+// Garde-fou déterministe (item 12, suite) : la consigne 2bis interdit déjà de signaler le
+// passage indicatif -> conditionnel comme une "erreur de conjugaison" (c'est un choix de
+// nuance stylistique, pas une faute -- les deux formes sont correctes), mais 2 itérations de
+// renforcement textuel de cette règle n'ont pas suffi sur un cas reproductible ("il ne faut
+// pas" -> "il ne faudrait pas", observé identique 3 fois). Plutôt que de continuer à espérer
+// une meilleure obéissance au prompt sur un point que l'IA a démontré ne pas respecter de
+// façon fiable, on détecte et on retire mécaniquement ce faux positif -- même principe que le
+// garde-fou de longueur ci-dessous. Volontairement limité aux modaux/semi-auxiliaires les
+// plus fréquents dans ce type d'erreur (falloir/devoir/pouvoir/être/valoir) plutôt qu'une
+// détection morphologique générale : au-delà de cette liste, le risque de faux négatif (une
+// vraie faute de conjugaison sur un autre verbe, à tort non signalée) dépasserait le bénéfice.
+const INDICATIF_TO_CONDITIONNEL_SOFTENING: Record<string, string> = {
+  faudrait: 'faut', // falloir est impersonnel, pas de forme plurielle
+  devrait: 'doit', devraient: 'doivent',
+  pourrait: 'peut', pourraient: 'peuvent',
+  serait: 'est', seraient: 'sont',
+  vaudrait: 'vaut',
+};
+
+function isIndicatifToConditionnelSofteningOnly(original: string, corrige: string): boolean {
+  let reverted = corrige;
+  for (const [conditionnel, indicatif] of Object.entries(INDICATIF_TO_CONDITIONNEL_SOFTENING)) {
+    reverted = reverted.replace(new RegExp(`\\b${conditionnel}\\b`, 'gi'), indicatif);
+  }
+  return reverted.trim().toLowerCase() === original.trim().toLowerCase();
+}
+
 // Le barème EE du TEF IRN ne couvre que A2/B1/B2 (sections A et B). Le profil de
 // l'apprenant (current_level) peut lui être A1 à C2 : on ramène ces bornes vers
 // le niveau EE le plus proche (A1 -> A2, C1/C2 -> B2) pour pouvoir le comparer
@@ -102,6 +260,11 @@ const WritingFeedbackSchema = z.object({
   })),
   conseil_general: z.string(),
   texte_corrige_complet: z.string(),
+  // Niveau CECRL apparent (indépendant du niveau visé par le sujet, voir
+  // getLevelDetectionMarkers) -- distinct de score_global/scores_par_competence qui
+  // mesurent la conformité au niveau VISÉ, pas le niveau réellement démontré.
+  niveau_apparent_cecrl: z.enum(['A1', 'A2', 'B1', 'B2']),
+  niveau_apparent_justification: z.string(),
 });
 
 // Réponse de repli, toujours conforme au schéma attendu par le frontend, utilisée à la
@@ -113,6 +276,8 @@ function buildFallbackFeedback(text: string, message: string) {
     liste_des_erreurs: [],
     conseil_general: message,
     texte_corrige_complet: text,
+    niveau_apparent_cecrl: null,
+    niveau_apparent_justification: null,
     error: message,
   };
 }
@@ -207,6 +372,7 @@ OBJECTIF :
 ${levelGuidelines}
 ${levelGapInstruction}
 ${calibrationExemplar}
+${getLevelDetectionMarkers(effectiveMinWords)}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
@@ -222,6 +388,7 @@ CONSIGNES DE CORRECTION :
    - "vocabulaire" : mauvais choix de mot, anglicismes, registre inadapté.
 2bis. NE signale une erreur QUE s'il s'agit d'une vraie violation du français standard (accord, conjugaison, orthographe, syntaxe, mot incorrect) -- JAMAIS une préférence de style ou un choix par ailleurs valide. En particulier :
    - Le conditionnel de politesse ("je souhaiterais", "pourriez-vous", "il serait utile de") dans un texte formel est CORRECT et même recommandé -- ne JAMAIS le signaler comme une faute de conjugaison.
+   - Le choix entre l'INDICATIF (affirmation directe, ex. "il ne faut pas", "cela est nécessaire") et le CONDITIONNEL (formulation adoucie, ex. "il ne faudrait pas", "cela serait nécessaire") pour exprimer une opinion ou une recommandation est un choix de NUANCE STYLISTIQUE -- les deux formes sont grammaticalement correctes. Ne signale JAMAIS le passage de l'indicatif au conditionnel comme une correction nécessaire ou une erreur de "conjugaison", même si le conditionnel te semble "plus nuancé" ou "plus adapté à un texte argumentatif" -- ce jugement relève du style, explicitement interdit par la règle ci-dessus, pas de la grammaire.
    - Reformuler une phrase déjà correcte pour la rendre "plus élégante" ou proposer un synonyme d'une phrase déjà juste n'est PAS une erreur -- ne l'ajoute pas à liste_des_erreurs.
    - Si le texte ne contient AUCUNE erreur réelle au sens ci-dessus, liste_des_erreurs doit être vide (ou quasi vide) -- ne fabrique jamais une erreur artificielle pour "remplir" la réponse.
 2ter. Pour chaque erreur (sauf "orthographe", qui n'a pas de sous-catégorie), choisis EXACTEMENT UN mot dans la liste correspondant à son type_erreur -- jamais un mot en dehors de cette liste, jamais une formulation inventée. Si vraiment aucun mot de la liste ne correspond, mets sous_categorie à null plutôt que d'inventer.
@@ -234,6 +401,7 @@ CONSIGNES DE CORRECTION :
 4. **EXPLICATION DÉTAILLÉE** : Pour chaque erreur, fournis une explication complète (2-3 phrases). Explique POURQUOI c'est une erreur, quelle est la règle de français appliquée, et donne un conseil pour ne plus la refaire.
 5. Donne un score_global sur 100 et des scores_par_competence -- CHACUN AUSSI SUR 100 (même échelle 0-100, jamais un compte de fautes, jamais une note sur 10). score_global doit être COHÉRENT avec ces 4 sous-scores : à quelques points près, il reflète leur moyenne pondérée par la gravité des erreurs trouvées -- jamais une valeur déconnectée. Un texte dont liste_des_erreurs est vide ou quasi vide doit avoir des scores_par_competence ET un score_global élevés (85-100), jamais l'inverse (sous-scores bas + score_global haut, ou l'inverse, sont tous les deux des incohérences à éviter).
 6. Fournis un conseil général structuré et motivant. Si liste_des_erreurs est vide ou quasi vide, "conseil_general" doit être une simple validation/encouragement sincère (ex. : féliciter la clarté, la structure, l'adéquation au sujet) -- ne JAMAIS y glisser une suggestion d'amélioration ("travaillez les accords", "variez les connecteurs"...) qui ne correspond à AUCUNE erreur réellement listée : ce serait contredire ton propre score_global élevé et ta propre liste_des_erreurs vide.
+7. Détermine "niveau_apparent_cecrl" et "niveau_apparent_justification" en appliquant STRICTEMENT la section "ANALYSE INDÉPENDANTE DU NIVEAU RÉELLEMENT DÉMONTRÉ" ci-dessus -- cette évaluation est SÉPARÉE de ta correction (elle peut donner un niveau différent du niveau visé, y compris quand score_global est élevé : un texte simple et parfaitement correct pour un niveau A2 reste un niveau apparent A2, pas B2).
 
 STRUCTURE DE LA RÉPONSE (JSON STRICT) :
 {
@@ -254,7 +422,9 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     }
   ],
   "conseil_general": "string",
-  "texte_corrige_complet": "string"
+  "texte_corrige_complet": "string",
+  "niveau_apparent_cecrl": "A1" | "A2" | "B1" | "B2",
+  "niveau_apparent_justification": "string (1 phrase, cite un marqueur concret du texte)"
 }
 
 IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "texte_original" soit une chaîne de caractères EXACTEMENT présente dans le texte fourni.
@@ -297,11 +467,48 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
     // même principe que les autres garde-fous serveur de cette route. Toute sous_categorie
     // hors de la liste valide pour son type_erreur est ramenée à null plutôt que de laisser
     // passer un mot qui ne correspondra jamais à une leçon (item 10.11).
-    finalData.liste_des_erreurs = finalData.liste_des_erreurs.map((erreur) => {
-      const validList = SOUS_CATEGORIES_BY_TYPE[erreur.type_erreur];
-      const isValid = erreur.sous_categorie && validList?.includes(erreur.sous_categorie);
-      return { ...erreur, sous_categorie: isValid ? erreur.sous_categorie : null };
-    });
+    finalData.liste_des_erreurs = finalData.liste_des_erreurs
+      .filter((erreur) => {
+        if (erreur.type_erreur !== 'conjugaison') return true;
+        const isSofteningFalsePositive = isIndicatifToConditionnelSofteningOnly(
+          erreur.texte_original,
+          erreur.texte_corrige
+        );
+        if (isSofteningFalsePositive) {
+          console.warn(
+            "Faux positif 'conjugaison' retiré (nuance indicatif/conditionnel, pas une erreur) :",
+            erreur.texte_original, '->', erreur.texte_corrige
+          );
+        }
+        return !isSofteningFalsePositive;
+      })
+      .map((erreur) => {
+        const validList = SOUS_CATEGORIES_BY_TYPE[erreur.type_erreur];
+        const isValid = erreur.sous_categorie && validList?.includes(erreur.sous_categorie);
+        return { ...erreur, sous_categorie: isValid ? erreur.sous_categorie : null };
+      });
+
+    // Garde-fou déterministe (item 12, même cause que ci-dessus) : le niveau apparent B2
+    // a été observé, de façon reproductible, justifié par la seule présence du conditionnel
+    // ("le conditionnel... est un marqueur de niveau B2") -- alors que
+    // LEVEL_DETECTION_MARKERS_SECTION_B définit explicitement le conditionnel seul, même
+    // répété, comme un marqueur B1 (le B2 exige en plus une concession explicite appariée ou
+    // une subordination développée). Ramené à B1 si la justification ne mentionne QUE le
+    // conditionnel, sans aucun marqueur de concession B2 à côté.
+    const B2_CONCESSION_OR_SUBORDINATION_MARKERS = /certes|néanmoins|il est vrai que|subordonnée|ce qui\b/i;
+    if (
+      finalData.niveau_apparent_cecrl === 'B2' &&
+      finalData.niveau_apparent_justification &&
+      /conditionnel/i.test(finalData.niveau_apparent_justification) &&
+      !B2_CONCESSION_OR_SUBORDINATION_MARKERS.test(finalData.niveau_apparent_justification)
+    ) {
+      console.warn(
+        "niveau_apparent_cecrl ramené de B2 à B1 (justification basée uniquement sur le conditionnel) :",
+        finalData.niveau_apparent_justification
+      );
+      finalData.niveau_apparent_cecrl = 'B1';
+    }
+
     const isInsufficientLength = actualWordCount < halfMinWords;
     if (isInsufficientLength) {
       finalData.score_global = Math.min(finalData.score_global, 20);

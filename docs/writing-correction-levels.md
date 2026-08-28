@@ -107,6 +107,36 @@ Explication plus fine que B1, peut nommer des notions grammaticales usuelles
 
 ---
 
+## Deux métriques distinctes — à ne jamais confondre
+
+Le prompt de correction (`src/app/api/writing/correct/route.ts`) produit **deux évaluations
+séparées et indépendantes**, qui répondent chacune à une question différente :
+
+| | Question à laquelle ça répond | Calibré par rapport à | Champs |
+|---|---|---|---|
+| **Score de conformité** | *"Ce texte est-il prêt pour CE niveau d'examen ?"* | Le niveau **VISÉ** par le sujet (`effectiveLevel`) — voir grilles ci-dessus | `score_global`, `scores_par_competence` |
+| **Niveau apparent** | *"Quel niveau CECRL ce texte démontrerait-il, lu sans connaître le sujet ?"* | Rien — évaluation absolue, indépendante du sujet | `niveau_apparent_cecrl`, `niveau_apparent_justification` |
+
+**Pourquoi cette distinction est indispensable** : un texte A1 (phrases courtes, présent
+uniquement, vocabulaire basique) mais **sans aucune faute**, testé sur un sujet A2, obtient
+légitimement un score de conformité proche de 100 (règle transverse #4 ci-dessous — c'est le
+comportement voulu, un texte simple et correct n'est pas une faute). Avant l'ajout du niveau
+apparent, ce score élevé était réinterprété côté frontend comme un niveau CECRL absolu
+(`computeWritingLevel`), ce qui faisait remonter **B2 quasi systématiquement** dès qu'un texte
+n'avait pas d'erreur — indépendamment de sa richesse linguistique réelle. Le niveau apparent
+répare ça : il est jugé **uniquement** sur les marqueurs linguistiques objectivement présents
+dans le texte (temps employés, connecteurs, structures, vocabulaire), jamais sur l'absence de
+fautes seule, et jamais influencé par le niveau du sujet choisi (règle anti-biais explicite dans
+le prompt, miroir du pattern déjà en production côté Oral).
+
+Ces deux métriques peuvent légitimement diverger dans les deux sens : un texte A2 truffé de
+fautes de base garde un score de conformité bas ET un niveau apparent A2 (pas un niveau plus
+bas — le niveau apparent juge la structure/le vocabulaire employés, pas leur correction). Un
+texte B2 avec une syntaxe riche mais 2-3 fautes d'accord garde un niveau apparent B2 avec un
+score de conformité pénalisé par ces fautes.
+
+---
+
 ## Règle transverse — toutes les erreurs, tous niveaux
 
 1. Ne signaler que ce qui est pertinent pour le niveau visé (voir grilles ci-dessus).

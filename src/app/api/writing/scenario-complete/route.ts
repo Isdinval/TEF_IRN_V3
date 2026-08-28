@@ -59,6 +59,8 @@ export async function POST(req: Request) {
         errors: aiFeedback.liste_des_erreurs,
         general_comment: aiFeedback.conseil_general,
         corrected_text: aiFeedback.texte_corrige_complet,
+        niveau_apparent_cecrl: aiFeedback.niveau_apparent_cecrl || null,
+        niveau_apparent_justification: aiFeedback.niveau_apparent_justification || null,
         study_time_minutes: studyTimeMinutes || 0,
         context: attemptContext,
       });

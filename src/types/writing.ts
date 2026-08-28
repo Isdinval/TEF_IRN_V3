@@ -32,6 +32,13 @@ export interface WritingFeedback {
   conseil_general: string;
   texte_corrige_complet: string;
   level?: string; // Derived or explicitly stated
+  // Niveau CECRL apparent -- indépendant du niveau visé par le sujet, distinct de
+  // score_global/scores_par_competence qui mesurent la conformité au niveau VISÉ.
+  // Voir docs/writing-correction-levels.md ("Deux métriques distinctes"). Optionnels :
+  // absents sur les tentatives enregistrées avant l'introduction de ce champ (pas de
+  // backfill IA rétroactif, voir item 9 du plan "niveau apparent EE").
+  niveau_apparent_cecrl?: 'A1' | 'A2' | 'B1' | 'B2' | null;
+  niveau_apparent_justification?: string | null;
   error?: string;
 }
 

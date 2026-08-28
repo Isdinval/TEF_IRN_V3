@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WritingFeedback, WritingScores } from "@/types/writing";
-import { computeWritingLevel } from "@/lib/exam-level";
 import { useRouter } from "next/navigation";
 
 // Mêmes libellés/ordre que la grille officielle affichée à l'oral (ORAL_CRITERIA_LABELS
@@ -83,23 +82,28 @@ export const FeedbackIA = ({
             >
               <ScrollArea className="h-full w-full">
                 <div className="space-y-8 p-8 pb-10">
-                  {/* Niveau estimé — même format que /tef-irn/oral (OralAnalysisView) */}
-                  {(() => {
-                    const globalLevel = computeWritingLevel(feedback.scores_par_competence);
-                    return (
-                      <div className="flex flex-col items-center gap-3 rounded-[2rem] bg-black/30 p-8 text-center">
-                        <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
-                          Niveau estimé
-                        </Badge>
-                        <h2 className="text-6xl font-black tracking-tighter text-white">
-                          {globalLevel ? `${globalLevel.level}${globalLevel.plus ? "+" : ""}` : "—"}
-                        </h2>
-                        <p className="text-sm font-medium text-zinc-400">
-                          Score global : <span className="font-black text-white">{feedback.score_global}/100</span>
-                        </p>
-                      </div>
-                    );
-                  })()}
+                  {/* Niveau apparent — même format que /tef-irn/oral (OralAnalysisView), mais
+                      fourni directement par l'IA (niveau_apparent_cecrl), pas recalculé à partir
+                      du score de conformité au sujet (voir docs/writing-correction-levels.md,
+                      "Deux métriques distinctes"). Absent sur les tentatives antérieures à
+                      l'introduction de ce champ -- fallback "—" plutôt que de retomber sur
+                      l'ancien recalcul biaisé. */}
+                  <div className="flex flex-col items-center gap-3 rounded-[2rem] bg-black/30 p-8 text-center">
+                    <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
+                      Niveau apparent
+                    </Badge>
+                    <h2 className="text-6xl font-black tracking-tighter text-white">
+                      {feedback.niveau_apparent_cecrl || "—"}
+                    </h2>
+                    <p className="text-sm font-medium text-zinc-400">
+                      Score de réussite pour ce sujet : <span className="font-black text-white">{feedback.score_global}/100</span>
+                    </p>
+                    {feedback.niveau_apparent_justification && (
+                      <p className="max-w-sm text-xs font-medium italic leading-relaxed text-zinc-500">
+                        {feedback.niveau_apparent_justification}
+                      </p>
+                    )}
+                  </div>
 
                   {/* Détail par critère (grille officielle TEF IRN) */}
                   <div className="space-y-4">
