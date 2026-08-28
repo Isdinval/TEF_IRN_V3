@@ -175,6 +175,33 @@ phrase) citant un marqueur CONCRET tiré du texte du candidat (ex. "emploi du fu
 du futur simple, structure organisée" plutôt qu'une remarque générique).`;
 }
 
+// Garde-fou déterministe (item 12, suite) : la consigne 2bis interdit déjà de signaler le
+// passage indicatif -> conditionnel comme une "erreur de conjugaison" (c'est un choix de
+// nuance stylistique, pas une faute -- les deux formes sont correctes), mais 2 itérations de
+// renforcement textuel de cette règle n'ont pas suffi sur un cas reproductible ("il ne faut
+// pas" -> "il ne faudrait pas", observé identique 3 fois). Plutôt que de continuer à espérer
+// une meilleure obéissance au prompt sur un point que l'IA a démontré ne pas respecter de
+// façon fiable, on détecte et on retire mécaniquement ce faux positif -- même principe que le
+// garde-fou de longueur ci-dessous. Volontairement limité aux modaux/semi-auxiliaires les
+// plus fréquents dans ce type d'erreur (falloir/devoir/pouvoir/être/valoir) plutôt qu'une
+// détection morphologique générale : au-delà de cette liste, le risque de faux négatif (une
+// vraie faute de conjugaison sur un autre verbe, à tort non signalée) dépasserait le bénéfice.
+const INDICATIF_TO_CONDITIONNEL_SOFTENING: Record<string, string> = {
+  faudrait: 'faut', // falloir est impersonnel, pas de forme plurielle
+  devrait: 'doit', devraient: 'doivent',
+  pourrait: 'peut', pourraient: 'peuvent',
+  serait: 'est', seraient: 'sont',
+  vaudrait: 'vaut',
+};
+
+function isIndicatifToConditionnelSofteningOnly(original: string, corrige: string): boolean {
+  let reverted = corrige;
+  for (const [conditionnel, indicatif] of Object.entries(INDICATIF_TO_CONDITIONNEL_SOFTENING)) {
+    reverted = reverted.replace(new RegExp(`\\b${conditionnel}\\b`, 'gi'), indicatif);
+  }
+  return reverted.trim().toLowerCase() === original.trim().toLowerCase();
+}
+
 // Le barème EE du TEF IRN ne couvre que A2/B1/B2 (sections A et B). Le profil de
 // l'apprenant (current_level) peut lui être A1 à C2 : on ramène ces bornes vers
 // le niveau EE le plus proche (A1 -> A2, C1/C2 -> B2) pour pouvoir le comparer
@@ -440,11 +467,48 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
     // même principe que les autres garde-fous serveur de cette route. Toute sous_categorie
     // hors de la liste valide pour son type_erreur est ramenée à null plutôt que de laisser
     // passer un mot qui ne correspondra jamais à une leçon (item 10.11).
-    finalData.liste_des_erreurs = finalData.liste_des_erreurs.map((erreur) => {
-      const validList = SOUS_CATEGORIES_BY_TYPE[erreur.type_erreur];
-      const isValid = erreur.sous_categorie && validList?.includes(erreur.sous_categorie);
-      return { ...erreur, sous_categorie: isValid ? erreur.sous_categorie : null };
-    });
+    finalData.liste_des_erreurs = finalData.liste_des_erreurs
+      .filter((erreur) => {
+        if (erreur.type_erreur !== 'conjugaison') return true;
+        const isSofteningFalsePositive = isIndicatifToConditionnelSofteningOnly(
+          erreur.texte_original,
+          erreur.texte_corrige
+        );
+        if (isSofteningFalsePositive) {
+          console.warn(
+            "Faux positif 'conjugaison' retiré (nuance indicatif/conditionnel, pas une erreur) :",
+            erreur.texte_original, '->', erreur.texte_corrige
+          );
+        }
+        return !isSofteningFalsePositive;
+      })
+      .map((erreur) => {
+        const validList = SOUS_CATEGORIES_BY_TYPE[erreur.type_erreur];
+        const isValid = erreur.sous_categorie && validList?.includes(erreur.sous_categorie);
+        return { ...erreur, sous_categorie: isValid ? erreur.sous_categorie : null };
+      });
+
+    // Garde-fou déterministe (item 12, même cause que ci-dessus) : le niveau apparent B2
+    // a été observé, de façon reproductible, justifié par la seule présence du conditionnel
+    // ("le conditionnel... est un marqueur de niveau B2") -- alors que
+    // LEVEL_DETECTION_MARKERS_SECTION_B définit explicitement le conditionnel seul, même
+    // répété, comme un marqueur B1 (le B2 exige en plus une concession explicite appariée ou
+    // une subordination développée). Ramené à B1 si la justification ne mentionne QUE le
+    // conditionnel, sans aucun marqueur de concession B2 à côté.
+    const B2_CONCESSION_OR_SUBORDINATION_MARKERS = /certes|néanmoins|il est vrai que|subordonnée|ce qui\b/i;
+    if (
+      finalData.niveau_apparent_cecrl === 'B2' &&
+      finalData.niveau_apparent_justification &&
+      /conditionnel/i.test(finalData.niveau_apparent_justification) &&
+      !B2_CONCESSION_OR_SUBORDINATION_MARKERS.test(finalData.niveau_apparent_justification)
+    ) {
+      console.warn(
+        "niveau_apparent_cecrl ramené de B2 à B1 (justification basée uniquement sur le conditionnel) :",
+        finalData.niveau_apparent_justification
+      );
+      finalData.niveau_apparent_cecrl = 'B1';
+    }
+
     const isInsufficientLength = actualWordCount < halfMinWords;
     if (isInsufficientLength) {
       finalData.score_global = Math.min(finalData.score_global, 20);
