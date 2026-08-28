@@ -123,9 +123,15 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
 
       setActiveExam(examData as ExamMetadata);
 
+      // Audit sécurité item 1 : exam_questions_public est une vue qui exclut
+      // volontairement correct_answer et explanation (voir migration
+      // 20260828000001_exam_questions_hide_answers.sql). Ne jamais repasser
+      // sur la table exam_questions elle-même ici, ni faire select('*') --
+      // la bonne réponse ne doit jamais transiter vers le navigateur avant
+      // correction côté serveur.
       const { data: questionsData, error: questionsError } = await supabase
-        .from('exam_questions')
-        .select('*')
+        .from('exam_questions_public')
+        .select('id, exam_id, section, order_index, type, question, texte, options, audio_url, max_plays, transcription, prompt, min_words, max_time, prep_time, speak_time, instructions, oral_scenario_id, ce_format, highlight_gap, sub_texts, co_format')
         .eq('exam_id', examData.id)
         .order('order_index', { ascending: true });
 
@@ -138,7 +144,6 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         instructions: q.instructions,
         question: q.question,
         options: q.options,
-        correctAnswer: q.correct_answer,
         audioUrl: q.audio_url,
         maxPlays: q.max_plays,
         transcription: q.transcription,
@@ -152,7 +157,9 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         ceFormat: q.ce_format,
         highlightGap: q.highlight_gap,
         subTexts: q.sub_texts,
-        explanation: q.explanation,
+        // Audit sécurité item 1 : explanation n'est plus fournie au chargement
+        // (elle est liée à correct_answer). Voir QuestionDetailPanel.tsx pour
+        // son affichage post-correction via la réponse de ce-co-complete.
       }));
 
       setAllQuestions(mappedQuestions);
@@ -305,13 +312,15 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       sectionAnswers[q.id] = answer;
 
       if (q.type === 'audio' || q.type === 'text') {
-        const isCorrect = answer === (q as any).correctAnswer;
-        if (isCorrect) score++;
+        // Audit sécurité item 1 : correctAnswer n'existe plus côté client
+        // (jamais envoyé par exam_questions_public). La correction réelle est
+        // faite par /api/exam/ce-co-complete et vient remplacer ce
+        // placeholder dans finishSection() une fois la réponse serveur reçue.
         detailAnswers.push({
           questionId: q.id,
           userAnswer: answer,
-          isCorrect,
-          correctAnswer: (q as any).correctAnswer
+          isCorrect: false,
+          correctAnswer: ''
         });
       }
     });
@@ -412,8 +421,14 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
         // dashboard) + remontée des erreurs vers user_errors (item 5). Best-effort :
         // un échec de sauvegarde ne doit pas bloquer la suite de l'examen, seulement
         // priver la tentative de son historique et de son effet sur les recommandations.
+        // Audit sécurité item 1 : on n'envoie plus isCorrect (calculé côté
+        // client à partir d'une bonne réponse qu'il n'a de toute façon plus)
+        // -- c'est le serveur qui compare userAnswer à correct_answer et qui
+        // fait autorité. La réponse contient le score et le détail par
+        // question, utilisés pour remplacer les placeholders ci-dessus avant
+        // affichage.
         try {
-          await fetch('/api/exam/ce-co-complete', {
+          const res = await fetch('/api/exam/ce-co-complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -421,10 +436,18 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
               results: currentResult.answers.map(a => ({
                 questionId: a.questionId,
                 userAnswer: a.userAnswer,
-                isCorrect: a.isCorrect,
               })),
             }),
           });
+          const graded = await res.json();
+          if (res.ok && Array.isArray(graded.results)) {
+            const gradedById = new Map(graded.results.map((r: any) => [r.questionId, r]));
+            currentResult.answers = currentResult.answers.map(a => {
+              const g = gradedById.get(a.questionId) as any;
+              return g ? { ...a, isCorrect: g.isCorrect, correctAnswer: g.correctAnswer, explanation: g.explanation } : a;
+            });
+            currentResult.score = currentResult.answers.filter(a => a.isCorrect).length;
+          }
         } catch (persistError) {
           console.error(`${state.section} persistence failed:`, persistError);
         }

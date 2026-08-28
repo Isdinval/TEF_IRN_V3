@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { checkAiRateLimit } from "@/lib/ai-rate-limit";
 
 type OralScenario = {
   id: string;
@@ -152,6 +153,22 @@ export async function GET(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
+
+  // Audit sécurité item 7 : quota IA quotidien avant de créer une session
+  // Realtime (coût le plus élevé des 4 routes IA -- facturé à la durée) --
+  // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
+  const { data: rateLimitProfile } = await supabase
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .maybeSingle();
+  const rateLimit = await checkAiRateLimit(user.id, 'oral_session', rateLimitProfile?.subscription_tier);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: `Limite quotidienne de sessions orales atteinte (${rateLimit.limit}/jour). Réessayez demain.` },
+      { status: 429 }
+    );
   }
 
   const { searchParams } = new URL(request.url);

@@ -19,7 +19,7 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
     <div className="space-y-2">
       {answers.map((ans, idx) => {
         const question = getQuestion(ans.questionId);
-        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length || question?.subTexts?.length || question?.explanation);
+        const hasContext = !!(question?.texte || question?.audioUrl || question?.options?.length || question?.subTexts?.length || ans.explanation);
         const isExpanded = hasContext && ans.questionId === expandedId;
 
         return (
@@ -137,12 +137,12 @@ export function QuestionDetailPanel({ answers, allQuestions }: QuestionDetailPan
                       })}
                     </div>
                   )}
-                  {question.explanation && (
+                  {ans.explanation && (
                     <div className="pt-3 border-t border-zinc-200">
                       <div className="flex items-center gap-1.5 text-xs font-black text-indigo-600 uppercase tracking-widest mb-2">
                         <Lightbulb size={12} /> Explication
                       </div>
-                      <p className="text-sm leading-relaxed text-zinc-600">{question.explanation}</p>
+                      <p className="text-sm leading-relaxed text-zinc-600">{ans.explanation}</p>
                     </div>
                   )}
                 </div>

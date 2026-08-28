@@ -87,6 +87,22 @@ interface ExerciseDB {
 const CATEGORIES = ["Grammaire", "Conjugaison", "Syntaxe", "Orthographe", "Toutes"];
 const LEVELS = ["A1", "A2", "B1", "B2"];
 
+// Mélange les options d'une question QCM (Fisher-Yates) et remappe l'index de
+// la bonne réponse en conséquence. Sans ça, la bonne réponse a tendance à être
+// toujours en position identique (souvent la 1ère) dans le contenu généré,
+// ce qui laisse l'utilisateur deviner par pattern plutôt que par connaissance.
+function shuffleOptions(options: string[], correctIndex: number): { options: string[]; correctAnswer: number } {
+  const order = options.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return {
+    options: order.map((i) => options[i]),
+    correctAnswer: order.indexOf(correctIndex),
+  };
+}
+
 export function PracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -326,23 +342,29 @@ export function PracticeContent() {
 
   const mapExerciseToQuestions = (ex: ExerciseDB): Question[] => {
     if (!ex?.content?.questions) return [];
-    return ex.content.questions.map((q, idx) => ({
-      id: `${ex.id}-${idx}`,
-      exercise_id: ex.id,
-      difficulty: ex.difficulty,
-      tags: ex.tags,
-      is_ai_generated: ex.is_ai_generated,
-      text: q,
-      options: ex.content.options?.[idx] || [],
-      correctAnswer: ex.content.correct_answers?.[idx] ?? 0,
-      level: ex.level,
-      category: ex.category,
-      instructions: ex.instructions,
-      explanation: ex.content.explanations?.[idx],
-      lesson_id: ex.lesson_id,
-      point_cles_lesson: ex["point_clés_lesson"],
-      isDegradedMatch: ex.isDegradedMatch,
-    }));
+    return ex.content.questions.map((q, idx) => {
+      const { options, correctAnswer } = shuffleOptions(
+        ex.content.options?.[idx] || [],
+        ex.content.correct_answers?.[idx] ?? 0
+      );
+      return {
+        id: `${ex.id}-${idx}`,
+        exercise_id: ex.id,
+        difficulty: ex.difficulty,
+        tags: ex.tags,
+        is_ai_generated: ex.is_ai_generated,
+        text: q,
+        options,
+        correctAnswer,
+        level: ex.level,
+        category: ex.category,
+        instructions: ex.instructions,
+        explanation: ex.content.explanations?.[idx],
+        lesson_id: ex.lesson_id,
+        point_cles_lesson: ex["point_clés_lesson"],
+        isDegradedMatch: ex.isDegradedMatch,
+      };
+    });
   };
 
   const fetchExerciseById = useCallback(async (exId: string) => {

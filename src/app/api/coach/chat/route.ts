@@ -4,6 +4,7 @@ import { streamText, tool } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { resolveNextExercises } from '@/lib/recommendation-resolver';
+import { checkAiRateLimit } from '@/lib/ai-rate-limit';
 
 export const runtime = 'edge';
 
@@ -135,9 +136,19 @@ export async function POST(req: Request) {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, current_level, goal_level')
+        .select('full_name, current_level, goal_level, subscription_tier')
         .eq('id', user.id)
         .single();
+
+    // Audit sécurité item 7 : quota IA quotidien avant d'appeler OpenAI --
+    // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
+    const rateLimit = await checkAiRateLimit(user.id, 'coach_chat', profile?.subscription_tier);
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ error: `Limite quotidienne du coach IA atteinte (${rateLimit.limit}/jour). Réessayez demain.` }),
+        { status: 429 }
+      );
+    }
 
     const userLevel = profile?.current_level || 'A2';
 

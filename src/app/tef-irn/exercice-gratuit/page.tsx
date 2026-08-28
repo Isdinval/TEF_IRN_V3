@@ -41,13 +41,19 @@ interface FreeTrialQuestion {
   question: string;
   texte?: string;
   options: string[];
-  correctAnswer: string; // 'A' | 'B' | 'C' | 'D'
   audioUrl?: string;
   maxPlays?: number;
   ceFormat?: string;
   coFormat?: string;
   highlightGap?: number;
   subTexts?: FreeTrialSubText[];
+}
+
+// Audit sécurité item 3/F : résultat renvoyé par /api/free-trial/grade pour
+// une question -- jamais connu du client avant d'avoir répondu.
+interface GradedAnswer {
+  isCorrect: boolean;
+  correctAnswer: string;
   explanation?: string;
 }
 
@@ -164,6 +170,11 @@ export default function FreeExercisePage() {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  // Audit sécurité item 3/F : résultat de correction par question, obtenu de
+  // /api/free-trial/grade au moment où l'utilisateur répond -- jamais connu
+  // à l'avance côté client.
+  const [gradedAnswers, setGradedAnswers] = useState<Record<number, GradedAnswer>>({});
+  const [isGrading, setIsGrading] = useState(false);
   const [isShowingFeedback, setIsShowingFeedback] = useState(false);
   const [email, setEmail] = useState("");
 
@@ -222,6 +233,7 @@ export default function FreeExercisePage() {
       setSpeaking(data.speaking ?? null);
       setCurrentQuestionIndex(0);
       setAnswers([]);
+      setGradedAnswers({});
       setIsShowingFeedback(false);
       setStep("quiz");
       captureEvent("free_trial_level_selected", { level: chosenLevel });
@@ -232,9 +244,32 @@ export default function FreeExercisePage() {
     }
   };
 
-  const handleAnswer = (letter: string) => {
-    setAnswers([...answers, letter]);
-    setIsShowingFeedback(true);
+  const handleAnswer = async (letter: string) => {
+    // Audit sécurité item 3/F : la bonne réponse n'est plus connue du client.
+    // On l'appelle à la volée, un choix bloque déjà le bouton (isGrading) pour
+    // éviter tout double-clic pendant l'aller-retour réseau.
+    if (isGrading) return;
+    setLoadError(null);
+    const questionIndex = currentQuestionIndex;
+    const question = questions[questionIndex];
+    setAnswers((prev) => [...prev, letter]);
+    setIsGrading(true);
+    try {
+      const res = await fetch("/api/free-trial/grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: question.id, userAnswer: letter }),
+      });
+      if (!res.ok) throw new Error("Erreur lors de la correction");
+      const graded = (await res.json()) as GradedAnswer;
+      setGradedAnswers((prev) => ({ ...prev, [questionIndex]: graded }));
+      setIsShowingFeedback(true);
+    } catch {
+      setLoadError("Impossible de corriger cette réponse. Vérifiez votre connexion et réessayez.");
+      setAnswers((prev) => prev.slice(0, -1));
+    } finally {
+      setIsGrading(false);
+    }
   };
 
   const nextQuestion = () => {
@@ -295,7 +330,10 @@ export default function FreeExercisePage() {
     goToSignup("test_gratuit");
   };
 
-  const score = answers.reduce((acc, ans, idx) => acc + (ans === questions[idx].correctAnswer ? 1 : 0), 0);
+  // Audit sécurité item 3/F : le score vient des corrections reçues du
+  // serveur au fil de l'eau (gradedAnswers), plus d'une comparaison locale à
+  // une bonne réponse que le client ne connaît plus.
+  const score = Object.values(gradedAnswers).filter((g) => g.isCorrect).length;
   const scoreRatio = questions.length > 0 ? score / questions.length : 0;
 
   // Lecture indicative, pas une calibration psychométrique officielle (même
@@ -412,6 +450,13 @@ export default function FreeExercisePage() {
                     </Badge>
                   </div>
 
+                  {loadError && (
+                    <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 border border-red-100 rounded-xl text-red-700 text-xs font-medium">
+                      <AlertTriangle size={16} className="shrink-0" />
+                      {loadError}
+                    </div>
+                  )}
+
                   {currentQuestion.section === "CO" && currentQuestion.audioUrl && (
                     <div className="mb-4">
                       <AudioPlayer
@@ -449,7 +494,8 @@ export default function FreeExercisePage() {
                     {currentQuestion.options.map((opt) => {
                       const letter = opt.substring(0, 1);
                       const isSelected = answers[currentQuestionIndex] === letter;
-                      const isCorrect = letter === currentQuestion.correctAnswer;
+                      const currentGrade = gradedAnswers[currentQuestionIndex];
+                      const isCorrect = isShowingFeedback && letter === currentGrade?.correctAnswer;
                       const showCorrectness = isShowingFeedback && (isSelected || isCorrect);
                       const badgeState = !isShowingFeedback
                         ? "bg-zinc-100 text-zinc-500"
@@ -462,7 +508,7 @@ export default function FreeExercisePage() {
                       return (
                         <button
                           key={letter}
-                          disabled={isShowingFeedback}
+                          disabled={isShowingFeedback || isGrading}
                           onClick={() => handleAnswer(letter)}
                           className={`w-full p-3 text-left border rounded-xl transition-all flex items-center gap-3 ${
                             !isShowingFeedback
@@ -490,10 +536,10 @@ export default function FreeExercisePage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="mt-4 p-4 bg-indigo-50/60 rounded-xl border border-indigo-100"
                     >
-                      {currentQuestion.explanation && (
+                      {gradedAnswers[currentQuestionIndex]?.explanation && (
                         <p className="text-indigo-900 font-medium text-xs leading-relaxed">
                           <span className="font-bold mr-1.5">Explication :</span>
-                          {currentQuestion.explanation}
+                          {gradedAnswers[currentQuestionIndex]?.explanation}
                         </p>
                       )}
                       <Button

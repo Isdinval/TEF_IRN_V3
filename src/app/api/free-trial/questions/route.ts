@@ -75,6 +75,10 @@ function pickOne<T>(rows: T[]): T | null {
   return shuffle(rows)[0];
 }
 
+// Audit sécurité item 3 (2026-08) : correctAnswer et explanation ne sont plus
+// renvoyées ici. Cette route est publique (aucune authentification), donc
+// tout ce qu'elle renvoie est lisible par n'importe qui sans compte -- la
+// correction se fait désormais via POST /api/free-trial/grade (item F).
 function toClientQuestion(row: ExamQuestionRow) {
   return {
     id: row.id,
@@ -83,7 +87,6 @@ function toClientQuestion(row: ExamQuestionRow) {
     question: row.question,
     texte: row.texte ?? undefined,
     options: row.options,
-    correctAnswer: row.correct_answer,
     audioUrl: row.audio_url ?? undefined,
     maxPlays: row.max_plays ?? undefined,
     transcription: row.transcription ?? undefined,
@@ -91,7 +94,6 @@ function toClientQuestion(row: ExamQuestionRow) {
     coFormat: row.co_format ?? undefined,
     highlightGap: row.highlight_gap ?? undefined,
     subTexts: row.sub_texts ?? undefined,
-    explanation: row.explanation ?? undefined,
   };
 }
 

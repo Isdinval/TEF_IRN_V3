@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getOpenAIClient } from '@/lib/openai';
 import { createClient } from '@/lib/supabase-server';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { checkAiRateLimit } from '@/lib/ai-rate-limit';
 
 // Nombre de mots minimum par défaut si le sujet ne fournit pas min_words (cas legacy /
 // entrée libre). Correspond aux seuils standards du barème TEF IRN par section.
@@ -290,6 +291,21 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    // Audit sécurité item 7 : quota IA quotidien avant d'appeler OpenAI --
+    // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
+    const { data: rateLimitProfile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .maybeSingle();
+    const rateLimit = await checkAiRateLimit(user.id, 'writing_correct', rateLimitProfile?.subscription_tier);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: `Limite quotidienne de correction écrite atteinte (${rateLimit.limit}/jour). Réessayez demain.` },
+        { status: 429 }
+      );
     }
 
     const body = await req.json();
