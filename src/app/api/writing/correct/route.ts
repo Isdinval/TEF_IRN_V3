@@ -44,6 +44,49 @@ function getLevelGuidelines(level: string): string {
   return LEVEL_GUIDELINES[normalized] || LEVEL_GUIDELINES['B1'];
 }
 
+// Référentiel de DÉTECTION du niveau apparent — distinct de LEVEL_GUIDELINES ci-dessus.
+// LEVEL_GUIDELINES calibre la CORRECTION (quoi tolérer/signaler) relativement au niveau
+// VISÉ par le sujet ; ce bloc calibre une évaluation INDÉPENDANTE de la richesse
+// linguistique réellement observée dans le texte, quel que soit le sujet. Sans ce bloc,
+// un texte A1 sans fautes obtenait un score de conformité proche de 100 (comportement
+// voulu, cf. docs/writing-correction-levels.md règle transverse #4), ensuite mal
+// réinterprété côté client comme "niveau CECRL absolu" (computeWritingLevel) -- d'où un
+// niveau B2 quasi systématique dès qu'il n'y avait aucune faute, peu importe le texte.
+// Toujours donné, indépendamment de effectiveLevel (contrairement à LEVEL_GUIDELINES, qui
+// n'a pas d'entrée A1 -- ici A1 est un résultat possible, pas seulement un défaut vers B1).
+// Statique (pas de template littéral) : ce bloc ne dépend d'aucune variable de la requête.
+// Miroir du pattern déjà en prod côté Oral (RÈGLE ANTI-BIAIS, src/app/api/oral/analyze/route.ts:159),
+// mais avec un résultat catégoriel direct (enum) plutôt qu'un score+seuils : suffisant ici
+// car déjà protégé par WritingFeedbackSchema (z.enum ci-dessous rejette toute valeur hors liste),
+// pas besoin de dupliquer le mécanisme "score brut + fonction de seuillage" de l'Oral.
+const LEVEL_DETECTION_MARKERS = `
+ANALYSE INDÉPENDANTE DU NIVEAU RÉELLEMENT DÉMONTRÉ (distincte de ta correction ci-dessus) :
+En plus de ta notation de conformité au niveau visé, indique le niveau CECRL que ce texte
+démontrerait s'il était lu SANS connaître le niveau visé.
+
+RÈGLE ANTI-BIAIS : ignore le niveau visé pour cette partie précise de l'analyse. Base-toi
+UNIQUEMENT sur les marqueurs linguistiques objectivement présents dans le texte du candidat.
+
+MARQUEURS DE NIVEAU :
+- A1 : phrases courtes juxtaposées (sujet + verbe + complément), quasi exclusivement le
+  présent, connecteurs limités ("et", "mais", "si"), vocabulaire concret et basique, peu ou
+  pas de développement des idées.
+- A2 : structures un peu plus variées ("je voulais t'informer que...", "je voudrais..."),
+  emploi du futur proche ET/OU du futur simple, message organisé répondant clairement à
+  chaque point de la consigne, vocabulaire courant mais sans nuance.
+- B1 : ajout d'une justification ou d'un point de vue personnel (pas seulement transmettre
+  l'info), connecteurs ("comme", "donc", "parce que") utilisés pour articuler une raison,
+  tournures un peu plus élaborées, expression idiomatique courante ("ça te dirait que...").
+- B2 : proposition ou opinion formulée de façon indirecte et nuancée ("je pensais que...",
+  "il me semble que..."), vocabulaire plus précis et moins répétitif, syntaxe plus complexe
+  (subordonnées), enchaînement logique fluide entre les idées.
+
+Détermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
+fautes ne suffit PAS à elle seule : un texte A1 sans aucune faute reste un texte A1 si sa
+structure et son vocabulaire restent basiques. Fournis aussi une justification courte (1
+phrase) citant un marqueur CONCRET tiré du texte du candidat (ex. "emploi du futur proche et
+du futur simple, structure organisée" plutôt qu'une remarque générique).`;
+
 // Le barème EE du TEF IRN ne couvre que A2/B1/B2 (sections A et B). Le profil de
 // l'apprenant (current_level) peut lui être A1 à C2 : on ramène ces bornes vers
 // le niveau EE le plus proche (A1 -> A2, C1/C2 -> B2) pour pouvoir le comparer
@@ -102,6 +145,11 @@ const WritingFeedbackSchema = z.object({
   })),
   conseil_general: z.string(),
   texte_corrige_complet: z.string(),
+  // Niveau CECRL apparent (indépendant du niveau visé par le sujet, voir
+  // LEVEL_DETECTION_MARKERS) -- distinct de score_global/scores_par_competence qui
+  // mesurent la conformité au niveau VISÉ, pas le niveau réellement démontré.
+  niveau_apparent_cecrl: z.enum(['A1', 'A2', 'B1', 'B2']),
+  niveau_apparent_justification: z.string(),
 });
 
 // Réponse de repli, toujours conforme au schéma attendu par le frontend, utilisée à la
@@ -113,6 +161,8 @@ function buildFallbackFeedback(text: string, message: string) {
     liste_des_erreurs: [],
     conseil_general: message,
     texte_corrige_complet: text,
+    niveau_apparent_cecrl: null,
+    niveau_apparent_justification: null,
     error: message,
   };
 }
@@ -207,6 +257,7 @@ OBJECTIF :
 ${levelGuidelines}
 ${levelGapInstruction}
 ${calibrationExemplar}
+${LEVEL_DETECTION_MARKERS}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
@@ -234,6 +285,7 @@ CONSIGNES DE CORRECTION :
 4. **EXPLICATION DÉTAILLÉE** : Pour chaque erreur, fournis une explication complète (2-3 phrases). Explique POURQUOI c'est une erreur, quelle est la règle de français appliquée, et donne un conseil pour ne plus la refaire.
 5. Donne un score_global sur 100 et des scores_par_competence -- CHACUN AUSSI SUR 100 (même échelle 0-100, jamais un compte de fautes, jamais une note sur 10). score_global doit être COHÉRENT avec ces 4 sous-scores : à quelques points près, il reflète leur moyenne pondérée par la gravité des erreurs trouvées -- jamais une valeur déconnectée. Un texte dont liste_des_erreurs est vide ou quasi vide doit avoir des scores_par_competence ET un score_global élevés (85-100), jamais l'inverse (sous-scores bas + score_global haut, ou l'inverse, sont tous les deux des incohérences à éviter).
 6. Fournis un conseil général structuré et motivant. Si liste_des_erreurs est vide ou quasi vide, "conseil_general" doit être une simple validation/encouragement sincère (ex. : féliciter la clarté, la structure, l'adéquation au sujet) -- ne JAMAIS y glisser une suggestion d'amélioration ("travaillez les accords", "variez les connecteurs"...) qui ne correspond à AUCUNE erreur réellement listée : ce serait contredire ton propre score_global élevé et ta propre liste_des_erreurs vide.
+7. Détermine "niveau_apparent_cecrl" et "niveau_apparent_justification" en appliquant STRICTEMENT la section "ANALYSE INDÉPENDANTE DU NIVEAU RÉELLEMENT DÉMONTRÉ" ci-dessus -- cette évaluation est SÉPARÉE de ta correction (elle peut donner un niveau différent du niveau visé, y compris quand score_global est élevé : un texte simple et parfaitement correct pour un niveau A2 reste un niveau apparent A2, pas B2).
 
 STRUCTURE DE LA RÉPONSE (JSON STRICT) :
 {
@@ -254,7 +306,9 @@ STRUCTURE DE LA RÉPONSE (JSON STRICT) :
     }
   ],
   "conseil_general": "string",
-  "texte_corrige_complet": "string"
+  "texte_corrige_complet": "string",
+  "niveau_apparent_cecrl": "A1" | "A2" | "B1" | "B2",
+  "niveau_apparent_justification": "string (1 phrase, cite un marqueur concret du texte)"
 }
 
 IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "texte_original" soit une chaîne de caractères EXACTEMENT présente dans le texte fourni.
