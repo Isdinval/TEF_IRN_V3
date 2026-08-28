@@ -156,7 +156,11 @@ export default function ParcoursInteractive({
                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Prêt pour la suite ?</p>
                     <h3 className="text-lg font-black text-white">Continuez !</h3>
                   </div>
-                  <Link href={`/tef-irn/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}>
+                  <Link
+                    href={`/tef-irn/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Button
                       size="lg"
                       className="h-12 px-8 rounded-2xl bg-indigo-600 text-white font-black text-sm hover:bg-indigo-700 shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
