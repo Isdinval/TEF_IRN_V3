@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Star, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
-import { Exercise } from "@/lib/parcours";
+import { Exercise, getExerciseUrl as resolveExerciseUrl } from "@/lib/parcours";
 
 interface ExerciseCardProps {
   exercise: Exercise & { is_completed?: boolean; is_ai_generated?: boolean; recommendation_reason?: string };
@@ -63,29 +63,7 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
   const isCompleted = exercise.is_completed;
   const theme = CATEGORY_THEMES[exercise.category?.toLowerCase()] || CATEGORY_THEMES.default;
 
-  const getExerciseUrl = () => {
-    const params = new URLSearchParams({
-      topic: exercise.category,
-      level: exercise.level
-    });
-
-    if (parcoursId) {
-      params.set("parcoursId", parcoursId);
-    }
-
-    switch (exercise.type) {
-      case 'qcm':
-      case 'association':
-      case 'qcm_centre_entrainement':
-        return `/tef-irn/practice/${exercise.id}?${params.toString()}`;
-      case 'trous':
-        return `/tef-irn/grammar-check/${exercise.id}?${params.toString()}`;
-      case 'ecrit':
-        return `/tef-irn/writing/${exercise.id}?${params.toString()}`;
-      default:
-        return `/tef-irn/practice/${exercise.id}?${params.toString()}`;
-    }
-  };
+  const getExerciseUrl = () => resolveExerciseUrl(exercise, parcoursId);
 
   if (variant === 'hero') {
     return (
@@ -135,7 +113,7 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 )}
               </div>
 
-              <Link href={getExerciseUrl()} className="w-full md:w-auto shrink-0">
+              <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto shrink-0">
                 <Button className={`w-full md:w-auto h-16 px-10 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
                   {isCompleted ? 'REVOIR' : 'COMMENCER'}
                   <ChevronRight size={20} className="ml-2" />
@@ -240,7 +218,7 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
             </div>
           </div>
 
-          <Link href={getExerciseUrl()} className="w-full">
+          <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="w-full">
             <Button className={`w-full h-14 rounded-2xl font-black transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
               {isCompleted ? 'REVOIR' : 'COMMENCER'}
               <ChevronRight size={18} className="ml-2" />

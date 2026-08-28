@@ -63,7 +63,12 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
       className={isLocked ? "pointer-events-none opacity-50" : ""}
     >
-      <Link href={lessonUrl} className={isLocked ? "cursor-default" : ""}>
+      <Link
+        href={lessonUrl}
+        target={isLocked ? undefined : "_blank"}
+        rel={isLocked ? undefined : "noopener noreferrer"}
+        className={isLocked ? "cursor-default" : ""}
+      >
         <Card className={`group relative overflow-hidden border-none shadow-sm transition-all duration-300 rounded-[2.5rem] border-t-4 ${theme.border} ${
           isCompleted ? `bg-gradient-to-br ${theme.gradient}` : 'bg-white'
         } ${isNextState ? 'ring-2 ring-indigo-600 ring-offset-4 shadow-2xl' : 'hover:shadow-2xl'}`}>

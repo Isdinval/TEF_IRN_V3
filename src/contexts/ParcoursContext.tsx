@@ -4,7 +4,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl } from "@/lib/parcours";
+import { resolveNextExercises } from "@/lib/recommendation-resolver";
+import { resolveNextVocabTheme } from "@/lib/vocab/next-theme";
 
 interface ParcoursContextType {
   activeParcours: Parcours | null;
@@ -14,6 +16,14 @@ interface ParcoursContextType {
   refreshProgress: () => Promise<void>;
   exitParcours: () => Promise<void>;
   nextLesson: () => Promise<void>;
+  nextExercise: () => Promise<void>;
+  nextVocabulary: () => Promise<void>;
+  /** true après un appel à nextVocabulary() qui n'a trouvé aucun mot non
+   *  maîtrisé au niveau du parcours actif -- jamais réinitialisé vers un
+   *  niveau supérieur automatiquement (item 9 du plan "Navigation continue
+   *  /parcours/[slug]"). Consommé par la TopBar (item 8) pour afficher un
+   *  état "niveau maîtrisé" plutôt qu'une navigation. */
+  vocabFullyMastered: boolean;
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -28,6 +38,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [progress, setProgress] = useState<ParcoursProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [vocabFullyMastered, setVocabFullyMastered] = useState(false);
 
   // Cache court-terme : quand nextLesson() vient de recalculer parcours/progression/
   // leçons juste avant de naviguer, on évite de tout re-télécharger depuis zéro dans
@@ -179,6 +190,13 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  // vocabFullyMastered est spécifique au parcours actif (niveau + thèmes de
+  // ses leçons) -- le réinitialiser en changeant de parcours évite d'afficher
+  // à tort "niveau maîtrisé" sur un nouveau parcours jamais testé.
+  useEffect(() => {
+    setVocabFullyMastered(false);
+  }, [activeParcours?.id]);
+
   const exitParcours = async () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("parcoursId");
@@ -195,6 +213,32 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
 
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Cascade partagée par nextLesson() et nextExercise() pour déterminer la
+  // leçon "de contexte" à partir de laquelle continuer : la leçon courante si
+  // pas encore complétée, sinon la première leçon non complétée après elle,
+  // sinon la première leçon non complétée du parcours. Extrait ici pour ne
+  // pas dupliquer les 3 mêmes paliers dans les deux fonctions.
+  const resolveContextLesson = (
+    lessons: Lesson[],
+    completedIds: Set<string>,
+    currentLesson: Lesson | undefined
+  ): Lesson | undefined => {
+    let target = currentLesson && !completedIds.has(currentLesson.id) ? currentLesson : undefined;
+
+    if (!target) {
+      const currentIndex = currentLesson ? lessons.findIndex(l => l.id === currentLesson.id) : -1;
+      target = currentIndex !== -1
+        ? lessons.slice(currentIndex + 1).find(l => !completedIds.has(l.id))
+        : undefined;
+    }
+
+    if (!target) {
+      target = lessons.find(l => !completedIds.has(l.id));
+    }
+
+    return target;
   };
 
   const nextLesson = async () => {
@@ -218,21 +262,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     const currentSlug = pathname?.match(/^\/tef-irn\/lessons\/([^/]+)$/)?.[1];
     const currentLesson = currentSlug ? lessons.find(l => l.slug === currentSlug) : undefined;
 
-    // 1. Si on est sur une leçon pas encore complétée, c'est elle la cible.
-    let target = currentLesson && !completedIds.has(currentLesson.id) ? currentLesson : undefined;
-
-    // 2. Sinon, la première leçon non complétée après la leçon courante...
-    if (!target) {
-      const currentIndex = currentLesson ? lessons.findIndex(l => l.id === currentLesson.id) : -1;
-      target = currentIndex !== -1
-        ? lessons.slice(currentIndex + 1).find(l => !completedIds.has(l.id))
-        : undefined;
-    }
-
-    // 3. ...ou, à défaut, la première leçon non complétée du parcours.
-    if (!target) {
-      target = lessons.find(l => !completedIds.has(l.id));
-    }
+    const target = resolveContextLesson(lessons, completedIds, currentLesson);
 
     if (target) {
       freshDataRef.current = {
@@ -248,6 +278,108 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Bouton "Exercice suivant" de la TopBar. Réutilise resolveNextExercises()
+  // (moteur de recommandation déjà appelé côté navigateur dans practice/page.tsx
+  // et grammar-check/page.tsx -- aucune nouvelle technique introduite), avec la
+  // même leçon de contexte que nextLesson() ci-dessus pour rester cohérent avec
+  // ce que l'utilisateur est en train de suivre dans le parcours.
+  //
+  // Item 9 : ouverture en nouvel onglet uniquement si on est actuellement sur
+  // le hub /tef-irn/parcours/[slug] (même besoin que les cartes de la page --
+  // garder le hub ouvert) ; navigation classique (même onglet) partout
+  // ailleurs, comme nextLesson().
+  const nextExercise = async () => {
+    if (!activeParcours) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [lessons, freshProgress] = await Promise.all([
+      getLessonsForParcours(activeParcours.level, activeParcours.category),
+      getParcoursProgress(user.id, activeParcours.level, activeParcours.category)
+    ]);
+
+    const completedIds = new Set(freshProgress.completedLessons);
+    const currentSlug = pathname?.match(/^\/tef-irn\/lessons\/([^/]+)$/)?.[1];
+    const currentLesson = currentSlug ? lessons.find(l => l.slug === currentSlug) : undefined;
+    const contextLesson = resolveContextLesson(lessons, completedIds, currentLesson);
+
+    const [exercise] = await resolveNextExercises(
+      user.id,
+      {
+        level: activeParcours.level,
+        category: activeParcours.category,
+        lessonId: contextLesson?.id,
+      },
+      supabase,
+      1
+    );
+
+    if (!exercise) return;
+
+    const url = getExerciseUrl(exercise, activeParcours.id);
+    const isOnHub = pathname === `/tef-irn/parcours/${activeParcours.slug}`;
+
+    if (isOnHub) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(url);
+    }
+  };
+
+  // Bouton "Vocabulaire suivant" de la TopBar -- affiché uniquement pour un
+  // parcours category='vocabulaire' (voir item 7, garde côté UI). Système SRS
+  // structurellement séparé de resolveNextExercises() (voir docs/vocabulaire-
+  // particularites-recommandation.md) : la résolution du thème passe par
+  // resolveNextVocabTheme() (lib/vocab/next-theme.ts), jamais par le moteur
+  // d'exercices.
+  //
+  // Contrainte non négociable (item 6 du plan) : ne jamais escalader
+  // automatiquement vers le niveau CECRL suivant quand le niveau du parcours
+  // est entièrement maîtrisé -- resolveNextVocabTheme() est appelée avec
+  // activeParcours.level uniquement, jamais avec un niveau supérieur.
+  const nextVocabulary = async () => {
+    if (!activeParcours || activeParcours.category !== "vocabulaire") return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [lessons, freshProgress] = await Promise.all([
+      getLessonsForParcours(activeParcours.level, activeParcours.category),
+      getParcoursProgress(user.id, activeParcours.level, activeParcours.category)
+    ]);
+
+    const completedIds = new Set(freshProgress.completedLessons);
+    const currentSlug = pathname?.match(/^\/tef-irn\/lessons\/([^/]+)$/)?.[1];
+    const currentLesson = currentSlug ? lessons.find(l => l.slug === currentSlug) : undefined;
+    const contextLesson = resolveContextLesson(lessons, completedIds, currentLesson);
+
+    // Ordre de recherche : leçon de contexte d'abord, puis les leçons
+    // suivantes du parcours dans l'ordre -- jamais un niveau différent.
+    const startIndex = contextLesson ? lessons.findIndex(l => l.id === contextLesson.id) : 0;
+    const orderedLessons = startIndex > 0
+      ? [...lessons.slice(startIndex), ...lessons.slice(0, startIndex)]
+      : lessons;
+
+    const target = await resolveNextVocabTheme(supabase, user.id, activeParcours.level, orderedLessons);
+
+    if (!target) {
+      setVocabFullyMastered(true);
+      return;
+    }
+
+    setVocabFullyMastered(false);
+
+    const url = `/tef-irn/vocab?lessonId=${encodeURIComponent(target.lessonId)}&topic=${encodeURIComponent(target.theme)}&level=${encodeURIComponent(activeParcours.level)}`;
+    const isOnHub = pathname === `/tef-irn/parcours/${activeParcours.slug}`;
+
+    if (isOnHub) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(url);
+    }
+  };
+
   return (
     <ParcoursContext.Provider value={{
       activeParcours,
@@ -256,7 +388,10 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       refreshProgress,
       exitParcours,
-      nextLesson
+      nextLesson,
+      nextExercise,
+      nextVocabulary,
+      vocabFullyMastered
     }}>
       {children}
     </ParcoursContext.Provider>
