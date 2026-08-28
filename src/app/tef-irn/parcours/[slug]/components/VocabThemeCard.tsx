@@ -30,7 +30,7 @@ export default function VocabThemeCard({ lessonId, theme, level }: VocabThemeCar
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Link href={href} className="group block">
+      <Link href={href} target="_blank" rel="noopener noreferrer" className="group block">
         <div className="bg-white rounded-[2rem] p-6 border-2 border-amber-100 hover:border-amber-500 shadow-lg shadow-amber-100/40 transition-all hover:scale-[1.01] flex items-center gap-5">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-amber-600 flex items-center justify-center text-amber-600 group-hover:text-white transition-all shrink-0">
             <BookOpen size={26} />
