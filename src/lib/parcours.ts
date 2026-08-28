@@ -136,7 +136,7 @@ export async function getParcoursProgress(
           .select('status, started_at')
           .eq('user_id', userId)
           .eq('parcours_id', parcoursId)
-          .single()
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     supabase
       .from('lessons')
