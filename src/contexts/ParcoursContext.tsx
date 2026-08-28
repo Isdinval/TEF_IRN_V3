@@ -300,9 +300,12 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     ]);
 
     const completedIds = new Set(freshProgress.completedLessons);
-    const currentSlug = pathname?.match(/^\/tef-irn\/lessons\/([^/]+)$/)?.[1];
-    const currentLesson = currentSlug ? lessons.find(l => l.slug === currentSlug) : undefined;
-    const contextLesson = resolveContextLesson(lessons, completedIds, currentLesson);
+    // Contexte de recommandation = dernière leçon TERMINÉE, pas resolveContextLesson()
+    // (qui cible la prochaine leçon À FAIRE -- correct pour nextLesson()/nextVocabulary()
+    // qui naviguent vers la suite du parcours, mais pas pour une recommandation
+    // d'exercices : proposer des exos liés à une leçon pas encore lue est incohérent.
+    // Même correctif que /parcours/[slug]/page.tsx#currentLessonId.
+    const contextLesson = [...lessons].reverse().find(l => completedIds.has(l.id));
 
     const [exercise] = await resolveNextExercises(
       user.id,
