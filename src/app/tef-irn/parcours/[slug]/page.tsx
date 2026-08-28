@@ -60,8 +60,15 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
     ]);
     progress = progressData;
 
-    const currentLessonId = allLessons.find(
-      (lesson) => !progress!.completedLessons.includes(lesson.id)
+    // Contexte de recommandation = dernière leçon TERMINÉE (pas la prochaine à
+    // faire) : les paliers 1/2 de resolveNextExercises() proposent des exercices
+    // liés à cette leçon ("Lié à la leçon que tu viens de terminer"), il serait
+    // incohérent de recommander sur du contenu pas encore lu. allLessons est
+    // trié par order_index -- on parcourt à l'envers pour trouver la dernière
+    // complétée dans l'ordre du parcours. undefined si aucune leçon terminée
+    // (nouvel utilisateur) : le moteur retombe alors sur le pool large (tiers 3/4).
+    const currentLessonId = [...allLessons].reverse().find(
+      (lesson) => progress!.completedLessons.includes(lesson.id)
     )?.id;
 
     const weakTags = (weakTagsResult.data || [])

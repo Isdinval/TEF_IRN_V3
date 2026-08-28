@@ -134,7 +134,7 @@ export default function LessonCard({ lesson, index, isNext, category, parcoursId
               </h3>
 
               {description && (
-                <p className="text-sm font-medium text-slate-500 max-w-xl italic line-clamp-2">
+                <p className="text-sm font-medium text-slate-500 max-w-xl italic">
                   {description}
                 </p>
               )}
