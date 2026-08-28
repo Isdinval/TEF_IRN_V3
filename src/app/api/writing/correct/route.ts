@@ -81,6 +81,21 @@ MARQUEURS DE NIVEAU :
   "il me semble que..."), vocabulaire plus précis et moins répétitif, syntaxe plus complexe
   (subordonnées), enchaînement logique fluide entre les idées.
 
+RÈGLE DE PRIORITÉ EN CAS D'AMBIGUÏTÉ : plusieurs marqueurs de niveaux différents peuvent
+coexister dans un même texte -- ne te fie JAMAIS uniquement à la phrase d'ouverture ou au
+marqueur le plus visible en premier. Repère TOUS les marqueurs présents dans le texte entier,
+puis retiens le niveau du marqueur le PLUS SPÉCIFIQUE et le PLUS ÉLEVÉ, même s'il apparaît
+en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
+- Une tournure d'ouverture comme "je voulais te prévenir que..." ressemble à l'exemple A2
+  "je voulais t'informer que...", mais si le texte ajoute ENSUITE une justification
+  introduite par "comme"/"donc"/"parce que"/"car" (ex. "Comme je termine souvent le travail
+  tard, ces horaires m'arrangent"), c'est un marqueur B1 qui prime -- le texte est B1, pas A2,
+  malgré la ressemblance de surface de sa première phrase.
+- "je pensais que..." / "il me semble que..." sont des marqueurs B2 explicites (proposition
+  formulée de façon indirecte et nuancée) -- ne les redescends PAS à B1 en les qualifiant
+  génériquement de "point de vue personnel" : un simple point de vue direct ("je pense que...")
+  est B1, une proposition reformulée indirectement ("je pensais QUE... on pourrait...") est B2.
+
 Détermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
 fautes ne suffit PAS à elle seule : un texte A1 sans aucune faute reste un texte A1 si sa
 structure et son vocabulaire restent basiques. Fournis aussi une justification courte (1
