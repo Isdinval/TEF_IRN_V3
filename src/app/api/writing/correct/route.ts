@@ -96,6 +96,18 @@ en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
   génériquement de "point de vue personnel" : un simple point de vue direct ("je pense que...")
   est B1, une proposition reformulée indirectement ("je pensais QUE... on pourrait...") est B2.
 
+NE JAMAIS redescendre le niveau à cause de la LONGUEUR du texte, de sa SIMPLICITÉ GLOBALE, ou
+d'une impression d'ensemble -- un texte majoritairement simple qui contient UNE SEULE occurrence
+d'un marqueur clairement identifié à un niveau supérieur DOIT être classé à ce niveau supérieur.
+Le niveau apparent se détermine par le marqueur le plus élevé présent, pas par une moyenne ou
+une tendance générale du texte.
+
+AUTO-COHÉRENCE (vérifie avant de répondre) : ta justification (niveau_apparent_justification)
+doit s'accorder avec le niveau que tu donnes (niveau_apparent_cecrl). Si ta justification décrit
+un marqueur associé à un niveau X dans la liste ci-dessus (ex. "proposition formulée de façon
+indirecte" = marqueur B2), le niveau que tu renvoies DOIT être ce niveau X -- ne conclus jamais
+à un niveau inférieur après avoir toi-même identifié et cité un marqueur supérieur.
+
 Détermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
 fautes ne suffit PAS à elle seule : un texte A1 sans aucune faute reste un texte A1 si sa
 structure et son vocabulaire restent basiques. Fournis aussi une justification courte (1
