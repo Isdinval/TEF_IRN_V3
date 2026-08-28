@@ -190,6 +190,13 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  // vocabFullyMastered est spécifique au parcours actif (niveau + thèmes de
+  // ses leçons) -- le réinitialiser en changeant de parcours évite d'afficher
+  // à tort "niveau maîtrisé" sur un nouveau parcours jamais testé.
+  useEffect(() => {
+    setVocabFullyMastered(false);
+  }, [activeParcours?.id]);
+
   const exitParcours = async () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("parcoursId");

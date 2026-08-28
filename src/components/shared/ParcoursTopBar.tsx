@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight, Sparkles, BookOpen } from "lucide-react";
+import { ArrowLeft, ChevronRight, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, isLoading } = useParcours();
+  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, isLoading } = useParcours();
   const pathname = usePathname();
   // Une seule action à la fois (nextLesson/nextExercise/nextVocabulary
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
@@ -73,14 +73,19 @@ export function ParcoursTopBar() {
             {activeParcours.category === "vocabulaire" && (
               <Button
                 onClick={() => handleNext(nextVocabulary)}
-                disabled={isResolving}
+                disabled={isResolving || vocabFullyMastered}
                 variant="outline"
                 size="sm"
-                className="h-10 px-3 sm:px-4 border-zinc-200 text-zinc-700 hover:bg-zinc-50 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95"
-                aria-label="Vocabulaire suivant"
+                className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                  vocabFullyMastered
+                    ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
+                    : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                }`}
+                aria-label={vocabFullyMastered ? "Vocabulaire de ce niveau déjà maîtrisé" : "Vocabulaire suivant"}
+                title={vocabFullyMastered ? "Tout le vocabulaire de ce niveau est maîtrisé — bravo !" : undefined}
               >
-                <BookOpen size={14} className="sm:mr-1" />
-                <span className="hidden sm:inline">Vocabulaire</span>
+                {vocabFullyMastered ? <CheckCircle2 size={14} className="sm:mr-1" /> : <BookOpen size={14} className="sm:mr-1" />}
+                <span className="hidden sm:inline">{vocabFullyMastered ? "Niveau maîtrisé" : "Vocabulaire"}</span>
               </Button>
             )}
 
