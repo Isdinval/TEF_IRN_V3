@@ -54,12 +54,22 @@ function getLevelGuidelines(level: string): string {
 // niveau B2 quasi systématique dès qu'il n'y avait aucune faute, peu importe le texte.
 // Toujours donné, indépendamment de effectiveLevel (contrairement à LEVEL_GUIDELINES, qui
 // n'a pas d'entrée A1 -- ici A1 est un résultat possible, pas seulement un défaut vers B1).
-// Statique (pas de template littéral) : ce bloc ne dépend d'aucune variable de la requête.
 // Miroir du pattern déjà en prod côté Oral (RÈGLE ANTI-BIAIS, src/app/api/oral/analyze/route.ts:159),
 // mais avec un résultat catégoriel direct (enum) plutôt qu'un score+seuils : suffisant ici
 // car déjà protégé par WritingFeedbackSchema (z.enum ci-dessous rejette toute valeur hors liste),
 // pas besoin de dupliquer le mécanisme "score brut + fonction de seuillage" de l'Oral.
-const LEVEL_DETECTION_MARKERS = `
+//
+// Deux registres distincts (Section A = message court informel/semi-formel, Section B =
+// texte long formel/argumentatif) car les exemples lexicaux d'un registre sonnent faux dans
+// l'autre -- "je voulais t'informer que" (message) n'a pas d'équivalent naturel dans une
+// lettre de réclamation ou un texte argumentatif, et inversement. Les 4 CECRL restent les
+// mêmes, seuls les exemples illustrant chaque marqueur changent. Pas de découpage plus fin
+// par type_texte (message_informatif/lettre_formelle/texte_argumentatif/lettre_reclamation) :
+// les 3 types de la Section B partagent les mêmes attendus grammaticaux CECRL (subordination,
+// connecteurs, nuance), ils diffèrent en convention de politesse, pas en complexité
+// linguistique -- et exam_questions (examen blanc) n'a de toute façon aucune colonne
+// type_texte, seulement min_words (40 ou 100), qui distingue déjà A/B de façon fiable.
+const LEVEL_DETECTION_COMMON_RULES = `
 ANALYSE INDÉPENDANTE DU NIVEAU RÉELLEMENT DÉMONTRÉ (distincte de ta correction ci-dessus) :
 En plus de ta notation de conformité au niveau visé, indique le niveau CECRL que ce texte
 démontrerait s'il était lu SANS connaître le niveau visé.
@@ -67,7 +77,27 @@ démontrerait s'il était lu SANS connaître le niveau visé.
 RÈGLE ANTI-BIAIS : ignore le niveau visé pour cette partie précise de l'analyse. Base-toi
 UNIQUEMENT sur les marqueurs linguistiques objectivement présents dans le texte du candidat.
 
-MARQUEURS DE NIVEAU :
+RÈGLE DE PRIORITÉ EN CAS D'AMBIGUÏTÉ : plusieurs marqueurs de niveaux différents peuvent
+coexister dans un même texte -- ne te fie JAMAIS uniquement à la phrase d'ouverture ou au
+marqueur le plus visible en premier. Repère TOUS les marqueurs présents dans le texte entier,
+puis retiens le niveau du marqueur le PLUS SPÉCIFIQUE et le PLUS ÉLEVÉ, même s'il apparaît
+en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
+
+NE JAMAIS redescendre le niveau à cause de la LONGUEUR du texte, de sa SIMPLICITÉ GLOBALE, ou
+d'une impression d'ensemble -- un texte majoritairement simple qui contient UNE SEULE occurrence
+d'un marqueur clairement identifié à un niveau supérieur DOIT être classé à ce niveau supérieur.
+Le niveau apparent se détermine par le marqueur le plus élevé présent, pas par une moyenne ou
+une tendance générale du texte.
+
+AUTO-COHÉRENCE (vérifie avant de répondre) : ta justification (niveau_apparent_justification)
+doit s'accorder avec le niveau que tu donnes (niveau_apparent_cecrl). Si ta justification décrit
+un marqueur associé à un niveau X dans la liste ci-dessous, le niveau que tu renvoies DOIT être
+ce niveau X -- ne conclus jamais à un niveau inférieur après avoir toi-même identifié et cité un
+marqueur supérieur.`;
+
+// Section A : message court (10 min, ~40 mots), registre informel ou semi-formel.
+const LEVEL_DETECTION_MARKERS_SECTION_A = `
+MARQUEURS DE NIVEAU (message court) :
 - A1 : phrases courtes juxtaposées (sujet + verbe + complément), quasi exclusivement le
   présent, connecteurs limités ("et", "mais", "si"), vocabulaire concret et basique, peu ou
   pas de développement des idées.
@@ -81,11 +111,7 @@ MARQUEURS DE NIVEAU :
   "il me semble que..."), vocabulaire plus précis et moins répétitif, syntaxe plus complexe
   (subordonnées), enchaînement logique fluide entre les idées.
 
-RÈGLE DE PRIORITÉ EN CAS D'AMBIGUÏTÉ : plusieurs marqueurs de niveaux différents peuvent
-coexister dans un même texte -- ne te fie JAMAIS uniquement à la phrase d'ouverture ou au
-marqueur le plus visible en premier. Repère TOUS les marqueurs présents dans le texte entier,
-puis retiens le niveau du marqueur le PLUS SPÉCIFIQUE et le PLUS ÉLEVÉ, même s'il apparaît
-en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
+EXEMPLES D'AMBIGUÏTÉ À TRANCHER (registre message court) :
 - Une tournure d'ouverture comme "je voulais te prévenir que..." ressemble à l'exemple A2
   "je voulais t'informer que...", mais si le texte ajoute ENSUITE une justification
   introduite par "comme"/"donc"/"parce que"/"car" (ex. "Comme je termine souvent le travail
@@ -94,25 +120,52 @@ en fin de texte ou après une formulation qui ressemble à un niveau inférieur.
 - "je pensais que..." / "il me semble que..." sont des marqueurs B2 explicites (proposition
   formulée de façon indirecte et nuancée) -- ne les redescends PAS à B1 en les qualifiant
   génériquement de "point de vue personnel" : un simple point de vue direct ("je pense que...")
-  est B1, une proposition reformulée indirectement ("je pensais QUE... on pourrait...") est B2.
+  est B1, une proposition reformulée indirectement ("je pensais QUE... on pourrait...") est B2.`;
 
-NE JAMAIS redescendre le niveau à cause de la LONGUEUR du texte, de sa SIMPLICITÉ GLOBALE, ou
-d'une impression d'ensemble -- un texte majoritairement simple qui contient UNE SEULE occurrence
-d'un marqueur clairement identifié à un niveau supérieur DOIT être classé à ce niveau supérieur.
-Le niveau apparent se détermine par le marqueur le plus élevé présent, pas par une moyenne ou
-une tendance générale du texte.
+// Section B : texte long (20 min, ~100 mots), registre formel/argumentatif (texte
+// argumentatif, lettre formelle, lettre de réclamation -- mêmes attendus grammaticaux
+// CECRL pour les 3, voir commentaire ci-dessus).
+const LEVEL_DETECTION_MARKERS_SECTION_B = `
+MARQUEURS DE NIVEAU (texte long, formel/argumentatif) :
+- A1 : phrases courtes juxtaposées, quasi exclusivement le présent, structures répétitives
+  ("Les salariés sont contents. Ils travaillent bien."), connecteurs limités ("et", "aussi",
+  "mais"), argumentation réduite à une succession d'affirmations sans lien développé entre
+  elles, vocabulaire concret et basique.
+- A2 : futur proche ET/OU futur simple pour projeter une conséquence ("les salariés vont
+  gagner du temps", "cela sera positif"), causalité simple avec "parce que", texte organisé
+  qui répond point par point à la consigne mais sans article développé, vocabulaire courant
+  sans nuance.
+- B1 : conditionnel (serait, permettrait, pourrait) pour formuler une proposition ou une
+  recommandation, connecteurs logiques simples ("donc", "cependant", "par contre", "d'abord/
+  ensuite/enfin", "de plus"), justification causale introduite par "comme" ou "parce que",
+  une nuance simple ("il ne faut pas... complètement").
+- B2 : concession explicite ("certes... néanmoins...", "il est vrai que... cependant..."),
+  connecteurs précis et variés ("par conséquent", "par ailleurs", "notamment", "dans la
+  mesure où"), subordination développée (relatives/complétives enchâssées, "ce qui" de
+  reprise), vocabulaire abstrait précis (modalités, autonomie, productivité), conclusion
+  reformulée à un niveau plus abstrait plutôt que simplement répétée.
 
-AUTO-COHÉRENCE (vérifie avant de répondre) : ta justification (niveau_apparent_justification)
-doit s'accorder avec le niveau que tu donnes (niveau_apparent_cecrl). Si ta justification décrit
-un marqueur associé à un niveau X dans la liste ci-dessus (ex. "proposition formulée de façon
-indirecte" = marqueur B2), le niveau que tu renvoies DOIT être ce niveau X -- ne conclus jamais
-à un niveau inférieur après avoir toi-même identifié et cité un marqueur supérieur.
+EXEMPLES D'AMBIGUÏTÉ À TRANCHER (registre texte long) :
+- Une accumulation de connecteurs structurants ("Tout d'abord... Ensuite... Enfin...") est un
+  marqueur B1, PAS A2, même si le reste du texte semble simple -- ce sont les connecteurs
+  listés au niveau B1 ci-dessus.
+- Le conditionnel ("l'entreprise devrait...", "cela permettrait...") est un marqueur B1 --
+  un texte qui l'emploie n'est pas A2, même si ses phrases restent par ailleurs courtes.
+- Une concession simple ("il ne faut pas supprimer complètement...") est B1. Une concession
+  EXPLICITE avec un connecteur de concession dédié ("certes"/"il est vrai que" suivi de
+  "néanmoins"/"cependant") est B2 -- ne confonds pas les deux : la présence du connecteur de
+  concession lui-même (pas seulement l'idée de nuance) est ce qui distingue B1 de B2 ici.`;
 
-Détermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
+function getLevelDetectionMarkers(effectiveMinWords: number): string {
+  const registerMarkers = effectiveMinWords < 100
+    ? LEVEL_DETECTION_MARKERS_SECTION_A
+    : LEVEL_DETECTION_MARKERS_SECTION_B;
+  return `${LEVEL_DETECTION_COMMON_RULES}\n${registerMarkers}\n\nDétermine le niveau qui correspond le MIEUX à l'ENSEMBLE de ces marqueurs -- l'absence de
 fautes ne suffit PAS à elle seule : un texte A1 sans aucune faute reste un texte A1 si sa
 structure et son vocabulaire restent basiques. Fournis aussi une justification courte (1
 phrase) citant un marqueur CONCRET tiré du texte du candidat (ex. "emploi du futur proche et
 du futur simple, structure organisée" plutôt qu'une remarque générique).`;
+}
 
 // Le barème EE du TEF IRN ne couvre que A2/B1/B2 (sections A et B). Le profil de
 // l'apprenant (current_level) peut lui être A1 à C2 : on ramène ces bornes vers
@@ -173,7 +226,7 @@ const WritingFeedbackSchema = z.object({
   conseil_general: z.string(),
   texte_corrige_complet: z.string(),
   // Niveau CECRL apparent (indépendant du niveau visé par le sujet, voir
-  // LEVEL_DETECTION_MARKERS) -- distinct de score_global/scores_par_competence qui
+  // getLevelDetectionMarkers) -- distinct de score_global/scores_par_competence qui
   // mesurent la conformité au niveau VISÉ, pas le niveau réellement démontré.
   niveau_apparent_cecrl: z.enum(['A1', 'A2', 'B1', 'B2']),
   niveau_apparent_justification: z.string(),
@@ -284,7 +337,7 @@ OBJECTIF :
 ${levelGuidelines}
 ${levelGapInstruction}
 ${calibrationExemplar}
-${LEVEL_DETECTION_MARKERS}
+${getLevelDetectionMarkers(effectiveMinWords)}
 
 CONSIGNES DE CORRECTION :
 1. Analyse le texte par rapport au sujet : "${effectiveSubject}" et au niveau visé : "${effectiveLevel}", en appliquant STRICTEMENT les attentes, tolérances et interdits du référentiel ci-dessus.
