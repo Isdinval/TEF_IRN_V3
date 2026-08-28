@@ -68,6 +68,42 @@ export interface Exercise {
   attempts_count?: number;
 }
 
+/**
+ * URL cible d'un exercice selon son type (qcm/association/qcm_centre_entrainement
+ * -> /practice, trous -> /grammar-check, ecrit -> /writing, défaut -> /practice).
+ *
+ * Extrait de ExerciseCard.tsx (getExerciseUrl, closure locale) pour être
+ * réutilisable depuis ParcoursContext.tsx (bouton "Exercice suivant" de la
+ * TopBar) sans dupliquer le switch de routes -- même logique, aucun
+ * comportement changé pour ExerciseCard.
+ */
+export function getExerciseUrl(
+  exercise: Pick<Exercise, 'id' | 'type' | 'category' | 'level'>,
+  parcoursId?: string
+): string {
+  const params = new URLSearchParams({
+    topic: exercise.category,
+    level: exercise.level
+  });
+
+  if (parcoursId) {
+    params.set("parcoursId", parcoursId);
+  }
+
+  switch (exercise.type) {
+    case 'qcm':
+    case 'association':
+    case 'qcm_centre_entrainement':
+      return `/tef-irn/practice/${exercise.id}?${params.toString()}`;
+    case 'trous':
+      return `/tef-irn/grammar-check/${exercise.id}?${params.toString()}`;
+    case 'ecrit':
+      return `/tef-irn/writing/${exercise.id}?${params.toString()}`;
+    default:
+      return `/tef-irn/practice/${exercise.id}?${params.toString()}`;
+  }
+}
+
 export async function getParcours(supabase: SupabaseClient = defaultSupabase): Promise<Parcours[]> {
   const { data, error } = await supabase
     .from('parcours')
