@@ -135,7 +135,7 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
                 )}
               </div>
 
-              <Link href={getExerciseUrl()} className="w-full md:w-auto shrink-0">
+              <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto shrink-0">
                 <Button className={`w-full md:w-auto h-16 px-10 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
                   {isCompleted ? 'REVOIR' : 'COMMENCER'}
                   <ChevronRight size={20} className="ml-2" />
@@ -240,7 +240,7 @@ export default function ExerciseCard({ exercise, parcoursId, lessonTitle, varian
             </div>
           </div>
 
-          <Link href={getExerciseUrl()} className="w-full">
+          <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="w-full">
             <Button className={`w-full h-14 rounded-2xl font-black transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
               {isCompleted ? 'REVOIR' : 'COMMENCER'}
               <ChevronRight size={18} className="ml-2" />
