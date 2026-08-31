@@ -27,6 +27,8 @@ import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjec
 import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
+import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
+import { TrousStatsCard } from "@/components/features/dashboard/new/TrousStatsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +66,30 @@ export default function DashboardPage() {
       const { data: dashboardData, error: rpcError } = await supabase.rpc("get_dashboard_data");
       if (rpcError) throw rpcError;
       return dashboardData || {};
+    },
+    enabled: isMounted,
+  });
+
+  // RPC dédiées (plan "Key metrics QCM/Trous"), séparées de get_dashboard_data
+  // par choix -- même convention enabled: isMounted, chargées en tâche de fond
+  // dès l'arrivée sur le dashboard comme le reste des données (pas seulement
+  // à l'ouverture de l'onglet "progress"), pour un affichage instantané au clic.
+  const { data: qcmStats } = useQuery({
+    queryKey: ["qcm-stats"],
+    queryFn: async () => {
+      const { data: stats, error: rpcError } = await supabase.rpc("get_qcm_stats");
+      if (rpcError) throw rpcError;
+      return stats;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: trousStats } = useQuery({
+    queryKey: ["trous-stats"],
+    queryFn: async () => {
+      const { data: stats, error: rpcError } = await supabase.rpc("get_trous_stats");
+      if (rpcError) throw rpcError;
+      return stats;
     },
     enabled: isMounted,
   });
@@ -230,6 +256,8 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-6">
               {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
+              {qcmStats && <QcmStatsCard total={qcmStats.total} levels={qcmStats.levels} successRate={qcmStats.success_rate} />}
+              {trousStats && <TrousStatsCard total={trousStats.total} levels={trousStats.levels} successRate={trousStats.success_rate} />}
             </div>
           </div>
         </section>
