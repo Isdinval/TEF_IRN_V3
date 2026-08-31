@@ -103,7 +103,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                   <div>
                     <p className="flex items-center gap-2 text-lg font-black text-zinc-900 tracking-tight">
                       {reviewsTotal} révision{reviewsTotal > 1 ? "s" : ""} vous attend{reviewsTotal > 1 ? "ent" : ""} aujourd'hui
-                      <InfoTooltip text="Ces révisions reviennent selon la méthode de répétition espacée (SRS) : plus vous les réussissez, plus l'intervalle avant la prochaine révision s'allonge." />
+                      <InfoTooltip text="Ces révisions reviennent à intervalles croissants : plus vous les réussissez, plus le délai avant la prochaine révision s'allonge — c'est la méthode la plus efficace pour mémoriser durablement, sans avoir à tout revoir chaque jour." />
                     </p>
                     <p className="text-xs font-bold text-zinc-500 mt-1">
                       {exerciseReviewsDue > 0 && `${exerciseReviewsDue} exercice${exerciseReviewsDue > 1 ? "s" : ""}`}

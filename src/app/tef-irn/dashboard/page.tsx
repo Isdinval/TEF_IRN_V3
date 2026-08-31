@@ -255,9 +255,33 @@ export default function DashboardPage() {
               {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
             </div>
             <div className="space-y-6">
-              {vocab_stats && <VocabStatsCard total={vocab_stats.total} levels={vocab_stats.levels} topLevel={vocab_stats.topLevel} />}
-              {qcmStats && <QcmStatsCard total={qcmStats.total} levels={qcmStats.levels} successRate={qcmStats.success_rate} />}
-              {trousStats && <TrousStatsCard total={trousStats.total} levels={trousStats.levels} successRate={trousStats.success_rate} />}
+              {vocab_stats && (
+                <VocabStatsCard
+                  total={vocab_stats.total}
+                  totalAvailable={vocab_stats.total_available}
+                  levels={vocab_stats.levels}
+                  levelsAvailable={vocab_stats.levels_available}
+                  topLevel={vocab_stats.topLevel}
+                />
+              )}
+              {qcmStats && (
+                <QcmStatsCard
+                  total={qcmStats.total}
+                  totalAvailable={qcmStats.total_available}
+                  levels={qcmStats.levels}
+                  levelsAvailable={qcmStats.levels_available}
+                  successRate={qcmStats.success_rate}
+                />
+              )}
+              {trousStats && (
+                <TrousStatsCard
+                  total={trousStats.total}
+                  totalAvailable={trousStats.total_available}
+                  levels={trousStats.levels}
+                  levelsAvailable={trousStats.levels_available}
+                  successRate={trousStats.success_rate}
+                />
+              )}
             </div>
           </div>
         </section>

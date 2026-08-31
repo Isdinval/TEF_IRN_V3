@@ -8,9 +8,14 @@ import { InfoTooltip } from "./InfoTooltip";
 
 interface VocabStatsCardProps {
   total: number;
+  totalAvailable: number;
   levels: { A1: number; A2: number; B1: number; B2: number };
+  levelsAvailable: { A1: number; A2: number; B1: number; B2: number };
   topLevel: string;
 }
+
+const MASTERY_TOOLTIP =
+  "Un mot est marqué « maîtrisé » quand vous l'avez retrouvé plusieurs fois de suite. Après chaque bonne réponse, l'intervalle avant la prochaine révision s'allonge automatiquement — c'est cette répétition espacée qui ancre durablement le mot en mémoire, plutôt que de le revoir tous les jours.";
 
 const LEVEL_COLORS: Record<string, string> = {
   A1: "bg-emerald-400",
@@ -19,7 +24,7 @@ const LEVEL_COLORS: Record<string, string> = {
   B2: "bg-violet-600",
 };
 
-export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps) {
+export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable, topLevel }: VocabStatsCardProps) {
   const router = useRouter();
 
   // Le RPC get_dashboard_data renvoie toujours un objet vocab_stats (jamais
@@ -35,8 +40,8 @@ export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps)
               <Languages size={14} /> Vocabulaire
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
-              Aucun mot maîtrisé
-              <InfoTooltip text="Un mot est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS)." />
+              0{totalAvailable > 0 ? ` / ${totalAvailable}` : ""} mot maîtrisé
+              <InfoTooltip text={MASTERY_TOOLTIP} />
             </p>
           </div>
 
@@ -67,8 +72,8 @@ export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps)
               <Languages size={14} /> Vocabulaire
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
-              {total} mots maîtrisés
-              <InfoTooltip text="Un mot est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS). Le niveau associé est celui du mot en base, pas votre propre niveau." />
+              {total}{totalAvailable > 0 ? ` / ${totalAvailable}` : ""} mot{total > 1 ? "s" : ""} maîtrisé{total > 1 ? "s" : ""}
+              <InfoTooltip text={`${MASTERY_TOOLTIP} Le niveau du badge est celui du mot en base, pas votre propre niveau CECRL.`} />
             </p>
           </div>
           <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
@@ -79,12 +84,13 @@ export function VocabStatsCard({ total, levels, topLevel }: VocabStatsCardProps)
         <div className="space-y-3">
           {(["A1", "A2", "B1", "B2"] as const).map((lvl) => {
             const count = levels?.[lvl] || 0;
-            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+            const available = levelsAvailable?.[lvl] || 0;
+            const percent = available > 0 ? Math.round((count / available) * 100) : 0;
             return (
               <div key={lvl} className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-zinc-500">
                   <span>{lvl}</span>
-                  <span>{count}</span>
+                  <span>{count}{available > 0 ? ` / ${available}` : ""}</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
                   <div

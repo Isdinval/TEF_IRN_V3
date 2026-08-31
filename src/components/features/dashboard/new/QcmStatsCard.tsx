@@ -8,9 +8,14 @@ import { InfoTooltip } from "./InfoTooltip";
 
 interface QcmStatsCardProps {
   total: number;
+  totalAvailable: number;
   levels: { A1: number; A2: number; B1: number; B2: number };
+  levelsAvailable: { A1: number; A2: number; B1: number; B2: number };
   successRate: number | null;
 }
+
+const MASTERY_TOOLTIP =
+  "Un exercice est marqué « maîtrisé » quand vous l'avez réussi plusieurs fois de suite. Après chaque succès, l'intervalle avant la prochaine révision s'allonge automatiquement — c'est cette répétition espacée qui ancre durablement la règle en mémoire, plutôt que de la revoir tous les jours.";
 
 // Mêmes couleurs que VocabStatsCard (LEVEL_COLORS) -- volontairement
 // identiques entre toutes les cards "maîtrisé" du dashboard pour qu'un niveau
@@ -22,7 +27,7 @@ const LEVEL_COLORS: Record<string, string> = {
   B2: "bg-violet-600",
 };
 
-export function QcmStatsCard({ total, levels, successRate }: QcmStatsCardProps) {
+export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, successRate }: QcmStatsCardProps) {
   const router = useRouter();
 
   // Même convention que VocabStatsCard : total=0 est un cas normal (compte
@@ -36,8 +41,8 @@ export function QcmStatsCard({ total, levels, successRate }: QcmStatsCardProps) 
               <ListChecks size={14} /> QCM
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
-              Aucun exercice maîtrisé
-              <InfoTooltip text="Un exercice QCM est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS), comme pour le vocabulaire." />
+              0{totalAvailable > 0 ? ` / ${totalAvailable}` : ""} exercice maîtrisé
+              <InfoTooltip text={MASTERY_TOOLTIP} />
             </p>
           </div>
 
@@ -68,13 +73,14 @@ export function QcmStatsCard({ total, levels, successRate }: QcmStatsCardProps) 
               <ListChecks size={14} /> QCM
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
-              {total} exercice{total > 1 ? "s" : ""} maîtrisé{total > 1 ? "s" : ""}
-              <InfoTooltip text="Un exercice QCM est « maîtrisé » après plusieurs révisions consécutives réussies en répétition espacée (SRS), comme pour le vocabulaire." />
+              {total}{totalAvailable > 0 ? ` / ${totalAvailable}` : ""} exercice{total > 1 ? "s" : ""} maîtrisé{total > 1 ? "s" : ""}
+              <InfoTooltip text={MASTERY_TOOLTIP} />
             </p>
           </div>
           {successRate != null && (
-            <div className="rounded-full bg-purple-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
-              {successRate}% de réussite
+            <div className="flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
+              Score moyen : {successRate}%
+              <InfoTooltip text="Moyenne de vos scores sur les exercices QCM que vous avez terminés (sur 100)." />
             </div>
           )}
         </div>
@@ -82,12 +88,13 @@ export function QcmStatsCard({ total, levels, successRate }: QcmStatsCardProps) 
         <div className="space-y-3">
           {(["A1", "A2", "B1", "B2"] as const).map((lvl) => {
             const count = levels?.[lvl] || 0;
-            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+            const available = levelsAvailable?.[lvl] || 0;
+            const percent = available > 0 ? Math.round((count / available) * 100) : 0;
             return (
               <div key={lvl} className="space-y-1">
                 <div className="flex justify-between text-xs font-bold text-zinc-500">
                   <span>{lvl}</span>
-                  <span>{count}</span>
+                  <span>{count}{available > 0 ? ` / ${available}` : ""}</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
                   <div
