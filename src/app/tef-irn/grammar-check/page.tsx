@@ -116,7 +116,7 @@ export function GrammarCheckContent() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(exerciseIdFromParams);
 
   const supabase = useMemo(() => createClient(), []);
-  const { nextLesson } = useParcours();
+  const { nextLesson, refreshProgress, refreshExerciseCounts } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
@@ -432,6 +432,13 @@ export function GrammarCheckContent() {
                   studyTimeMinutes
                 })
               });
+              // La TopBar (progress bar + compteurs QCM/Chasse aux erreurs, item #4)
+              // ne se rafraîchit normalement que sur changement de pathname -- ici
+              // on reste sur /grammar-check/[id] (setMode("result") est un state
+              // local), ce filet ne se déclenche donc jamais tout seul. Sans cet
+              // appel explicite, le compteur restait figé jusqu'au prochain reload.
+              refreshProgress();
+              refreshExerciseCounts();
             }
           } catch (err) {
             console.error("Error saving attempt:", err);

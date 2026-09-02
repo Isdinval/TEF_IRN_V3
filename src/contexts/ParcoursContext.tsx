@@ -14,6 +14,14 @@ interface ParcoursContextType {
   progress: ParcoursProgress | null;
   isLoading: boolean;
   refreshProgress: () => Promise<void>;
+  /** Filet de rattrapage pour le compteur d'exercices restants (item #4) --
+   *  même rôle que refreshProgress() mais pour exerciseCounts. Nécessaire en
+   *  plus du filet automatique sur changement de pathname (useEffect interne) :
+   *  terminer un exercice sur /practice/[id] ou /grammar-check/[id] ne change
+   *  jamais l'URL (setMode("result") est un state local), donc ce filet ne se
+   *  déclenche jamais tout seul dans ce cas précis -- les pages d'exercice
+   *  doivent l'appeler explicitement après écriture réussie de exercise_attempts. */
+  refreshExerciseCounts: () => Promise<void>;
   exitParcours: () => Promise<void>;
   nextLesson: () => Promise<void>;
   /** Item #5 du plan "Verrouillage exercices topbar/parcours" : le type est
@@ -455,6 +463,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       progress,
       isLoading,
       refreshProgress,
+      refreshExerciseCounts,
       exitParcours,
       nextLesson,
       nextExercise,
