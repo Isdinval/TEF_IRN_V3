@@ -269,6 +269,77 @@ export function getUnlockedLessonIds(lessons: Lesson[], completedLessonIds: stri
   return unlocked;
 }
 
+export interface RemainingExerciseCounts {
+  qcm: number;
+  trous: number;
+}
+
+/**
+ * Compte les exercices de type 'qcm' et 'trous' encore à faire (pas complétés
+ * par l'utilisateur) parmi les leçons débloquées d'un parcours -- item #4 du
+ * plan "Verrouillage exercices topbar/parcours" : alimente les compteurs
+ * affichés sur les boutons de la TopBar. Même périmètre que
+ * resolveNextExercises() + getUnlockedLessonIds(), volontairement séparé du
+ * moteur de scoring (recommendation-resolver.ts) : un simple compte n'a pas
+ * besoin des paliers/raisons de recommandation.
+ *
+ * Les exercices sans lesson_id ne sont jamais comptés ici (aucun cas connu
+ * en production -- voir recommendation-resolver.ts) : rattachés à aucune
+ * leçon, ils ne peuvent pas être positionnés dans un pool "débloqué".
+ */
+export async function getRemainingExerciseCounts(
+  userId: string,
+  level: string,
+  category: string,
+  unlockedLessonIds: Set<string>,
+  supabase: SupabaseClient = defaultSupabase
+): Promise<RemainingExerciseCounts> {
+  if (unlockedLessonIds.size === 0) return { qcm: 0, trous: 0 };
+
+  const lessonIds = Array.from(unlockedLessonIds);
+  // Même divergence de casse que resolveNextExercises() : exercises.category
+  // est Capitalisé en base alors que parcours.category est en minuscule.
+  // Item 7 (doc vocabulaire-particularites-recommandation.md) : "vocabulaire"
+  // ne filtre jamais sur category, exercises.category n'y vaut jamais
+  // "Vocabulaire" en base.
+  const isVocabulaireCategory = category.toLowerCase() === 'vocabulaire';
+  const exerciseCategory = category.charAt(0).toUpperCase() + category.slice(1);
+
+  let query = supabase
+    .from('exercises')
+    .select('id, type')
+    .eq('level', level)
+    .in('lesson_id', lessonIds)
+    .in('type', ['qcm', 'trous']);
+
+  if (!isVocabulaireCategory) {
+    query = query.or(`category.eq.${exerciseCategory},category.eq.${category}`);
+  }
+
+  const { data: exercises, error } = await query;
+  if (error || !exercises || exercises.length === 0) return { qcm: 0, trous: 0 };
+
+  const exerciseIds = exercises.map((e: { id: string }) => e.id);
+
+  const { data: attempts } = await supabase
+    .from('exercise_attempts')
+    .select('exercise_id')
+    .eq('user_id', userId)
+    .eq('is_completed', true)
+    .in('exercise_id', exerciseIds);
+
+  const completedIds = new Set((attempts || []).map((a: { exercise_id: string }) => a.exercise_id));
+
+  const counts: RemainingExerciseCounts = { qcm: 0, trous: 0 };
+  for (const ex of exercises as { id: string; type: string }[]) {
+    if (completedIds.has(ex.id)) continue;
+    if (ex.type === 'qcm') counts.qcm++;
+    else if (ex.type === 'trous') counts.trous++;
+  }
+
+  return counts;
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
