@@ -29,6 +29,9 @@ export default function CorrectionHistoryPage() {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  // 'all' | 'exam' (context='exam', EE+EO) | 'ee' (skill='EE', pratique libre) |
+  // 'eo' (skill='EO', pratique libre) -- voir correction_all_attempts (item 1)
+  const [typeFilter, setTypeFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
 
   const supabase = createClient();
@@ -61,10 +64,16 @@ export default function CorrectionHistoryPage() {
     const end = start + ITEMS_PER_PAGE - 1;
 
     let query = supabase
-      .from('writing_all_attempts')
+      .from('correction_all_attempts')
       .select('*')
       .eq('user_id', user.id)
       .not('answers->feedback', 'is', null);
+
+    // Filtre Type : 'exam' regroupe EE+EO d'examen blanc (context='exam'), 'ee'/'eo'
+    // ne montrent que la pratique libre de la page correspondante (context='standalone').
+    if (typeFilter === "exam") query = query.eq('context', 'exam');
+    if (typeFilter === "ee") query = query.eq('skill', 'EE').eq('context', 'standalone');
+    if (typeFilter === "eo") query = query.eq('skill', 'EO').eq('context', 'standalone');
 
     // Sorting
     if (sortBy === "newest") query = query.order('created_at', { ascending: false });
@@ -89,13 +98,13 @@ export default function CorrectionHistoryPage() {
 
     setLoading(false);
     setLoadingMore(false);
-  }, [user, page, sortBy, supabase]);
+  }, [user, page, sortBy, typeFilter, supabase]);
 
   useEffect(() => {
     if (user) {
       loadAttempts(true);
     }
-  }, [user, sortBy]); // Level and search are handled client-side for better UX in this version
+  }, [user, sortBy, typeFilter]); // Level and search are handled client-side for better UX in this version
 
   const filteredAttempts = useMemo(() => {
     return attempts.filter(attempt => {
@@ -115,6 +124,14 @@ export default function CorrectionHistoryPage() {
   }, [attempts, search, level]);
 
   const handleRestart = (attempt: ExerciseAttempt) => {
+    // EO n'a pas d'équivalent "reprendre ce sujet précis" (pas d'exerciseId
+    // réutilisable côté oral) -- on renvoie simplement vers la page de choix
+    // de scénario, comme le fait déjà /tef-irn/oral/history aujourd'hui.
+    if (attempt.skill === "EO") {
+      router.push("/tef-irn/oral");
+      return;
+    }
+
     const subject = attempt.answers.subject || attempt.exercise?.instructions || "";
     const exerciseId = attempt.exercise_id;
     const level = (attempt.answers.feedback as any)?.level || "B1";
@@ -211,6 +228,8 @@ export default function CorrectionHistoryPage() {
                   setLevel={setLevel}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
+                  typeFilter={typeFilter}
+                  setTypeFilter={setTypeFilter}
                 />
 
                 <CorrectionList
