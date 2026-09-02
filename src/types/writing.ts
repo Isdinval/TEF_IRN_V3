@@ -76,7 +76,18 @@ export interface ExerciseAttempt {
   study_time_minutes: number;
   // 'scenario' = vient de writing_scenario_attempts (examen blanc catalogue), via la vue
   // writing_all_attempts. 'srs' (ou absent, anciennes lignes) = exercise_attempts classique.
-  source?: 'srs' | 'scenario';
+  // 'oral' = vient de oral_session_results, via la vue correction_all_attempts.
+  source?: 'srs' | 'scenario' | 'oral';
+  // Présents uniquement sur les lignes issues de correction_all_attempts (vue étendue
+  // EE+EO, voir migration 20260902000001) -- absents sur les lignes de l'ancienne vue
+  // writing_all_attempts (EE uniquement), donc optionnels.
+  skill?: 'EE' | 'EO';
+  context?: 'standalone' | 'exam';
+  // Niveau CECRL ABSOLU démontré à cette tentative (indépendant du niveau visé par le
+  // sujet, voir docs/writing-correction-levels.md "Deux métriques distinctes"). Texte
+  // brut ('A1'|'A2'|'B1'|'B2' pour l'EE, '<A1'|'A1'|'A2'|'B1'|'B2' pour l'EO) plutôt
+  // qu'un enum strict côté vue SQL (deux domaines de valeurs légèrement différents).
+  estimated_level?: string | null;
   answers: {
     text: string;
     subject?: string;
