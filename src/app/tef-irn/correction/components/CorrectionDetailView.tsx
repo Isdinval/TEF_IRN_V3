@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseAttempt, WritingFeedback, LegacyFeedback, WritingError } from "@/types/writing";
+import { OralAnalysisView } from "../../oral/components/OralAnalysisView";
+import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
+import { RecommendedExercises } from "./RecommendedExercises";
 
 interface CorrectionDetailViewProps {
   attempt: ExerciseAttempt;
@@ -27,6 +30,47 @@ interface CorrectionDetailViewProps {
   onExport: (attempt: ExerciseAttempt) => void;
   isExporting: boolean;
 }
+
+// Branche EO : correction_all_attempts (item 1) façonne answers.feedback avec les
+// mêmes clés que oral_session_results (scores/strengths/improvements/general_comment/
+// estimated_level) -- on réutilise donc OralAnalysisView tel quel plutôt que de
+// dupliquer un rendu, seul overall_score vient d'ailleurs (attempt.score, pas dans
+// feedback). Restart renvoie déjà vers /tef-irn/oral (voir page.tsx::handleRestart) ;
+// pas d'export PDF pour l'EO, /api/correction/pdf ne lit que exercise_attempts (EE).
+const OralCorrectionDetail = ({
+  attempt,
+  onBack,
+  onRestart
+}: Pick<CorrectionDetailViewProps, "attempt" | "onBack" | "onRestart">) => {
+  const feedback = attempt.answers.feedback as any;
+  const analysis: OralAnalysis = {
+    overall_score: attempt.score || 0,
+    estimated_level: feedback?.estimated_level || "A2",
+    scores: feedback?.scores || {},
+    strengths: feedback?.strengths || [],
+    improvements: feedback?.improvements || [],
+    general_comment: feedback?.general_comment || "",
+  };
+  const transcript: OralTurn[] = (attempt.answers as any)?.transcript || [];
+
+  return (
+    <div className="space-y-6 pb-20">
+      <Button
+        variant="ghost"
+        onClick={onBack}
+        className="rounded-2xl font-black text-zinc-500 hover:bg-white hover:text-zinc-900"
+      >
+        <ArrowLeft size={18} className="mr-2" /> Retour à l'historique
+      </Button>
+      <OralAnalysisView
+        analysis={analysis}
+        transcript={transcript}
+        onRestart={() => onRestart(attempt)}
+      />
+      <RecommendedExercises attempt={attempt} />
+    </div>
+  );
+};
 
 export const CorrectionDetailView = ({
   attempt,
@@ -39,27 +83,39 @@ export const CorrectionDetailView = ({
 
   const feedback = attempt.answers.feedback;
   const isLegacy = !('liste_des_erreurs' in (feedback || {}));
-  const isExamBlanc = attempt.source === "scenario";
+  const isExamBlanc = attempt.context === "exam" || attempt.source === "scenario";
 
   const level = (feedback as WritingFeedback)?.level || (feedback as LegacyFeedback)?.level || "B1";
   const comment = (feedback as WritingFeedback)?.conseil_general || (feedback as LegacyFeedback)?.comment || "";
   const improved = (feedback as WritingFeedback)?.texte_corrige_complet || (feedback as LegacyFeedback)?.improved || "";
 
   const errors = useMemo(() => {
-    if (!feedback) return [];
+    // Bug introduit à l'item 2 (lint fix Rules of Hooks -- ce hook s'exécute
+    // pour TOUTE tentative, y compris EO, avant le court-circuit vers
+    // OralCorrectionDetail plus bas). Le feedback EO (scores/strengths/
+    // improvements/general_comment/estimated_level/level) n'a ni
+    // liste_des_erreurs ni annotations -- isLegacy devenait donc vrai à tort
+    // (clé liste_des_erreurs absente = pas "legacy", juste "pas EE"), et
+    // feedback.annotations.map() plantait sur annotations undefined.
+    // Reproduit et confirmé via les logs console fournis par Olivier.
+    if (!feedback || attempt.skill === "EO") return [];
     if (isLegacy) {
-      return (feedback as LegacyFeedback).annotations.map(ann => ({
+      return ((feedback as LegacyFeedback).annotations || []).map(ann => ({
         texte_original: ann.original_fragment,
         texte_corrige: ann.correction,
         explication: ann.explanation,
         type_erreur: ann.type as any
       }));
     }
-    return (feedback as WritingFeedback).liste_des_erreurs;
-  }, [feedback, isLegacy]);
+    return (feedback as WritingFeedback).liste_des_erreurs || [];
+  }, [feedback, isLegacy, attempt.skill]);
 
   const highlightedText = useMemo(() => {
-    const text = attempt.answers.text;
+    // Fallback "" : pour une tentative EO (rendu court-circuité ci-dessous, après
+    // les hooks pour respecter les Rules of Hooks), attempt.answers n'a pas de
+    // champ text -- ce calcul tourne quand même mais son résultat n'est jamais
+    // affiché.
+    const text = attempt.answers.text || "";
     if (errors.length === 0) return text;
 
     let currentSearchIndex = 0;
@@ -109,6 +165,13 @@ export const CorrectionDetailView = ({
     if (lastIndex < text.length) parts.push(text.substring(lastIndex));
     return parts;
   }, [errors, attempt.answers.text, activeErrorIndex]);
+
+  // Placé après tous les hooks ci-dessus (Rules of Hooks : un hook ne peut pas
+  // être appelé conditionnellement) -- leur résultat est calculé mais ignoré
+  // pour une tentative EO, qui court-circuite ici vers le rendu dédié.
+  if (attempt.skill === "EO") {
+    return <OralCorrectionDetail attempt={attempt} onBack={onBack} onRestart={onRestart} />;
+  }
 
   return (
     <div className="space-y-8 pb-20">
@@ -278,6 +341,8 @@ export const CorrectionDetailView = ({
           </div>
         </div>
       </div>
+
+      <RecommendedExercises attempt={attempt} />
     </div>
   );
 };

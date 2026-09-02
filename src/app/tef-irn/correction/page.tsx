@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { createClient } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { Loader2, Sparkles } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Sparkles, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -16,8 +16,13 @@ import { CorrectionDetailView } from "./components/CorrectionDetailView";
 
 const ITEMS_PER_PAGE = 10;
 
-export default function CorrectionHistoryPage() {
+function CorrectionHistoryPageContent() {
   const [attempts, setAttempts] = useState<ExerciseAttempt[]>([]);
+  // Dataset séparé pour le graphique (item 3) : volontairement indépendant de
+  // typeFilter/sortBy/pagination -- le graphique doit toujours montrer les 2
+  // courbes EE/EO sur les dernières tentatives, peu importe le filtre Type
+  // actif sur la liste en dessous (décision produit validée avec Olivier).
+  const [chartAttempts, setChartAttempts] = useState<ExerciseAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<ExerciseAttempt | null>(null);
@@ -29,10 +34,20 @@ export default function CorrectionHistoryPage() {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  // 'all' | 'exam' (context='exam', EE+EO) | 'ee' (skill='EE', pratique libre) |
+  // 'eo' (skill='EO', pratique libre) -- voir correction_all_attempts (item 1)
+  const [typeFilter, setTypeFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
+  // Item 11 : /tef-irn/correction?id=X (utilisé par le widget dashboard
+  // RecentCorrectionsList) doit ouvrir directement la tentative correspondante
+  // au lieu de toujours retomber sur la liste générale -- limitation transmise
+  // par Olivier après l'item 9 (les cartes EO du dashboard pointent ici
+  // désormais, comme l'EE le faisait déjà avant).
+  const [resolvingDeepLink, setResolvingDeepLink] = useState(false);
 
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -61,10 +76,24 @@ export default function CorrectionHistoryPage() {
     const end = start + ITEMS_PER_PAGE - 1;
 
     let query = supabase
-      .from('writing_all_attempts')
+      .from('correction_all_attempts')
       .select('*')
       .eq('user_id', user.id)
       .not('answers->feedback', 'is', null);
+
+    // Filtre Type : 'exam' regroupe EE+EO d'examen blanc (context='exam'), 'ee'/'eo'
+    // ne montrent que la pratique libre de la page correspondante (context='standalone').
+    if (typeFilter === "exam") query = query.eq('context', 'exam');
+    if (typeFilter === "ee") query = query.eq('skill', 'EE').eq('context', 'standalone');
+    if (typeFilter === "eo") query = query.eq('skill', 'EO').eq('context', 'standalone');
+
+    // Filtre Niveau (item 14) : passé côté serveur comme le filtre Type ci-dessus --
+    // auparavant filtré côté client sur `attempts` (déjà paginé), ce qui donnait un
+    // faux négatif silencieux si des tentatives du niveau recherché existaient sur
+    // une page pas encore chargée. answers->feedback->>level = même valeur que
+    // l'ancien filtre client (correspondance exacte A1/A2/B1/B2, pas de
+    // normalisation des niveaux composites d'examen -- comportement inchangé).
+    if (level !== "all") query = query.eq('answers->feedback->>level', level);
 
     // Sorting
     if (sortBy === "newest") query = query.order('created_at', { ascending: false });
@@ -89,32 +118,97 @@ export default function CorrectionHistoryPage() {
 
     setLoading(false);
     setLoadingMore(false);
-  }, [user, page, sortBy, supabase]);
+  }, [user, page, sortBy, typeFilter, level, supabase]);
 
   useEffect(() => {
     if (user) {
       loadAttempts(true);
     }
-  }, [user, sortBy]); // Level and search are handled client-side for better UX in this version
+  }, [user, sortBy, typeFilter, level]); // Search reste géré côté client (voir filteredAttempts) -- item 14 ne portait que sur Niveau
+
+  // Chargement séparé pour le graphique -- ne dépend que de l'utilisateur, jamais
+  // de typeFilter/sortBy (voir commentaire sur chartAttempts plus haut). 60 lignes
+  // couvrent largement 15 EE + 15 EO même avec une pratique déséquilibrée entre
+  // les deux compétences.
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('correction_all_attempts')
+      .select('*')
+      .eq('user_id', user.id)
+      .not('answers->feedback', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(60)
+      .then(({ data, error }: { data: unknown; error: { message: string } | null }) => {
+        if (error) {
+          console.error("Error loading chart attempts:", error);
+          return;
+        }
+        setChartAttempts((data as unknown as ExerciseAttempt[]) || []);
+      });
+  }, [user, supabase]);
+
+  // Résolution du deep-link ?id=X (item 11) : requête dédiée par id, indépendante
+  // de la liste paginée -- la tentative visée peut très bien ne pas être dans les
+  // 10 premières lignes déjà chargées (typeFilter différent, page suivante jamais
+  // atteinte, etc.).
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id || !user) return;
+
+    setResolvingDeepLink(true);
+    supabase
+      .from('correction_all_attempts')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data, error }: { data: unknown; error: { message: string } | null }) => {
+        if (error) {
+          console.error("Error resolving deep-linked attempt:", error);
+        } else if (data) {
+          setSelectedAttempt(data as unknown as ExerciseAttempt);
+        }
+        setResolvingDeepLink(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user, supabase]);
+
+  // Retour à la liste depuis une tentative ouverte via deep-link : on nettoie
+  // l'URL (sinon l'id périmé reste affiché dans la barre d'adresse sans plus
+  // avoir d'effet, ce qui est trompeur si l'utilisateur partage/recharge le lien).
+  const handleBackToList = useCallback(() => {
+    setSelectedAttempt(null);
+    if (searchParams.get("id")) {
+      router.replace("/tef-irn/correction");
+    }
+  }, [router, searchParams]);
 
   const filteredAttempts = useMemo(() => {
+    // Niveau filtré côté serveur désormais (item 14, loadAttempts) -- seule la
+    // recherche texte reste client-side ici.
     return attempts.filter(attempt => {
       const feedback = attempt.answers.feedback;
-      const attemptLevel = (feedback as any)?.level || "B1";
       const subject = attempt.answers.subject || attempt.exercise?.instructions || "";
       const comment = (feedback as any)?.conseil_general || (feedback as any)?.comment || "";
 
-      const matchesSearch = search === "" ||
+      return search === "" ||
         subject.toLowerCase().includes(search.toLowerCase()) ||
         comment.toLowerCase().includes(search.toLowerCase());
-
-      const matchesLevel = level === "all" || attemptLevel === level;
-
-      return matchesSearch && matchesLevel;
     });
-  }, [attempts, search, level]);
+  }, [attempts, search]);
 
   const handleRestart = (attempt: ExerciseAttempt) => {
+    // EO n'a pas d'équivalent "reprendre ce sujet précis" (pas d'exerciseId
+    // réutilisable côté oral) -- on renvoie simplement vers la page de choix
+    // de scénario. /tef-irn/oral/history faisait pareil avant sa suppression
+    // (item 9, plan refonte page Correction) : /correction est désormais le
+    // seul point d'entrée historique pour EE et EO.
+    if (attempt.skill === "EO") {
+      router.push("/tef-irn/oral");
+      return;
+    }
+
     const subject = attempt.answers.subject || attempt.exercise?.instructions || "";
     const exerciseId = attempt.exercise_id;
     const level = (attempt.answers.feedback as any)?.level || "B1";
@@ -153,7 +247,7 @@ export default function CorrectionHistoryPage() {
     }
   };
 
-  if (loading) {
+  if (loading || (resolvingDeepLink && !selectedAttempt)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50">
         <div className="relative">
@@ -161,7 +255,7 @@ export default function CorrectionHistoryPage() {
           <Loader2 className="relative animate-spin text-indigo-600 mb-6" size={48} />
         </div>
         <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
-          Chargement de votre réussite...
+          {resolvingDeepLink ? "Ouverture de la correction..." : "Chargement de votre réussite..."}
         </p>
       </div>
     );
@@ -191,16 +285,24 @@ export default function CorrectionHistoryPage() {
                     Analysez vos performances, identifiez vos erreurs récurrentes et progressez vers votre certification TEF IRN.
                   </p>
                 </div>
-                <Link href="/tef-irn/writing">
-                  <Button className="h-11 rounded-2xl bg-zinc-900 px-6 font-black text-sm text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
-                    Nouvelle rédaction
-                    <Sparkles className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/tef-irn/writing">
+                    <Button className="h-11 rounded-2xl bg-zinc-900 px-6 font-black text-sm text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
+                      Nouvelle rédaction
+                      <Sparkles className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
+                    </Button>
+                  </Link>
+                  <Link href="/tef-irn/oral">
+                    <Button variant="outline" className="h-11 rounded-2xl border-zinc-200 px-6 font-black text-sm text-zinc-700 shadow-xl shadow-zinc-100 hover:bg-zinc-50 transition-all active:scale-95 group">
+                      Nouvelle session orale
+                      <Mic className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
+                    </Button>
+                  </Link>
+                </div>
               </header>
 
               {attempts.length > 0 && (
-                <CorrectionStats attempts={attempts} />
+                <CorrectionStats attempts={attempts} chartAttempts={chartAttempts} onSelectAttempt={setSelectedAttempt} />
               )}
 
               <div className="space-y-6">
@@ -211,6 +313,8 @@ export default function CorrectionHistoryPage() {
                   setLevel={setLevel}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
+                  typeFilter={typeFilter}
+                  setTypeFilter={setTypeFilter}
                 />
 
                 <CorrectionList
@@ -231,7 +335,7 @@ export default function CorrectionHistoryPage() {
             >
               <CorrectionDetailView
                 attempt={selectedAttempt}
-                onBack={() => setSelectedAttempt(null)}
+                onBack={handleBackToList}
                 onRestart={handleRestart}
                 onExport={handleExport}
                 isExporting={isExporting}
@@ -241,5 +345,17 @@ export default function CorrectionHistoryPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function CorrectionHistoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    }>
+      <CorrectionHistoryPageContent />
+    </Suspense>
   );
 }

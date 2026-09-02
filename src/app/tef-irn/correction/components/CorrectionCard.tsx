@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   FileText,
+  Mic,
   Calendar,
   History,
   ChevronRight,
@@ -24,7 +25,11 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
   const feedback = attempt.answers.feedback;
   const level = (feedback as WritingFeedback)?.level || (feedback as LegacyFeedback)?.level || "B1";
   const subject = attempt.answers.subject || attempt.exercise?.instructions || "Expression Écrite";
-  const isExamBlanc = attempt.source === "scenario";
+  // context vient de correction_all_attempts (item 1) -- fallback sur l'ancien
+  // marqueur source='scenario' pour les lignes qui viendraient encore de
+  // writing_all_attempts (aucune n'a de context, donc pas de faux négatif).
+  const isExamBlanc = attempt.context === "exam" || attempt.source === "scenario";
+  const isOral = attempt.skill === "EO";
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600 bg-emerald-50";
@@ -39,10 +44,10 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
     >
-      <Card className="group cursor-pointer overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/50">
+      <Card className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/50">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-200">
-            <FileText size={28} />
+            {isOral ? <Mic size={28} /> : <FileText size={28} />}
           </div>
 
           <div className="min-w-0 flex-1 space-y-2">
@@ -52,6 +57,11 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
               </h3>
               <Badge variant="outline" className="shrink-0 rounded-full border-zinc-200 bg-zinc-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
                 {level}
+              </Badge>
+              <Badge className={`shrink-0 rounded-full border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
+                isOral ? "bg-violet-50 text-violet-600" : "bg-sky-50 text-sky-600"
+              }`}>
+                {isOral ? "EO" : "EE"}
               </Badge>
               {isExamBlanc && (
                 <Badge className="shrink-0 rounded-full border-none bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">

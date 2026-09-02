@@ -17,6 +17,8 @@ interface CorrectionFiltersProps {
   setLevel: (val: string) => void;
   sortBy: string;
   setSortBy: (val: string) => void;
+  typeFilter: string;
+  setTypeFilter: (val: string) => void;
 }
 
 export const CorrectionFilters = ({
@@ -25,10 +27,12 @@ export const CorrectionFilters = ({
   level,
   setLevel,
   sortBy,
-  setSortBy
+  setSortBy,
+  typeFilter,
+  setTypeFilter
 }: CorrectionFiltersProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-3xl shadow-xl shadow-zinc-100 border border-zinc-50">
+    <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-[2.5rem] shadow-xl shadow-zinc-100 border border-zinc-50">
       <div className="relative flex-1 w-full">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
         <ShadcnInput
@@ -40,6 +44,18 @@ export const CorrectionFilters = ({
       </div>
 
       <div className="flex gap-2 w-full md:w-auto">
+        <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val || "all")}>
+          <SelectTrigger className="h-12 w-[150px] rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-600">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl border-zinc-100">
+            <SelectItem value="all">Tous types</SelectItem>
+            <SelectItem value="exam">Examen blanc</SelectItem>
+            <SelectItem value="ee">EE (rédaction)</SelectItem>
+            <SelectItem value="eo">EO (oral)</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Select value={level} onValueChange={(val) => setLevel(val || "all")}>
           <SelectTrigger className="h-12 w-[140px] rounded-2xl border-zinc-100 bg-zinc-50/50 font-bold text-zinc-600">
             <SelectValue placeholder="Niveau" />

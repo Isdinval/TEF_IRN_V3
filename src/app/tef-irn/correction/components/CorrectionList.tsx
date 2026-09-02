@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CorrectionCard } from "./CorrectionCard";
 import { ExerciseAttempt } from "@/types/writing";
-import { Loader2, Inbox } from "lucide-react";
+import { Loader2, Inbox, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -43,7 +43,7 @@ export const CorrectionList = ({
 
   if (attempts.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-[3rem] border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
+      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
         <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
           <Inbox size={48} className="text-zinc-200" />
         </div>
@@ -51,11 +51,19 @@ export const CorrectionList = ({
         <p className="text-zinc-500 max-w-sm mb-8 font-medium">
           Vous n'avez pas encore de corrections correspondant à vos critères de recherche.
         </p>
-        <Link href="/tef-irn/writing">
-          <Button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-white shadow-xl shadow-indigo-100">
-            Commencer une rédaction
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link href="/tef-irn/writing">
+            <Button className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-white shadow-xl shadow-indigo-100">
+              Commencer une rédaction
+            </Button>
+          </Link>
+          <Link href="/tef-irn/oral">
+            <Button variant="outline" className="h-14 px-8 rounded-2xl border-zinc-200 font-black text-zinc-700 shadow-xl shadow-zinc-100 hover:bg-zinc-50">
+              <Mic className="mr-2" size={18} />
+              Commencer une session orale
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
