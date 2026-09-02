@@ -30,6 +30,12 @@ interface CorrectionStatsProps {
   // par type -- voir commentaire dans page.tsx sur pourquoi ce dataset est séparé
   // de `attempts` (qui, lui, réagit au filtre Type de la liste en dessous).
   chartAttempts: ExerciseAttempt[];
+  // Item 12 : clic sur un point du graphique -> ouvre directement la vue détail
+  // de la tentative correspondante (pas un scroll vers la card en dessous --
+  // la card peut ne pas être visible si le filtre Type actif l'exclut ou si
+  // elle est sur une page de pagination pas encore chargée). chartAttempts
+  // contient déjà l'objet ExerciseAttempt complet, donc pas de refetch requis.
+  onSelectAttempt: (attempt: ExerciseAttempt) => void;
 }
 
 const MAX_POINTS_PER_SKILL = 15;
@@ -44,10 +50,12 @@ const typeLabel = (skill: "EE" | "EO", context?: string) => {
 
 interface ChartPoint {
   index: number;
+  ee_id?: string;
   ee_score?: number;
   ee_date?: string;
   ee_type?: string;
   ee_level?: string | null;
+  eo_id?: string;
   eo_score?: number;
   eo_date?: string;
   eo_type?: string;
@@ -70,10 +78,12 @@ const buildChartData = (chartAttempts: ExerciseAttempt[]): ChartPoint[] => {
     const eo = eoPoints[i];
     return {
       index: i + 1,
+      ee_id: ee?.id,
       ee_score: ee?.score ?? undefined,
       ee_date: ee ? new Date(ee.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : undefined,
       ee_type: ee ? typeLabel("EE", ee.context) : undefined,
       ee_level: ee?.estimated_level ?? null,
+      eo_id: eo?.id,
       eo_score: eo?.score ?? undefined,
       eo_date: eo ? new Date(eo.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : undefined,
       eo_type: eo ? typeLabel("EO", eo.context) : undefined,
@@ -142,7 +152,41 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
   );
 };
 
-export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProps) => {
+// Item 12 : point cliquable sur le graphique. Un <Line dot=.../> de Recharts
+// n'a pas de onClick natif par point -- on fournit notre propre rendu de point
+// (cercle SVG) avec un onClick, réutilisé à la fois pour "dot" (état normal) et
+// "activeDot" (survol) afin que le clic marche dans les deux cas. `idKey`
+// distingue quelle courbe (EE ou EO) ce point représente ; si le point n'existe
+// pas à cet index pour cette courbe (gap dû à connectNulls, EE et EO n'ayant
+// pas forcément le même nombre de tentatives), pas d'id -> rien n'est rendu,
+// pas de faux clic sur un point invisible.
+interface ClickableDotProps {
+  cx?: number;
+  cy?: number;
+  payload?: ChartPoint;
+  color: string;
+  idKey: "ee_id" | "eo_id";
+  onSelect: (id: string) => void;
+}
+
+const ClickableDot = ({ cx, cy, payload, color, idKey, onSelect }: ClickableDotProps) => {
+  const id = payload?.[idKey];
+  if (cx === undefined || cy === undefined || !id) return null;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={5}
+      fill={color}
+      stroke="#fff"
+      strokeWidth={2}
+      style={{ cursor: "pointer" }}
+      onClick={() => onSelect(id)}
+    />
+  );
+};
+
+export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: CorrectionStatsProps) => {
   const total = attempts.length;
   const avgScore = total > 0
     ? Math.round(attempts.reduce((acc, curr) => acc + (curr.score || 0), 0) / total)
@@ -156,6 +200,16 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
 
   const chartData = buildChartData(chartAttempts);
   const estimatedLevel = estimateCurrentLevel(chartAttempts);
+
+  // Item 12 : lookup O(1) pour retrouver l'ExerciseAttempt complet à partir de
+  // l'id stocké sur le point cliqué -- chartAttempts contient déjà tout, pas
+  // besoin de refetch (contrairement au deep-link ?id=, item 11, qui lui doit
+  // requêter puisque la page peut être rechargée sans état en mémoire).
+  const attemptsById = new Map(chartAttempts.map(a => [a.id, a]));
+  const handlePointClick = (id: string) => {
+    const attempt = attemptsById.get(id);
+    if (attempt) onSelectAttempt(attempt);
+  };
 
   const cardStats = [
     {
@@ -256,7 +310,7 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
                     Évolution de vos scores
                   </h3>
                   <p className="text-sm font-medium text-zinc-400">
-                    Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc)
+                    Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc). Cliquez un point pour voir le détail de la correction.
                   </p>
                 </div>
               </div>
@@ -291,8 +345,12 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
                       stroke="#4f46e5"
                       strokeWidth={4}
                       connectNulls
-                      dot={{ r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
-                      activeDot={{ r: 6, fill: '#4f46e5', strokeWidth: 3, stroke: '#fff' }}
+                      dot={(props: any) => (
+                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#4f46e5" idKey="ee_id" onSelect={handlePointClick} />
+                      )}
+                      activeDot={(props: any) => (
+                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#4f46e5" idKey="ee_id" onSelect={handlePointClick} />
+                      )}
                     />
                     <Line
                       type="monotone"
@@ -301,8 +359,12 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
                       stroke="#7c3aed"
                       strokeWidth={4}
                       connectNulls
-                      dot={{ r: 4, fill: '#7c3aed', strokeWidth: 2, stroke: '#fff' }}
-                      activeDot={{ r: 6, fill: '#7c3aed', strokeWidth: 3, stroke: '#fff' }}
+                      dot={(props: any) => (
+                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#7c3aed" idKey="eo_id" onSelect={handlePointClick} />
+                      )}
+                      activeDot={(props: any) => (
+                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#7c3aed" idKey="eo_id" onSelect={handlePointClick} />
+                      )}
                     />
                   </LineChart>
                 </ResponsiveContainer>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { createClient } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -87,6 +87,14 @@ function CorrectionHistoryPageContent() {
     if (typeFilter === "ee") query = query.eq('skill', 'EE').eq('context', 'standalone');
     if (typeFilter === "eo") query = query.eq('skill', 'EO').eq('context', 'standalone');
 
+    // Filtre Niveau (item 14) : passé côté serveur comme le filtre Type ci-dessus --
+    // auparavant filtré côté client sur `attempts` (déjà paginé), ce qui donnait un
+    // faux négatif silencieux si des tentatives du niveau recherché existaient sur
+    // une page pas encore chargée. answers->feedback->>level = même valeur que
+    // l'ancien filtre client (correspondance exacte A1/A2/B1/B2, pas de
+    // normalisation des niveaux composites d'examen -- comportement inchangé).
+    if (level !== "all") query = query.eq('answers->feedback->>level', level);
+
     // Sorting
     if (sortBy === "newest") query = query.order('created_at', { ascending: false });
     if (sortBy === "oldest") query = query.order('created_at', { ascending: true });
@@ -110,13 +118,13 @@ function CorrectionHistoryPageContent() {
 
     setLoading(false);
     setLoadingMore(false);
-  }, [user, page, sortBy, typeFilter, supabase]);
+  }, [user, page, sortBy, typeFilter, level, supabase]);
 
   useEffect(() => {
     if (user) {
       loadAttempts(true);
     }
-  }, [user, sortBy, typeFilter]); // Level and search are handled client-side for better UX in this version
+  }, [user, sortBy, typeFilter, level]); // Search reste géré côté client (voir filteredAttempts) -- item 14 ne portait que sur Niveau
 
   // Chargement séparé pour le graphique -- ne dépend que de l'utilisateur, jamais
   // de typeFilter/sortBy (voir commentaire sur chartAttempts plus haut). 60 lignes
@@ -177,21 +185,18 @@ function CorrectionHistoryPageContent() {
   }, [router, searchParams]);
 
   const filteredAttempts = useMemo(() => {
+    // Niveau filtré côté serveur désormais (item 14, loadAttempts) -- seule la
+    // recherche texte reste client-side ici.
     return attempts.filter(attempt => {
       const feedback = attempt.answers.feedback;
-      const attemptLevel = (feedback as any)?.level || "B1";
       const subject = attempt.answers.subject || attempt.exercise?.instructions || "";
       const comment = (feedback as any)?.conseil_general || (feedback as any)?.comment || "";
 
-      const matchesSearch = search === "" ||
+      return search === "" ||
         subject.toLowerCase().includes(search.toLowerCase()) ||
         comment.toLowerCase().includes(search.toLowerCase());
-
-      const matchesLevel = level === "all" || attemptLevel === level;
-
-      return matchesSearch && matchesLevel;
     });
-  }, [attempts, search, level]);
+  }, [attempts, search]);
 
   const handleRestart = (attempt: ExerciseAttempt) => {
     // EO n'a pas d'équivalent "reprendre ce sujet précis" (pas d'exerciseId
@@ -280,16 +285,24 @@ function CorrectionHistoryPageContent() {
                     Analysez vos performances, identifiez vos erreurs récurrentes et progressez vers votre certification TEF IRN.
                   </p>
                 </div>
-                <Link href="/tef-irn/writing">
-                  <Button className="h-11 rounded-2xl bg-zinc-900 px-6 font-black text-sm text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
-                    Nouvelle rédaction
-                    <Sparkles className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/tef-irn/writing">
+                    <Button className="h-11 rounded-2xl bg-zinc-900 px-6 font-black text-sm text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all active:scale-95 group">
+                      Nouvelle rédaction
+                      <Sparkles className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
+                    </Button>
+                  </Link>
+                  <Link href="/tef-irn/oral">
+                    <Button variant="outline" className="h-11 rounded-2xl border-zinc-200 px-6 font-black text-sm text-zinc-700 shadow-xl shadow-zinc-100 hover:bg-zinc-50 transition-all active:scale-95 group">
+                      Nouvelle session orale
+                      <Mic className="ml-2 group-hover:rotate-12 transition-transform" size={16} />
+                    </Button>
+                  </Link>
+                </div>
               </header>
 
               {attempts.length > 0 && (
-                <CorrectionStats attempts={attempts} chartAttempts={chartAttempts} />
+                <CorrectionStats attempts={attempts} chartAttempts={chartAttempts} onSelectAttempt={setSelectedAttempt} />
               )}
 
               <div className="space-y-6">
