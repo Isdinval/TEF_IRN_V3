@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ExerciseAttempt, WritingFeedback, LegacyFeedback, WritingError } from "@/types/writing";
 import { OralAnalysisView } from "../../oral/components/OralAnalysisView";
 import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
+import { RecommendedExercises } from "./RecommendedExercises";
 
 interface CorrectionDetailViewProps {
   attempt: ExerciseAttempt;
@@ -66,6 +67,7 @@ const OralCorrectionDetail = ({
         transcript={transcript}
         onRestart={() => onRestart(attempt)}
       />
+      <RecommendedExercises attempt={attempt} />
     </div>
   );
 };
@@ -331,6 +333,8 @@ export const CorrectionDetailView = ({
           </div>
         </div>
       </div>
+
+      <RecommendedExercises attempt={attempt} />
     </div>
   );
 };
