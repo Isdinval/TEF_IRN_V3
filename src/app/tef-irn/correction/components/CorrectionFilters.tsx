@@ -32,7 +32,7 @@ export const CorrectionFilters = ({
   setTypeFilter
 }: CorrectionFiltersProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-3xl shadow-xl shadow-zinc-100 border border-zinc-50">
+    <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-[2.5rem] shadow-xl shadow-zinc-100 border border-zinc-50">
       <div className="relative flex-1 w-full">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
         <ShadcnInput

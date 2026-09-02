@@ -43,7 +43,7 @@ export const CorrectionList = ({
 
   if (attempts.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-[3rem] border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
+      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
         <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
           <Inbox size={48} className="text-zinc-200" />
         </div>

@@ -44,7 +44,7 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
     >
-      <Card className="group cursor-pointer overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/50">
+      <Card className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/50">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-200">
             {isOral ? <Mic size={28} /> : <FileText size={28} />}

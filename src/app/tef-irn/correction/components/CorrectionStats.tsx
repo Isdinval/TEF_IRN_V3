@@ -196,7 +196,7 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
     <div className="space-y-6">
       {estimatedLevel.level && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="overflow-hidden rounded-[2rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+          <Card className="overflow-hidden rounded-[2.5rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
             <CardContent className="flex flex-col items-center gap-2 p-8 text-center relative">
               <div className="absolute top-5 right-5">
                 <InfoTooltip
@@ -225,7 +225,7 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <Card className="border-none shadow-xl shadow-zinc-100 overflow-hidden rounded-3xl">
+            <Card className="border-none shadow-xl shadow-zinc-100 overflow-hidden rounded-[2.5rem]">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
