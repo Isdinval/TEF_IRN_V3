@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Loader2, Target, Sparkles, ArrowRight,
-  GraduationCap, CheckCircle2, Bot,
+  GraduationCap, CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -177,18 +177,6 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                         {lesson.category}
                       </Badge>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const coachBtn = document.querySelector(".fixed.bottom-6.right-6") as HTMLButtonElement;
-                        if (coachBtn) coachBtn.click();
-                      }}
-                      className="rounded-xl border-indigo-100 text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100 font-bold flex gap-2 h-9"
-                    >
-                      <Bot size={16} />
-                      Question au Coach ?
-                    </Button>
                   </div>
 
                   <div className="space-y-2">
