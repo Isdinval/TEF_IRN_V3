@@ -18,6 +18,11 @@ const ITEMS_PER_PAGE = 10;
 
 export default function CorrectionHistoryPage() {
   const [attempts, setAttempts] = useState<ExerciseAttempt[]>([]);
+  // Dataset séparé pour le graphique (item 3) : volontairement indépendant de
+  // typeFilter/sortBy/pagination -- le graphique doit toujours montrer les 2
+  // courbes EE/EO sur les dernières tentatives, peu importe le filtre Type
+  // actif sur la liste en dessous (décision produit validée avec Olivier).
+  const [chartAttempts, setChartAttempts] = useState<ExerciseAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<ExerciseAttempt | null>(null);
@@ -105,6 +110,28 @@ export default function CorrectionHistoryPage() {
       loadAttempts(true);
     }
   }, [user, sortBy, typeFilter]); // Level and search are handled client-side for better UX in this version
+
+  // Chargement séparé pour le graphique -- ne dépend que de l'utilisateur, jamais
+  // de typeFilter/sortBy (voir commentaire sur chartAttempts plus haut). 60 lignes
+  // couvrent largement 15 EE + 15 EO même avec une pratique déséquilibrée entre
+  // les deux compétences.
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('correction_all_attempts')
+      .select('*')
+      .eq('user_id', user.id)
+      .not('answers->feedback', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(60)
+      .then(({ data, error }: { data: unknown; error: { message: string } | null }) => {
+        if (error) {
+          console.error("Error loading chart attempts:", error);
+          return;
+        }
+        setChartAttempts((data as unknown as ExerciseAttempt[]) || []);
+      });
+  }, [user, supabase]);
 
   const filteredAttempts = useMemo(() => {
     return attempts.filter(attempt => {
@@ -217,7 +244,7 @@ export default function CorrectionHistoryPage() {
               </header>
 
               {attempts.length > 0 && (
-                <CorrectionStats attempts={attempts} />
+                <CorrectionStats attempts={attempts} chartAttempts={chartAttempts} />
               )}
 
               <div className="space-y-6">
