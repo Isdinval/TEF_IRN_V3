@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useCoachContext } from "@/contexts/CoachContext";
-import { Parcours, Lesson, Exercise, ParcoursProgress } from "@/lib/parcours";
+import { Parcours, Lesson, Exercise, ParcoursProgress, getExerciseUrl } from "@/lib/parcours";
 import { User } from "@supabase/supabase-js";
 import {
   Trophy,
@@ -21,6 +21,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import LessonCard from "./components/LessonCard";
 import ExerciseCard from "./components/ExerciseCard";
+import ParcoursExerciseTreeCatalogue, { CatalogueExercise } from "./components/ParcoursExerciseTreeCatalogue";
 import VocabThemeCard from "./components/VocabThemeCard";
 import { ParcoursBreadcrumb } from "@/components/shared/ParcoursBreadcrumb";
 
@@ -29,6 +30,13 @@ interface ParcoursInteractiveProps {
   allLessons: Lesson[];
   initialProgress: ParcoursProgress | null;
   initialRecommendedExercises: Exercise[];
+  /** Catalogue complet (pas juste le top recommandé) des exercices rattachés
+   *  aux leçons débloquées -- item #6 du plan "Verrouillage exercices
+   *  topbar/parcours", alimente l'accordéon sous le hero. */
+  catalogueExercises: CatalogueExercise[];
+  /** Titre + order_index de chaque leçon du parcours, indexé par lesson_id --
+   *  même format que GrammarCheckTreeCatalogue/PracticeTreeCatalogue. */
+  lessonMeta: Record<string, { title: string; order_index: number }>;
   initialGuideSlug: string | null;
   user: User | null;
 }
@@ -38,6 +46,8 @@ export default function ParcoursInteractive({
   allLessons,
   initialProgress,
   initialRecommendedExercises,
+  catalogueExercises,
+  lessonMeta,
   initialGuideSlug,
   user
 }: ParcoursInteractiveProps) {
@@ -333,21 +343,19 @@ export default function ParcoursInteractive({
                       même pattern que /lessons/[slug]/complete. */}
                   <ExerciseCard exercise={recommendedExercises[0]} parcoursId={parcours.id} variant="hero" />
 
-                  {recommendedExercises.length > 1 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {recommendedExercises.slice(1).map((exercise) => (
-                        <ExerciseCard
-                          key={exercise.id}
-                          exercise={exercise}
-                          parcoursId={parcours.id}
-                          lessonTitle={
-                            exercise.lesson_id
-                              ? allLessons.find((l) => l.id === exercise.lesson_id)?.title
-                              : undefined
-                          }
-                        />
-                      ))}
-                    </div>
+                  {/* Catalogue complet en accordéon (item #6, remplace l'ancienne
+                      grille de 5 ExerciseCard limitée au top recommandé) -- même
+                      système que les pages /grammar-check et /practice, adapté
+                      pour mélanger qcm et trous sous une même leçon (voir
+                      ParcoursExerciseTreeCatalogue.tsx). Scope déjà restreint aux
+                      leçons débloquées côté page.tsx (getUnlockedExercisesCatalogue),
+                      donc aucun exercice de leçon non atteinte n'y apparaît jamais. */}
+                  {catalogueExercises.length > 1 && (
+                    <ParcoursExerciseTreeCatalogue
+                      exercises={catalogueExercises.filter((ex) => ex.id !== recommendedExercises[0].id)}
+                      lessonMeta={lessonMeta}
+                      getUrl={(ex) => getExerciseUrl(ex, parcours.id)}
+                    />
                   )}
                 </div>
               ) : (

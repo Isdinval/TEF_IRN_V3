@@ -4,6 +4,8 @@ import {
   getParcoursById,
   getLessonsForParcours,
   getParcoursProgress,
+  getUnlockedLessonIds,
+  getUnlockedExercisesCatalogue,
   Exercise
 } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
@@ -36,6 +38,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
 
   let progress = null;
   let recommendedExercises: Exercise[] = [];
+  let catalogueExercises: (Exercise & { is_completed?: boolean; attempts_count?: number })[] = [];
 
   if (user) {
     // progress doit être connu avant d'appeler resolveNextExercises() : on en
@@ -75,17 +78,31 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
       .map((row: { sub_category: string | null }) => row.sub_category)
       .filter((tag): tag is string => !!tag);
 
-    recommendedExercises = await resolveNextExercises(
-      user.id,
-      {
-        level: parcours.level,
-        category: parcours.category,
-        lessonId: currentLessonId,
-        tags: weakTags.length > 0 ? weakTags : undefined
-      },
-      supabase
-    );
+    // Calculé une seule fois, réutilisé par le moteur de reco (hero) ET le
+    // catalogue complet (accordéon, item #6) -- même périmètre garanti entre
+    // les deux, pas de risque de divergence si l'un des deux appels change un jour.
+    const unlockedLessonIds = getUnlockedLessonIds(allLessons, progress.completedLessons);
+
+    [recommendedExercises, catalogueExercises] = await Promise.all([
+      resolveNextExercises(
+        user.id,
+        {
+          level: parcours.level,
+          category: parcours.category,
+          lessonId: currentLessonId,
+          tags: weakTags.length > 0 ? weakTags : undefined,
+          unlockedLessonIds,
+        },
+        supabase
+      ),
+      getUnlockedExercisesCatalogue(parcours.level, parcours.category, unlockedLessonIds, user.id, supabase),
+    ]);
   }
+
+  const lessonMeta: Record<string, { title: string; order_index: number }> = {};
+  allLessons.forEach((lesson) => {
+    lessonMeta[lesson.id] = { title: lesson.title, order_index: lesson.order_index };
+  });
 
   const { data: guideData } = await supabase
     .from('guides')
@@ -137,6 +154,8 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
         allLessons={allLessons}
         initialProgress={progress}
         initialRecommendedExercises={recommendedExercises}
+        catalogueExercises={catalogueExercises}
+        lessonMeta={lessonMeta}
         initialGuideSlug={guideData?.slug || null}
         user={user}
       />

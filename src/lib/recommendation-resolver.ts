@@ -68,6 +68,16 @@ export interface ResolveContext {
    *  (ex: /grammar-check, /practice). Omis par défaut = tous types confondus,
    *  comportement inchangé pour les appelants existants (/parcours, /lessons). */
   type?: string;
+  /** Si fourni, exclut du pool tout exercice rattaché (lesson_id non null) à
+   *  une leçon absente de cet ensemble -- typiquement le retour de
+   *  getUnlockedLessonIds() (lib/parcours.ts) : leçons complétées + leçon en
+   *  cours. Les exercices sans lesson_id (aucun cas connu en production, mais
+   *  gardé par robustesse) ne sont jamais concernés par ce filtre, cohérent
+   *  avec le regroupement "Autres exercices" des catalogues existants.
+   *  Omis par défaut = aucune restriction (comportement inchangé pour les
+   *  appelants sans notion de parcours/progression : /grammar-check et
+   *  /practice en navigation libre, le coach IA). */
+  unlockedLessonIds?: Set<string>;
 }
 
 const TIER_REASONS: Record<number, string> = {
@@ -255,6 +265,18 @@ export async function resolveNextExercises(
     }
 
     exercises = [...exercises, ...newOnes];
+  }
+
+  // Filtre "leçons débloquées" (item #3 du plan "Verrouillage exercices topbar/parcours") :
+  // appliqué APRÈS le palier 2 ci-dessus, jamais avant -- effectiveLessonId (leçon
+  // canonique du contexte fourni par l'appelant) est par construction déjà une leçon
+  // débloquée, ce filtre ne retire donc jamais son propre pool, seulement le fallback
+  // "hors leçon canonique" (paliers 3/4 plus bas) qui pouvait déborder sur des leçons
+  // pas encore atteintes dans l'ordre du parcours.
+  if (context.unlockedLessonIds) {
+    exercises = exercises.filter(
+      (ex) => !ex.lesson_id || context.unlockedLessonIds!.has(ex.lesson_id)
+    );
   }
 
   if (exercises.length === 0) return [];

@@ -109,7 +109,7 @@ export function PracticeContent() {
   const params = useParams();
   const exerciseIdFromParams = params?.id as string | undefined;
   const supabase = createClient();
-  const { activeParcours, nextLesson } = useParcours();
+  const { activeParcours, nextLesson, refreshProgress, refreshExerciseCounts } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "practice" | "result">("selection");
@@ -651,6 +651,12 @@ export function PracticeContent() {
       setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
+      // Même correctif que grammar-check/page.tsx#handleNextAction : rester sur
+      // /practice/[id] (setMode("result") est un state local, pas une navigation)
+      // ne déclenche jamais le filet de rattrapage pathname de la TopBar --
+      // sans cet appel explicite, le compteur restait figé jusqu'au prochain reload.
+      refreshProgress();
+      refreshExerciseCounts();
     }
   };
 

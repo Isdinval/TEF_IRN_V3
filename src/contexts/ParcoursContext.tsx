@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds, getRemainingExerciseCounts, RemainingExerciseCounts, ParcoursProgress as LibParcoursProgress } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { resolveNextVocabTheme } from "@/lib/vocab/next-theme";
 
@@ -14,9 +14,22 @@ interface ParcoursContextType {
   progress: ParcoursProgress | null;
   isLoading: boolean;
   refreshProgress: () => Promise<void>;
+  /** Filet de rattrapage pour le compteur d'exercices restants (item #4) --
+   *  même rôle que refreshProgress() mais pour exerciseCounts. Nécessaire en
+   *  plus du filet automatique sur changement de pathname (useEffect interne) :
+   *  terminer un exercice sur /practice/[id] ou /grammar-check/[id] ne change
+   *  jamais l'URL (setMode("result") est un state local), donc ce filet ne se
+   *  déclenche jamais tout seul dans ce cas précis -- les pages d'exercice
+   *  doivent l'appeler explicitement après écriture réussie de exercise_attempts. */
+  refreshExerciseCounts: () => Promise<void>;
   exitParcours: () => Promise<void>;
   nextLesson: () => Promise<void>;
-  nextExercise: () => Promise<void>;
+  /** Item #5 du plan "Verrouillage exercices topbar/parcours" : le type est
+   *  désormais obligatoire (qcm -> /practice, trous -> /grammar-check, cf.
+   *  getExerciseUrl() dans lib/parcours.ts), un seul bouton "Exercice"
+   *  agrégeant les deux formats ne permettait pas à l'utilisateur de choisir
+   *  le type d'entraînement -- voir Option 1 du plan (deux boutons TopBar). */
+  nextExercise: (type: 'qcm' | 'trous') => Promise<void>;
   nextVocabulary: () => Promise<void>;
   /** true après un appel à nextVocabulary() qui n'a trouvé aucun mot non
    *  maîtrisé au niveau du parcours actif -- jamais réinitialisé vers un
@@ -24,6 +37,11 @@ interface ParcoursContextType {
    *  /parcours/[slug]"). Consommé par la TopBar (item 8) pour afficher un
    *  état "niveau maîtrisé" plutôt qu'une navigation. */
   vocabFullyMastered: boolean;
+  /** Nombre d'exercices qcm/trous encore à faire parmi les leçons débloquées
+   *  du parcours actif (item #4 du plan "Verrouillage exercices topbar/parcours") --
+   *  null tant que non encore calculé (chargement initial). Consommé par la
+   *  TopBar pour afficher un compteur sur chacun des deux boutons d'exercice. */
+  exerciseCounts: RemainingExerciseCounts | null;
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -39,21 +57,47 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<ParcoursProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [vocabFullyMastered, setVocabFullyMastered] = useState(false);
+  const [exerciseCounts, setExerciseCounts] = useState<RemainingExerciseCounts | null>(null);
 
   // Cache court-terme : quand nextLesson() vient de recalculer parcours/progression/
   // leçons juste avant de naviguer, on évite de tout re-télécharger depuis zéro dans
   // loadParcoursData() sur la page de destination (même Provider, pas de remontage
   // entre deux navigations client-side). Consommé une seule fois puis vidé.
+  // progress ici est typé via lib/parcours.ts (LibParcoursProgress, avec
+  // completedLessons), pas via le ParcoursProgress importé de @/types/parcours
+  // ci-dessus (qui ne l'expose pas) -- ce cache est toujours peuplé par
+  // getParcoursProgress() (lib/parcours.ts), jamais par le state `progress`
+  // du composant. Divergence pré-existante entre les 2 définitions de
+  // ParcoursProgress, révélée par applyExerciseCounts() (item #4) qui est le
+  // premier à lire .completedLessons sur ce cache précis.
   const freshDataRef = useRef<{
     parcoursId: string;
     userId: string;
     parcours: Parcours;
-    progress: ParcoursProgress;
+    progress: LibParcoursProgress;
     lessons: Lesson[];
   } | null>(null);
 
   const parcoursId = searchParams.get("parcoursId");
   const lessonId = searchParams.get("lessonId");
+
+  // Calcule et pose les compteurs d'exercices restants (qcm/trous) sur les
+  // leçons débloquées -- factorisé ici car appelé depuis 3 points : les deux
+  // branches de loadParcoursData() (chargement initial) et refreshExerciseCounts()
+  // (filet de sécurité pathname, même principe que refreshProgress()). Non
+  // bloquant par nature (fire-and-forget côté appelants) : un léger délai
+  // d'affichage du compteur est acceptable, contrairement au reste du chargement.
+  const applyExerciseCounts = useCallback(async (
+    userId: string,
+    level: string,
+    category: string,
+    lessons: Lesson[],
+    completedLessons: string[]
+  ) => {
+    const unlocked = getUnlockedLessonIds(lessons, completedLessons);
+    const counts = await getRemainingExerciseCounts(userId, level, category, unlocked, supabase);
+    setExerciseCounts(counts);
+  }, [supabase]);
 
   const loadParcoursData = useCallback(async (pId: string, lId: string | null) => {
     setIsLoading(true);
@@ -69,6 +113,9 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         setProgress(cached.progress);
         setActiveLesson(currentLesson);
         setIsLoading(false);
+
+        // Fire-and-forget comme les 2 syncs DB ci-dessous -- ne conditionne aucun rendu bloquant.
+        applyExerciseCounts(cached.userId, cached.parcours.level, cached.parcours.category, cached.lessons, cached.progress.completedLessons);
 
         // Sync with DB en arrière-plan — n'a pas besoin de bloquer l'affichage,
         // ces écritures ne conditionnent aucun rendu.
@@ -118,6 +165,9 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       setProgress(prog);
       setActiveLesson(currentLesson);
 
+      // Fire-and-forget, même principe que le chemin rapide ci-dessus.
+      applyExerciseCounts(user.id, p.level, p.category, lessons, prog.completedLessons);
+
       // Sync with DB — les deux écritures sont indépendantes (tables différentes),
       // exécutées en parallèle plutôt qu'en série.
       await Promise.all([
@@ -138,7 +188,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, applyExerciseCounts]);
 
   useEffect(() => {
     if (parcoursId) {
@@ -180,12 +230,27 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     setProgress(prog);
   };
 
+  // Même principe que refreshProgress() ci-dessus, filet de sécurité pour le
+  // compteur d'exercices restants (item #4) : re-fetch complet (lessons +
+  // progress) plutôt que de dépendre d'un state local potentiellement obsolète.
+  const refreshExerciseCounts = async () => {
+    if (!activeParcours) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const [lessons, prog] = await Promise.all([
+      getLessonsForParcours(activeParcours.level, activeParcours.category),
+      getParcoursProgress(user.id, activeParcours.level, activeParcours.category)
+    ]);
+    applyExerciseCounts(user.id, activeParcours.level, activeParcours.category, lessons, prog.completedLessons);
+  };
+
   // Filet de sécurité : la progress bar de la TopBar doit toujours refléter
   // l'état réel, même quand une navigation ne change ni parcoursId ni lessonId
   // (ex: complétion d'un exercice depuis /lessons/[slug]/complete).
   useEffect(() => {
     if (activeParcours) {
       refreshProgress();
+      refreshExerciseCounts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
@@ -278,17 +343,23 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Bouton "Exercice suivant" de la TopBar. Réutilise resolveNextExercises()
+  // Boutons "QCM" / "Chasse aux erreurs" de la TopBar. Réutilise resolveNextExercises()
   // (moteur de recommandation déjà appelé côté navigateur dans practice/page.tsx
   // et grammar-check/page.tsx -- aucune nouvelle technique introduite), avec la
   // même leçon de contexte que nextLesson() ci-dessus pour rester cohérent avec
   // ce que l'utilisateur est en train de suivre dans le parcours.
   //
+  // Item #5 (plan "Verrouillage exercices topbar/parcours") : type devient un
+  // paramètre obligatoire -- l'ancien bouton unique "Exercice" agrégeait qcm et
+  // trous indifféremment (getExerciseUrl() renvoie pourtant deux pages bien
+  // distinctes selon le type : qcm -> /practice, trous -> /grammar-check),
+  // l'utilisateur ne pouvait pas choisir son format d'entraînement.
+  //
   // Item 9 : ouverture en nouvel onglet uniquement si on est actuellement sur
   // le hub /tef-irn/parcours/[slug] (même besoin que les cartes de la page --
   // garder le hub ouvert) ; navigation classique (même onglet) partout
   // ailleurs, comme nextLesson().
-  const nextExercise = async () => {
+  const nextExercise = async (type: 'qcm' | 'trous') => {
     if (!activeParcours) return;
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -313,6 +384,8 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         level: activeParcours.level,
         category: activeParcours.category,
         lessonId: contextLesson?.id,
+        type,
+        unlockedLessonIds: getUnlockedLessonIds(lessons, freshProgress.completedLessons),
       },
       supabase,
       1
@@ -390,11 +463,13 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       progress,
       isLoading,
       refreshProgress,
+      refreshExerciseCounts,
       exitParcours,
       nextLesson,
       nextExercise,
       nextVocabulary,
-      vocabFullyMastered
+      vocabFullyMastered,
+      exerciseCounts
     }}>
       {children}
     </ParcoursContext.Provider>

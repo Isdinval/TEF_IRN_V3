@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, HelpCircle, Type, BookOpen, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, isLoading } = useParcours();
+  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, isLoading } = useParcours();
   const pathname = usePathname();
   // Une seule action à la fois (nextLesson/nextExercise/nextVocabulary
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
@@ -89,16 +89,52 @@ export function ParcoursTopBar() {
               </Button>
             )}
 
+            {/* Item #4 (plan "Verrouillage exercices topbar/parcours"), Option 1 validée :
+                un bouton par type d'exercice plutôt qu'un compteur agrégé -- QCM (/practice)
+                et Chasse aux erreurs (/grammar-check) sont deux formats pédagogiques
+                distincts, un total agrégé aurait laissé deviner lequel serait proposé au
+                clic. exerciseCounts === null tant que non encore calculé (chargement
+                initial ou fire-and-forget pas terminé) : bouton affiché sans nombre plutôt
+                que cacher/bloquer, reste cliquable (résolution normale du moteur de reco).
+                count === 0 : même traitement que "Vocabulaire" (vocabFullyMastered) --
+                désactivé, coché, pour signaler que tout est fait plutôt que de laisser
+                cliquer dans le vide. */}
             <Button
-              onClick={() => handleNext(nextExercise)}
-              disabled={isResolving}
+              onClick={() => handleNext(() => nextExercise('qcm'))}
+              disabled={isResolving || exerciseCounts?.qcm === 0}
               variant="outline"
               size="sm"
-              className="h-10 px-3 sm:px-4 border-zinc-200 text-zinc-700 hover:bg-zinc-50 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95"
-              aria-label="Exercice suivant"
+              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                exerciseCounts?.qcm === 0
+                  ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
+                  : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+              }`}
+              aria-label={exerciseCounts?.qcm === 0 ? "QCM de la leçon en cours terminés" : "QCM suivant"}
+              title={exerciseCounts?.qcm === 0 ? "Tous les QCM débloqués sont terminés — bravo !" : undefined}
             >
-              <Sparkles size={14} className="sm:mr-1" />
-              <span className="hidden sm:inline">Exercice</span>
+              {exerciseCounts?.qcm === 0 ? <CheckCircle2 size={14} className="sm:mr-1" /> : <HelpCircle size={14} className="sm:mr-1" />}
+              <span className="hidden sm:inline">
+                QCM{exerciseCounts && exerciseCounts.qcm > 0 ? ` (${exerciseCounts.qcm})` : ""}
+              </span>
+            </Button>
+
+            <Button
+              onClick={() => handleNext(() => nextExercise('trous'))}
+              disabled={isResolving || exerciseCounts?.trous === 0}
+              variant="outline"
+              size="sm"
+              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                exerciseCounts?.trous === 0
+                  ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
+                  : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+              }`}
+              aria-label={exerciseCounts?.trous === 0 ? "Chasse aux erreurs de la leçon en cours terminée" : "Chasse aux erreurs suivante"}
+              title={exerciseCounts?.trous === 0 ? "Toute la chasse aux erreurs débloquée est terminée — bravo !" : undefined}
+            >
+              {exerciseCounts?.trous === 0 ? <CheckCircle2 size={14} className="sm:mr-1" /> : <Type size={14} className="sm:mr-1" />}
+              <span className="hidden sm:inline">
+                Chasse aux erreurs{exerciseCounts && exerciseCounts.trous > 0 ? ` (${exerciseCounts.trous})` : ""}
+              </span>
             </Button>
 
             <Button
