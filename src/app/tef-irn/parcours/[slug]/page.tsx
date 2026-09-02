@@ -4,6 +4,7 @@ import {
   getParcoursById,
   getLessonsForParcours,
   getParcoursProgress,
+  getUnlockedLessonIds,
   Exercise
 } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
@@ -81,7 +82,8 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
         level: parcours.level,
         category: parcours.category,
         lessonId: currentLessonId,
-        tags: weakTags.length > 0 ? weakTags : undefined
+        tags: weakTags.length > 0 ? weakTags : undefined,
+        unlockedLessonIds: getUnlockedLessonIds(allLessons, progress.completedLessons),
       },
       supabase
     );

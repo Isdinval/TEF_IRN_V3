@@ -237,6 +237,38 @@ export async function getParcoursBySlug(slug: string, supabase: SupabaseClient =
   return data;
 }
 
+/**
+ * Détermine l'ensemble des leçons "débloquées" d'un parcours : toutes les
+ * leçons déjà complétées, plus la première leçon non complétée dans l'ordre
+ * (`order_index`) -- la leçon "en cours". Les leçons suivantes ne sont PAS
+ * incluses : elles restent atteignables manuellement (LessonCard n'impose
+ * aucune restriction de clic, hors scope ici), mais ne doivent jamais être
+ * proposées automatiquement par le moteur de recommandation (paliers 1-4 de
+ * resolveNextExercises()) ni par le bouton "Exercice" de la TopBar, avant que
+ * l'utilisateur les ait atteintes dans l'ordre du parcours.
+ *
+ * Même critère de "leçon suivante" que resolveContextLesson() (ParcoursContext.tsx)
+ * et lessonsWithStatus (ParcoursInteractive.tsx) -- centralisé ici pour être
+ * partagé aussi par resolveNextExercises() (recommendation-resolver.ts) sans
+ * tripler la même logique à trois endroits.
+ */
+export function getUnlockedLessonIds(lessons: Lesson[], completedLessonIds: string[]): Set<string> {
+  const completed = new Set(completedLessonIds);
+  const unlocked = new Set<string>();
+  let nextFound = false;
+
+  for (const lesson of lessons) {
+    if (completed.has(lesson.id)) {
+      unlocked.add(lesson.id);
+    } else if (!nextFound) {
+      unlocked.add(lesson.id);
+      nextFound = true;
+    }
+  }
+
+  return unlocked;
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { resolveNextVocabTheme } from "@/lib/vocab/next-theme";
 
@@ -313,6 +313,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
         level: activeParcours.level,
         category: activeParcours.category,
         lessonId: contextLesson?.id,
+        unlockedLessonIds: getUnlockedLessonIds(lessons, freshProgress.completedLessons),
       },
       supabase,
       1
