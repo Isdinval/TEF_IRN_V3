@@ -90,17 +90,25 @@ export const CorrectionDetailView = ({
   const improved = (feedback as WritingFeedback)?.texte_corrige_complet || (feedback as LegacyFeedback)?.improved || "";
 
   const errors = useMemo(() => {
-    if (!feedback) return [];
+    // Bug introduit à l'item 2 (lint fix Rules of Hooks -- ce hook s'exécute
+    // pour TOUTE tentative, y compris EO, avant le court-circuit vers
+    // OralCorrectionDetail plus bas). Le feedback EO (scores/strengths/
+    // improvements/general_comment/estimated_level/level) n'a ni
+    // liste_des_erreurs ni annotations -- isLegacy devenait donc vrai à tort
+    // (clé liste_des_erreurs absente = pas "legacy", juste "pas EE"), et
+    // feedback.annotations.map() plantait sur annotations undefined.
+    // Reproduit et confirmé via les logs console fournis par Olivier.
+    if (!feedback || attempt.skill === "EO") return [];
     if (isLegacy) {
-      return (feedback as LegacyFeedback).annotations.map(ann => ({
+      return ((feedback as LegacyFeedback).annotations || []).map(ann => ({
         texte_original: ann.original_fragment,
         texte_corrige: ann.correction,
         explication: ann.explanation,
         type_erreur: ann.type as any
       }));
     }
-    return (feedback as WritingFeedback).liste_des_erreurs;
-  }, [feedback, isLegacy]);
+    return (feedback as WritingFeedback).liste_des_erreurs || [];
+  }, [feedback, isLegacy, attempt.skill]);
 
   const highlightedText = useMemo(() => {
     // Fallback "" : pour une tentative EO (rendu court-circuité ci-dessous, après
