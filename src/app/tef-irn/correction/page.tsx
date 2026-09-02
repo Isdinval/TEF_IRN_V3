@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import { createClient } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import { CorrectionDetailView } from "./components/CorrectionDetailView";
 
 const ITEMS_PER_PAGE = 10;
 
-export default function CorrectionHistoryPage() {
+function CorrectionHistoryPageContent() {
   const [attempts, setAttempts] = useState<ExerciseAttempt[]>([]);
   // Dataset séparé pour le graphique (item 3) : volontairement indépendant de
   // typeFilter/sortBy/pagination -- le graphique doit toujours montrer les 2
@@ -38,9 +38,16 @@ export default function CorrectionHistoryPage() {
   // 'eo' (skill='EO', pratique libre) -- voir correction_all_attempts (item 1)
   const [typeFilter, setTypeFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
+  // Item 11 : /tef-irn/correction?id=X (utilisé par le widget dashboard
+  // RecentCorrectionsList) doit ouvrir directement la tentative correspondante
+  // au lieu de toujours retomber sur la liste générale -- limitation transmise
+  // par Olivier après l'item 9 (les cartes EO du dashboard pointent ici
+  // désormais, comme l'EE le faisait déjà avant).
+  const [resolvingDeepLink, setResolvingDeepLink] = useState(false);
 
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -133,6 +140,42 @@ export default function CorrectionHistoryPage() {
       });
   }, [user, supabase]);
 
+  // Résolution du deep-link ?id=X (item 11) : requête dédiée par id, indépendante
+  // de la liste paginée -- la tentative visée peut très bien ne pas être dans les
+  // 10 premières lignes déjà chargées (typeFilter différent, page suivante jamais
+  // atteinte, etc.).
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id || !user) return;
+
+    setResolvingDeepLink(true);
+    supabase
+      .from('correction_all_attempts')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data, error }: { data: unknown; error: { message: string } | null }) => {
+        if (error) {
+          console.error("Error resolving deep-linked attempt:", error);
+        } else if (data) {
+          setSelectedAttempt(data as unknown as ExerciseAttempt);
+        }
+        setResolvingDeepLink(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user, supabase]);
+
+  // Retour à la liste depuis une tentative ouverte via deep-link : on nettoie
+  // l'URL (sinon l'id périmé reste affiché dans la barre d'adresse sans plus
+  // avoir d'effet, ce qui est trompeur si l'utilisateur partage/recharge le lien).
+  const handleBackToList = useCallback(() => {
+    setSelectedAttempt(null);
+    if (searchParams.get("id")) {
+      router.replace("/tef-irn/correction");
+    }
+  }, [router, searchParams]);
+
   const filteredAttempts = useMemo(() => {
     return attempts.filter(attempt => {
       const feedback = attempt.answers.feedback;
@@ -199,7 +242,7 @@ export default function CorrectionHistoryPage() {
     }
   };
 
-  if (loading) {
+  if (loading || (resolvingDeepLink && !selectedAttempt)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50">
         <div className="relative">
@@ -207,7 +250,7 @@ export default function CorrectionHistoryPage() {
           <Loader2 className="relative animate-spin text-indigo-600 mb-6" size={48} />
         </div>
         <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
-          Chargement de votre réussite...
+          {resolvingDeepLink ? "Ouverture de la correction..." : "Chargement de votre réussite..."}
         </p>
       </div>
     );
@@ -279,7 +322,7 @@ export default function CorrectionHistoryPage() {
             >
               <CorrectionDetailView
                 attempt={selectedAttempt}
-                onBack={() => setSelectedAttempt(null)}
+                onBack={handleBackToList}
                 onRestart={handleRestart}
                 onExport={handleExport}
                 isExporting={isExporting}
@@ -289,5 +332,17 @@ export default function CorrectionHistoryPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function CorrectionHistoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    }>
+      <CorrectionHistoryPageContent />
+    </Suspense>
   );
 }
