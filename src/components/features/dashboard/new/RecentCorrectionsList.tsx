@@ -105,11 +105,13 @@ export function RecentCorrectionsList({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             className={`group ${hasDetailPage ? "cursor-pointer" : ""}`}
-            onClick={hasDetailPage ? () => router.push(
-              item.exercise?.skill === "EO"
-                ? `/tef-irn/oral/history?id=${item.id}`
-                : `/tef-irn/correction?id=${item.id}`
-            ) : undefined}
+            // /tef-irn/oral/history a été supprimée (item 9, plan refonte page
+            // Correction) -- EE et EO pointent désormais tous les deux vers la
+            // page Correction unifiée. Note : /tef-irn/correction ne consomme
+            // pas encore ce paramètre `id` pour ouvrir directement la bonne
+            // tentative (limitation déjà présente avant ce patch pour l'EE,
+            // pas introduite ici -- hors scope de l'item 9).
+            onClick={hasDetailPage ? () => router.push(`/tef-irn/correction?id=${item.id}`) : undefined}
           >
             <div className={`p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm transition-all ${hasDetailPage ? "group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30" : ""}`}>
               <div className="flex items-start justify-between gap-3 mb-3">

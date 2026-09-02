@@ -153,7 +153,9 @@ export default function CorrectionHistoryPage() {
   const handleRestart = (attempt: ExerciseAttempt) => {
     // EO n'a pas d'équivalent "reprendre ce sujet précis" (pas d'exerciseId
     // réutilisable côté oral) -- on renvoie simplement vers la page de choix
-    // de scénario, comme le fait déjà /tef-irn/oral/history aujourd'hui.
+    // de scénario. /tef-irn/oral/history faisait pareil avant sa suppression
+    // (item 9, plan refonte page Correction) : /correction est désormais le
+    // seul point d'entrée historique pour EE et EO.
     if (attempt.skill === "EO") {
       router.push("/tef-irn/oral");
       return;
