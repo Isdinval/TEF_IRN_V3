@@ -55,11 +55,13 @@ interface ChartPoint {
   ee_date?: string;
   ee_type?: string;
   ee_level?: string | null;
+  ee_context?: string;
   eo_id?: string;
   eo_score?: number;
   eo_date?: string;
   eo_type?: string;
   eo_level?: string | null;
+  eo_context?: string;
 }
 
 const buildChartData = (chartAttempts: ExerciseAttempt[]): ChartPoint[] => {
@@ -83,11 +85,13 @@ const buildChartData = (chartAttempts: ExerciseAttempt[]): ChartPoint[] => {
       ee_date: ee ? new Date(ee.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : undefined,
       ee_type: ee ? typeLabel("EE", ee.context) : undefined,
       ee_level: ee?.estimated_level ?? null,
+      ee_context: ee?.context,
       eo_id: eo?.id,
       eo_score: eo?.score ?? undefined,
       eo_date: eo ? new Date(eo.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : undefined,
       eo_type: eo ? typeLabel("EO", eo.context) : undefined,
       eo_level: eo?.estimated_level ?? null,
+      eo_context: eo?.context,
     };
   });
 };
@@ -160,30 +164,42 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
 // pas à cet index pour cette courbe (gap dû à connectNulls, EE et EO n'ayant
 // pas forcément le même nombre de tentatives), pas d'id -> rien n'est rendu,
 // pas de faux clic sur un point invisible.
+//
+// Item 15 : forme distincte selon le context -- losange (carré à 45°) pour
+// "exam", cercle pour "standalone" -- pour que la distinction Examen blanc /
+// Pratique soit lisible d'un coup d'oeil sur le graphique, pas seulement au
+// survol via le tooltip (item 3).
 interface ClickableDotProps {
   cx?: number;
   cy?: number;
   payload?: ChartPoint;
   color: string;
   idKey: "ee_id" | "eo_id";
+  contextKey: "ee_context" | "eo_context";
   onSelect: (id: string) => void;
 }
 
-const ClickableDot = ({ cx, cy, payload, color, idKey, onSelect }: ClickableDotProps) => {
+const ClickableDot = ({ cx, cy, payload, color, idKey, contextKey, onSelect }: ClickableDotProps) => {
   const id = payload?.[idKey];
   if (cx === undefined || cy === undefined || !id) return null;
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={5}
-      fill={color}
-      stroke="#fff"
-      strokeWidth={2}
-      style={{ cursor: "pointer" }}
-      onClick={() => onSelect(id)}
-    />
-  );
+
+  const isExam = payload?.[contextKey] === "exam";
+  const commonProps = {
+    fill: color,
+    stroke: "#fff",
+    strokeWidth: 2,
+    style: { cursor: "pointer" as const },
+    onClick: () => onSelect(id),
+  };
+
+  if (isExam) {
+    // Losange : carré de 8x8 tourné à 45° autour de (cx, cy).
+    const half = 4;
+    const points = `${cx},${cy - half} ${cx + half},${cy} ${cx},${cy + half} ${cx - half},${cy}`;
+    return <polygon points={points} {...commonProps} />;
+  }
+
+  return <circle cx={cx} cy={cy} r={5} {...commonProps} />;
 };
 
 export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: CorrectionStatsProps) => {
@@ -312,6 +328,16 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                   <p className="text-sm font-medium text-zinc-400">
                     Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc). Cliquez un point pour voir le détail de la correction.
                   </p>
+                  <div className="mt-2 flex items-center gap-4 text-[11px] font-bold text-zinc-400">
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-2.5 w-2.5 rounded-full bg-zinc-400" />
+                      Pratique libre
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-2.5 w-2.5 rotate-45 bg-zinc-400" />
+                      Examen blanc
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -346,10 +372,10 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                       strokeWidth={4}
                       connectNulls
                       dot={(props: any) => (
-                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#4f46e5" idKey="ee_id" onSelect={handlePointClick} />
+                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#4f46e5" idKey="ee_id" contextKey="ee_context" onSelect={handlePointClick} />
                       )}
                       activeDot={(props: any) => (
-                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#4f46e5" idKey="ee_id" onSelect={handlePointClick} />
+                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#4f46e5" idKey="ee_id" contextKey="ee_context" onSelect={handlePointClick} />
                       )}
                     />
                     <Line
@@ -360,10 +386,10 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                       strokeWidth={4}
                       connectNulls
                       dot={(props: any) => (
-                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#7c3aed" idKey="eo_id" onSelect={handlePointClick} />
+                        <ClickableDot key={props.index ?? props.payload?.index} {...props} color="#7c3aed" idKey="eo_id" contextKey="eo_context" onSelect={handlePointClick} />
                       )}
                       activeDot={(props: any) => (
-                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#7c3aed" idKey="eo_id" onSelect={handlePointClick} />
+                        <ClickableDot key={`active-${props.index ?? props.payload?.index}`} {...props} cx={props.cx} cy={props.cy} color="#7c3aed" idKey="eo_id" contextKey="eo_context" onSelect={handlePointClick} />
                       )}
                     />
                   </LineChart>
