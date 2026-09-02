@@ -91,6 +91,23 @@ interface LessonSummary {
   slug?: string;
 }
 
+// Mélange l'ordre des questions d'un exercice Voltaire (Fisher-Yates), même
+// pattern que shuffleOptions() dans practice/page.tsx. Sans ça, la phrase sans
+// faute a tendance à se retrouver toujours à la même position dans le contenu
+// généré (souvent en 2e position sur les exercices à 5 questions), ce qui
+// laisse l'utilisateur deviner par pattern de position plutôt que par lecture
+// grammaticale réelle. Chaque élément de `questions` porte déjà sa propre
+// sentence/correct_word/explanation (assemblés par index dans startTraining),
+// donc mélanger le tableau final suffit -- pas besoin de remapper des index.
+function shuffleQuestions<T>(questions: T[]): T[] {
+  const shuffled = [...questions];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export function GrammarCheckContent() {
   const router = useRouter();
   const params = useParams();
@@ -325,8 +342,11 @@ export function GrammarCheckContent() {
       }
 
       if (qs.length > 0) {
+          // Uniquement pertinent pour le format multi-questions (content.questions[]) --
+          // le format legacy à une seule sentence (content.sentence) n'a rien à mélanger.
+          const orderedQs = qs.length > 1 ? shuffleQuestions(qs) : qs;
           setActiveExerciseId(data.id);
-          setQuestions(qs);
+          setQuestions(orderedQs);
           setMode("training");
           setCurrentIdx(0);
           setScore(0);
