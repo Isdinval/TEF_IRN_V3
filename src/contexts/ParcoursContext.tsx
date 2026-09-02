@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds, getRemainingExerciseCounts, RemainingExerciseCounts } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds, getRemainingExerciseCounts, RemainingExerciseCounts, ParcoursProgress as LibParcoursProgress } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { resolveNextVocabTheme } from "@/lib/vocab/next-theme";
 
@@ -55,11 +55,18 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   // leçons juste avant de naviguer, on évite de tout re-télécharger depuis zéro dans
   // loadParcoursData() sur la page de destination (même Provider, pas de remontage
   // entre deux navigations client-side). Consommé une seule fois puis vidé.
+  // progress ici est typé via lib/parcours.ts (LibParcoursProgress, avec
+  // completedLessons), pas via le ParcoursProgress importé de @/types/parcours
+  // ci-dessus (qui ne l'expose pas) -- ce cache est toujours peuplé par
+  // getParcoursProgress() (lib/parcours.ts), jamais par le state `progress`
+  // du composant. Divergence pré-existante entre les 2 définitions de
+  // ParcoursProgress, révélée par applyExerciseCounts() (item #4) qui est le
+  // premier à lire .completedLessons sur ce cache précis.
   const freshDataRef = useRef<{
     parcoursId: string;
     userId: string;
     parcours: Parcours;
-    progress: ParcoursProgress;
+    progress: LibParcoursProgress;
     lessons: Lesson[];
   } | null>(null);
 
