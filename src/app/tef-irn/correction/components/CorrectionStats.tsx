@@ -6,7 +6,8 @@ import {
   Target,
   BarChart3,
   TrendingUp,
-  History
+  History,
+  GraduationCap
 } from "lucide-react";
 import {
   LineChart,
@@ -21,6 +22,7 @@ import {
 import { motion } from "framer-motion";
 import { ExerciseAttempt } from "@/types/writing";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
+import { estimateCurrentLevel } from "../lib/estimate-level";
 
 interface CorrectionStatsProps {
   attempts: ExerciseAttempt[];
@@ -153,6 +155,7 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
   const latestScore = total > 0 ? attempts[0].score || 0 : 0;
 
   const chartData = buildChartData(chartAttempts);
+  const estimatedLevel = estimateCurrentLevel(chartAttempts);
 
   const cardStats = [
     {
@@ -191,6 +194,29 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
 
   return (
     <div className="space-y-6">
+      {estimatedLevel.level && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="overflow-hidden rounded-[2rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+            <CardContent className="flex flex-col items-center gap-2 p-8 text-center relative">
+              <div className="absolute top-5 right-5">
+                <InfoTooltip
+                  className="text-slate-500 hover:text-slate-300"
+                  text={`Estimation basée sur le niveau CECRL démontré (indépendant du niveau visé par chaque sujet) de vos ${estimatedLevel.sampleSize} dernières tentatives EE+EO les plus récentes, pondérées par récence. Ce n'est pas un score officiel TEF IRN.`}
+                />
+              </div>
+              <div className="flex items-center gap-2 text-indigo-400">
+                <GraduationCap size={16} />
+                <span className="text-xs font-black uppercase tracking-widest">Niveau CECRL estimé actuel</span>
+              </div>
+              <h2 className="text-5xl font-black tracking-tighter text-white">{estimatedLevel.level}</h2>
+              <p className="text-xs font-medium text-slate-400">
+                Basé sur vos {estimatedLevel.sampleSize} dernières tentatives EE+EO
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {cardStats.map((stat, i) => (
           <motion.div
