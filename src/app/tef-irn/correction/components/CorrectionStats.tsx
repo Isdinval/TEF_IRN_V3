@@ -20,6 +20,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { ExerciseAttempt } from "@/types/writing";
+import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 
 interface CorrectionStatsProps {
   attempts: ExerciseAttempt[];
@@ -153,15 +154,45 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
 
   const chartData = buildChartData(chartAttempts);
 
+  const cardStats = [
+    {
+      label: "Corrections",
+      value: total,
+      icon: History,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      tooltip: "Nombre de tentatives correspondant au filtre Type actuellement sélectionné ci-dessous (Tous / Examen blanc / EE / EO)."
+    },
+    {
+      label: "Score Moyen",
+      value: `${avgScore}%`,
+      icon: BarChart3,
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      tooltip: "Moyenne des scores sur les tentatives affichées. EE et EO ont chacune leur propre grille de notation officielle TEF IRN -- ce chiffre n'est vraiment comparable dans le temps que si vous filtrez sur un seul type à la fois."
+    },
+    {
+      label: "Record",
+      value: `${bestScore}%`,
+      icon: Trophy,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      tooltip: "Votre meilleur score parmi les tentatives actuellement affichées (filtre Type + Niveau appliqués)."
+    },
+    {
+      label: "Dernier",
+      value: `${latestScore}%`,
+      icon: Target,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      tooltip: "Score de votre tentative la plus récente parmi celles affichées -- pas forcément votre toute dernière activité si un filtre Type est actif."
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Corrections", value: total, icon: History, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Score Moyen", value: `${avgScore}%`, icon: BarChart3, color: "text-indigo-600", bg: "bg-indigo-50" },
-          { label: "Record", value: `${bestScore}%`, icon: Trophy, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Dernier", value: `${latestScore}%`, icon: Target, color: "text-emerald-600", bg: "bg-emerald-50" },
-        ].map((stat, i) => (
+        {cardStats.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -174,6 +205,7 @@ export const CorrectionStats = ({ attempts, chartAttempts }: CorrectionStatsProp
                   <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
                     <stat.icon size={24} />
                   </div>
+                  <InfoTooltip text={stat.tooltip} />
                 </div>
                 <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">{stat.label}</p>
                 <h4 className="text-3xl font-black text-zinc-900 tracking-tighter">{stat.value}</h4>
