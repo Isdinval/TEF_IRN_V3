@@ -8,12 +8,17 @@ import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronRight, ChevronLeft, Loader2, Rocket, Headphones, BookOpen, Mic, PenLine, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft, Loader2, Rocket, Headphones, BookOpen, Mic, PenLine, Check, GraduationCap, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2"] as const;
+
+const LEARNING_MODE_OPTIONS = [
+  { id: "academique", label: "Parcours guidé", sub: "Une leçon, ses exercices, puis la suivante — un programme structuré, étape par étape.", icon: GraduationCap },
+  { id: "libre", label: "Entraînement libre", sub: "Vous choisissez vous-même vos leçons, exercices et examens blancs, à votre rythme.", icon: Compass },
+] as const;
 
 const WEAK_SKILLS = [
   { id: "comprehension_orale", label: "Compréhension orale", icon: Headphones },
@@ -95,6 +100,7 @@ export default function Onboarding() {
   const [examDate, setExamDate] = useState("");
   const [noExamDateYet, setNoExamDateYet] = useState(false);
   const [availability, setAvailability] = useState("");
+  const [learningMode, setLearningMode] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -123,6 +129,7 @@ export default function Onboarding() {
         weak_skill: weakSkill,
         target_exam_date: noExamDateYet ? null : (examDate || null),
         weekly_availability: availability,
+        learning_mode: learningMode,
         onboarding_completed: true,
       }).eq('id', user.id);
 
@@ -276,18 +283,42 @@ export default function Onboarding() {
             {step === 5 && (
               <motion.div key="step5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Combien de temps par semaine ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Dernière étape, promis.</p>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Avant-dernière étape.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {AVAILABILITY_OPTIONS.map(a => (
                     <OptionButton key={a.id} selected={availability === a.id} onClick={() => setAvailability(a.id)} label={a.label} />
                   ))}
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(4)} className="h-11 px-4 rounded-xl border-zinc-200" disabled={loading}>
+                  <Button variant="outline" onClick={() => setStep(4)} className="h-11 px-4 rounded-xl border-zinc-200">
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
-                    disabled={!availability || loading}
+                    disabled={!availability}
+                    onClick={() => setStep(6)}
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                  >
+                    Continuer <ChevronRight size={16} className="ml-1" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 6 && (
+              <motion.div key="step6" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
+                <h1 className="text-xl font-black text-zinc-900 mb-1">Comment voulez-vous apprendre ?</h1>
+                <p className="text-sm text-zinc-400 font-medium mb-5">Vous pourrez changer d'avis à tout moment dans les paramètres.</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {LEARNING_MODE_OPTIONS.map(m => (
+                    <OptionButton key={m.id} selected={learningMode === m.id} onClick={() => setLearningMode(m.id)} label={m.label} sub={m.sub} icon={m.icon} />
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setStep(5)} className="h-11 px-4 rounded-xl border-zinc-200" disabled={loading}>
+                    <ChevronLeft size={16} />
+                  </Button>
+                  <Button
+                    disabled={!learningMode || loading}
                     onClick={handleFinish}
                     className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >

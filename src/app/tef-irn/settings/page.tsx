@@ -97,6 +97,7 @@ function SettingsContent() {
         username: profile.username,
         goal_level: profile.goal_level,
         current_level: profile.current_level,
+        learning_mode: profile.learning_mode,
       }).eq('id', user.id);
 
       if (error) alert(error.message);
@@ -435,6 +436,25 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                   <SelectItem value="B2" className="font-bold rounded-xl h-12">Nationalité française (B2)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex items-center justify-between p-6 border border-slate-200 rounded-[1.25rem]">
+              <div className="space-y-1 pr-6">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Mode d'apprentissage</p>
+                <p className="font-black text-lg text-zinc-900">
+                  {profile?.learning_mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
+                </p>
+                <p className="text-sm text-slate-500 font-medium leading-snug">
+                  {profile?.learning_mode === "academique"
+                    ? "Vos leçons se débloquent dans l'ordre, une à la fois."
+                    : "Vous choisissez vous-même vos leçons, exercices et examens blancs."}
+                </p>
+              </div>
+              <Switch
+                checked={profile?.learning_mode === "academique"}
+                onCheckedChange={(val) => setProfile((p: any) => p ? { ...p, learning_mode: val ? "academique" : "libre" } : null)}
+                className="scale-125 shrink-0"
+              />
             </div>
           </div>
 
