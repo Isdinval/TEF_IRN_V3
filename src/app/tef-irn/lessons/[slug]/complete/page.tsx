@@ -283,12 +283,16 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Exercices : facultatifs une fois qu'on peut avancer, visuellement secondaires */}
+          {/* Exercices : facultatifs une fois qu'on peut avancer, visuellement secondaires.
+              mt-16 explicite (fix bug remonté par Olivier, captures à l'appui) : le
+              space-y-16 du conteneur racine ne créait pas un écart visible suffisant
+              ici, le CTA et ce bloc étant tous deux dans le même Fragment -- marge
+              directe plus fiable que de compter sur l'héritage via un ancêtre. */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="space-y-8"
+            className="space-y-8 mt-16"
           >
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-black text-zinc-400 tracking-tight">Continuer à s'entraîner (facultatif)</h2>
