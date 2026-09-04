@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { getParcours, getLessonBySlug, getLessonById, Exercise } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
+import { useParcours } from "@/contexts/ParcoursContext";
 import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +27,15 @@ interface PathLesson {
   category: string;
 }
 
+// Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : nombre d'exercices
+// qcm/trous à compléter sur la leçon courante avant de pouvoir passer à la
+// suivante, uniquement en mode académique.
+const REQUIRED_EXERCISES = 3;
+
 export default function LessonComplete({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
+  const { learningMode } = useParcours();
   const [loading, setLoading] = useState(true);
   const [parcoursId, setParcoursId] = useState<string | null>(null);
   const [parcoursSlug, setParcoursSlug] = useState<string | null>(null);
@@ -36,6 +43,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
+  const [exercisesDoneCount, setExercisesDoneCount] = useState(0);
 
   const supabase = createClient();
 
@@ -119,10 +127,35 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
       );
       setRecommendedExercises(nextExercises);
 
+      // Bloc D (item 4) : quota d'exercices avant la leçon suivante, calculé
+      // uniquement en mode académique (coût réseau évité en libre).
+      if (learningMode === "academique") {
+        const { data: lessonExercises } = await supabase
+          .from('exercises')
+          .select('id')
+          .eq('lesson_id', currentLesson.id)
+          .in('type', ['qcm', 'trous']);
+        const exerciseIds = (lessonExercises || []).map((e: any) => e.id);
+        if (exerciseIds.length > 0) {
+          const { data: doneAttempts } = await supabase
+            .from('exercise_attempts')
+            .select('exercise_id')
+            .eq('user_id', user.id)
+            .eq('is_completed', true)
+            .in('exercise_id', exerciseIds);
+          setExercisesDoneCount(new Set((doneAttempts || []).map((a: any) => a.exercise_id)).size);
+        } else {
+          // Pas d'exercice qcm/trous sur cette leçon (leçon "Vocabulaire" par
+          // exemple, cf. item vocabulaire architecturalement isolé) -- ne pas
+          // bloquer indéfiniment sur un quota impossible à atteindre.
+          setExercisesDoneCount(REQUIRED_EXERCISES);
+        }
+      }
+
       setLoading(false);
     }
     fetchData();
-  }, [slug, supabase, router]);
+  }, [slug, supabase, router, learningMode]);
 
   if (loading) {
     return (
@@ -135,6 +168,8 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
 
   const [heroExercise, ...restExercises] = recommendedExercises;
+  const canAdvance = learningMode !== "academique" || exercisesDoneCount >= REQUIRED_EXERCISES;
+  const remaining = REQUIRED_EXERCISES - exercisesDoneCount;
 
   return (
     <div className="max-w-5xl mx-auto p-8 py-16 min-h-screen space-y-16">
@@ -178,15 +213,30 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
 
       {/* Leçon suivante / fin de parcours */}
       {nextLesson ? (
-        <Link href={`/tef-irn/lessons/${nextLesson.slug}`}>
-          <Button
-            size="lg"
-            className="w-full h-16 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
-          >
-            Leçon suivante <ArrowRight className="ml-2" size={22} />
-          </Button>
-        </Link>
-      ) : (
+        canAdvance ? (
+          <Link href={`/tef-irn/lessons/${nextLesson.slug}`}>
+            <Button
+              size="lg"
+              className="w-full h-16 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
+            >
+              Leçon suivante <ArrowRight className="ml-2" size={22} />
+            </Button>
+          </Link>
+        ) : (
+          <div className="space-y-2">
+            <Button
+              size="lg"
+              disabled
+              className="w-full h-16 text-xl font-black rounded-[2rem] bg-zinc-100 text-zinc-400 cursor-not-allowed"
+            >
+              Encore {remaining} exercice{remaining > 1 ? "s" : ""} avant la leçon suivante
+            </Button>
+            <p className="text-center text-xs font-black uppercase tracking-widest text-zinc-400">
+              {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
+            </p>
+          </div>
+        )
+      ) : canAdvance ? (
         <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
           <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
           <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
@@ -195,6 +245,16 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
               Voir mon parcours
             </Button>
           </Link>
+        </div>
+      ) : (
+        <div className="p-8 bg-amber-50 rounded-[2.5rem] border border-amber-100 text-center">
+          <p className="text-2xl font-black text-amber-600">Encore un effort !</p>
+          <p className="text-amber-600/80 font-medium mb-2">
+            Terminez {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour finir ce parcours.
+          </p>
+          <p className="text-xs font-black uppercase tracking-widest text-amber-500">
+            {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
+          </p>
         </div>
       )}
 

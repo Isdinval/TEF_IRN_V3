@@ -42,6 +42,11 @@ interface ParcoursContextType {
    *  null tant que non encore calculé (chargement initial). Consommé par la
    *  TopBar pour afficher un compteur sur chacun des deux boutons d'exercice. */
   exerciseCounts: RemainingExerciseCounts | null;
+  /** Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : profiles.learning_mode
+   *  de l'utilisateur courant, fetché une fois au montage. 'libre' par défaut
+   *  (chargement/non connecté) -- ne bascule jamais accidentellement vers un
+   *  comportement académique tant que la valeur réelle n'est pas confirmée. */
+  learningMode: 'academique' | 'libre';
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -58,6 +63,24 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [vocabFullyMastered, setVocabFullyMastered] = useState(false);
   const [exerciseCounts, setExerciseCounts] = useState<RemainingExerciseCounts | null>(null);
+  const [learningMode, setLearningMode] = useState<'academique' | 'libre'>('libre');
+
+  // Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : fetché une seule
+  // fois au montage, indépendant du reste du provider (activeParcours,
+  // freshDataRef...) -- consommé par ParcoursTopBar (masquage du raccourci
+  // "Leçon suivante" en académique) et par /lessons/[slug]/complete (quota
+  // d'exercices).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase.from('profiles').select('learning_mode').eq('id', user.id).maybeSingle();
+      if (!cancelled && data?.learning_mode === 'academique') setLearningMode('academique');
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cache court-terme : quand nextLesson() vient de recalculer parcours/progression/
   // leçons juste avant de naviguer, on évite de tout re-télécharger depuis zéro dans
@@ -469,7 +492,8 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       nextExercise,
       nextVocabulary,
       vocabFullyMastered,
-      exerciseCounts
+      exerciseCounts,
+      learningMode
     }}>
       {children}
     </ParcoursContext.Provider>
