@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PracticeTreeCatalogue, { LessonMeta } from "./components/PracticeTreeCatalogue";
-import { Exercise } from "@/lib/parcours";
+import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
 import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
@@ -317,12 +317,22 @@ export function PracticeContent() {
       return;
     }
     try {
+      // Item #6 du plan "remontées LlamaKusi août 2026" : si un parcours de
+      // ce niveau/catégorie est en cours pour l'utilisateur, on scope la
+      // recommandation à ses leçons débloquées (déjà lues ou en cours).
+      // Fallback (null) sur le pool non scopé existant si aucun parcours ne
+      // correspond ou n'est encore entamé -- comportement inchangé.
+      const unlockedLessonIds = filters.category !== "Toutes"
+        ? await getUnlockedLessonIdsForInProgressParcours(user.id, filters.level, filters.category, supabase)
+        : null;
+
       const [recommended] = await resolveNextExercises(
         user.id,
         {
           level: filters.level,
           category: filters.category !== "Toutes" ? filters.category : undefined,
           type: "qcm",
+          ...(unlockedLessonIds ? { unlockedLessonIds } : {}),
         },
         supabase,
         1

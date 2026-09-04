@@ -406,6 +406,50 @@ export async function getUnlockedExercisesCatalogue(
   }));
 }
 
+/**
+ * Calcule les leçons débloquées (complétées + leçon en cours, cf.
+ * getUnlockedLessonIds ci-dessus) du parcours niveau/catégorie que
+ * l'utilisateur est réellement en train de faire -- item #6 du plan
+ * "remontées LlamaKusi août 2026" : scope la recommandation "Lancer mon
+ * exercice recommandé" de /grammar-check et /practice aux exercices du
+ * parcours en cours plutôt qu'à tout le pool niveau/catégorie.
+ *
+ * Retourne `null` (plutôt qu'un Set vide) dans deux cas : aucun parcours ne
+ * correspond au couple niveau/catégorie, ou l'utilisateur ne l'a pas encore
+ * entamé (aucune leçon complétée) ou l'a déjà entièrement terminé -- dans ces
+ * deux cas ce n'est pas un "parcours en cours", l'appelant doit retomber sur
+ * le pool non scopé existant (fallback validé avec Olivier).
+ */
+export async function getUnlockedLessonIdsForInProgressParcours(
+  userId: string,
+  level: string,
+  category: string,
+  supabase: SupabaseClient = defaultSupabase
+): Promise<Set<string> | null> {
+  // parcours.category et lessons.category sont stockés en minuscule en base,
+  // alors que les appelants (filtres UI de /grammar-check et /practice)
+  // passent une catégorie capitalisée (ex. "Conjugaison") -- même divergence
+  // de casse que getRemainingExerciseCounts() plus haut dans ce fichier.
+  const normalizedCategory = category.toLowerCase();
+
+  const { data: parcours } = await supabase
+    .from('parcours')
+    .select('id')
+    .eq('level', level)
+    .eq('category', normalizedCategory)
+    .maybeSingle();
+
+  if (!parcours) return null;
+
+  const progress = await getParcoursProgress(userId, level, normalizedCategory, parcours.id, supabase);
+  if (progress.completed === 0 || progress.isCompleted) return null;
+
+  const lessons = await getLessonsForParcours(level, normalizedCategory, supabase);
+  if (lessons.length === 0) return null;
+
+  return getUnlockedLessonIds(lessons, progress.completedLessons);
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')
