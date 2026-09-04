@@ -738,7 +738,7 @@ export function PracticeContent() {
           <img
             src={resultMascotUrl}
             alt="Mascotte LlamaKusi célébrant la réussite du QCM"
-            className="w-28 h-28 mx-auto object-contain drop-shadow-xl"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
           />
           <div className="space-y-2">
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>

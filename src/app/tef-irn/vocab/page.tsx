@@ -16,7 +16,6 @@ import {
   ArrowRight,
   Loader2,
   Sparkles,
-  Trophy,
   Brain,
   Target,
   GraduationCap,
@@ -24,6 +23,7 @@ import {
   RotateCcw,
   AlertTriangle
 } from "lucide-react";
+import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { updateVocabularySRS } from "@/lib/srs-engine";
 import { motion, AnimatePresence } from "framer-motion";
 import { validateVocabResponse } from "@/lib/vocab/utils";
@@ -63,6 +63,7 @@ export function VocabCoachContent() {
   const [step, setStep] = useState<Step>("presentation");
   const [flipped, setFlipped] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
   const [loading, setLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<any[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -416,6 +417,7 @@ export function VocabCoachContent() {
           setStep("presentation");
           setFlipped(false);
         } else {
+          setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
           setFinished(true);
         }
       }
@@ -431,6 +433,7 @@ export function VocabCoachContent() {
       setStep("presentation");
       setFlipped(false);
     } else {
+      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setFinished(true);
     }
   };
@@ -459,9 +462,11 @@ export function VocabCoachContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-          <div className="w-20 h-20 bg-emerald-600 rounded-[2rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-emerald-200">
-            <Trophy size={36} />
-          </div>
+          <img
+            src={resultMascotUrl}
+            alt="Mascotte LlamaKusi célébrant la fin de la session de vocabulaire"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
+          />
           <div className="space-y-2">
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Session terminée !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous avez maîtrisé {sessionMasteredCount} nouveaux mots.</p>
@@ -493,18 +498,6 @@ export function VocabCoachContent() {
                 <RotateCcw size={14} className="mr-2" /> Recommencer la session
               </Button>
           </div>
-
-          {/* Item 3 du plan "Changement de niveau sans quitter le thème (B+D)" :
-              propose de poursuivre le même thème à un autre niveau plutôt
-              qu'un simple retour générique au catalogue -- même thème,
-              vocabulary a toujours les 4 niveaux remplis (vérifié en base). */}
-          {filters.category !== "Toutes" && (
-            <VocabLevelSwitcher
-              currentLevel={filters.level}
-              onSelectLevel={handleLevelSwitch}
-              variant="card"
-            />
-          )}
         </motion.div>
       </div>
     );
