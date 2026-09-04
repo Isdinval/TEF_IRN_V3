@@ -47,6 +47,12 @@ interface ParcoursInteractiveProps {
    *  verrou), 'academique' active status='locked' au-delà de la leçon
    *  "next". */
   learningMode: 'academique' | 'libre';
+  /** Fix bug critique (item 4-D) : leçons "vraiment" complétées pour le
+   *  déverrouillage (lesson_progress + quota d'exercices en académique, cf.
+   *  getTrulyCompletedLessonIds dans lib/parcours.ts) -- distinct de
+   *  initialProgress.completedLessons (lesson_progress brut), qui reste la
+   *  source de la barre de progression "X/Y leçons". */
+  trulyCompletedLessonIds: string[];
 }
 
 export default function ParcoursInteractive({
@@ -58,7 +64,8 @@ export default function ParcoursInteractive({
   lessonMeta,
   initialGuideSlug,
   user,
-  learningMode
+  learningMode,
+  trulyCompletedLessonIds
 }: ParcoursInteractiveProps) {
   const [progress] = useState(initialProgress);
   const [recommendedExercises] = useState(initialRecommendedExercises);
@@ -102,7 +109,7 @@ export default function ParcoursInteractive({
 
     let nextFound = false;
     return allLessons.map((lesson) => {
-      const isCompleted = progress.completedLessons.includes(lesson.id);
+      const isCompleted = trulyCompletedLessonIds.includes(lesson.id);
       let status: 'completed' | 'next' | 'locked' | 'open' = 'open';
 
       if (isCompleted) {
@@ -116,7 +123,7 @@ export default function ParcoursInteractive({
 
       return { ...lesson, status };
     });
-  }, [allLessons, progress, user, learningMode]);
+  }, [allLessons, progress, user, learningMode, trulyCompletedLessonIds]);
 
   // Leçon "en cours" pour la carte vocab thématique -- même critère que
   // status='next' ci-dessus (première leçon non complétée), mais dérivé

@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Profile, UserPreferences } from "@/types/database";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useParcours } from "@/contexts/ParcoursContext";
 
 type SettingsSection = "profile" | "subscription" | "notifications" | "security";
 
@@ -29,6 +30,7 @@ function SettingsContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshLearningMode } = useParcours();
   const supabase = createClient();
 
   useEffect(() => {
@@ -101,7 +103,10 @@ function SettingsContent() {
       }).eq('id', user.id);
 
       if (error) alert(error.message);
-      else showToast("Profil mis à jour !");
+      else {
+        showToast("Profil mis à jour !");
+        await refreshLearningMode();
+      }
     }
     setSaving(false);
   };

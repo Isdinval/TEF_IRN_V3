@@ -47,6 +47,11 @@ interface ParcoursContextType {
    *  (chargement/non connecté) -- ne bascule jamais accidentellement vers un
    *  comportement académique tant que la valeur réelle n'est pas confirmée. */
   learningMode: 'academique' | 'libre';
+  /** Fix bug remonté par Olivier après tests manuels (item 4-D) : à
+   *  rappeler depuis Settings juste après un changement de mode réussi, le
+   *  Provider ne remontant jamais tout seul entre deux navigations
+   *  client-side (monté une fois au niveau du layout racine). */
+  refreshLearningMode: () => Promise<void>;
 }
 
 const ParcoursContext = createContext<ParcoursContextType | undefined>(undefined);
@@ -69,16 +74,20 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   // fois au montage, indépendant du reste du provider (activeParcours,
   // freshDataRef...) -- consommé par ParcoursTopBar (masquage du raccourci
   // "Leçon suivante" en académique) et par /lessons/[slug]/complete (quota
-  // d'exercices).
+  // d'exercices). Extrait en fonction réutilisable (fix bug remonté par
+  // Olivier après tests manuels) : le Provider est monté une seule fois au
+  // niveau du layout racine, donc changer le mode dans Settings ne
+  // remontait jamais ce useEffect -- settings/page.tsx rappelle
+  // refreshLearningMode() explicitement après sauvegarde.
+  const refreshLearningMode = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('profiles').select('learning_mode').eq('id', user.id).maybeSingle();
+    setLearningMode(data?.learning_mode === 'academique' ? 'academique' : 'libre');
+  }, [supabase]);
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
-      const { data } = await supabase.from('profiles').select('learning_mode').eq('id', user.id).maybeSingle();
-      if (!cancelled && data?.learning_mode === 'academique') setLearningMode('academique');
-    })();
-    return () => { cancelled = true; };
+    refreshLearningMode();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -493,7 +502,8 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       nextVocabulary,
       vocabFullyMastered,
       exerciseCounts,
-      learningMode
+      learningMode,
+      refreshLearningMode
     }}>
       {children}
     </ParcoursContext.Provider>

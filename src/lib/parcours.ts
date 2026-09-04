@@ -450,6 +450,60 @@ export async function getUnlockedLessonIdsForInProgressParcours(
   return getUnlockedLessonIds(lessons, progress.completedLessons);
 }
 
+/**
+ * Bug remonté par Olivier après tests manuels (item 4-D) : une leçon marquée
+ * "lue" (lesson_progress) débloquait immédiatement la suivante via
+ * getUnlockedLessonIds(), même en académique sans que le quota d'exercices
+ * (REQUIRED_EXERCISES, cf. lessons/[slug]/complete/page.tsx) soit atteint --
+ * contournable en revenant sur /parcours/[slug] et en cliquant directement
+ * la leçon suivante. Filtre completedLessonIds pour n'y garder, en
+ * académique, que les leçons où le quota est aussi rempli. Sans effet en
+ * mode libre (retourne completedLessonIds tel quel).
+ */
+export async function getTrulyCompletedLessonIds(
+  userId: string,
+  completedLessonIds: string[],
+  learningMode: 'academique' | 'libre',
+  supabase: SupabaseClient = defaultSupabase,
+  requiredExercises: number = 3
+): Promise<string[]> {
+  if (learningMode !== 'academique' || completedLessonIds.length === 0) return completedLessonIds;
+
+  const { data: exercises } = await supabase
+    .from('exercises')
+    .select('id, lesson_id')
+    .in('lesson_id', completedLessonIds)
+    .in('type', ['qcm', 'trous']);
+
+  const exercisesByLesson = new Map<string, string[]>();
+  (exercises || []).forEach((e: any) => {
+    const arr = exercisesByLesson.get(e.lesson_id) || [];
+    arr.push(e.id);
+    exercisesByLesson.set(e.lesson_id, arr);
+  });
+
+  const allExerciseIds = (exercises || []).map((e: any) => e.id);
+  const doneExerciseIds = new Set<string>();
+  if (allExerciseIds.length > 0) {
+    const { data: attempts } = await supabase
+      .from('exercise_attempts')
+      .select('exercise_id')
+      .eq('user_id', userId)
+      .eq('is_completed', true)
+      .in('exercise_id', allExerciseIds);
+    (attempts || []).forEach((a: any) => doneExerciseIds.add(a.exercise_id));
+  }
+
+  return completedLessonIds.filter((lessonId) => {
+    const lessonExerciseIds = exercisesByLesson.get(lessonId) || [];
+    // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
+    // jamais bloquant, même repli que /complete (REQUIRED_EXERCISES).
+    if (lessonExerciseIds.length === 0) return true;
+    const doneCount = lessonExerciseIds.filter((id) => doneExerciseIds.has(id)).length;
+    return doneCount >= Math.min(requiredExercises, lessonExerciseIds.length);
+  });
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')

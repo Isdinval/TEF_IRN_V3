@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,7 +110,7 @@ export function PracticeContent() {
   const params = useParams();
   const exerciseIdFromParams = params?.id as string | undefined;
   const supabase = createClient();
-  const { activeParcours, nextLesson, refreshProgress, refreshExerciseCounts } = useParcours();
+  const { activeParcours, nextLesson, refreshProgress, refreshExerciseCounts, learningMode } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "practice" | "result">("selection");
@@ -800,7 +801,14 @@ export function PracticeContent() {
               onClick={handleBackToCatalogue}
               className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
             >Retourner au catalogue</Button>
-            {nextLesson && (
+            {learningMode === "academique" && questions[0]?.lesson_id && lessonBreadcrumbById[questions[0].lesson_id]?.slug && (
+              <Link href={`/tef-irn/lessons/${lessonBreadcrumbById[questions[0].lesson_id].slug}/complete`}>
+                <Button className="h-12 w-full bg-indigo-600 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-indigo-700 transition-all">
+                  Retour à la leçon
+                </Button>
+              </Link>
+            )}
+            {learningMode !== "academique" && nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
             <Button

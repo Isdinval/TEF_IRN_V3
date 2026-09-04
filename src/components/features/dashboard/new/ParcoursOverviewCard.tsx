@@ -1,9 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Compass, ArrowRight, BookOpen } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Compass, ArrowRight, BookOpen, GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase";
+import { useParcours } from "@/contexts/ParcoursContext";
 import { InfoTooltip } from "./InfoTooltip";
 
 interface CurrentLesson {
@@ -25,13 +30,35 @@ interface InProgressParcours {
 interface ParcoursOverviewCardProps {
   overview: { total: number; completed: number; in_progress: number; not_started: number } | null;
   inProgressParcours: InProgressParcours[];
+  /** Fix demandé par Olivier après tests manuels (item 4-B) : le toggle
+   *  académique/libre n'était disponible que dans Settings -- affiché ici
+   *  aussi, avec écriture directe + refreshLearningMode() (ParcoursContext)
+   *  pour que la TopBar/le quota reflètent le changement immédiatement,
+   *  même correctif que celui appliqué à Settings. */
+  learningMode: 'academique' | 'libre';
 }
 
 const OVERVIEW_TOOLTIP =
   "Vue d'ensemble de tous les parcours du catalogue (tous niveaux confondus) : combien vous avez terminés, combien sont en cours, et combien restent à découvrir.";
 
-export function ParcoursOverviewCard({ overview, inProgressParcours }: ParcoursOverviewCardProps) {
+export function ParcoursOverviewCard({ overview, inProgressParcours, learningMode }: ParcoursOverviewCardProps) {
   const router = useRouter();
+  const { refreshLearningMode } = useParcours();
+  const [mode, setMode] = useState(learningMode);
+  const [saving, setSaving] = useState(false);
+
+  const handleToggleMode = async (checked: boolean) => {
+    const newMode = checked ? "academique" : "libre";
+    setMode(newMode);
+    setSaving(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('profiles').update({ learning_mode: newMode }).eq('id', user.id);
+      await refreshLearningMode();
+    }
+    setSaving(false);
+  };
 
   if (!overview || overview.total === 0) return null;
 
@@ -51,6 +78,16 @@ export function ParcoursOverviewCard({ overview, inProgressParcours }: ParcoursO
             {remaining} parcours restant{remaining > 1 ? "s" : ""} sur {overview.total}
             <InfoTooltip text={OVERVIEW_TOOLTIP} />
           </p>
+        </div>
+
+        <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-zinc-50 border border-zinc-100">
+          <div className="flex items-center gap-2">
+            <GraduationCap size={16} className="text-indigo-600 shrink-0" />
+            <p className="text-xs font-black text-zinc-700">
+              {mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
+            </p>
+          </div>
+          <Switch checked={mode === "academique"} onCheckedChange={handleToggleMode} disabled={saving} />
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-2">
@@ -78,10 +115,10 @@ export function ParcoursOverviewCard({ overview, inProgressParcours }: ParcoursO
                   </p>
                 </div>
                 {p.current_lesson ? (
-                  <>
+                  <Link href={`/tef-irn/lessons/${p.current_lesson.slug}`} className="block space-y-2 group">
                     <div className="flex items-start gap-2">
                       <BookOpen size={14} className="text-violet-500 mt-0.5 shrink-0" />
-                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2">
+                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2 group-hover:text-violet-600 transition-colors">
                         {p.current_lesson.title}
                       </p>
                     </div>
@@ -90,7 +127,7 @@ export function ParcoursOverviewCard({ overview, inProgressParcours }: ParcoursO
                         ? `${p.current_lesson.qcm_remaining} QCM et ${p.current_lesson.trous_remaining} Trous restants`
                         : "Tous les exercices débloqués sont faits, bravo !"}
                     </p>
-                  </>
+                  </Link>
                 ) : (
                   <p className="text-xs font-medium text-zinc-400 italic">Toutes les leçons sont complétées.</p>
                 )}

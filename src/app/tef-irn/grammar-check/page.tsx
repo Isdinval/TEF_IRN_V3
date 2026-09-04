@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import GrammarCheckTreeCatalogue, { LessonMeta } from "./components/GrammarCheckTreeCatalogue";
@@ -116,7 +117,7 @@ export function GrammarCheckContent() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(exerciseIdFromParams);
 
   const supabase = useMemo(() => createClient(), []);
-  const { nextLesson, refreshProgress, refreshExerciseCounts } = useParcours();
+  const { nextLesson, refreshProgress, refreshExerciseCounts, learningMode } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
@@ -590,7 +591,14 @@ export function GrammarCheckContent() {
               }}
               className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
             >Retourner au catalogue</Button>
-            {nextLesson && (
+            {learningMode === "academique" && questions[0]?.lesson_id && lessonBreadcrumbById[questions[0].lesson_id]?.slug && (
+              <Link href={`/tef-irn/lessons/${lessonBreadcrumbById[questions[0].lesson_id].slug}/complete`}>
+                <Button className="h-12 w-full bg-indigo-600 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-indigo-700 transition-all">
+                  Retour à la leçon
+                </Button>
+              </Link>
+            )}
+            {learningMode !== "academique" && nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
             <Button

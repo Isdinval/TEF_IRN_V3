@@ -280,7 +280,7 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
             <div className="space-y-6">
-              <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} />
+              <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
               <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
               {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
             </div>

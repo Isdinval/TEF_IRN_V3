@@ -213,29 +213,55 @@ function SidebarContent() {
               </button>
               {isOpen && (
                 <div className="pl-4 space-y-0.5">
-                  {group.items.map((item, idx) => {
-                    const prevSection = (group.items[idx - 1] as { section?: string })?.section;
-                    const itemSection = (item as { section?: string }).section;
-                    const showSectionHeader = itemSection && itemSection !== prevSection;
-                    const sectionMeta = itemSection ? SECTION_META[itemSection] : null;
-                    return (
-                      <div key={item.href}>
-                        {showSectionHeader && sectionMeta && (
-                          <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 flex items-center gap-1.5">
-                            <sectionMeta.icon size={11} />
-                            {sectionMeta.label}
-                          </p>
-                        )}
+                  {(() => {
+                    // Fix demandé par Olivier après tests manuels : le simple
+                    // sous-titre au-dessus des items ne délimitait pas assez
+                    // clairement "Parcours guidé" / "Entraînement libre" des
+                    // items communs. Les items consécutifs d'une même section
+                    // sont maintenant regroupés dans un conteneur visuel
+                    // commun (bordure + fond légèrement teinté).
+                    const rendered: React.ReactNode[] = [];
+                    let i = 0;
+                    while (i < group.items.length) {
+                      const item = group.items[i] as { href: string; label: string; icon: React.ElementType; section?: string };
+                      const renderLink = (it: typeof item, key: string) => (
                         <Link
-                          href={buildItemHref(item.href)}
-                          className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+                          key={key}
+                          href={buildItemHref(it.href)}
+                          className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(it.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
                         >
-                          <item.icon size={16} className={isActive(item.href) ? theme.icon : "text-zinc-400"} />
-                          {item.label}
+                          <it.icon size={16} className={isActive(it.href) ? theme.icon : "text-zinc-400"} />
+                          {it.label}
                         </Link>
-                      </div>
-                    );
-                  })}
+                      );
+
+                      if (!item.section) {
+                        rendered.push(renderLink(item, item.href));
+                        i++;
+                        continue;
+                      }
+
+                      const section = item.section;
+                      const sectionItems: typeof item[] = [];
+                      while (i < group.items.length && (group.items[i] as { section?: string }).section === section) {
+                        sectionItems.push(group.items[i] as typeof item);
+                        i++;
+                      }
+                      const sectionMeta = SECTION_META[section];
+                      rendered.push(
+                        <div key={`section-${section}`} className="my-2 rounded-2xl border border-zinc-100 bg-zinc-50/60 p-1.5 space-y-0.5">
+                          {sectionMeta && (
+                            <p className="px-3 pt-1 pb-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 flex items-center gap-1.5">
+                              <sectionMeta.icon size={11} />
+                              {sectionMeta.label}
+                            </p>
+                          )}
+                          {sectionItems.map((sItem) => renderLink(sItem, sItem.href))}
+                        </div>
+                      );
+                    }
+                    return rendered;
+                  })()}
                 </div>
               )}
             </div>

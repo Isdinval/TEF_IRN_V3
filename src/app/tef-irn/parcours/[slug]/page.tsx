@@ -5,6 +5,7 @@ import {
   getLessonsForParcours,
   getParcoursProgress,
   getUnlockedLessonIds,
+  getTrulyCompletedLessonIds,
   getUnlockedExercisesCatalogue,
   Exercise
 } from "@/lib/parcours";
@@ -40,6 +41,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
   let recommendedExercises: Exercise[] = [];
   let catalogueExercises: (Exercise & { is_completed?: boolean; attempts_count?: number })[] = [];
   let learningMode: 'academique' | 'libre' = 'libre';
+  let trulyCompletedLessonIds: string[] = [];
 
   if (user) {
     const { data: profileData } = await supabase
@@ -86,10 +88,21 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
       .map((row: { sub_category: string | null }) => row.sub_category)
       .filter((tag): tag is string => !!tag);
 
-    // Calculé une seule fois, réutilisé par le moteur de reco (hero) ET le
-    // catalogue complet (accordéon, item #6) -- même périmètre garanti entre
-    // les deux, pas de risque de divergence si l'un des deux appels change un jour.
-    const unlockedLessonIds = getUnlockedLessonIds(allLessons, progress.completedLessons);
+    // Fix bug critique (item 4-D, remonté par Olivier après tests manuels) :
+    // en académique, une leçon lue ne compte comme "vraiment" complétée pour
+    // le déverrouillage qu'après avoir aussi atteint le quota d'exercices --
+    // sinon la leçon suivante se débloquait dès la lecture, contournable
+    // depuis cette page. Calculé une seule fois, réutilisé par le moteur de
+    // reco (hero) ET le catalogue complet (accordéon, item #6) ET le statut
+    // de verrouillage transmis à ParcoursInteractive -- même périmètre
+    // garanti aux 3 endroits, pas de risque de divergence.
+    trulyCompletedLessonIds = await getTrulyCompletedLessonIds(
+      user.id,
+      progress.completedLessons,
+      learningMode,
+      supabase
+    );
+    const unlockedLessonIds = getUnlockedLessonIds(allLessons, trulyCompletedLessonIds);
 
     [recommendedExercises, catalogueExercises] = await Promise.all([
       resolveNextExercises(
@@ -167,6 +180,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
         initialGuideSlug={guideData?.slug || null}
         user={user}
         learningMode={learningMode}
+        trulyCompletedLessonIds={trulyCompletedLessonIds}
       />
     </>
   );

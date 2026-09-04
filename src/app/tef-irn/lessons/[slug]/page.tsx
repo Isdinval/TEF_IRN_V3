@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import LessonInteractive from './LessonInteractive';
 import { siteUrl } from '@/lib/site';
 import JsonLd from '@/components/shared/JsonLd';
-import { getLessonBySlug, getLessonById, getLessonsForParcours, getParcoursProgress, getUnlockedLessonIds } from '@/lib/parcours';
+import { getLessonBySlug, getLessonById, getLessonsForParcours, getParcoursProgress, getUnlockedLessonIds, getTrulyCompletedLessonIds } from '@/lib/parcours';
 
 export default async function LessonPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
@@ -47,7 +47,13 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
           getLessonsForParcours(lesson.level, lesson.category, supabase),
           getParcoursProgress(user.id, lesson.level, lesson.category, parentParcours.id, supabase),
         ]);
-        const unlockedLessonIds = getUnlockedLessonIds(parcoursLessons, progress.completedLessons);
+        const trulyCompletedLessonIds = await getTrulyCompletedLessonIds(
+          user.id,
+          progress.completedLessons,
+          'academique',
+          supabase
+        );
+        const unlockedLessonIds = getUnlockedLessonIds(parcoursLessons, trulyCompletedLessonIds);
 
         if (!unlockedLessonIds.has(lesson.id)) {
           redirect(`/tef-irn/parcours/${parentParcours.slug}?locked=1`);
