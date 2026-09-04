@@ -98,6 +98,7 @@ export default async function ParcoursDetailPage(props: { params: Promise<{ slug
     // garanti aux 3 endroits, pas de risque de divergence.
     trulyCompletedLessonIds = await getTrulyCompletedLessonIds(
       user.id,
+      allLessons,
       progress.completedLessons,
       learningMode,
       supabase

@@ -80,14 +80,20 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
           </p>
         </div>
 
-        <div className="flex items-center justify-between p-4 mb-6 rounded-2xl bg-zinc-50 border border-zinc-100">
-          <div className="flex items-center gap-2">
-            <GraduationCap size={16} className="text-indigo-600 shrink-0" />
-            <p className="text-xs font-black text-zinc-700">
-              {mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
-            </p>
+        <div className="p-4 mb-6 rounded-2xl bg-zinc-50 border border-zinc-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GraduationCap size={16} className="text-indigo-600 shrink-0" />
+              <p className="text-xs font-black text-zinc-700">
+                {mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
+              </p>
+            </div>
+            <Switch checked={mode === "academique"} onCheckedChange={handleToggleMode} disabled={saving} />
           </div>
-          <Switch checked={mode === "academique"} onCheckedChange={handleToggleMode} disabled={saving} />
+          <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+            <span className="font-black text-zinc-500">Parcours guidé</span> : les leçons se débloquent dans l'ordre, avec quelques exercices à faire avant de passer à la suivante.{" "}
+            <span className="font-black text-zinc-500">Entraînement libre</span> : vous choisissez vous-même vos leçons, exercices et examens blancs, sans contrainte.
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-2">

@@ -49,6 +49,7 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
         ]);
         const trulyCompletedLessonIds = await getTrulyCompletedLessonIds(
           user.id,
+          parcoursLessons,
           progress.completedLessons,
           'academique',
           supabase

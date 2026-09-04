@@ -211,86 +211,112 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
         </div>
       </motion.div>
 
-      {/* Leçon suivante / fin de parcours */}
-      {nextLesson ? (
-        canAdvance ? (
-          <Link href={`/tef-irn/lessons/${nextLesson.slug}`}>
-            <Button
-              size="lg"
-              className="w-full h-16 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
-            >
-              Leçon suivante <ArrowRight className="ml-2" size={22} />
-            </Button>
-          </Link>
-        ) : (
-          <div className="space-y-2">
-            <Button
-              size="lg"
-              disabled
-              className="w-full h-16 text-xl font-black rounded-[2rem] bg-zinc-100 text-zinc-400 cursor-not-allowed"
-            >
-              Encore {remaining} exercice{remaining > 1 ? "s" : ""} avant la leçon suivante
-            </Button>
-            <p className="text-center text-xs font-black uppercase tracking-widest text-zinc-400">
+      {/* Bloc unique : soit "faites ces exercices pour débloquer la suite"
+          (académique, quota pas atteint -- fusionné avec les exercices,
+          plus de bouton désactivé séparé qui créait l'ambiguïté "je fais
+          quoi ?"), soit CTA proéminent + exercices redevenus facultatifs. */}
+      {!canAdvance ? (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="space-y-8"
+        >
+          <div className="bg-amber-50 border border-amber-100 rounded-[2.5rem] p-8 text-center space-y-4">
+            <p className="text-xl md:text-2xl font-black text-amber-700">
+              Faites {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour débloquer {nextLesson ? "la leçon suivante" : "la fin du parcours"}
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              {Array.from({ length: REQUIRED_EXERCISES }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-2.5 w-14 rounded-full transition-colors ${i < exercisesDoneCount ? "bg-amber-500" : "bg-amber-100"}`}
+                />
+              ))}
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest text-amber-500">
               {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
             </p>
           </div>
-        )
-      ) : canAdvance ? (
-        <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
-          <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
-          <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
-          <Link href={parcoursSlug ? `/tef-irn/parcours/${parcoursSlug}/complete` : "/tef-irn/parcours"}>
-            <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
-              Voir mon parcours
-            </Button>
-          </Link>
-        </div>
+
+          {heroExercise ? (
+            <div className="space-y-6">
+              <ExerciseCard exercise={heroExercise} parcoursId={parcoursId ?? undefined} variant="hero" />
+              {restExercises.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {restExercises.map((exercise) => (
+                    <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcoursId ?? undefined} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
+              <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+                <BookText size={32} className="text-slate-200" />
+              </div>
+              <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
+            </div>
+          )}
+        </motion.section>
       ) : (
-        <div className="p-8 bg-amber-50 rounded-[2.5rem] border border-amber-100 text-center">
-          <p className="text-2xl font-black text-amber-600">Encore un effort !</p>
-          <p className="text-amber-600/80 font-medium mb-2">
-            Terminez {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour finir ce parcours.
-          </p>
-          <p className="text-xs font-black uppercase tracking-widest text-amber-500">
-            {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
-          </p>
-        </div>
-      )}
+        <>
+          {/* CTA proéminent : leçon suivante / fin de parcours */}
+          {nextLesson ? (
+            <Link href={`/tef-irn/lessons/${nextLesson.slug}`}>
+              <Button
+                size="lg"
+                className="w-full h-16 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
+              >
+                Leçon suivante <ArrowRight className="ml-2" size={22} />
+              </Button>
+            </Link>
+          ) : (
+            <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
+              <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
+              <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
+              <Link href={parcoursSlug ? `/tef-irn/parcours/${parcoursSlug}/complete` : "/tef-irn/parcours"}>
+                <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
+                  Voir mon parcours
+                </Button>
+              </Link>
+            </div>
+          )}
 
-      {/* PRATIQUER MAINTENANT : pleine largeur */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-8"
-      >
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pratiquer maintenant</h2>
-          <div className="h-px bg-zinc-100 flex-1" />
-        </div>
+          {/* Exercices : facultatifs une fois qu'on peut avancer, visuellement secondaires */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-8"
+          >
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-black text-zinc-400 tracking-tight">Continuer à s'entraîner (facultatif)</h2>
+              <div className="h-px bg-zinc-100 flex-1" />
+            </div>
 
-        {heroExercise ? (
-          <div className="space-y-6">
-            <ExerciseCard exercise={heroExercise} parcoursId={parcoursId ?? undefined} variant="hero" />
-
-            {restExercises.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {restExercises.map((exercise) => (
-                  <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcoursId ?? undefined} />
-                ))}
+            {heroExercise ? (
+              <div className="space-y-6 opacity-90">
+                <ExerciseCard exercise={heroExercise} parcoursId={parcoursId ?? undefined} variant="hero" />
+                {restExercises.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {restExercises.map((exercise) => (
+                      <ExerciseCard key={exercise.id} exercise={exercise} parcoursId={parcoursId ?? undefined} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
+                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+                  <BookText size={32} className="text-slate-200" />
+                </div>
+                <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
-            <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
-              <BookText size={32} className="text-slate-200" />
-            </div>
-            <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
-          </div>
-        )}
-      </motion.section>
+          </motion.section>
+        </>
+      )}
     </div>
   );
 }

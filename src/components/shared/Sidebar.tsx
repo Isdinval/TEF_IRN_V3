@@ -249,9 +249,9 @@ function SidebarContent() {
                       }
                       const sectionMeta = SECTION_META[section];
                       rendered.push(
-                        <div key={`section-${section}`} className="my-2 rounded-2xl border border-zinc-100 bg-zinc-50/60 p-1.5 space-y-0.5">
+                        <div key={`section-${section}`} className="my-2 rounded-2xl border border-blue-100 bg-blue-50/60 p-1.5 space-y-0.5">
                           {sectionMeta && (
-                            <p className="px-3 pt-1 pb-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 flex items-center gap-1.5">
+                            <p className="px-3 pt-1 pb-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-500/80 flex items-center gap-1.5">
                               <sectionMeta.icon size={11} />
                               {sectionMeta.label}
                             </p>

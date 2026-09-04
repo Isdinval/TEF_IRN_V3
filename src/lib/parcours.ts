@@ -462,6 +462,7 @@ export async function getUnlockedLessonIdsForInProgressParcours(
  */
 export async function getTrulyCompletedLessonIds(
   userId: string,
+  lessons: Lesson[],
   completedLessonIds: string[],
   learningMode: 'academique' | 'libre',
   supabase: SupabaseClient = defaultSupabase,
@@ -469,39 +470,41 @@ export async function getTrulyCompletedLessonIds(
 ): Promise<string[]> {
   if (learningMode !== 'academique' || completedLessonIds.length === 0) return completedLessonIds;
 
+  // Fix bug remonté par Olivier après tests manuels : vérifier le quota sur
+  // TOUTES les leçons complétées le fait rétroactivement -- un utilisateur
+  // avec plusieurs leçons déjà lues (en libre, ou avant que le quota
+  // n'existe) se retrouvait renvoyé en arrière en activant le mode
+  // académique, alors qu'il n'a jamais rien "perdu". Seule la DERNIÈRE
+  // leçon complétée dans l'ordre du parcours (la frontière réelle de
+  // progression, celle qui détermine la prochaine à débloquer) est
+  // vérifiée -- toutes les précédentes sont grand-pérées.
+  const completedSet = new Set(completedLessonIds);
+  const orderedCompleted = lessons.filter((l) => completedSet.has(l.id));
+  const lastCompleted = orderedCompleted[orderedCompleted.length - 1];
+  if (!lastCompleted) return completedLessonIds;
+
   const { data: exercises } = await supabase
     .from('exercises')
-    .select('id, lesson_id')
-    .in('lesson_id', completedLessonIds)
+    .select('id')
+    .eq('lesson_id', lastCompleted.id)
     .in('type', ['qcm', 'trous']);
 
-  const exercisesByLesson = new Map<string, string[]>();
-  (exercises || []).forEach((e: any) => {
-    const arr = exercisesByLesson.get(e.lesson_id) || [];
-    arr.push(e.id);
-    exercisesByLesson.set(e.lesson_id, arr);
-  });
+  const exerciseIds = (exercises || []).map((e: any) => e.id);
+  // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
+  // jamais bloquant, même repli que /complete (REQUIRED_EXERCISES).
+  if (exerciseIds.length === 0) return completedLessonIds;
 
-  const allExerciseIds = (exercises || []).map((e: any) => e.id);
-  const doneExerciseIds = new Set<string>();
-  if (allExerciseIds.length > 0) {
-    const { data: attempts } = await supabase
-      .from('exercise_attempts')
-      .select('exercise_id')
-      .eq('user_id', userId)
-      .eq('is_completed', true)
-      .in('exercise_id', allExerciseIds);
-    (attempts || []).forEach((a: any) => doneExerciseIds.add(a.exercise_id));
-  }
+  const { data: attempts } = await supabase
+    .from('exercise_attempts')
+    .select('exercise_id')
+    .eq('user_id', userId)
+    .eq('is_completed', true)
+    .in('exercise_id', exerciseIds);
 
-  return completedLessonIds.filter((lessonId) => {
-    const lessonExerciseIds = exercisesByLesson.get(lessonId) || [];
-    // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
-    // jamais bloquant, même repli que /complete (REQUIRED_EXERCISES).
-    if (lessonExerciseIds.length === 0) return true;
-    const doneCount = lessonExerciseIds.filter((id) => doneExerciseIds.has(id)).length;
-    return doneCount >= Math.min(requiredExercises, lessonExerciseIds.length);
-  });
+  const doneCount = new Set((attempts || []).map((a: any) => a.exercise_id)).size;
+  const quotaMet = doneCount >= Math.min(requiredExercises, exerciseIds.length);
+
+  return quotaMet ? completedLessonIds : completedLessonIds.filter((id) => id !== lastCompleted.id);
 }
 
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
