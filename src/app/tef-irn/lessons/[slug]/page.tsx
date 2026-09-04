@@ -27,15 +27,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     notFound();
   }
 
-  // Fetch exercise data
-  const { data: exercise } = await supabase
-    .from('exercises')
-    .select('*')
-    .eq('lesson_id', lesson.id)
-    .eq('type', 'qcm_centre_entrainement')
-    .limit(1)
-    .maybeSingle();
-
   const lessonUrl = `${siteUrl}/tef-irn/lessons/${lesson.slug}`;
 
   // Structured Data - Course
@@ -62,15 +53,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     "teaches": `Préparation au TEF IRN niveau ${lesson.level}`,
     "learningResourceType": "Lesson"
   };
-
-  if (exercise) {
-    courseSchema.hasPart.push({
-      "@type": "WebPageElement",
-      "name": "Quiz Interactif",
-      "description": "Validation des acquis avec score",
-      "url": lessonUrl
-    });
-  }
 
   // Structured Data - LearningResource (GEO-optimized)
   const learningResourceSchema = {
@@ -159,7 +141,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
 
           <LessonInteractive
             lesson={lesson}
-            exercise={exercise}
             initialUser={user}
           />
         </article>

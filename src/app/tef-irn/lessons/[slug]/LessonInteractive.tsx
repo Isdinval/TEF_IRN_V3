@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Loader2, Target, Sparkles, ArrowRight,
-  GraduationCap, CheckCircle2,
+  ArrowLeft, Loader2, Target,
+  GraduationCap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,17 +45,12 @@ const ObjectiveContent = ({ children }: { children: any }) => {
   return <p className="text-slate-700 font-bold text-lg">{description}</p>;
 };
 
-export default function LessonInteractive({ lesson, exercise, initialUser }: { lesson: any, exercise: any, initialUser: any }) {
+export default function LessonInteractive({ lesson, initialUser }: { lesson: any, initialUser: any }) {
   const router = useRouter();
   const supabase = createClient();
-  const [step, setStep] = useState<"reading" | "quiz" | "result">("reading");
-  const [currentQ, setCurrentQ] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [isChecked, setIsChecked] = useState(false);
-  const [score, setScore] = useState(0);
+  const [step, setStep] = useState<"reading" | "gate">("reading");
   const [loading, setLoading] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
-  const quizStartRef = useRef<number | null>(null);
   const { setPageContext } = useCoachContext();
 
   useEffect(() => {
@@ -84,65 +78,21 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
     return () => window.removeEventListener("scroll", handleScroll);
   }, [step]);
 
-  const handleNextQuestion = async () => {
-    if (currentQ < (exercise?.content?.questions?.length || 0) - 1) {
-      setCurrentQ(currentQ + 1);
-      setSelected(null);
-      setIsChecked(false);
-    } else {
-      setLoading(true);
-      await saveResults();
-      router.push(`/tef-irn/lessons/${lesson.slug}/complete`);
-    }
-  };
-
   const handleFinishLesson = async () => {
     if (!initialUser) {
-        setStep("quiz"); // Will show the soft-gate
-        return;
+      setStep("gate"); // Soft-gate : incite à se connecter pour valider la leçon et gagner l'XP
+      return;
     }
 
-    if (exercise) {
-      quizStartRef.current = Date.now();
-      setStep("quiz");
-    } else {
-      setLoading(true);
-      await awardXpOnly();
-      router.push(`/tef-irn/lessons/${lesson.slug}/complete`);
-    }
+    setLoading(true);
+    await completeLesson();
+    router.push(`/tef-irn/lessons/${lesson.slug}/complete`);
   };
 
-  const awardXpOnly = async () => {
-      if (initialUser) {
-        await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
-        await supabase.rpc('increment_xp', { amount: 100 });
-      }
-    };
-  
-    const saveResults = async () => {
-      if (initialUser && exercise) {
-        const totalQuestions = exercise.content.questions.length;
-        const finalScore = (score / totalQuestions) * 100;
-        const studyTimeMinutes = quizStartRef.current
-          ? Math.round((Date.now() - quizStartRef.current) / 60000)
-          : 0;
-  
-        await fetch('/api/exercise-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            exerciseId: exercise.id,
-            score: finalScore,
-            answers: { correct: score, total: totalQuestions },
-            studyTimeMinutes
-          })
-        });
-  
-        if (finalScore >= 50) {
-          await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
-        }
-      }
-    };
+  const completeLesson = async () => {
+    await supabase.from('lesson_progress').upsert({ user_id: initialUser.id, lesson_id: lesson.id });
+    await supabase.rpc('increment_xp', { amount: 100 });
+  };
 
   const { main: mainTitle, subtitle } = splitTitle(lesson.title || "");
 
@@ -205,137 +155,40 @@ export default function LessonInteractive({ lesson, exercise, initialUser }: { l
                     className="w-full h-14 text-base font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     onClick={handleFinishLesson}
                   >
-                    {exercise ? <span className="flex items-center gap-3">Valider & Passer au Quiz <ArrowRight /></span> : "Terminer la leçon"}
+                    Terminer la leçon
                   </Button>
                 </div>
               </article>
             </motion.div>
           )}
 
-          {step === "quiz" && (
-            <motion.div key="quiz" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}>
-              {!initialUser ? (
-                <div className="text-center py-20 space-y-8 bg-white rounded-[3rem] shadow-xl border border-zinc-100 p-12">
-                   <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
-                      <GraduationCap size={48} />
-                   </div>
-                   <div className="space-y-4">
-                      <h2 className="text-xl font-black text-slate-900">Teste tes connaissances !</h2>
-                      <p className="text-sm text-slate-500 font-medium max-w-md mx-auto">
-                        Connecte-toi gratuitement pour accéder au quiz, tester tes acquis et gagner de l'XP.
-                      </p>
-                   </div>
-                   <div className="flex flex-col gap-4 max-w-xs mx-auto pt-6">
-                      <Link href={`/tef-irn/login?redirect=/tef-irn/lessons/${lesson.slug}`}>
-                        <Button size="lg" className="w-full h-16 text-lg font-black rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100">
-                          Se connecter
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" onClick={() => setStep("reading")} className="font-bold text-slate-400">
-                        Retour à la leçon
+          {step === "gate" && (
+            <motion.div key="gate" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }}>
+              <div className="text-center py-20 space-y-8 bg-white rounded-[3rem] shadow-xl border border-zinc-100 p-12">
+                 <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
+                    <GraduationCap size={48} />
+                 </div>
+                 <div className="space-y-4">
+                    <h2 className="text-xl font-black text-slate-900">Valide ta progression !</h2>
+                    <p className="text-sm text-slate-500 font-medium max-w-md mx-auto">
+                      Connecte-toi gratuitement pour valider cette leçon et gagner de l'XP.
+                    </p>
+                 </div>
+                 <div className="flex flex-col gap-4 max-w-xs mx-auto pt-6">
+                    <Link href={`/tef-irn/login?redirect=/tef-irn/lessons/${lesson.slug}`}>
+                      <Button size="lg" className="w-full h-16 text-lg font-black rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100">
+                        Se connecter
                       </Button>
-                   </div>
-                </div>
-              ) : exercise ? (
-                <div className="space-y-8">
-                  <div className="flex justify-between items-center bg-white px-8 py-6 rounded-[2rem] border border-zinc-100 shadow-sm">
-                    <div>
-                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">Entraînement</p>
-                      <h2 className="text-xl font-black text-slate-800">{mainTitle}</h2>
-                    </div>
-                    <div className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-black">
-                      {currentQ + 1} / {exercise.content.questions.length}
-                    </div>
-                  </div>
-
-                  <Card className="border-none shadow-2xl shadow-zinc-200/50 bg-white rounded-[2.5rem] overflow-hidden">
-                    <CardContent className="p-12 text-center space-y-10">
-                      <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto"><GraduationCap size={32} /></div>
-                      <h3 className="text-xl font-black text-slate-800 leading-tight">{exercise.content.questions[currentQ]}</h3>
-                      <div className="grid grid-cols-1 gap-4 text-left max-w-2xl mx-auto">
-                        {exercise.content.options[currentQ].map((opt: string, i: number) => (
-                          <button
-                            key={i}
-                            disabled={isChecked}
-                            onClick={() => setSelected(i)}
-                            className={`w-full p-6 rounded-2xl border-2 transition-all font-bold text-lg flex items-center justify-between group
-                              ${selected === i ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-100 bg-white text-slate-500 hover:border-indigo-200 hover:text-indigo-600'}
-                              ${isChecked && i === exercise.content.correct_answers[currentQ] ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : ''}
-                              ${isChecked && selected === i && i !== exercise.content.correct_answers[currentQ] ? 'border-rose-500 bg-rose-50 text-rose-900' : ''}
-                            `}
-                          >
-                            <span>{opt}</span>
-                            {isChecked && i === exercise.content.correct_answers[currentQ] && <CheckCircle2 className="text-emerald-500" />}
-                            {isChecked && selected === i && i !== exercise.content.correct_answers[currentQ] && <XCircleIcon className="text-rose-500" />}
-                          </button>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <div className="flex justify-end">
-                    {!isChecked ? (
-                      <Button
-                        disabled={selected === null}
-                        onClick={() => {
-                          setIsChecked(true);
-                          if (selected === exercise.content.correct_answers[currentQ]) setScore(score + 1);
-                        }}
-                        className="px-12 h-16 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100"
-                      >
-                        Vérifier ma réponse
-                      </Button>
-                    ) : (
-                      <Button onClick={handleNextQuestion} className="px-12 h-16 bg-zinc-900 hover:bg-black rounded-2xl font-black text-lg shadow-xl shadow-zinc-200">
-                        {currentQ < exercise.content.questions.length - 1 ? "Question Suivante" : "Terminer la session"}
-                        <ArrowRight className="ml-2" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-            </motion.div>
-          )}
-
-          {step === "result" && (
-            <motion.div key="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-12 py-12">
-              <div className="relative inline-block">
-                <div className={`w-48 h-48 rounded-[3rem] flex items-center justify-center mx-auto relative z-10 ${(!exercise || score >= (exercise?.content?.questions?.length || 0) / 2) ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600'} rotate-12`}>
-                  <Sparkles size={80} />
-                </div>
-                <div className="absolute inset-0 bg-indigo-200 blur-3xl opacity-20 -z-10" />
+                    </Link>
+                    <Button variant="ghost" onClick={() => setStep("reading")} className="font-bold text-slate-400">
+                      Retour à la leçon
+                    </Button>
+                 </div>
               </div>
-              <div className="space-y-4">
-                <h2 className="text-2xl font-black text-slate-900">Bien joué !</h2>
-                <p className="text-sm text-slate-500 font-medium italic">Vous avez complété la leçon avec succès.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
-                <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
-                  <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Score</p>
-                  <p className="text-3xl font-black text-indigo-600">{(exercise && exercise.content.questions.length > 0) ? Math.round((score / exercise.content.questions.length) * 100) : 100}%</p>
-                </div>
-                <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm">
-                  <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-2">Récompense</p>
-                  <p className="text-3xl font-black text-amber-500">+100 XP</p>
-                </div>
-              </div>
-              <Button size="lg" className="px-12 h-14 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-base font-black shadow-2xl shadow-indigo-200 transition-all hover:scale-105" onClick={() => router.push(`/tef-irn/lessons/${lesson.slug}/complete`)}>
-                Retour au Dashboard
-              </Button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
     </div>
-  );
-}
-
-function XCircleIcon(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="m15 9-6 6" />
-      <path d="m9 9 6 6" />
-    </svg>
   );
 }

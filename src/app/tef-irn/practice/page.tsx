@@ -236,7 +236,7 @@ export function PracticeContent() {
       let query = supabase
         .from("exercises")
         .select("*")
-        .in("type", ["qcm", "association", "qcm_centre_entrainement"])
+        .in("type", ["qcm", "association"])
         .eq("level", filters.level);
 
       if (filters.category !== "Toutes") {

@@ -19,7 +19,7 @@ import { Loader2, Plus, Pencil, Trash2, X } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 
-type ExerciseType = "trous" | "qcm" | "qcm_centre_entrainement" | "ecrit";
+type ExerciseType = "trous" | "qcm" | "ecrit";
 
 interface ExerciseRow {
   id: string;
@@ -36,7 +36,6 @@ interface ExerciseRow {
 const TYPES: { value: ExerciseType; label: string }[] = [
   { value: "trous", label: "Texte à trous" },
   { value: "qcm", label: "QCM" },
-  { value: "qcm_centre_entrainement", label: "QCM (centre d'entraînement)" },
   { value: "ecrit", label: "Expression écrite" },
 ];
 
@@ -371,7 +370,7 @@ export default function ExercisesAdmin() {
               </div>
             )}
 
-            {(form.type === "qcm" || form.type === "qcm_centre_entrainement") && (
+            {form.type === "qcm" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-black uppercase text-zinc-400">Questions ({form.qcmItems.length})</Label>
