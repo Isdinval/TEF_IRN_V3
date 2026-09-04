@@ -34,7 +34,8 @@ import {
   BookMarked,
   Map,
   Users,
-  Gauge
+  Gauge,
+  Shuffle
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -43,6 +44,14 @@ const GROUP_THEME: Record<string, { bg: string; border: string; text: string; ic
   "tef-irn": { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-700", icon: "text-indigo-600" },
   "examen-civique": { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-700", icon: "text-blue-600" },
   "admin": { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700", icon: "text-amber-600" },
+};
+
+// Bloc C de l'item 4 ("remontées LlamaKusi août 2026") : regroupement visuel
+// du menu TEF IRN en "Parcours guidé" (mode académique) / "Entraînement
+// libre" (mode libre) -- aucun href touché, uniquement l'affichage.
+const SECTION_META: Record<string, { label: string; icon: React.ElementType }> = {
+  guide: { label: "Parcours guidé", icon: GraduationCap },
+  libre: { label: "Entraînement libre", icon: Shuffle },
 };
 
 function SidebarContent() {
@@ -93,13 +102,13 @@ function SidebarContent() {
       items: [
         { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
         { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam" },
-        { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
-        { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
-        { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
-        { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab" },
-        { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice" },
-        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
-        { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
+        { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours", section: "guide" as const },
+        { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons", section: "libre" as const },
+        { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check", section: "libre" as const },
+        { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab", section: "libre" as const },
+        { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice", section: "libre" as const },
+        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing", section: "libre" as const },
+        { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral", section: "libre" as const },
         { label: "Corrections", icon: History, href: "/tef-irn/correction" },
         { label: "Guides", icon: Sparkles, href: "/tef-irn/guides" },
       ],
@@ -204,16 +213,29 @@ function SidebarContent() {
               </button>
               {isOpen && (
                 <div className="pl-4 space-y-0.5">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={buildItemHref(item.href)}
-                      className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
-                    >
-                      <item.icon size={16} className={isActive(item.href) ? theme.icon : "text-zinc-400"} />
-                      {item.label}
-                    </Link>
-                  ))}
+                  {group.items.map((item, idx) => {
+                    const prevSection = (group.items[idx - 1] as { section?: string })?.section;
+                    const itemSection = (item as { section?: string }).section;
+                    const showSectionHeader = itemSection && itemSection !== prevSection;
+                    const sectionMeta = itemSection ? SECTION_META[itemSection] : null;
+                    return (
+                      <div key={item.href}>
+                        {showSectionHeader && sectionMeta && (
+                          <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 flex items-center gap-1.5">
+                            <sectionMeta.icon size={11} />
+                            {sectionMeta.label}
+                          </p>
+                        )}
+                        <Link
+                          href={buildItemHref(item.href)}
+                          className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+                        >
+                          <item.icon size={16} className={isActive(item.href) ? theme.icon : "text-zinc-400"} />
+                          {item.label}
+                        </Link>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
