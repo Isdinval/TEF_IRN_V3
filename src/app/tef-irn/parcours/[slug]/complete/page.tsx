@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcoursBySlug, getParcoursById, Parcours } from "@/lib/parcours";
+import { getParcoursBySlug, getParcoursById, getParcoursProgress, Parcours } from "@/lib/parcours";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,7 +14,8 @@ import {
   Target,
   Layout,
   TrendingUp,
-  Clock
+  Clock,
+  GraduationCap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParcours } from "@/contexts/ParcoursContext";
@@ -23,9 +24,10 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ slu
   const { slug } = use(params);
   const [loading, setLoading] = useState(true);
   const [parcours, setParcours] = useState<Parcours | null>(null);
+  const [isLevelComplete, setIsLevelComplete] = useState(false);
   const router = useRouter();
   const supabase = createClient();
-  const { exitParcours } = useParcours();
+  const { exitParcours, learningMode } = useParcours();
 
   useEffect(() => {
     async function fetchData() {
@@ -42,10 +44,35 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ slu
       }
 
       setParcours(p);
+
+      // Bloc E de l'item 4 ("remontées LlamaKusi août 2026") : checkpoint
+      // examen blanc, uniquement en académique. Les examens blancs sont
+      // scopés par level uniquement (pas category, vérifié en base --
+      // exams.category n'existe pas), donc le palier pertinent est "tous
+      // les parcours de ce NIVEAU sont terminés", pas juste celui-ci.
+      if (p && learningMode === "academique") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: levelParcours } = await supabase
+            .from('parcours')
+            .select('id, level, category')
+            .eq('level', p.level);
+
+          if (levelParcours && levelParcours.length > 0) {
+            const progresses = await Promise.all(
+              levelParcours.map((lp: { id: string; level: string; category: string }) =>
+                getParcoursProgress(user.id, lp.level, lp.category, lp.id, supabase)
+              )
+            );
+            setIsLevelComplete(progresses.every((pr) => pr.isCompleted));
+          }
+        }
+      }
+
       setLoading(false);
     }
     fetchData();
-  }, [slug, supabase, router]);
+  }, [slug, supabase, router, learningMode]);
 
   if (loading) {
     return (
@@ -137,13 +164,33 @@ export default function ParcoursCompletePage({ params }: { params: Promise<{ slu
           transition={{ delay: 0.3 }}
           className="space-y-6"
         >
-          <Button
-            onClick={() => router.push("/tef-irn/parcours")}
-            size="lg"
-            className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
-          >
-            Choisir mon prochain parcours <ArrowRight size={24} />
-          </Button>
+          {isLevelComplete ? (
+            <>
+              <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                  <GraduationCap size={24} />
+                </div>
+                <p className="text-sm font-bold text-indigo-900">
+                  Tous les parcours du niveau {parcours.level} sont terminés ! C'est le bon moment pour tester votre niveau réel avec un examen blanc.
+                </p>
+              </div>
+              <Button
+                onClick={() => router.push("/tef-irn/exam")}
+                size="lg"
+                className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+              >
+                Passer l'examen blanc niveau {parcours.level} <ArrowRight size={24} />
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => router.push("/tef-irn/parcours")}
+              size="lg"
+              className="w-full h-20 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+            >
+              Choisir mon prochain parcours <ArrowRight size={24} />
+            </Button>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Button

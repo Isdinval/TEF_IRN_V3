@@ -1,5 +1,6 @@
 import { ExerciseAttempt, WritingError } from "@/types/writing";
 import { ResolveContext } from "@/lib/recommendation-resolver";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 // Item 7 du plan "Refonte page Correction" : dériver un ResolveContext (même
 // contrat que resolveNextExercises, déjà utilisé par /lessons/[slug]/complete,
@@ -76,4 +77,39 @@ export function buildRecoContext(attempt: ExerciseAttempt): ResolveContext | nul
   if (!level) return null;
 
   return attempt.skill === "EO" ? buildEoContext(attempt, level) : buildEeContext(attempt, level);
+}
+
+// Bloc E de l'item 4 ("remontées LlamaKusi août 2026") : contexte de
+// recommandation post-examen blanc (ResultsScreen). Les 4 épreuves (CE/CO/
+// EE/EO) ont 4 formats de données de résultat différents (answers[] pour
+// CE/CO, writingFeedbacks pour EE, oralAnalyses pour EO) -- plutôt que 4
+// parseurs distincts, on s'appuie sur user_errors, déjà alimentée de façon
+// uniforme par trackUserError() sur les 4 routes de complétion (vérifié :
+// api/exam/ce-co-complete, api/writing/scenario-complete, api/oral/analyze
+// l'appellent toutes). Même heuristique top-catégorie que buildEeContext
+// ci-dessus, et même lecture de user_errors que get_dashboard_data()
+// (v_weak_points) -- source de vérité déjà établie, pas un nouveau calcul.
+export async function buildExamWeakPointsContext(
+  userId: string,
+  level: string,
+  supabase: SupabaseClient
+): Promise<ResolveContext | null> {
+  const { data } = await supabase
+    .from('user_errors')
+    .select('category, sub_category, frequency, last_seen_at')
+    .eq('user_id', userId)
+    .order('frequency', { ascending: false })
+    .order('last_seen_at', { ascending: false })
+    .limit(5);
+
+  if (!data || data.length === 0) return null;
+
+  const topCategory = data[0].category;
+  const tags = [...new Set(
+    data
+      .filter((e: any) => e.category === topCategory && e.sub_category)
+      .map((e: any) => e.sub_category as string)
+  )].slice(0, 5);
+
+  return { level, category: topCategory, tags: tags.length > 0 ? tags : undefined };
 }
