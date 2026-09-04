@@ -16,7 +16,8 @@ import {
   ClipboardCheck,
   PenTool,
   Mic,
-  Compass
+  Compass,
+  X
 } from "lucide-react";
 import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHeader";
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
@@ -47,6 +48,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<DashboardSectionId>("today");
+  const [academicBannerDismissed, setAcademicBannerDismissed] = useState(false);
   const sectionsTopRef = useRef<HTMLDivElement>(null);
 
   const handleSectionChange = (id: DashboardSectionId) => {
@@ -197,6 +199,31 @@ export default function DashboardPage() {
           </h2>
 
           <div className="space-y-6">
+            {profile.learning_mode !== "academique" && in_progress_parcours.length === 0 && !academicBannerDismissed && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-[2rem] bg-indigo-600 text-white relative">
+                <Compass size={32} className="shrink-0 opacity-90" />
+                <div className="flex-1 space-y-1">
+                  <p className="font-black text-lg">Envie d'un cadre plus structuré ?</p>
+                  <p className="text-sm text-indigo-100 font-medium">
+                    Le Parcours guidé enchaîne pour vous les leçons, leurs exercices, puis un point d'étape — leçon après leçon, jusqu'au niveau visé.
+                  </p>
+                </div>
+                <Link
+                  href="/tef-irn/parcours"
+                  className="shrink-0 inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-all"
+                >
+                  Découvrir le Parcours guidé
+                </Link>
+                <button
+                  onClick={() => setAcademicBannerDismissed(true)}
+                  aria-label="Fermer"
+                  className="absolute top-3 right-3 sm:static sm:shrink-0 text-indigo-200 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 flex items-center gap-2">
                 <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
@@ -223,8 +250,8 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-200 bg-white">
                 <Compass size={48} className="text-zinc-200 mb-4" />
-                <p className="text-sm font-bold text-zinc-400">Aucun parcours en cours pour l'instant.</p>
-                <p className="text-xs text-zinc-300 mt-1 mb-4">Choisissez un parcours pour démarrer votre préparation.</p>
+                <p className="text-sm font-bold text-zinc-400">Aucun Parcours guidé en cours pour l'instant.</p>
+                <p className="text-xs text-zinc-300 mt-1 mb-4">Laissez-vous porter : une leçon, ses exercices, puis la suivante.</p>
                 <Link
                   href="/tef-irn/parcours"
                   className="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-black transition-all"

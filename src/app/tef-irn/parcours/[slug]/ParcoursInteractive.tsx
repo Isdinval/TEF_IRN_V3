@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useCoachContext } from "@/contexts/CoachContext";
 import { Parcours, Lesson, Exercise, ParcoursProgress, getExerciseUrl } from "@/lib/parcours";
 import { User } from "@supabase/supabase-js";
@@ -12,7 +13,9 @@ import {
   ArrowRight,
   Clock,
   TrendingUp,
-  ChevronRight
+  ChevronRight,
+  Lock,
+  X
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,11 @@ interface ParcoursInteractiveProps {
   lessonMeta: Record<string, { title: string; order_index: number }>;
   initialGuideSlug: string | null;
   user: User | null;
+  /** Bloc A (profiles.learning_mode). Conditionne le verrou visuel des
+   *  leçons ci-dessous -- 'libre' garde le comportement actuel (aucun
+   *  verrou), 'academique' active status='locked' au-delà de la leçon
+   *  "next". */
+  learningMode: 'academique' | 'libre';
 }
 
 export default function ParcoursInteractive({
@@ -49,10 +57,14 @@ export default function ParcoursInteractive({
   catalogueExercises,
   lessonMeta,
   initialGuideSlug,
-  user
+  user,
+  learningMode
 }: ParcoursInteractiveProps) {
   const [progress] = useState(initialProgress);
   const [recommendedExercises] = useState(initialRecommendedExercises);
+  const searchParams = useSearchParams();
+  const [lockedBannerDismissed, setLockedBannerDismissed] = useState(false);
+  const showLockedBanner = searchParams?.get("locked") === "1" && !lockedBannerDismissed;
   const { setPageContext } = useCoachContext();
 
   useEffect(() => {
@@ -98,11 +110,13 @@ export default function ParcoursInteractive({
       } else if (!nextFound) {
         status = 'next';
         nextFound = true;
+      } else if (learningMode === 'academique') {
+        status = 'locked';
       }
 
       return { ...lesson, status };
     });
-  }, [allLessons, progress, user]);
+  }, [allLessons, progress, user, learningMode]);
 
   // Leçon "en cours" pour la carte vocab thématique -- même critère que
   // status='next' ci-dessus (première leçon non complétée), mais dérivé
@@ -117,6 +131,24 @@ export default function ParcoursInteractive({
       <div className="bg-white border-b border-zinc-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md bg-white/80">
         <ParcoursBreadcrumb />
       </div>
+
+      {showLockedBanner && (
+        <div className="max-w-6xl mx-auto px-6 pt-4">
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl px-5 py-3.5">
+            <Lock size={18} className="shrink-0" />
+            <p className="flex-1 text-sm font-bold">
+              Cette leçon n'est pas encore débloquée — terminez d'abord les précédentes.
+            </p>
+            <button
+              onClick={() => setLockedBannerDismissed(true)}
+              aria-label="Fermer"
+              className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="relative overflow-hidden bg-zinc-900 py-12 lg:py-16">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
