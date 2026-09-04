@@ -23,6 +23,7 @@ import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview
 import { ExamCountdownCard } from "@/components/features/dashboard/new/ExamCountdownCard";
 import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCard";
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
+import { ParcoursOverviewCard } from "@/components/features/dashboard/new/ParcoursOverviewCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
 import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
@@ -127,6 +128,7 @@ export default function DashboardPage() {
   const competency_radar = Array.isArray(data.competency_radar) ? data.competency_radar : [];
   const sub_competencies = Array.isArray(data.sub_competencies) ? data.sub_competencies : [];
   const in_progress_parcours = Array.isArray(data.in_progress_parcours) ? data.in_progress_parcours : [];
+  const parcours_overview = data.parcours_overview || null;
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
   const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
@@ -251,6 +253,7 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
             <div className="space-y-6">
+              <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} />
               <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
               {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
             </div>
