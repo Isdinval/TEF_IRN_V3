@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import LessonInteractive from './LessonInteractive';
 import { siteUrl } from '@/lib/site';
 import JsonLd from '@/components/shared/JsonLd';
-import { getLessonBySlug, getLessonById } from '@/lib/parcours';
+import { getLessonBySlug, getLessonById, getLessonsForParcours, getParcoursProgress, getUnlockedLessonIds, getTrulyCompletedLessonIds } from '@/lib/parcours';
 
 export default async function LessonPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
@@ -27,14 +27,41 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     notFound();
   }
 
-  // Fetch exercise data
-  const { data: exercise } = await supabase
-    .from('exercises')
-    .select('*')
-    .eq('lesson_id', lesson.id)
-    .eq('type', 'qcm_centre_entrainement')
-    .limit(1)
-    .maybeSingle();
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('learning_mode')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profile?.learning_mode === 'academique') {
+      const { data: parentParcours } = await supabase
+        .from('parcours')
+        .select('id, slug')
+        .eq('level', lesson.level)
+        .eq('category', lesson.category)
+        .maybeSingle();
+
+      if (parentParcours) {
+        const [parcoursLessons, progress] = await Promise.all([
+          getLessonsForParcours(lesson.level, lesson.category, supabase),
+          getParcoursProgress(user.id, lesson.level, lesson.category, parentParcours.id, supabase),
+        ]);
+        const trulyCompletedLessonIds = await getTrulyCompletedLessonIds(
+          user.id,
+          parcoursLessons,
+          progress.completedLessons,
+          'academique',
+          supabase
+        );
+        const unlockedLessonIds = getUnlockedLessonIds(parcoursLessons, trulyCompletedLessonIds);
+
+        if (!unlockedLessonIds.has(lesson.id)) {
+          redirect(`/tef-irn/parcours/${parentParcours.slug}?locked=1`);
+        }
+      }
+    }
+  }
 
   const lessonUrl = `${siteUrl}/tef-irn/lessons/${lesson.slug}`;
 
@@ -62,15 +89,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
     "teaches": `Préparation au TEF IRN niveau ${lesson.level}`,
     "learningResourceType": "Lesson"
   };
-
-  if (exercise) {
-    courseSchema.hasPart.push({
-      "@type": "WebPageElement",
-      "name": "Quiz Interactif",
-      "description": "Validation des acquis avec score",
-      "url": lessonUrl
-    });
-  }
 
   // Structured Data - LearningResource (GEO-optimized)
   const learningResourceSchema = {
@@ -159,7 +177,6 @@ export default async function LessonPage(props: { params: Promise<{ slug: string
 
           <LessonInteractive
             lesson={lesson}
-            exercise={exercise}
             initialUser={user}
           />
         </article>

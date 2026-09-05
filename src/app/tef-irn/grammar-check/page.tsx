@@ -2,10 +2,11 @@
 
 import { useState, useEffect, Suspense, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import GrammarCheckTreeCatalogue, { LessonMeta } from "./components/GrammarCheckTreeCatalogue";
-import { Exercise } from "@/lib/parcours";
+import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search, AlertTriangle } from "lucide-react";
@@ -116,7 +117,7 @@ export function GrammarCheckContent() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(exerciseIdFromParams);
 
   const supabase = useMemo(() => createClient(), []);
-  const { nextLesson, refreshProgress, refreshExerciseCounts } = useParcours();
+  const { nextLesson, refreshProgress, refreshExerciseCounts, learningMode } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
 
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
@@ -259,12 +260,22 @@ export function GrammarCheckContent() {
       return;
     }
     try {
+      // Item #6 du plan "remontées LlamaKusi août 2026" : si un parcours de
+      // ce niveau/catégorie est en cours pour l'utilisateur, on scope la
+      // recommandation à ses leçons débloquées (déjà lues ou en cours).
+      // Fallback (null) sur le pool non scopé existant si aucun parcours ne
+      // correspond ou n'est encore entamé -- comportement inchangé.
+      const unlockedLessonIds = filters.category !== "Toutes"
+        ? await getUnlockedLessonIdsForInProgressParcours(user.id, filters.level, filters.category, supabase)
+        : null;
+
       const [recommended] = await resolveNextExercises(
         user.id,
         {
           level: filters.level,
           category: filters.category !== "Toutes" ? filters.category : undefined,
           type: "trous",
+          ...(unlockedLessonIds ? { unlockedLessonIds } : {}),
         },
         supabase,
         1
@@ -539,7 +550,7 @@ export function GrammarCheckContent() {
           <img
             src={resultMascotUrl}
             alt="Mascotte LlamaKusi célébrant la réussite de l'exercice"
-            className="w-28 h-28 mx-auto object-contain drop-shadow-xl"
+            className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
           />
           <div className="space-y-2">
             <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
@@ -580,7 +591,14 @@ export function GrammarCheckContent() {
               }}
               className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
             >Retourner au catalogue</Button>
-            {nextLesson && (
+            {learningMode === "academique" && questions[0]?.lesson_id && lessonBreadcrumbById[questions[0].lesson_id]?.slug && (
+              <Link href={`/tef-irn/lessons/${lessonBreadcrumbById[questions[0].lesson_id].slug}/complete`}>
+                <Button className="h-12 w-full bg-indigo-600 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-indigo-700 transition-all">
+                  Retour à la leçon
+                </Button>
+              </Link>
+            )}
+            {learningMode !== "academique" && nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-bold text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
             <Button

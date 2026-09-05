@@ -19,6 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { QuestionDetailPanel } from './QuestionDetailPanel';
+import { ExamRecommendedExercises } from './ExamRecommendedExercises';
 import { ExamSectionType, ExamResult } from '@/types/exam';
 import { WritingFeedback } from '@/types/writing';
 import { ORAL_CRITERIA_LABELS } from '@/lib/oral-criteria';
@@ -226,10 +227,21 @@ export function ResultsScreen() {
           </CardContent>
         </Card>
 
+        {globalLevel && (
+          <ExamRecommendedExercises level={globalLevel.level} />
+        )}
+
         <div className="flex flex-col md:flex-row gap-4">
           <Button
-            onClick={resetExam}
+            onClick={() => window.location.href = '/tef-irn/parcours'}
             className="flex-1 h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-lg font-black shadow-xl"
+          >
+            <Trophy className="mr-2" size={20} /> Parcours suivant
+          </Button>
+          <Button
+            variant="outline"
+            onClick={resetExam}
+            className="flex-1 h-16 rounded-2xl border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-lg font-black"
           >
             <RotateCcw className="mr-2" size={20} /> Refaire un examen
           </Button>

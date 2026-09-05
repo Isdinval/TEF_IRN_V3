@@ -34,7 +34,8 @@ import {
   BookMarked,
   Map,
   Users,
-  Gauge
+  Gauge,
+  Shuffle
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -43,6 +44,14 @@ const GROUP_THEME: Record<string, { bg: string; border: string; text: string; ic
   "tef-irn": { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-700", icon: "text-indigo-600" },
   "examen-civique": { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-700", icon: "text-blue-600" },
   "admin": { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700", icon: "text-amber-600" },
+};
+
+// Bloc C de l'item 4 ("remontées LlamaKusi août 2026") : regroupement visuel
+// du menu TEF IRN en "Parcours guidé" (mode académique) / "Entraînement
+// libre" (mode libre) -- aucun href touché, uniquement l'affichage.
+const SECTION_META: Record<string, { label: string; icon: React.ElementType }> = {
+  guide: { label: "Parcours guidé", icon: GraduationCap },
+  libre: { label: "Entraînement libre", icon: Shuffle },
 };
 
 function SidebarContent() {
@@ -93,13 +102,13 @@ function SidebarContent() {
       items: [
         { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
         { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam" },
-        { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons" },
-        { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours" },
-        { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check" },
-        { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab" },
-        { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice" },
-        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing" },
-        { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral" },
+        { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours", section: "guide" as const },
+        { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons", section: "libre" as const },
+        { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check", section: "libre" as const },
+        { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab", section: "libre" as const },
+        { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice", section: "libre" as const },
+        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing", section: "libre" as const },
+        { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral", section: "libre" as const },
         { label: "Corrections", icon: History, href: "/tef-irn/correction" },
         { label: "Guides", icon: Sparkles, href: "/tef-irn/guides" },
       ],
@@ -204,16 +213,55 @@ function SidebarContent() {
               </button>
               {isOpen && (
                 <div className="pl-4 space-y-0.5">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={buildItemHref(item.href)}
-                      className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(item.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
-                    >
-                      <item.icon size={16} className={isActive(item.href) ? theme.icon : "text-zinc-400"} />
-                      {item.label}
-                    </Link>
-                  ))}
+                  {(() => {
+                    // Fix demandé par Olivier après tests manuels : le simple
+                    // sous-titre au-dessus des items ne délimitait pas assez
+                    // clairement "Parcours guidé" / "Entraînement libre" des
+                    // items communs. Les items consécutifs d'une même section
+                    // sont maintenant regroupés dans un conteneur visuel
+                    // commun (bordure + fond légèrement teinté).
+                    const rendered: React.ReactNode[] = [];
+                    let i = 0;
+                    while (i < group.items.length) {
+                      const item = group.items[i] as { href: string; label: string; icon: React.ElementType; section?: string };
+                      const renderLink = (it: typeof item, key: string) => (
+                        <Link
+                          key={key}
+                          href={buildItemHref(it.href)}
+                          className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(it.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+                        >
+                          <it.icon size={16} className={isActive(it.href) ? theme.icon : "text-zinc-400"} />
+                          {it.label}
+                        </Link>
+                      );
+
+                      if (!item.section) {
+                        rendered.push(renderLink(item, item.href));
+                        i++;
+                        continue;
+                      }
+
+                      const section = item.section;
+                      const sectionItems: typeof item[] = [];
+                      while (i < group.items.length && (group.items[i] as { section?: string }).section === section) {
+                        sectionItems.push(group.items[i] as typeof item);
+                        i++;
+                      }
+                      const sectionMeta = SECTION_META[section];
+                      rendered.push(
+                        <div key={`section-${section}`} className="my-2 rounded-2xl border border-blue-100 bg-blue-50/60 p-1.5 space-y-0.5">
+                          {sectionMeta && (
+                            <p className="px-3 pt-1 pb-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-500/80 flex items-center gap-1.5">
+                              <sectionMeta.icon size={11} />
+                              {sectionMeta.label}
+                            </p>
+                          )}
+                          {sectionItems.map((sItem) => renderLink(sItem, sItem.href))}
+                        </div>
+                      );
+                    }
+                    return rendered;
+                  })()}
                 </div>
               )}
             </div>

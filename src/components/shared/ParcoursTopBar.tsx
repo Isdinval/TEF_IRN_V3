@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, isLoading } = useParcours();
+  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, isLoading, learningMode } = useParcours();
   const pathname = usePathname();
   // Une seule action à la fois (nextLesson/nextExercise/nextVocabulary
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
@@ -137,14 +137,16 @@ export function ParcoursTopBar() {
               </span>
             </Button>
 
-            <Button
-              onClick={() => handleNext(nextLesson)}
-              disabled={isResolving}
-              size="sm"
-              className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
-            >
-              Leçon suivante <ChevronRight size={14} className="ml-1" />
-            </Button>
+            {learningMode !== "academique" && (
+              <Button
+                onClick={() => handleNext(nextLesson)}
+                disabled={isResolving}
+                size="sm"
+                className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
+              >
+                Leçon suivante <ChevronRight size={14} className="ml-1" />
+              </Button>
+            )}
           </div>
         </div>
 
