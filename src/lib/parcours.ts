@@ -507,6 +507,55 @@ export async function getTrulyCompletedLessonIds(
   return quotaMet ? completedLessonIds : completedLessonIds.filter((id) => id !== lastCompleted.id);
 }
 
+export interface LessonExerciseQuota {
+  done: number;
+  required: number;
+}
+
+/**
+ * Quota d'exercices qcm/trous complétés sur une leçon donnée, par rapport au
+ * seuil requis avant de débloquer la suite en mode académique -- extrait de
+ * lessons/[slug]/complete/page.tsx (Bloc D, item 4) pour devenir le point
+ * unique interrogeant exercise_attempts à cette fin, réutilisé par
+ * practice/[id] et grammar-check/[id] pour afficher le même badge de
+ * progression quand l'exercice est fait depuis la TopBar plutôt que depuis
+ * /complete (remontée LlamaKusi -- "le compteur n'est visible que sur une
+ * des deux pages qui mènent au même exercice").
+ *
+ * `required` est plafonné au nombre d'exercices qcm/trous réellement
+ * disponibles sur la leçon -- même règle que getTrulyCompletedLessonIds()
+ * ci-dessus, pour ne jamais afficher un quota mathématiquement impossible à
+ * atteindre (ex. une leçon qui n'a que 2 exercices qcm/trous au total).
+ */
+export async function getLessonExerciseQuota(
+  userId: string,
+  lessonId: string,
+  supabase: SupabaseClient = defaultSupabase,
+  required: number = 3
+): Promise<LessonExerciseQuota> {
+  const { data: exercises } = await supabase
+    .from('exercises')
+    .select('id')
+    .eq('lesson_id', lessonId)
+    .in('type', ['qcm', 'trous']);
+
+  const exerciseIds = (exercises || []).map((e: any) => e.id);
+  // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
+  // jamais bloquant, même repli que getTrulyCompletedLessonIds().
+  if (exerciseIds.length === 0) return { done: required, required };
+
+  const { data: attempts } = await supabase
+    .from('exercise_attempts')
+    .select('exercise_id')
+    .eq('user_id', userId)
+    .eq('is_completed', true)
+    .in('exercise_id', exerciseIds);
+
+  const done = new Set((attempts || []).map((a: any) => a.exercise_id)).size;
+  const cappedRequired = Math.min(required, exerciseIds.length);
+  return { done: Math.min(done, cappedRequired), required: cappedRequired };
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')

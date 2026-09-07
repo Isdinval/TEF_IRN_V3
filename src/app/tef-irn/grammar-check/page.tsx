@@ -6,7 +6,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import GrammarCheckTreeCatalogue, { LessonMeta } from "./components/GrammarCheckTreeCatalogue";
-import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { Exercise, getLessonExerciseQuota, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search, AlertTriangle } from "lucide-react";
@@ -128,6 +129,10 @@ export function GrammarCheckContent() {
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
+  // Quota d'exercices de la leçon de rattachement, affiché sur l'écran de
+  // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
+  // mais pour un exercice lancé depuis la TopBar (bouton Chasse aux erreurs).
+  const [lessonQuota, setLessonQuota] = useState<{ done: number; required: number } | null>(null);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
@@ -430,6 +435,7 @@ export function GrammarCheckContent() {
           const studyTimeMinutes = sessionStartRef.current
             ? Math.round((Date.now() - sessionStartRef.current) / 60000)
             : 0;
+          setLessonQuota(null);
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && activeExerciseId) {
@@ -450,6 +456,11 @@ export function GrammarCheckContent() {
               // appel explicite, le compteur restait figé jusqu'au prochain reload.
               refreshProgress();
               refreshExerciseCounts();
+
+              const lessonId = questions[0]?.lesson_id;
+              if (learningMode === "academique" && lessonId) {
+                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, supabase));
+              }
             }
           } catch (err) {
             console.error("Error saving attempt:", err);
@@ -581,6 +592,9 @@ export function GrammarCheckContent() {
               <div className="text-2xl font-black text-emerald-600">{score} / {questions.length}</div>
             </div>
           </div>
+          {learningMode === "academique" && lessonQuota && (
+            <ExerciseQuotaBadge done={lessonQuota.done} required={lessonQuota.required} label="chasse aux erreurs" />
+          )}
           <div className="flex flex-col gap-3">
             <Button
               onClick={() => {

@@ -3,10 +3,11 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcours, getLessonBySlug, getLessonById, Exercise } from "@/lib/parcours";
+import { getParcours, getLessonBySlug, getLessonById, getLessonExerciseQuota, Exercise } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { useParcours } from "@/contexts/ParcoursContext";
 import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -43,7 +44,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
-  const [exercisesDoneCount, setExercisesDoneCount] = useState(0);
+  const [exerciseQuota, setExerciseQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_EXERCISES });
 
   const supabase = createClient();
 
@@ -128,28 +129,12 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
       setRecommendedExercises(nextExercises);
 
       // Bloc D (item 4) : quota d'exercices avant la leçon suivante, calculé
-      // uniquement en mode académique (coût réseau évité en libre).
+      // uniquement en mode académique (coût réseau évité en libre). Calcul
+      // délégué à getLessonExerciseQuota() (lib/parcours.ts) -- point unique
+      // partagé avec practice/[id] et grammar-check/[id], qui affichent
+      // désormais le même badge après un exercice fait depuis la TopBar.
       if (learningMode === "academique") {
-        const { data: lessonExercises } = await supabase
-          .from('exercises')
-          .select('id')
-          .eq('lesson_id', currentLesson.id)
-          .in('type', ['qcm', 'trous']);
-        const exerciseIds = (lessonExercises || []).map((e: any) => e.id);
-        if (exerciseIds.length > 0) {
-          const { data: doneAttempts } = await supabase
-            .from('exercise_attempts')
-            .select('exercise_id')
-            .eq('user_id', user.id)
-            .eq('is_completed', true)
-            .in('exercise_id', exerciseIds);
-          setExercisesDoneCount(new Set((doneAttempts || []).map((a: any) => a.exercise_id)).size);
-        } else {
-          // Pas d'exercice qcm/trous sur cette leçon (leçon "Vocabulaire" par
-          // exemple, cf. item vocabulaire architecturalement isolé) -- ne pas
-          // bloquer indéfiniment sur un quota impossible à atteindre.
-          setExercisesDoneCount(REQUIRED_EXERCISES);
-        }
+        setExerciseQuota(await getLessonExerciseQuota(user.id, currentLesson.id, supabase, REQUIRED_EXERCISES));
       }
 
       setLoading(false);
@@ -168,8 +153,8 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
 
   const [heroExercise, ...restExercises] = recommendedExercises;
-  const canAdvance = learningMode !== "academique" || exercisesDoneCount >= REQUIRED_EXERCISES;
-  const remaining = REQUIRED_EXERCISES - exercisesDoneCount;
+  const canAdvance = learningMode !== "academique" || exerciseQuota.done >= exerciseQuota.required;
+  const remaining = exerciseQuota.required - exerciseQuota.done;
 
   return (
     <div className="max-w-5xl mx-auto p-8 py-16 min-h-screen space-y-16">
@@ -226,17 +211,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <p className="text-xl md:text-2xl font-black text-amber-700">
               Faites {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour débloquer {nextLesson ? "la leçon suivante" : "la fin du parcours"}
             </p>
-            <div className="flex items-center justify-center gap-2">
-              {Array.from({ length: REQUIRED_EXERCISES }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-2.5 w-14 rounded-full transition-colors ${i < exercisesDoneCount ? "bg-amber-500" : "bg-amber-100"}`}
-                />
-              ))}
-            </div>
-            <p className="text-xs font-black uppercase tracking-widest text-amber-500">
-              {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
-            </p>
+            <ExerciseQuotaBadge done={exerciseQuota.done} required={exerciseQuota.required} />
           </div>
 
           {heroExercise ? (

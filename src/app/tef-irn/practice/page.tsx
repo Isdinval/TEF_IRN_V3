@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PracticeTreeCatalogue, { LessonMeta } from "./components/PracticeTreeCatalogue";
-import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { Exercise, getLessonExerciseQuota, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
@@ -126,6 +127,11 @@ export function PracticeContent() {
   // les autres exercices réellement pratiqués n'étaient jamais trackés (ni pour
   // l'anti-répétition item 13, ni pour le SRS, ni pour user_errors).
   const [answersLog, setAnswersLog] = useState<{ exerciseId: string; correct: boolean }[]>([]);
+  // Quota d'exercices de la leçon de rattachement, affiché sur l'écran de
+  // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
+  // mais pour un exercice lancé depuis la TopBar (bouton QCM), qui n'affichait
+  // jusqu'ici aucun repère de progression.
+  const [lessonQuota, setLessonQuota] = useState<{ done: number; required: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -668,6 +674,15 @@ export function PracticeContent() {
       // sans cet appel explicite, le compteur restait figé jusqu'au prochain reload.
       refreshProgress();
       refreshExerciseCounts();
+
+      const lessonId = questions[0]?.lesson_id;
+      setLessonQuota(null);
+      if (learningMode === "academique" && lessonId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, supabase));
+        }
+      }
     }
   };
 
@@ -795,6 +810,9 @@ export function PracticeContent() {
                 Réessayer
               </Button>
             </div>
+          )}
+          {learningMode === "academique" && lessonQuota && (
+            <ExerciseQuotaBadge done={lessonQuota.done} required={lessonQuota.required} label="QCM" />
           )}
           <div className="flex flex-col gap-3">
             <Button
