@@ -31,8 +31,15 @@ Suivez vos performances grâce à un tableau de bord premium et gamifié.
 
 ### 🧠 Apprentissage Adaptatif (SRS)
 Optimisez votre mémorisation avec notre moteur de répétition espacée (Spaced Repetition System).
-- **SRS Intelligent** : Algorithme SM-2 personnalisé pour le vocabulaire et les exercices.
+- **SRS Intelligent** : Algorithme SM-2 personnalisé, décliné sur trois domaines (exercices, vocabulaire, Examen Civique).
 - **Moteur de Recommandation Unifié** : Un exercice recommandé n'est jamais choisi au hasard — priorité aux révisions dues, puis à la leçon en cours, puis aux points jamais abordés, avec la raison de la recommandation affichée directement à l'écran.
+
+### 🏛️ Examen Civique (CSP / Carte de Résident / Naturalisation)
+Un second produit à part entière, dédié au QCM de connaissances civiques obligatoire depuis le 1er janvier 2026.
+- **Simulateur d'éligibilité** : Identifie la mention visée (CSP, Carte de Résident, Naturalisation) selon la situation du candidat.
+- **Entraînement & Examen Blanc** : QCM thématique (institutions, valeurs de la République, histoire, vie en société) avec SRS dédié, puis simulation en conditions réelles (40 questions).
+- **Carte des Centres d'Examen** : Localisation des centres agréés partout en France.
+- **Livret du Citoyen & Guides** : Contenu de référence et guides pédagogiques publics, en cross-sell avec le TEF IRN.
 
 ---
 
@@ -57,11 +64,31 @@ npm run dev
 
 ## 📄 Documentation
 
-Pour plus de détails, explorez notre dossier `docs/` :
+### Pour démarrer
 - [Documentation Technique](./docs/technical-documentation.md)
+- [Fonctionnalités Produit](./docs/FEATURES.md)
+- [Référentiel TEF IRN](./docs/tef-irn-reference.md)
+- [Guide du Coach IA](./COACH_GUIDE.md)
+
+### Architecture & Base de données
 - [Systèmes IA](./docs/AI_SYSTEMS.md)
 - [Base de données & SRS](./docs/DATABASE_AND_SRS.md)
-- [Référentiel TEF IRN](./docs/tef-irn-reference.md)
+- [Catalogue des simulations d'examen (oral/écrit)](./docs/EXAM_SCENARIOS_CATALOGUE.md)
+
+### Calibration pédagogique (prompts IA)
+- [Correction Expression Écrite par niveau CECRL](./docs/writing-correction-levels.md)
+- [Notation Expression Orale par niveau CECRL](./docs/oral-analysis-levels.md)
+- [Calibration Compréhension Écrite](./docs/ce-content-calibration-rules.md)
+- [Contraintes de génération Compréhension Orale](./docs/CO-contraintes-generation-texte.md)
+- [Taxonomie des tags de leçons](./docs/lessons-tags-taxonomy.md)
+- [Particularités du Vocabulaire dans le moteur de recommandation](./docs/vocabulaire-particularites-recommandation.md)
+
+### Ops & contribution
+- [Guide de Contribution](./docs/CONTRIBUTING.md)
+- [Piège PostgREST : troncature à 1000 lignes](./docs/postgrest-max-rows-truncation.md)
+
+### Pour les agents IA
+- [AGENTS.md](./AGENTS.md) — conventions, structure des dossiers, méthode de travail
 
 ---
 
