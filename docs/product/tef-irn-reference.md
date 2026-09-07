@@ -25,20 +25,20 @@ la vidéo ci-dessus prime pour tout ce qui est spécifique au format IRN.
 | Format (`ce_format`) | Qté | Description |
 |---|---|---|
 | `court` | 4 | Texte court (vie quotidienne / document simple), 1 question par texte |
-| `trous` | 4 | Mix de phrase à trous (1 lacune, phrase courte) et texte à trous (paragraphe, 2 lacunes partagées) — voir règle 7 de `ce-content-calibration-rules.md`. Lacunes numérotées `___________ (N)` ; `highlight_gap` indique la lacune active pour chaque question |
+| `trous` | 4 | Mix de phrase à trous (1 lacune, phrase courte) et texte à trous (paragraphe, 2 lacunes partagées) — voir règle 7 de `docs/calibration/ce-content-calibration-rules.md`. Lacunes numérotées `___________ (N)` ; `highlight_gap` indique la lacune active pour chaque question |
 | `multi_texte` | 2 | Grille de sous-documents (`sub_texts` jsonb), 1 question transversale par set — correspond à l'exercice "lecture rapide" officiel |
 | `long_admin` | 5 | Texte long structuré en paragraphes (documents administratifs/professionnels), 1 question générale + 1 précise par document (règle 8) |
 | `article_presse` | 5 | Texte long structuré en paragraphes — articles de presse |
 
 `long_admin` et `article_presse` partagent le même rendu UI (texte en paragraphes) mais sont
 distingués en base pour pouvoir cibler l'un sans l'autre. Règles de conception détaillées :
-voir `docs/ce-content-calibration-rules.md`.
+voir `docs/calibration/ce-content-calibration-rules.md`.
 
 **Décision produit — pas d'adaptativité, choix de l'examen par l'utilisateur** : plutôt que de
 répliquer la section 2 adaptative du TEF IRN réel, LlamaKusi laisse l'utilisateur choisir
 lui-même le niveau/thème de l'examen blanc (`exam-1`/`exam-2`/`exam-3`). Chaque examen est un
 bloc fixe de 20 questions CE, non adaptatif en interne. Détail dans
-`docs/ce-content-calibration-rules.md`.
+`docs/calibration/ce-content-calibration-rules.md`.
 
 **Thématique par examen blanc** (contenu, pas structure — les 3 examens suivent la même
 répartition de formats ci-dessus) :

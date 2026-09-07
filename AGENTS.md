@@ -54,7 +54,7 @@ src/app/
 ├── auth/
 │   └── callback/             # Callback OAuth Supabase (magic link, Google, etc.)
 │
-└── tef-irn/                  # ⚠️ TOUT le produit vit sous ce préfixe de route (voir avertissement ci-dessous)
+├── tef-irn/                  # ⚠️ La quasi-totalité du produit vit sous ce préfixe de route (voir avertissement ci-dessous) — SAUF `examen-civique/` ci-dessous, hors préfixe
     ├── admin/generator/      # Interface admin de génération de contenu IA
     ├── correction/           # Correction écrite IA — feedback ligne par ligne
     ├── dashboard/            # Tableau de bord utilisateur (radar, historique, stats)
@@ -74,6 +74,15 @@ src/app/
     ├── settings/             # Paramètres du compte
     ├── vocab/                # Entraînement vocabulaire (SRS dédié)
     └── writing/              # Exercices d'expression écrite (type 'ecrit')
+│
+└── examen-civique/           # ⚠️ Hors du préfixe /tef-irn/ — produit public dédié CSP / Carte de Résident / Naturalisation
+    ├── centres/               # Carte des centres d'examen civique
+    ├── eligibilite/            # Simulateur d'éligibilité (CSP / CR / Naturalisation)
+    ├── entrainement/           # Entraînement libre au QCM civique
+    ├── examen-blanc/           # Simulation d'examen civique blanc (40 questions)
+    ├── guides/                 # Guides civiques publics (SEO) + guides/[slug]
+    ├── livret/                 # Lecteur du livret du citoyen
+    └── parcourir/              # Catalogue de navigation du contenu civique
 
 supabase/
 └── migrations/               # Migrations SQL — NE PAS modifier manuellement, créer un nouveau fichier
@@ -81,7 +90,7 @@ supabase/
 
 ### ⚠️ Piège fréquent : le préfixe `/tef-irn/`
 
-**Toutes les routes produit sont sous `src/app/tef-irn/`, pas directement sous `src/app/`.** Un agent qui cherche `src/app/practice/page.tsx` ne trouvera rien — le vrai fichier est `src/app/tef-irn/practice/page.tsx`. Le middleware normalise aussi une variante `/tef_irn` (underscore) vers `/tef-irn` (tiret) par redirection 301 — ne pas la retirer.
+**Toutes les routes produit sont sous `src/app/tef-irn/`, pas directement sous `src/app/`, à une exception près : `src/app/examen-civique/`** (produit distinct, hors préfixe — voir arborescence ci-dessus). Un agent qui cherche `src/app/practice/page.tsx` ne trouvera rien — le vrai fichier est `src/app/tef-irn/practice/page.tsx`. Un agent qui cherche `src/app/tef-irn/examen-civique/` ne trouvera rien non plus — le vrai chemin est `src/app/examen-civique/`, à la racine. Le middleware normalise aussi une variante `/tef_irn` (underscore) vers `/tef-irn` (tiret) par redirection 301 — ne pas la retirer.
 
 ### Routes protégées vs publiques (source : `src/middleware.ts`, section `protectedRoutes`)
 
@@ -94,10 +103,13 @@ supabase/
 | `/tef-irn/vocab` | `/tef-irn/login` |
 | `/tef-irn/oral` | `/tef-irn/parcours` (soft-gated : consultable sans compte, CTA connexion pour les exercices) |
 | `/tef-irn/coach` | `/tef-irn/lessons` (soft-gated : lecture libre, quiz nécessite un compte) |
-| `/tef-irn/correction` | `/tef-irn/exam`, `/tef-irn/onboarding`, `/tef-irn/admin/generator` (gérés par leur propre logique, pas par le middleware) |
+| `/tef-irn/correction` | `/tef-irn/onboarding`, `/tef-irn/admin/generator` (gérés par leur propre logique, pas par le middleware) |
+| `/tef-irn/exam` | `/examen-civique/*` — **entièrement public**, aucune de ses routes (`centres`, `eligibilite`, `entrainement`, `examen-blanc`, `guides`, `guides/[slug]`, `livret`, `parcourir`) n'apparaît dans `protectedRoutes` |
 | `/tef-irn/settings` | |
 | `/tef-irn/profile` | |
 | `/tef-irn/progression` | |
+
+> ⚠️ Correction (07/09/2026) : `/tef-irn/exam` était précédemment documenté à tort comme "géré par sa propre logique" — il est en réalité listé dans `protectedRoutes` (`src/middleware.ts`) et redirige donc vers `/tef-irn/login` si non connecté, comme les autres routes protégées.
 
 ---
 
@@ -302,3 +314,7 @@ Niveaux cibles : A2 minimum (titre de séjourpluriannuelle), B1 (arte de réside
 Compétences évaluées : compréhension orale, compréhension écrite, expression orale, expression écrite.
 
 Compétiteur principal mentionné dans l'app : **PrepMyFuture**.
+
+### Second produit : Examen Civique (`src/app/examen-civique/`)
+
+Distinct du TEF IRN — c'est le QCM de connaissances civiques (histoire, institutions, valeurs de la République), obligatoire depuis le 1er janvier 2026 pour la Carte de Séjour Pluriannuelle (CSP), la Carte de Résident (CR) et la naturalisation. LlamaKusi le traite comme un produit à part entière (hub, éligibilité, centres d'examen, entraînement, examen blanc, guides, livret du citoyen), entièrement public (voir table des routes ci-dessus), pensé comme un axe de cross-sell avec le TEF IRN plutôt qu'un simple module annexe.

@@ -32,7 +32,7 @@ Pour un bénéfice quasi nul : une simulation d'examen chronométrée n'a pas vo
 comme un point de grammaire. Le pattern oral (en place depuis le début, jamais rattaché à `exercises`)
 valide déjà cette séparation en prod — le writing suit le même chemin.
 
-> Note historique : `docs/DATABASE_AND_SRS.md` mentionne que les types `ecrit` et `oral` existent
+> Note historique : `docs/architecture/database-and-srs.md` mentionne que les types `ecrit` et `oral` existent
 > dans le schéma `exercises` mais **ne sont pas consommés par le moteur de recommandation**. C'est
 > volontaire et à préserver : `ecrit` reste utilisé par le parcours/SRS pour des drills courts,
 > indépendamment du catalogue décrit ici.

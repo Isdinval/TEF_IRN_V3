@@ -5,7 +5,7 @@ Ce document sert de source de vérité pour calibrer le prompt IA d'analyse oral
 TEF IRN (A2 / B1 / B2) et pour les deux sections d'épreuve, ce que l'IA doit
 attendre, tolérer et **s'interdire** sur les 5 critères de la grille officielle.
 
-Principe directeur (identique à l'EE, voir `docs/writing-correction-levels.md`) : le
+Principe directeur (identique à l'EE, voir `docs/calibration/writing-correction-levels.md`) : le
 niveau d'évaluation suit le niveau du **scénario choisi** (`scenario.level`), jamais un
 niveau supérieur "par excellence" — c'est la règle anti-biais déjà appliquée en dur dans
 le prompt (`oral/analyze/route.ts`).
