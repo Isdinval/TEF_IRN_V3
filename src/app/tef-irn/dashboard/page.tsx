@@ -29,12 +29,11 @@ import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ParcoursOverviewCard } from "@/components/features/dashboard/new/ParcoursOverviewCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
 import { ExamReadinessCard } from "@/components/features/dashboard/new/ExamReadinessCard";
-import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
-import { RegularityHeatmapCard } from "@/components/features/dashboard/new/RegularityHeatmapCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
 import { TrousStatsCard } from "@/components/features/dashboard/new/TrousStatsCard";
+import { EEStatsCard } from "@/components/features/dashboard/new/EEStatsCard";
 import { OralStatsCard } from "@/components/features/dashboard/new/OralStatsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
@@ -134,12 +133,12 @@ export default function DashboardPage() {
     enabled: isMounted,
   });
 
-  const { data: activityHeatmap } = useQuery({
-    queryKey: ["activity-heatmap"],
+  const { data: eeStats } = useQuery({
+    queryKey: ["ee-stats"],
     queryFn: async () => {
-      const { data: heatmap, error: rpcError } = await supabase.rpc("get_activity_heatmap");
+      const { data: stats, error: rpcError } = await supabase.rpc("get_ee_stats");
       if (rpcError) throw rpcError;
-      return heatmap;
+      return stats;
     },
     enabled: isMounted,
   });
@@ -187,7 +186,6 @@ export default function DashboardPage() {
   const vocab_stats = data.vocab_stats || null;
   const weak_points = Array.isArray(data.weak_points) ? data.weak_points : [];
   const target_exam_date = profile.target_exam_date || null;
-  const league_stats = data.league_stats || null;
 
   // recent_corrections remonte désormais jusqu'à 5 éléments par branche
   // (migrations 20260731000002/000003), et depuis 20260805000003 le bloc
@@ -337,16 +335,14 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
             <div className="space-y-6">
-              <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
-              <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
               <ExamReadinessCard
                 lessonsRemaining={examReadiness?.lessons_remaining ?? null}
                 lessonsPerWeek={examReadiness?.lessons_per_week ?? null}
                 targetExamDate={target_exam_date}
                 goalLevel={profile.goal_level || null}
               />
-              {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
-              <RegularityHeatmapCard days={activityHeatmap} />
+              <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
+              <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
             </div>
             <div className="space-y-6">
               {vocab_stats && (
@@ -374,6 +370,13 @@ export default function DashboardPage() {
                   levels={trousStats.levels}
                   levelsAvailable={trousStats.levels_available}
                   successRate={trousStats.success_rate}
+                />
+              )}
+              {eeStats && (
+                <EEStatsCard
+                  total={eeStats.total}
+                  successRate={eeStats.success_rate}
+                  lastScore={eeStats.last_score}
                 />
               )}
               {eoStats && (
