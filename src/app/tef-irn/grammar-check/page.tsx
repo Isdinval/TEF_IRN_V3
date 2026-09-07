@@ -459,7 +459,7 @@ export function GrammarCheckContent() {
 
               const lessonId = questions[0]?.lesson_id;
               if (learningMode === "academique" && lessonId) {
-                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, supabase));
+                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'trous', supabase));
               }
             }
           } catch (err) {

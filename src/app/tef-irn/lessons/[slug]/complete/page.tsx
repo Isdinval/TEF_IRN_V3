@@ -29,9 +29,13 @@ interface PathLesson {
 }
 
 // Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : nombre d'exercices
-// qcm/trous à compléter sur la leçon courante avant de pouvoir passer à la
-// suivante, uniquement en mode académique.
-const REQUIRED_EXERCISES = 3;
+// de CHAQUE type (qcm et trous) à compléter sur la leçon courante avant de
+// pouvoir passer à la suivante, uniquement en mode académique. Phase 2
+// (cohérence quota parcours guidé) : deux seuils indépendants au lieu d'un
+// total mixé de 3 -- un utilisateur ne pouvait jusqu'ici débloquer la suite
+// qu'avec des QCM, sans jamais pratiquer la Chasse aux erreurs.
+const REQUIRED_QCM = 3;
+const REQUIRED_TROUS = 3;
 
 export default function LessonComplete({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -44,7 +48,8 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
-  const [exerciseQuota, setExerciseQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_EXERCISES });
+  const [qcmQuota, setQcmQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_QCM });
+  const [trousQuota, setTrousQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_TROUS });
 
   const supabase = createClient();
 
@@ -129,12 +134,17 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
       setRecommendedExercises(nextExercises);
 
       // Bloc D (item 4) : quota d'exercices avant la leçon suivante, calculé
-      // uniquement en mode académique (coût réseau évité en libre). Calcul
-      // délégué à getLessonExerciseQuota() (lib/parcours.ts) -- point unique
-      // partagé avec practice/[id] et grammar-check/[id], qui affichent
-      // désormais le même badge après un exercice fait depuis la TopBar.
+      // uniquement en mode académique (coût réseau évité en libre). Deux
+      // appels indépendants à getLessonExerciseQuota() (Phase 2) -- un quota
+      // par type, cohérent avec getTrulyCompletedLessonIds() qui vérifie
+      // désormais les deux séparément plutôt qu'un total mixé.
       if (learningMode === "academique") {
-        setExerciseQuota(await getLessonExerciseQuota(user.id, currentLesson.id, supabase, REQUIRED_EXERCISES));
+        const [qcm, trous] = await Promise.all([
+          getLessonExerciseQuota(user.id, currentLesson.id, 'qcm', supabase, REQUIRED_QCM),
+          getLessonExerciseQuota(user.id, currentLesson.id, 'trous', supabase, REQUIRED_TROUS),
+        ]);
+        setQcmQuota(qcm);
+        setTrousQuota(trous);
       }
 
       setLoading(false);
@@ -153,8 +163,10 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
 
   const [heroExercise, ...restExercises] = recommendedExercises;
-  const canAdvance = learningMode !== "academique" || exerciseQuota.done >= exerciseQuota.required;
-  const remaining = exerciseQuota.required - exerciseQuota.done;
+  const canAdvance = learningMode !== "academique" || (qcmQuota.done >= qcmQuota.required && trousQuota.done >= trousQuota.required);
+  const qcmRemaining = qcmQuota.required - qcmQuota.done;
+  const trousRemaining = trousQuota.required - trousQuota.done;
+  const remaining = qcmRemaining + trousRemaining;
 
   return (
     <div className="max-w-5xl mx-auto p-8 py-16 min-h-screen space-y-16">
@@ -211,7 +223,10 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <p className="text-xl md:text-2xl font-black text-amber-700">
               Faites {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour débloquer {nextLesson ? "la leçon suivante" : "la fin du parcours"}
             </p>
-            <ExerciseQuotaBadge done={exerciseQuota.done} required={exerciseQuota.required} />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <ExerciseQuotaBadge done={qcmQuota.done} required={qcmQuota.required} label="QCM" />
+              <ExerciseQuotaBadge done={trousQuota.done} required={trousQuota.required} label="chasse aux erreurs" />
+            </div>
           </div>
 
           {heroExercise ? (

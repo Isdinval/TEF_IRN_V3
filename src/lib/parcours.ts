@@ -459,6 +459,13 @@ export async function getUnlockedLessonIdsForInProgressParcours(
  * la leçon suivante. Filtre completedLessonIds pour n'y garder, en
  * académique, que les leçons où le quota est aussi rempli. Sans effet en
  * mode libre (retourne completedLessonIds tel quel).
+ *
+ * Item "cohérence quota parcours guidé" (Phase 2) : le quota était jusqu'ici
+ * un seuil unique mixant QCM et Trous (3 au total, peu importe la
+ * répartition) -- un utilisateur pouvait donc débloquer la suite en ne
+ * faisant que des QCM, sans jamais toucher à la Chasse aux erreurs. `requiredPerType`
+ * s'applique désormais indépendamment à chaque type : il faut 3 QCM ET 3
+ * Trous (chacun plafonné au nombre réellement disponible sur la leçon).
  */
 export async function getTrulyCompletedLessonIds(
   userId: string,
@@ -466,7 +473,7 @@ export async function getTrulyCompletedLessonIds(
   completedLessonIds: string[],
   learningMode: 'academique' | 'libre',
   supabase: SupabaseClient = defaultSupabase,
-  requiredExercises: number = 3
+  requiredPerType: number = 3
 ): Promise<string[]> {
   if (learningMode !== 'academique' || completedLessonIds.length === 0) return completedLessonIds;
 
@@ -485,26 +492,34 @@ export async function getTrulyCompletedLessonIds(
 
   const { data: exercises } = await supabase
     .from('exercises')
-    .select('id')
+    .select('id, type')
     .eq('lesson_id', lastCompleted.id)
     .in('type', ['qcm', 'trous']);
 
-  const exerciseIds = (exercises || []).map((e: any) => e.id);
+  const qcmIds = (exercises || []).filter((e: any) => e.type === 'qcm').map((e: any) => e.id);
+  const trousIds = (exercises || []).filter((e: any) => e.type === 'trous').map((e: any) => e.id);
+  const allIds = [...qcmIds, ...trousIds];
   // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
-  // jamais bloquant, même repli que /complete (REQUIRED_EXERCISES).
-  if (exerciseIds.length === 0) return completedLessonIds;
+  // jamais bloquant, même repli que /complete (REQUIRED_QCM/REQUIRED_TROUS).
+  if (allIds.length === 0) return completedLessonIds;
 
   const { data: attempts } = await supabase
     .from('exercise_attempts')
     .select('exercise_id')
     .eq('user_id', userId)
     .eq('is_completed', true)
-    .in('exercise_id', exerciseIds);
+    .in('exercise_id', allIds);
 
-  const doneCount = new Set((attempts || []).map((a: any) => a.exercise_id)).size;
-  const quotaMet = doneCount >= Math.min(requiredExercises, exerciseIds.length);
+  const doneSet = new Set((attempts || []).map((a: any) => a.exercise_id));
+  const qcmDone = qcmIds.filter((id) => doneSet.has(id)).length;
+  const trousDone = trousIds.filter((id) => doneSet.has(id)).length;
 
-  return quotaMet ? completedLessonIds : completedLessonIds.filter((id) => id !== lastCompleted.id);
+  // Un type absent de la leçon (ex. leçon uniquement QCM) ne bloque jamais
+  // sur l'autre -- Math.min(requiredPerType, 0) = 0, toujours atteint.
+  const qcmMet = qcmDone >= Math.min(requiredPerType, qcmIds.length);
+  const trousMet = trousDone >= Math.min(requiredPerType, trousIds.length);
+
+  return (qcmMet && trousMet) ? completedLessonIds : completedLessonIds.filter((id) => id !== lastCompleted.id);
 }
 
 export interface LessonExerciseQuota {
@@ -513,23 +528,23 @@ export interface LessonExerciseQuota {
 }
 
 /**
- * Quota d'exercices qcm/trous complétés sur une leçon donnée, par rapport au
- * seuil requis avant de débloquer la suite en mode académique -- extrait de
- * lessons/[slug]/complete/page.tsx (Bloc D, item 4) pour devenir le point
- * unique interrogeant exercise_attempts à cette fin, réutilisé par
- * practice/[id] et grammar-check/[id] pour afficher le même badge de
- * progression quand l'exercice est fait depuis la TopBar plutôt que depuis
- * /complete (remontée LlamaKusi -- "le compteur n'est visible que sur une
- * des deux pages qui mènent au même exercice").
+ * Quota d'exercices d'UN type (qcm OU trous) complétés sur une leçon donnée,
+ * par rapport au seuil requis avant de débloquer la suite en mode
+ * académique -- extrait de lessons/[slug]/complete/page.tsx (Bloc D, item 4)
+ * pour devenir le point unique interrogeant exercise_attempts à cette fin,
+ * réutilisé par practice/[id] et grammar-check/[id] pour afficher le même
+ * badge de progression quand l'exercice est fait depuis la TopBar plutôt
+ * que depuis /complete.
  *
- * `required` est plafonné au nombre d'exercices qcm/trous réellement
- * disponibles sur la leçon -- même règle que getTrulyCompletedLessonIds()
- * ci-dessus, pour ne jamais afficher un quota mathématiquement impossible à
- * atteindre (ex. une leçon qui n'a que 2 exercices qcm/trous au total).
+ * Phase 2 (cohérence quota parcours guidé) : un seul type à la fois plutôt
+ * qu'un total mixé QCM+Trous -- symétrique avec getTrulyCompletedLessonIds()
+ * qui vérifie désormais les deux indépendamment. `required` reste plafonné
+ * au nombre d'exercices de CE type réellement disponibles sur la leçon.
  */
 export async function getLessonExerciseQuota(
   userId: string,
   lessonId: string,
+  type: 'qcm' | 'trous',
   supabase: SupabaseClient = defaultSupabase,
   required: number = 3
 ): Promise<LessonExerciseQuota> {
@@ -537,12 +552,12 @@ export async function getLessonExerciseQuota(
     .from('exercises')
     .select('id')
     .eq('lesson_id', lessonId)
-    .in('type', ['qcm', 'trous']);
+    .eq('type', type);
 
   const exerciseIds = (exercises || []).map((e: any) => e.id);
-  // Pas d'exercice qcm/trous sur cette leçon (ex. leçon Vocabulaire) --
-  // jamais bloquant, même repli que getTrulyCompletedLessonIds().
-  if (exerciseIds.length === 0) return { done: required, required };
+  // Pas d'exercice de ce type sur cette leçon -- jamais bloquant, même
+  // repli que getTrulyCompletedLessonIds().
+  if (exerciseIds.length === 0) return { done: 0, required: 0 };
 
   const { data: attempts } = await supabase
     .from('exercise_attempts')

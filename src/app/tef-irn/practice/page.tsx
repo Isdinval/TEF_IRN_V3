@@ -680,7 +680,7 @@ export function PracticeContent() {
       if (learningMode === "academique" && lessonId) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, supabase));
+          setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase));
         }
       }
     }
