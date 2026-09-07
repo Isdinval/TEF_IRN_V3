@@ -44,7 +44,6 @@ import { useRouter } from "next/navigation";
 
 // Dynamic imports with SSR disabled
 const PerformanceRadar = dynamic(() => import("@/components/features/dashboard/new/PerformanceRadar").then(mod => mod.PerformanceRadar), { ssr: false });
-const XPChart = dynamic(() => import("@/components/features/dashboard/new/XPChart").then(mod => mod.XPChart), { ssr: false });
 const SubSkillHeatmap = dynamic(() => import("@/components/features/dashboard/new/SubSkillHeatmap").then(mod => mod.SubSkillHeatmap), { ssr: false });
 
 export default function DashboardPage() {
@@ -179,7 +178,6 @@ export default function DashboardPage() {
   const parcours_overview = data.parcours_overview || null;
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
-  const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
   const pending_corrections = data.pending_corrections || 0;
   const vocab_reviews_due = data.vocab_reviews_due || 0;
   const exercise_reviews_due = data.exercise_reviews_due || 0;
@@ -398,13 +396,12 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
-            <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique, historique XP et corrections récentes." />
+            <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique et corrections récentes." />
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <PerformanceRadar data={competency_radar} />
             <SubSkillHeatmap data={sub_competencies} />
           </div>
-          <XPChart data={xp_last_7_days} />
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <RecentCorrectionsList
               corrections={examCorrections}
