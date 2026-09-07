@@ -70,6 +70,7 @@ src/app/
     ├── practice/             # Exercices adaptatifs généraux (type 'qcm', 'association')
     ├── pricing/              # Page tarifs + intégration Stripe Checkout
     ├── profile/              # Profil utilisateur
+    ├── progression/          # Vue macro du parcours guidé (4 niveaux A1-B2 : parcours + EE + EO + examen blanc)
     ├── settings/             # Paramètres du compte
     ├── vocab/                # Entraînement vocabulaire (SRS dédié)
     └── writing/              # Exercices d'expression écrite (type 'ecrit')
@@ -96,6 +97,7 @@ supabase/
 | `/tef-irn/correction` | `/tef-irn/exam`, `/tef-irn/onboarding`, `/tef-irn/admin/generator` (gérés par leur propre logique, pas par le middleware) |
 | `/tef-irn/settings` | |
 | `/tef-irn/profile` | |
+| `/tef-irn/progression` | |
 
 ---
 
@@ -196,6 +198,16 @@ Trois types actifs, chacun lié à une page précise — ne pas les confondre, c
 | `qcm_centre_entrainement` | `lessons/[slug]/page.tsx` (mini-quiz de fin de leçon) | Un seul exercice par leçon, filtré par `lesson_id` + `type` |
 
 `reformulage`, `ecrit` et `oral` existent dans la contrainte `CHECK` de la table mais ne sont pas consommés par le moteur de recommandation.
+
+### Mode académique (parcours guidé) : quota d'exercices
+
+En mode `académique` (`profiles.learning_mode`), une leçon terminée ne débloque la suivante qu'après **3 QCM ET 3 Chasse aux erreurs** (deux seuils indépendants, plafonnés au nombre d'exercices de ce type réellement disponibles sur la leçon — jamais un objectif impossible à atteindre). En mode `libre`, aucun quota ne s'applique.
+
+Deux fonctions dans `src/lib/parcours.ts` sont la SEULE source de vérité pour ce calcul — ne jamais réintroduire une requête `exercise_attempts` locale à une page pour ça :
+- `getTrulyCompletedLessonIds()` — la règle de déblocage elle-même (utilisée par `/parcours/[slug]` et `/lessons/[slug]`).
+- `getLessonExerciseQuota(userId, lessonId, type, supabase, required)` — le quota affiché à l'écran (badge), utilisé par `/lessons/[slug]/complete`, `/practice/[id]` et `/grammar-check/[id]` : un exercice fait depuis n'importe laquelle de ces 3 pages (y compris via les boutons QCM/Chasse aux erreurs de la TopBar) doit afficher le même compteur.
+
+La page `/tef-irn/progression` (`src/lib/progression.ts`) donne la vue macro correspondante : par niveau CECRL (A1 à B2), statut de chaque parcours puis, une fois tous terminés, checkpoints Expression Écrite / Expression Orale / Examen blanc. Ces 3 checkpoints n'existent qu'à partir du niveau A2 (contraintes `CHECK` sur `writing_exam_scenarios.level` et `oral_session_results.level` — aucun contenu EE/EO/Examen n'existe encore au niveau A1). Aucun gating dur : l'entraînement libre reste toujours accessible, ces checkpoints ne sont qu'une recommandation visuelle.
 
 ---
 

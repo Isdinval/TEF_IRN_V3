@@ -27,6 +27,7 @@ Suivez vos performances grâce à un tableau de bord premium et gamifié.
 - **Radar de Compétences** : Visualisation de votre niveau sur les différents axes du CECRL.
 - **Système de Ligues** : Restez motivé en grimpant dans le classement des utilisateurs.
 - **Objectifs Quotidiens** : Suivi de l'XP et de la régularité.
+- **Page Progression** : Vue d'ensemble du parcours guidé, niveau par niveau (A1 à B2) — parcours, expression écrite, expression orale et examens blancs en un seul endroit.
 
 ### 🧠 Apprentissage Adaptatif (SRS)
 Optimisez votre mémorisation avec notre moteur de répétition espacée (Spaced Repetition System).
