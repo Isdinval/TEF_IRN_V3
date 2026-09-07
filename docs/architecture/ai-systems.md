@@ -22,11 +22,16 @@ LlamaKusi utilise les capacités multimodales d'OpenAI pour simuler des interact
 - **Session Ephemeral** : Gestion des tokens de session sécurisée via `/api/oral/session`.
 - **Instructions Système** : L'IA adopte le rôle d'un examinateur TEF IRN bienveillant mais rigoureux dans ses relances.
 
-## 3. Coach Conversationnel & RAG (`/api/coach/chat`)
-Un chat pédagogique avec mémoire de conversation (`chat_sessions` / `chat_messages`), capable de générer des exercices à la volée (`coach_generated_exercises`) rattachés à la session.
+## 3. Coach Conversationnel (`/api/coach/chat`)
+Chat pédagogique construit avec le Vercel AI SDK (`streamText`, modèle `gpt-4o-mini`), qui expose 5 tools à l'IA : `get_resources` (recherche par tags dans `lessons`/`exercises`), `get_next_recommendation` (réutilise `resolveNextExercises()`, voir §4), `get_random_exercise`, `get_tef_info`, `get_vocab_list`.
 
-### Retrieval-Augmented Generation
-Le coach s'appuie sur une base de connaissances vectorisée (extension `pgvector`, tables `tef_knowledge` / `documents_embeddings`), interrogée via les fonctions `match_tef_knowledge()` / `match_knowledge_for_coach()` pour ancrer ses réponses sur le contenu pédagogique réel plutôt que sur la seule mémoire du modèle.
+### ⚠️ Pas de RAG vectoriel dans l'implémentation réellement appelée par le frontend
+Les fonctions `match_tef_knowledge()` / `match_knowledge_for_coach()` et les tables `tef_knowledge` / `documents_embeddings` existent en base (extension `pgvector`), mais **la route que le frontend appelle réellement (`/api/coach/chat`, confirmé dans `ChatCoach.tsx`) ne fait aucune recherche vectorielle** — `get_resources` interroge `lessons`/`exercises` par simple correspondance de tags (`.overlaps()`). `match_knowledge_for_coach()` n'est appelée que par une Edge Function Supabase distincte, `supabase/functions/coach-chat/`, qui n'est référencée nulle part côté client actuel — voir `COACH_GUIDE.md` pour le détail et une piste de nettoyage.
+
+`tef_knowledge` est bien utilisé en production, mais ailleurs : par la correction Écrite et l'analyse Orale (`/api/writing/correct`, `/api/oral/analyze`) comme banque d'exemplaires de calibration, via un lookup déterministe par niveau/catégorie — pas une recherche vectorielle.
+
+### Persistance de l'historique : à vérifier
+`chat_sessions` / `chat_messages` existent en base et la route sauvegarde la réponse de l'assistant si un `sessionId` est fourni au moment de l'appel — mais rien d'identifié dans `ChatCoach.tsx` ne fournit ce `sessionId` à ce jour. `coach_generated_exercises` n'est écrit que par l'Edge Function legacy, jamais par la route active.
 
 ### Périmètre
 Ce système couvre uniquement le TEF IRN — **le module Examen Civique n'a aucune IA runtime** : ses QCM et guides sont du contenu statique généré hors ligne (voir les skills `llamakusi-examen-civique-guide` / `llamakusi-image-prompt-examen-civique`), pas un système consulté en direct par l'utilisateur.
