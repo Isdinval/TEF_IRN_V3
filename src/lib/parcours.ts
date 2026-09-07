@@ -571,6 +571,59 @@ export async function getLessonExerciseQuota(
   return { done: Math.min(done, cappedRequired), required: cappedRequired };
 }
 
+/**
+ * Jusqu'à `perType` exercices de chaque type (qcm/trous) pour UNE leçon --
+ * utilisé par l'arbre inline de /tef-irn/progression (retour Olivier après
+ * tests manuels : afficher tout le catalogue débloqué faisait remonter des
+ * "12/15/20 exercices" par leçon, incohérent avec le quota 3+3 réellement
+ * exigé ailleurs). Contrairement à getUnlockedExercisesCatalogue() (tout le
+ * pool, pour la navigation libre sur /tef-irn/parcours/[slug]), cette
+ * fonction plafonne volontairement l'affichage.
+ *
+ * Les exercices déjà complétés sont pris en premier (jusqu'au plafond), le
+ * reste comblé par des exercices pas encore faits -- garantit que le nombre
+ * affiché "fait" dans cette liste égale toujours min(complétés réels,
+ * perType), exactement comme getLessonExerciseQuota(), peu importe lesquels
+ * parmi le pool total l'utilisateur a réellement choisi de faire.
+ */
+export async function getLessonQuotaExercises(
+  userId: string,
+  lessonId: string,
+  supabase: SupabaseClient = defaultSupabase,
+  perType: number = 3
+): Promise<(Exercise & { is_completed?: boolean })[]> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .select('id, lesson_id, type, level, instructions, category, difficulty, point_cles_lesson:"point_clés_lesson", point_cle_pedagogique')
+    .eq('lesson_id', lessonId)
+    .in('type', ['qcm', 'trous'])
+    .order('created_at', { ascending: true });
+
+  if (error || !data || data.length === 0) return [];
+  const exercises = data as Exercise[];
+
+  const { data: attempts } = await supabase
+    .from('exercise_attempts')
+    .select('exercise_id')
+    .eq('user_id', userId)
+    .eq('is_completed', true)
+    .in('exercise_id', exercises.map((e) => e.id));
+
+  const completedIds = new Set((attempts || []).map((a: { exercise_id: string }) => a.exercise_id));
+
+  const pickPerType = (type: 'qcm' | 'trous') => {
+    const ofType = exercises.filter((e) => e.type === type);
+    const completed = ofType.filter((e) => completedIds.has(e.id));
+    const notCompleted = ofType.filter((e) => !completedIds.has(e.id));
+    return [...completed.slice(0, perType), ...notCompleted].slice(0, perType);
+  };
+
+  return [...pickPerType('qcm'), ...pickPerType('trous')].map((ex) => ({
+    ...ex,
+    is_completed: completedIds.has(ex.id),
+  }));
+}
+
 export async function getLessonsForParcours(level: string, category: string, supabase: SupabaseClient = defaultSupabase): Promise<Lesson[]> {
   const { data, error } = await supabase
     .from('lessons')

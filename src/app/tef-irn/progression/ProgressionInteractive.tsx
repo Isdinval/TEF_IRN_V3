@@ -8,7 +8,7 @@ import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { CheckCircle2, Circle, PenTool, Mic, ClipboardCheck, Compass, ChevronDown, Loader2 } from "lucide-react";
 import ParcoursExerciseTreeCatalogue, { CatalogueExercise, LessonMeta } from "@/app/tef-irn/parcours/[slug]/components/ParcoursExerciseTreeCatalogue";
 import { getExerciseUrl } from "@/lib/parcours";
-import type { LevelProgression, ParcoursStepStatus } from "@/lib/progression";
+import type { LevelProgression, LevelStep, ParcoursStepStatus, ChecklistStepStatus, CheckpointStatus } from "@/lib/progression";
 
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
@@ -33,8 +33,8 @@ const CATEGORY_WHY: Record<string, string> = {
 };
 const DEFAULT_CATEGORY_WHY = "Une compétence évaluée au TEF IRN, à consolider avant de passer au niveau suivant.";
 
-const EE_WHY = "L'Expression Écrite se travaille différemment des exercices ciblés : rédiger un texte complet et structuré, avec le lexique et la grammaire de ce niveau.";
-const EO_WHY = "L'Expression Orale teste votre spontanéité face à un examinateur — impossible à s'entraîner via des QCM, il faut pratiquer la prise de parole.";
+const EE_WHY = "L'Expression Écrite se travaille différemment des exercices ciblés : rédiger un texte complet et structuré, avec le lexique et la grammaire de ce niveau. Intercalée entre les parcours pour ne pas s'entraîner uniquement en fin de niveau.";
+const EO_WHY = "L'Expression Orale teste votre spontanéité face à un examinateur — impossible à s'entraîner via des QCM, il faut pratiquer la prise de parole régulièrement.";
 const EXAM_WHY = "Un examen blanc complet (CE, CO, EE, EO) dans les conditions réelles, pour vérifier que vous êtes prêt avant de passer l'épreuve officielle.";
 
 function StatusIcon({ done }: { done: boolean }) {
@@ -154,52 +154,67 @@ function ParcoursTreeStep({ p, level, why }: { p: ParcoursStepStatus; level: str
   );
 }
 
+function ChecklistRow({ kind, step, level }: { kind: "ee" | "eo"; step: ChecklistStepStatus; level: string }) {
+  const isEE = kind === "ee";
+  const label = isEE ? "Expression Écrite" : "Expression Orale";
+  const unit = isEE ? "rédaction" : "session orale";
+  return (
+    <StepRow
+      icon={isEE ? PenTool : Mic}
+      title={`${label} ${level}`}
+      subtitle={step.done ? `Fait (${unit} ${step.index}/${step.total})` : step.unlocked ? `À faire — ${unit} ${step.index}/${step.total} du niveau` : `Recommandé après le parcours ci-dessus (${unit} ${step.index}/${step.total})`}
+      done={step.done}
+      href={step.href}
+      why={isEE ? EE_WHY : EO_WHY}
+    />
+  );
+}
+
+function ExamRow({ step }: { step: CheckpointStatus & { unlocked: boolean } }) {
+  return (
+    <StepRow
+      icon={ClipboardCheck}
+      title="Examen blanc"
+      subtitle={step.done ? "Fait" : step.unlocked ? "À faire" : "Recommandé une fois tous les parcours du niveau terminés"}
+      done={step.done}
+      href={step.href}
+      why={EXAM_WHY}
+    />
+  );
+}
+
 function LevelPanel({ level }: { level: LevelProgression }) {
-  const hasChecklistSteps = level.ee !== null;
+  const hasChecklist = level.steps.some((s) => s.kind !== "parcours");
 
   return (
     <div className="space-y-3">
-      {level.parcours.length === 0 && (
+      {level.steps.length === 0 && (
         <p className="text-sm text-zinc-400 italic px-1">Aucun parcours disponible pour ce niveau pour l'instant.</p>
       )}
 
-      {level.parcours.map((p) => (
-        <ParcoursTreeStep
-          key={p.id}
-          p={p}
-          level={level.level}
-          why={CATEGORY_WHY[p.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
-        />
-      ))}
+      {level.steps.map((step: LevelStep, i: number) => {
+        switch (step.kind) {
+          case "parcours":
+            return (
+              <ParcoursTreeStep
+                key={step.data.id}
+                p={step.data}
+                level={level.level}
+                why={CATEGORY_WHY[step.data.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
+              />
+            );
+          case "ee":
+            return <ChecklistRow key={`ee-${i}`} kind="ee" step={step.data} level={level.level} />;
+          case "eo":
+            return <ChecklistRow key={`eo-${i}`} kind="eo" step={step.data} level={level.level} />;
+          case "exam":
+            return <ExamRow key={`exam-${i}`} step={step.data} />;
+          default:
+            return null;
+        }
+      })}
 
-      {hasChecklistSteps ? (
-        <>
-          <StepRow
-            icon={PenTool}
-            title={`Expression Écrite ${level.level}`}
-            subtitle={level.ee!.done ? "Fait" : level.parcoursCompleted ? "À faire" : "Recommandé après les parcours ci-dessus"}
-            done={level.ee!.done}
-            href={level.ee!.href}
-            why={EE_WHY}
-          />
-          <StepRow
-            icon={Mic}
-            title={`Expression Orale ${level.level}`}
-            subtitle={level.eo!.done ? "Fait" : level.parcoursCompleted ? "À faire" : "Recommandé après les parcours ci-dessus"}
-            done={level.eo!.done}
-            href={level.eo!.href}
-            why={EO_WHY}
-          />
-          <StepRow
-            icon={ClipboardCheck}
-            title="Examen blanc"
-            subtitle={level.examBlanc!.done ? "Fait" : level.parcoursCompleted ? "À faire" : "Recommandé après les parcours ci-dessus"}
-            done={level.examBlanc!.done}
-            href={level.examBlanc!.href}
-            why={EXAM_WHY}
-          />
-        </>
-      ) : (
+      {!hasChecklist && level.steps.length > 0 && (
         <p className="text-xs text-zinc-400 italic px-1 pt-2">
           Expression Écrite, Expression Orale et Examen blanc arrivent bientôt pour ce niveau.
         </p>
@@ -224,12 +239,8 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
 
       <Accordion className="space-y-4" value={openLevels} onValueChange={setOpenLevels}>
         {levels.map((level) => {
-          const totalSteps = level.parcours.length + (level.ee ? 3 : 0);
-          const doneSteps =
-            level.parcours.filter((p) => p.isCompleted).length +
-            (level.ee?.done ? 1 : 0) +
-            (level.eo?.done ? 1 : 0) +
-            (level.examBlanc?.done ? 1 : 0);
+          const totalSteps = level.steps.length;
+          const doneSteps = level.steps.filter((s) => (s.kind === "parcours" ? s.data.isCompleted : s.data.done)).length;
 
           return (
             <AccordionItem

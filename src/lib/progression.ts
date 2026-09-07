@@ -35,14 +35,36 @@ export interface CheckpointStatus {
   href: string;
 }
 
+/**
+ * Étape EE ou EO intercalée entre deux parcours (retour Olivier après tests
+ * manuels : 1 EE après CHAQUE parcours, 1 EO après un parcours sur deux --
+ * pour un niveau à 4 parcours, ça donne 4 EE et 2 EO, la dernière paire
+ * EE+EO tombant juste avant l'examen blanc, formant naturellement le combo
+ * de fin de niveau). `index`/`total` permettent d'afficher "Rédaction 2/4"
+ * plutôt qu'un simple "fait/pas fait" sans contexte -- "fait" = le nombre
+ * total de tentatives à ce niveau a atteint `index` (cumulatif, pas une
+ * tentative dédiée par étape : les tables writing_scenario_attempts /
+ * oral_session_results n'ont pas de notion de "checkpoint").
+ */
+export interface ChecklistStepStatus {
+  done: boolean;
+  href: string;
+  index: number;
+  total: number;
+  /** Le parcours qui précède immédiatement cette étape est terminé -- purement
+   *  informatif pour le libellé affiché, jamais un verrou (voir plus bas). */
+  unlocked: boolean;
+}
+
+export type LevelStep =
+  | { kind: 'parcours'; data: ParcoursStepStatus }
+  | { kind: 'ee'; data: ChecklistStepStatus }
+  | { kind: 'eo'; data: ChecklistStepStatus }
+  | { kind: 'exam'; data: CheckpointStatus & { unlocked: boolean } };
+
 export interface LevelProgression {
   level: CecrlLevel;
-  parcours: ParcoursStepStatus[];
-  parcoursCompleted: boolean;
-  /** null = pas encore de contenu à ce niveau (A1 aujourd'hui, cf. EE_EO_EXAM_LEVELS). */
-  ee: CheckpointStatus | null;
-  eo: CheckpointStatus | null;
-  examBlanc: CheckpointStatus | null;
+  steps: LevelStep[];
   isLevelComplete: boolean;
 }
 
@@ -60,9 +82,9 @@ function examCoversLevel(examLevel: string, level: CecrlLevel): boolean {
  * Choisit UN examen précis pour le checkpoint d'un niveau, parmi ceux qui le
  * couvrent (plusieurs peuvent matcher, ex. B1 est couvert par 'A2-B1', 'B1'
  * ET 'B1-B2') -- priorité à la correspondance exacte ('B1' pour le niveau
- * B1), sinon le premier de la liste (déjà triée par level en base). Permet
- * au checkpoint "Examen blanc" de /tef-irn/progression de renvoyer vers un
- * examen précis (?examId=...) plutôt que vers le catalogue générique.
+ * B1), sinon le premier de la liste. Permet au checkpoint "Examen blanc" de
+ * /tef-irn/progression de renvoyer vers un examen précis (?examId=...)
+ * plutôt que vers le catalogue générique.
  */
 function pickExamForLevel(exams: { id: string; level: string | null }[], level: CecrlLevel) {
   const matching = exams.filter((e) => e.level && examCoversLevel(e.level, level));
@@ -70,14 +92,17 @@ function pickExamForLevel(exams: { id: string; level: string | null }[], level: 
 }
 
 /**
- * Progression macro par niveau CECRL (A1 à B2) : statut de chaque parcours
- * du niveau, puis des checkpoints EE / EO / Examen blanc une fois tous les
- * parcours terminés -- alimente la page /tef-irn/progression (accordéons).
+ * Progression macro par niveau CECRL (A1 à B2) : une séquence d'étapes
+ * ordonnée -- parcours, avec une étape EE après chacun et une étape EO un
+ * parcours sur deux, puis un examen blanc final -- alimente la page
+ * /tef-irn/progression (accordéons).
  *
- * "Fait" pour EE/EO/Examen = au moins une tentative enregistrée à ce niveau
- * (writing_scenario_attempts / oral_session_results / exam_ce_co_attempts),
- * pas un score minimum -- même logique de checkpoint que le reste du
- * parcours guidé (voir aussi note "pas de gating dur" plus bas).
+ * "Fait" pour EE/EO = le nombre cumulé de tentatives enregistrées à ce
+ * niveau (writing_scenario_attempts / oral_session_results) a atteint la
+ * position de cette étape dans la séquence. "Fait" pour l'examen blanc = au
+ * moins une tentative CE/CO sur un examen couvrant ce niveau. Aucun de ces
+ * calculs n'est un score minimum, et rien ici ne bloque l'accès (mode libre
+ * toujours disponible en parallèle) -- ce ne sont que des repères visuels.
  */
 export async function getLevelProgression(
   userId: string,
@@ -96,7 +121,7 @@ export async function getLevelProgression(
       .filter((p) => p.level === level)
       .sort((a, b) => CATEGORY_ORDER.indexOf(a.category.toLowerCase()) - CATEGORY_ORDER.indexOf(b.category.toLowerCase()));
 
-    const parcours: ParcoursStepStatus[] = await Promise.all(
+    const parcoursStatuses: ParcoursStepStatus[] = await Promise.all(
       levelParcours.map(async (p): Promise<ParcoursStepStatus> => {
         const progress = await getParcoursProgress(userId, p.level, p.category, p.id, supabase);
         return {
@@ -110,19 +135,43 @@ export async function getLevelProgression(
       })
     );
 
-    const parcoursCompleted = parcours.length > 0 && parcours.every((p) => p.isCompleted);
+    const hasChecklist = EE_EO_EXAM_LEVELS.includes(level);
+    const steps: LevelStep[] = [];
 
-    let ee: CheckpointStatus | null = null;
-    let eo: CheckpointStatus | null = null;
-    let examBlanc: CheckpointStatus | null = null;
-
-    if (EE_EO_EXAM_LEVELS.includes(level)) {
-      const [eeResult, eoResult] = await Promise.all([
+    if (!hasChecklist) {
+      parcoursStatuses.forEach((p) => steps.push({ kind: 'parcours', data: p }));
+    } else {
+      const [eeCountResult, eoCountResult] = await Promise.all([
         supabase.from('writing_scenario_attempts').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level),
         supabase.from('oral_session_results').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level),
       ]);
-      ee = { done: (eeResult.count || 0) > 0, href: '/tef-irn/writing' };
-      eo = { done: (eoResult.count || 0) > 0, href: '/tef-irn/oral' };
+      const eeDoneCount = eeCountResult.count || 0;
+      const eoDoneCount = eoCountResult.count || 0;
+      const eeTotalSteps = parcoursStatuses.length;
+      const eoTotalSteps = Math.floor(parcoursStatuses.length / 2);
+
+      let eeIndex = 0;
+      let eoIndex = 0;
+      let allPreviousParcoursDone = true;
+
+      parcoursStatuses.forEach((p, i) => {
+        steps.push({ kind: 'parcours', data: p });
+        allPreviousParcoursDone = allPreviousParcoursDone && p.isCompleted;
+
+        eeIndex += 1;
+        steps.push({
+          kind: 'ee',
+          data: { done: eeDoneCount >= eeIndex, href: '/tef-irn/writing', index: eeIndex, total: eeTotalSteps, unlocked: p.isCompleted },
+        });
+
+        if ((i + 1) % 2 === 0) {
+          eoIndex += 1;
+          steps.push({
+            kind: 'eo',
+            data: { done: eoDoneCount >= eoIndex, href: '/tef-irn/oral', index: eoIndex, total: eoTotalSteps, unlocked: p.isCompleted },
+          });
+        }
+      });
 
       const matchingExamIds = exams.filter((e) => e.level && examCoversLevel(e.level, level)).map((e) => e.id);
       let examDone = false;
@@ -142,22 +191,22 @@ export async function getLevelProgression(
         }
       }
       const targetExam = pickExamForLevel(exams, level);
-      examBlanc = {
-        done: examDone,
-        // targetExam ne devrait être null que si aucun examen n'existe encore
-        // pour ce niveau (catalogue vide) -- repli sur le catalogue générique
-        // dans ce cas, jamais atteint aujourd'hui pour A2/B1/B2.
-        href: targetExam ? `/tef-irn/exam?examId=${targetExam.id}` : '/tef-irn/exam',
-      };
+      steps.push({
+        kind: 'exam',
+        data: {
+          done: examDone,
+          // targetExam ne devrait être null que si aucun examen n'existe
+          // encore pour ce niveau -- repli sur le catalogue générique dans
+          // ce cas, jamais atteint aujourd'hui pour A2/B1/B2.
+          href: targetExam ? `/tef-irn/exam?examId=${targetExam.id}` : '/tef-irn/exam',
+          unlocked: allPreviousParcoursDone,
+        },
+      });
     }
 
-    const isLevelComplete =
-      parcoursCompleted &&
-      (ee === null || ee.done) &&
-      (eo === null || eo.done) &&
-      (examBlanc === null || examBlanc.done);
+    const isLevelComplete = steps.every((s) => (s.kind === 'parcours' ? s.data.isCompleted : s.data.done));
 
-    results.push({ level, parcours, parcoursCompleted, ee, eo, examBlanc, isLevelComplete });
+    results.push({ level, steps, isLevelComplete });
   }
 
   return results;

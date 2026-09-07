@@ -6,16 +6,19 @@ import {
   getParcoursProgress,
   getUnlockedLessonIds,
   getTrulyCompletedLessonIds,
-  getUnlockedExercisesCatalogue,
+  getLessonQuotaExercises,
 } from '@/lib/parcours';
 
-// Alimente l'arbre leçons/exercices affiché inline dans /tef-irn/progression
-// (item "inline complet" du plan) : même recette que le Server Component
-// /tef-irn/parcours/[slug]/page.tsx, mais chargée à la demande via ce Route
-// Handler plutôt qu'eagerly pour tous les parcours de tous les niveaux --
-// jusqu'à 16 parcours (4 niveaux x 4 catégories) sur la page, la plupart
-// jamais dépliés par l'utilisateur. Le clic reste sur la même page (pas de
-// navigation), seule la donnée est chargée à la demande.
+// Alimente l'arbre leçons/exercices affiché inline dans /tef-irn/progression :
+// même recette que le Server Component /tef-irn/parcours/[slug]/page.tsx pour
+// les leçons débloquées, mais avec getLessonQuotaExercises() (3 QCM + 3 Trous
+// PAR LEÇON, plafonné) au lieu de getUnlockedExercisesCatalogue() (tout le
+// pool) -- retour Olivier après tests manuels : le catalogue complet faisait
+// remonter des leçons à 12/15/20 exercices, incohérent avec le quota 3+3
+// réellement exigé partout ailleurs et visuellement écrasant. Chargée à la
+// demande via ce Route Handler plutôt qu'eagerly pour tous les parcours de
+// tous les niveaux -- jusqu'à 16 parcours (4 niveaux x 4 catégories) sur la
+// page, la plupart jamais dépliés par l'utilisateur.
 export async function GET(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,14 +48,12 @@ export async function GET(req: Request) {
     supabase
   );
   const unlockedLessonIds = getUnlockedLessonIds(allLessons, trulyCompletedLessonIds);
+  const unlockedLessons = allLessons.filter((lesson) => unlockedLessonIds.has(lesson.id));
 
-  const catalogueExercises = await getUnlockedExercisesCatalogue(
-    parcours.level,
-    parcours.category,
-    unlockedLessonIds,
-    user.id,
-    supabase
+  const catalogueExercisesPerLesson = await Promise.all(
+    unlockedLessons.map((lesson) => getLessonQuotaExercises(user.id, lesson.id, supabase))
   );
+  const catalogueExercises = catalogueExercisesPerLesson.flat();
 
   const lessonMeta: Record<string, { title: string; order_index: number }> = {};
   allLessons.forEach((lesson) => {
