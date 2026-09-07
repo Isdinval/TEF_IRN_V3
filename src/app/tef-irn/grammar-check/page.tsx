@@ -440,25 +440,23 @@ export function GrammarCheckContent() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && activeExerciseId) {
               const lessonId = questions[0]?.lesson_id;
-              // Parallélisé plutôt qu'enchaîné (retour Olivier après tests
-              // manuels : le badge de quota mettait 1-2s à apparaître,
-              // visiblement après coup, car ce fetch n'était lancé qu'une
-              // fois le POST exercise-complete entièrement terminé).
-              const [, quota] = await Promise.all([
-                fetch('/api/exercise-complete', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    exerciseId: activeExerciseId,
-                    score: finalScore,
-                    answers: { correct: score, total: questions.length },
-                    studyTimeMinutes
-                  })
-                }),
-                (learningMode === "academique" && lessonId)
-                  ? getLessonExerciseQuota(user.id, lessonId, 'trous', supabase)
-                  : Promise.resolve(null),
-              ]);
+              // Retour Olivier après tests manuels : la version précédente
+              // parallélisait le POST exercise-complete (écriture de la
+              // tentative) et la lecture du quota -- rien ne garantissait
+              // que l'écriture soit committée avant la lecture, d'où un
+              // badge affichant parfois 1 de moins que la réalité. La
+              // lecture du quota attend maintenant explicitement la fin du
+              // POST.
+              await fetch('/api/exercise-complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  exerciseId: activeExerciseId,
+                  score: finalScore,
+                  answers: { correct: score, total: questions.length },
+                  studyTimeMinutes
+                })
+              });
               // La TopBar (progress bar + compteurs QCM/Chasse aux erreurs, item #4)
               // ne se rafraîchit normalement que sur changement de pathname -- ici
               // on reste sur /grammar-check/[id] (setMode("result") est un state
@@ -467,7 +465,9 @@ export function GrammarCheckContent() {
               refreshProgress();
               refreshExerciseCounts();
 
-              if (quota) setLessonQuota(quota);
+              if (learningMode === "academique" && lessonId) {
+                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'trous', supabase));
+              }
             }
           } catch (err) {
             console.error("Error saving attempt:", err);

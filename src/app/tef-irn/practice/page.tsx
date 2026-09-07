@@ -667,19 +667,17 @@ export function PracticeContent() {
       const lessonId = questions[0]?.lesson_id;
       setLessonQuota(null);
 
-      // Démarré en parallèle de saveScore() plutôt qu'après (retour Olivier
-      // après tests manuels : le badge de quota mettait 1-2s à apparaître,
-      // visiblement après coup, car ce fetch n'était lancé qu'une fois
-      // saveScore() entièrement terminé -- les deux allers-retours réseau
-      // s'additionnaient au lieu de se chevaucher).
-      const quotaPromise = (learningMode === "academique" && lessonId)
-        ? (async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            return user ? getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase) : null;
-          })()
-        : Promise.resolve(null);
-
-      const [saved, quota] = await Promise.all([saveScore(), quotaPromise]);
+      // Retour Olivier après tests manuels : la version précédente
+      // parallélisait saveScore() (écriture de la tentative) et la lecture
+      // du quota -- rien ne garantissait que l'écriture soit committée
+      // avant la lecture, d'où un badge affichant parfois 1 de moins que la
+      // réalité (course gagnée par la lecture). On ne parallélise plus que
+      // getUser() (aucune dépendance sur l'écriture), la lecture du quota
+      // attend maintenant explicitement la fin de saveScore().
+      const [saved, user] = await Promise.all([
+        saveScore(),
+        (async () => (await supabase.auth.getUser()).data.user)(),
+      ]);
       setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
@@ -690,7 +688,9 @@ export function PracticeContent() {
       refreshProgress();
       refreshExerciseCounts();
 
-      if (quota) setLessonQuota(quota);
+      if (learningMode === "academique" && lessonId && user) {
+        setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase));
+      }
     }
   };
 
