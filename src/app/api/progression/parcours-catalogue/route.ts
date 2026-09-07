@@ -7,18 +7,26 @@ import {
   getUnlockedLessonIds,
   getTrulyCompletedLessonIds,
   getLessonQuotaExercises,
+  getExerciseUrl,
 } from '@/lib/parcours';
 
-// Alimente l'arbre leçons/exercices affiché inline dans /tef-irn/progression :
-// même recette que le Server Component /tef-irn/parcours/[slug]/page.tsx pour
-// les leçons débloquées, mais avec getLessonQuotaExercises() (3 QCM + 3 Trous
-// PAR LEÇON, plafonné) au lieu de getUnlockedExercisesCatalogue() (tout le
-// pool) -- retour Olivier après tests manuels : le catalogue complet faisait
-// remonter des leçons à 12/15/20 exercices, incohérent avec le quota 3+3
-// réellement exigé partout ailleurs et visuellement écrasant. Chargée à la
-// demande via ce Route Handler plutôt qu'eagerly pour tous les parcours de
-// tous les niveaux -- jusqu'à 16 parcours (4 niveaux x 4 catégories) sur la
-// page, la plupart jamais dépliés par l'utilisateur.
+/**
+ * Alimente la liste inline (leçons + exercices) affichée sous chaque
+ * parcours de /tef-irn/progression.
+ *
+ * Retour Olivier après tests manuels, 2 corrections par rapport à la
+ * première version :
+ * - Renvoie DÉSORMAIS TOUTES les leçons du parcours (pas seulement celles
+ *   débloquées) -- l'utilisateur doit voir tout le chemin ("0/6 leçons
+ *   terminées" mais une seule leçon visible n'avait pas de sens). Seules
+ *   les leçons débloquées ont leurs exercices renseignés ; les autres sont
+ *   marquées `unlocked: false` avec un tableau d'exercices vide.
+ * - Forme de réponse aplatie par leçon (au lieu d'un pool CatalogueExercise
+ *   + lessonMeta pensé pour ParcoursExerciseTreeCatalogue) : chaque exercice
+ *   n'a plus besoin d'afficher notion/catégorie/thématique sur cette page,
+ *   seulement sa position ("Exercice QCM 2") -- le tri qcm-avant-trous est
+ *   fait ici, le composant client n'a plus qu'à numéroter dans l'ordre.
+ */
 export async function GET(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -48,17 +56,27 @@ export async function GET(req: Request) {
     supabase
   );
   const unlockedLessonIds = getUnlockedLessonIds(allLessons, trulyCompletedLessonIds);
-  const unlockedLessons = allLessons.filter((lesson) => unlockedLessonIds.has(lesson.id));
+  const completedSet = new Set(trulyCompletedLessonIds);
 
-  const catalogueExercisesPerLesson = await Promise.all(
-    unlockedLessons.map((lesson) => getLessonQuotaExercises(user.id, lesson.id, supabase))
+  const lessons = await Promise.all(
+    allLessons.map(async (lesson) => {
+      const isUnlocked = unlockedLessonIds.has(lesson.id);
+      const exercises = isUnlocked ? await getLessonQuotaExercises(user.id, lesson.id, supabase) : [];
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        orderIndex: lesson.order_index,
+        isCompleted: completedSet.has(lesson.id),
+        unlocked: isUnlocked,
+        exercises: exercises.map((ex) => ({
+          id: ex.id,
+          type: ex.type,
+          isCompleted: !!ex.is_completed,
+          url: getExerciseUrl(ex, parcours.id),
+        })),
+      };
+    })
   );
-  const catalogueExercises = catalogueExercisesPerLesson.flat();
 
-  const lessonMeta: Record<string, { title: string; order_index: number }> = {};
-  allLessons.forEach((lesson) => {
-    lessonMeta[lesson.id] = { title: lesson.title, order_index: lesson.order_index };
-  });
-
-  return NextResponse.json({ catalogueExercises, lessonMeta });
+  return NextResponse.json({ lessons });
 }
