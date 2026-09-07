@@ -33,6 +33,7 @@ import { RecentCorrectionsList } from "@/components/features/dashboard/new/Recen
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
 import { TrousStatsCard } from "@/components/features/dashboard/new/TrousStatsCard";
+import { OralStatsCard } from "@/components/features/dashboard/new/OralStatsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +108,16 @@ export default function DashboardPage() {
       const { data: checklist, error: rpcError } = await supabase.rpc("get_today_checklist");
       if (rpcError) throw rpcError;
       return checklist;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: eoStats } = useQuery({
+    queryKey: ["eo-stats"],
+    queryFn: async () => {
+      const { data: stats, error: rpcError } = await supabase.rpc("get_eo_stats");
+      if (rpcError) throw rpcError;
+      return stats;
     },
     enabled: isMounted,
   });
@@ -334,6 +345,15 @@ export default function DashboardPage() {
                   levels={trousStats.levels}
                   levelsAvailable={trousStats.levels_available}
                   successRate={trousStats.success_rate}
+                />
+              )}
+              {eoStats && (
+                <OralStatsCard
+                  total={eoStats.total}
+                  levels={eoStats.levels}
+                  successRate={eoStats.success_rate}
+                  lastScore={eoStats.last_score}
+                  weakestCriterion={eoStats.weakest_criterion}
                 />
               )}
             </div>
