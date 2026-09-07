@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ type ScenarioInfo = {
 // Filet de sécurité si le coach n'appelle jamais l'outil de fin d'exercice.
 const MAX_SESSION_MS = 4 * 60 * 1000;
 
-export default function OralCoach() {
+function OralCoachContent() {
   const [status, setStatus] = useState<Status>("catalogue");
   const [isListening, setIsListening] = useState(false);
   const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
@@ -39,6 +40,18 @@ export default function OralCoach() {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [filterSection, setFilterSection] = useState<Section | "all">("all");
   const [filterLevel, setFilterLevel] = useState<Level | "all">("all");
+  const searchParams = useSearchParams();
+
+  // Pré-sélection depuis l'URL (checkpoint EO de /tef-irn/progression, qui
+  // cible un niveau et une section précis) -- writing/page.tsx applique la
+  // même logique pour son propre catalogue EE.
+  useEffect(() => {
+    const levelParam = searchParams.get('level');
+    const sectionParam = searchParams.get('section');
+    if (levelParam) setFilterLevel(levelParam as Level);
+    if (sectionParam) setFilterSection(sectionParam as Section);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
@@ -454,5 +467,13 @@ export default function OralCoach() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function OralCoach() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
+      <OralCoachContent />
+    </Suspense>
   );
 }

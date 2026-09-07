@@ -62,6 +62,21 @@ export function WritingCoachContent() {
   const { activeParcours } = useParcours();
   const { setPageContext } = useCoachContext();
 
+  // Pré-sélection depuis l'URL (checkpoint EE de /tef-irn/progression, qui
+  // cible un niveau et une section précis) -- prioritaire sur le goal_level
+  // du profil : on marque le garde-fou tout de suite pour que l'effet
+  // goal_level ci-dessous ne l'écrase pas une fois résolu.
+  useEffect(() => {
+    const levelParam = searchParams.get('level');
+    const sectionParam = searchParams.get('section');
+    if (levelParam) {
+      setFilterLevel(levelParam as Level);
+      appliedDefaultLevelRef.current = true;
+    }
+    if (sectionParam) setFilterSection(sectionParam as Section);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (loading || status !== "writing") return;
     setPageContext({ type: "writing", instructions: exercise.instructions, level: exercise.level });

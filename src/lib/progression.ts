@@ -6,6 +6,7 @@ const defaultSupabase = createClient();
 
 export const CECRL_LEVELS = ['A1', 'A2', 'B1', 'B2'] as const;
 export type CecrlLevel = typeof CECRL_LEVELS[number];
+export type Section = 'A' | 'B';
 
 // Ordre pédagogique recommandé entre catégories d'un même niveau -- purement
 // indicatif pour l'affichage. Aucun verrou n'existe aujourd'hui entre les
@@ -38,17 +39,23 @@ export interface CheckpointStatus {
 /**
  * Étape EE ou EO intercalée entre deux parcours (retour Olivier après tests
  * manuels : 1 EE après CHAQUE parcours, 1 EO après un parcours sur deux --
- * pour un niveau à 4 parcours, ça donne 4 EE et 2 EO, la dernière paire
- * EE+EO tombant juste avant l'examen blanc, formant naturellement le combo
- * de fin de niveau). `index`/`total` permettent d'afficher "Rédaction 2/4"
- * plutôt qu'un simple "fait/pas fait" sans contexte -- "fait" = le nombre
- * total de tentatives à ce niveau a atteint `index` (cumulatif, pas une
- * tentative dédiée par étape : les tables writing_scenario_attempts /
- * oral_session_results n'ont pas de notion de "checkpoint").
+ * pour un niveau à 4 parcours, ça donne 4 EE et 2 EO). Chaque étape cible en
+ * plus une section précise du TEF IRN (A ou B, cf. writing_exam_scenarios.
+ * section / oral_session_results.section, CHECK IN ('A','B')), en
+ * alternance stricte (A, B, A, B pour les 4 EE ; A, B pour les 2 EO) --
+ * donne 2 EE-A + 2 EE-B et 1 EO-A + 1 EO-B sur un niveau à 4 parcours.
+ *
+ * `index`/`total` sont comptés PAR SECTION (ex. "Rédaction A 2/2"), pas sur
+ * l'ensemble EE confondu -- "fait" = le nombre de tentatives de CETTE
+ * section à ce niveau a atteint `index` (cumulatif : les tables writing_
+ * scenario_attempts / oral_session_results n'ont pas de notion de
+ * checkpoint dédié, donc n'importe quelle tentative de la bonne section
+ * compte, pas une tentative pré-assignée à cette étape précise).
  */
 export interface ChecklistStepStatus {
   done: boolean;
   href: string;
+  section: Section;
   index: number;
   total: number;
   /** Le parcours qui précède immédiatement cette étape est terminé -- purement
@@ -92,17 +99,33 @@ function pickExamForLevel(exams: { id: string; level: string | null }[], level: 
 }
 
 /**
+ * Compte, pour un niveau et une table donnée (writing_scenario_attempts ou
+ * oral_session_results), le nombre de tentatives par section ('A'/'B').
+ */
+async function countAttemptsBySection(
+  supabase: SupabaseClient,
+  table: 'writing_scenario_attempts' | 'oral_session_results',
+  userId: string,
+  level: CecrlLevel
+): Promise<Record<Section, number>> {
+  const [a, b] = await Promise.all([
+    supabase.from(table).select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level).eq('section', 'A'),
+    supabase.from(table).select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level).eq('section', 'B'),
+  ]);
+  return { A: a.count || 0, B: b.count || 0 };
+}
+
+/**
  * Progression macro par niveau CECRL (A1 à B2) : une séquence d'étapes
- * ordonnée -- parcours, avec une étape EE après chacun et une étape EO un
- * parcours sur deux, puis un examen blanc final -- alimente la page
+ * ordonnée -- parcours, avec une étape EE après chacun (section A/B en
+ * alternance) et une étape EO un parcours sur deux (section A/B en
+ * alternance), puis un examen blanc final -- alimente la page
  * /tef-irn/progression (accordéons).
  *
- * "Fait" pour EE/EO = le nombre cumulé de tentatives enregistrées à ce
- * niveau (writing_scenario_attempts / oral_session_results) a atteint la
- * position de cette étape dans la séquence. "Fait" pour l'examen blanc = au
- * moins une tentative CE/CO sur un examen couvrant ce niveau. Aucun de ces
- * calculs n'est un score minimum, et rien ici ne bloque l'accès (mode libre
- * toujours disponible en parallèle) -- ce ne sont que des repères visuels.
+ * "Fait" pour l'examen blanc = au moins une tentative CE/CO sur un examen
+ * couvrant ce niveau. Aucun de ces calculs n'est un score minimum, et rien
+ * ici ne bloque l'accès (mode libre toujours disponible en parallèle) --
+ * ce ne sont que des repères visuels.
  */
 export async function getLevelProgression(
   userId: string,
@@ -141,34 +164,55 @@ export async function getLevelProgression(
     if (!hasChecklist) {
       parcoursStatuses.forEach((p) => steps.push({ kind: 'parcours', data: p }));
     } else {
-      const [eeCountResult, eoCountResult] = await Promise.all([
-        supabase.from('writing_scenario_attempts').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level),
-        supabase.from('oral_session_results').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('level', level),
+      const [eeDoneBySection, eoDoneBySection] = await Promise.all([
+        countAttemptsBySection(supabase, 'writing_scenario_attempts', userId, level),
+        countAttemptsBySection(supabase, 'oral_session_results', userId, level),
       ]);
-      const eeDoneCount = eeCountResult.count || 0;
-      const eoDoneCount = eoCountResult.count || 0;
+
       const eeTotalSteps = parcoursStatuses.length;
       const eoTotalSteps = Math.floor(parcoursStatuses.length / 2);
+      // Alternance stricte A, B, A, B... -- total par section = moitié
+      // arrondie au supérieur pour A (elle démarre l'alternance).
+      const eeTotalBySection: Record<Section, number> = { A: Math.ceil(eeTotalSteps / 2), B: Math.floor(eeTotalSteps / 2) };
+      const eoTotalBySection: Record<Section, number> = { A: Math.ceil(eoTotalSteps / 2), B: Math.floor(eoTotalSteps / 2) };
 
-      let eeIndex = 0;
-      let eoIndex = 0;
+      let eeOverallIndex = 0;
+      let eoOverallIndex = 0;
       let allPreviousParcoursDone = true;
 
       parcoursStatuses.forEach((p, i) => {
         steps.push({ kind: 'parcours', data: p });
         allPreviousParcoursDone = allPreviousParcoursDone && p.isCompleted;
 
-        eeIndex += 1;
+        eeOverallIndex += 1;
+        const eeSection: Section = eeOverallIndex % 2 === 1 ? 'A' : 'B';
+        const eeIndexInSection = Math.ceil(eeOverallIndex / 2);
         steps.push({
           kind: 'ee',
-          data: { done: eeDoneCount >= eeIndex, href: '/tef-irn/writing', index: eeIndex, total: eeTotalSteps, unlocked: p.isCompleted },
+          data: {
+            done: eeDoneBySection[eeSection] >= eeIndexInSection,
+            href: `/tef-irn/writing?level=${level}&section=${eeSection}`,
+            section: eeSection,
+            index: eeIndexInSection,
+            total: eeTotalBySection[eeSection],
+            unlocked: p.isCompleted,
+          },
         });
 
         if ((i + 1) % 2 === 0) {
-          eoIndex += 1;
+          eoOverallIndex += 1;
+          const eoSection: Section = eoOverallIndex % 2 === 1 ? 'A' : 'B';
+          const eoIndexInSection = Math.ceil(eoOverallIndex / 2);
           steps.push({
             kind: 'eo',
-            data: { done: eoDoneCount >= eoIndex, href: '/tef-irn/oral', index: eoIndex, total: eoTotalSteps, unlocked: p.isCompleted },
+            data: {
+              done: eoDoneBySection[eoSection] >= eoIndexInSection,
+              href: `/tef-irn/oral?level=${level}&section=${eoSection}`,
+              section: eoSection,
+              index: eoIndexInSection,
+              total: eoTotalBySection[eoSection],
+              unlocked: p.isCompleted,
+            },
           });
         }
       });
