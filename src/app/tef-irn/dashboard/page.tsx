@@ -30,6 +30,7 @@ import { ParcoursOverviewCard } from "@/components/features/dashboard/new/Parcou
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
 import { ExamReadinessCard } from "@/components/features/dashboard/new/ExamReadinessCard";
 import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
+import { RegularityHeatmapCard } from "@/components/features/dashboard/new/RegularityHeatmapCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
@@ -129,6 +130,16 @@ export default function DashboardPage() {
       const { data: readiness, error: rpcError } = await supabase.rpc("get_exam_readiness");
       if (rpcError) throw rpcError;
       return readiness;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: activityHeatmap } = useQuery({
+    queryKey: ["activity-heatmap"],
+    queryFn: async () => {
+      const { data: heatmap, error: rpcError } = await supabase.rpc("get_activity_heatmap");
+      if (rpcError) throw rpcError;
+      return heatmap;
     },
     enabled: isMounted,
   });
@@ -335,6 +346,7 @@ export default function DashboardPage() {
                 goalLevel={profile.goal_level || null}
               />
               {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
+              <RegularityHeatmapCard days={activityHeatmap} />
             </div>
             <div className="space-y-6">
               {vocab_stats && (
