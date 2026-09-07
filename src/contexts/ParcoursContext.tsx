@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Parcours, Lesson, ParcoursProgress } from "@/types/parcours";
-import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds, getRemainingExerciseCounts, RemainingExerciseCounts, ParcoursProgress as LibParcoursProgress } from "@/lib/parcours";
+import { getParcoursById, getParcoursProgress, getLessonsForParcours, getExerciseUrl, getUnlockedLessonIds, getRemainingExerciseCounts, getLessonExerciseQuota, RemainingExerciseCounts, ParcoursProgress as LibParcoursProgress } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { resolveNextVocabTheme } from "@/lib/vocab/next-theme";
 
@@ -42,6 +42,15 @@ interface ParcoursContextType {
    *  null tant que non encore calculé (chargement initial). Consommé par la
    *  TopBar pour afficher un compteur sur chacun des deux boutons d'exercice. */
   exerciseCounts: RemainingExerciseCounts | null;
+  /** Retour Olivier après tests manuels : le bouton "Leçon suivante" de la
+   *  TopBar était totalement absent en mode académique (il fallait toujours
+   *  passer par /lessons/[slug]/complete). true dès que le quota 3 QCM + 3
+   *  Trous de la DERNIÈRE leçon terminée est atteint (même leçon de référence
+   *  que getTrulyCompletedLessonIds()) -- calculé en même temps que
+   *  exerciseCounts, dans applyExerciseCounts(). true par défaut tant qu'aucune
+   *  leçon n'est encore terminée (rien à quotaer, jamais bloquant), et sans
+   *  effet en mode libre (la TopBar l'ignore dans ce cas). */
+  academicQuotaMet: boolean;
   /** Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : profiles.learning_mode
    *  de l'utilisateur courant, fetché une fois au montage. 'libre' par défaut
    *  (chargement/non connecté) -- ne bascule jamais accidentellement vers un
@@ -68,6 +77,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [vocabFullyMastered, setVocabFullyMastered] = useState(false);
   const [exerciseCounts, setExerciseCounts] = useState<RemainingExerciseCounts | null>(null);
+  const [academicQuotaMet, setAcademicQuotaMet] = useState(true);
   const [learningMode, setLearningMode] = useState<'academique' | 'libre'>('libre');
 
   // Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : fetché une seule
@@ -129,6 +139,22 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
     const unlocked = getUnlockedLessonIds(lessons, completedLessons);
     const counts = await getRemainingExerciseCounts(userId, level, category, unlocked, supabase);
     setExerciseCounts(counts);
+
+    // Retour Olivier après tests manuels : même leçon de référence que
+    // getTrulyCompletedLessonIds() (lib/parcours.ts) -- la DERNIÈRE leçon
+    // terminée dans l'ordre du parcours, pas la leçon en cours de lecture.
+    const completedSet = new Set(completedLessons);
+    const orderedCompleted = lessons.filter((l) => completedSet.has(l.id));
+    const lastCompleted = orderedCompleted[orderedCompleted.length - 1];
+    if (!lastCompleted) {
+      setAcademicQuotaMet(true);
+      return;
+    }
+    const [qcmQuota, trousQuota] = await Promise.all([
+      getLessonExerciseQuota(userId, lastCompleted.id, 'qcm', supabase),
+      getLessonExerciseQuota(userId, lastCompleted.id, 'trous', supabase),
+    ]);
+    setAcademicQuotaMet(qcmQuota.done >= qcmQuota.required && trousQuota.done >= trousQuota.required);
   }, [supabase]);
 
   const loadParcoursData = useCallback(async (pId: string, lId: string | null) => {
@@ -502,6 +528,7 @@ export function ParcoursProvider({ children }: { children: React.ReactNode }) {
       nextVocabulary,
       vocabFullyMastered,
       exerciseCounts,
+      academicQuotaMet,
       learningMode,
       refreshLearningMode
     }}>

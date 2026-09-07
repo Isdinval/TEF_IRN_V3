@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, isLoading, learningMode } = useParcours();
+  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, academicQuotaMet, isLoading, learningMode } = useParcours();
   const pathname = usePathname();
   // Une seule action à la fois (nextLesson/nextExercise/nextVocabulary
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
@@ -137,7 +137,7 @@ export function ParcoursTopBar() {
               </span>
             </Button>
 
-            {learningMode !== "academique" && (
+            {(learningMode !== "academique" || academicQuotaMet) && (
               <Button
                 onClick={() => handleNext(nextLesson)}
                 disabled={isResolving}
