@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PracticeTreeCatalogue, { LessonMeta } from "./components/PracticeTreeCatalogue";
-import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { Exercise, getLessonExerciseQuota, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
@@ -126,6 +127,11 @@ export function PracticeContent() {
   // les autres exercices réellement pratiqués n'étaient jamais trackés (ni pour
   // l'anti-répétition item 13, ni pour le SRS, ni pour user_errors).
   const [answersLog, setAnswersLog] = useState<{ exerciseId: string; correct: boolean }[]>([]);
+  // Quota d'exercices de la leçon de rattachement, affiché sur l'écran de
+  // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
+  // mais pour un exercice lancé depuis la TopBar (bouton QCM), qui n'affichait
+  // jusqu'ici aucun repère de progression.
+  const [lessonQuota, setLessonQuota] = useState<{ done: number; required: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
@@ -658,7 +664,20 @@ export function PracticeContent() {
       setIsChecked(false);
       setLessonVisible(false);
     } else {
-      const saved = await saveScore();
+      const lessonId = questions[0]?.lesson_id;
+      setLessonQuota(null);
+
+      // Retour Olivier après tests manuels : la version précédente
+      // parallélisait saveScore() (écriture de la tentative) et la lecture
+      // du quota -- rien ne garantissait que l'écriture soit committée
+      // avant la lecture, d'où un badge affichant parfois 1 de moins que la
+      // réalité (course gagnée par la lecture). On ne parallélise plus que
+      // getUser() (aucune dépendance sur l'écriture), la lecture du quota
+      // attend maintenant explicitement la fin de saveScore().
+      const [saved, user] = await Promise.all([
+        saveScore(),
+        (async () => (await supabase.auth.getUser()).data.user)(),
+      ]);
       setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
@@ -668,8 +687,34 @@ export function PracticeContent() {
       // sans cet appel explicite, le compteur restait figé jusqu'au prochain reload.
       refreshProgress();
       refreshExerciseCounts();
+
+      if (learningMode === "academique" && lessonId && user) {
+        setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase));
+      }
     }
   };
+
+  // Retour Olivier après tests manuels : la touche Entrée déclenche l'action
+  // principale de l'écran d'exercice, comme un clic -- "Vérifier ma réponse"
+  // tant qu'une option est sélectionnée et non encore validée, "Question
+  // suivante"/"Voir mon résultat" une fois la correction affichée. N'agit
+  // que sur l'écran "practice" (mode question par question), jamais sur le
+  // catalogue ou l'écran de résultat.
+  useEffect(() => {
+    if (mode !== "practice") return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (!isChecked) {
+        if (selected !== null) handleCheck();
+      } else {
+        handleNext();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, isChecked, selected, currentIdx]);
 
   const saveScore = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -795,6 +840,9 @@ export function PracticeContent() {
                 Réessayer
               </Button>
             </div>
+          )}
+          {learningMode === "academique" && lessonQuota && (
+            <ExerciseQuotaBadge done={lessonQuota.done} required={lessonQuota.required} label="QCM" />
           )}
           <div className="flex flex-col gap-3">
             <Button

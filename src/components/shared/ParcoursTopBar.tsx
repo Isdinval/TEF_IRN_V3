@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 export function ParcoursTopBar() {
-  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, isLoading, learningMode } = useParcours();
+  const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, academicQuotaMet, isLoading, learningMode } = useParcours();
   const pathname = usePathname();
   // Une seule action à la fois (nextLesson/nextExercise/nextVocabulary
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
@@ -41,14 +41,14 @@ export function ParcoursTopBar() {
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
           <div className="flex items-center gap-4 shrink-0">
-            <div className="hidden sm:block">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-0.5">
+            <Link href="/tef-irn/progression" className="hidden sm:block group">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-0.5 group-hover:text-indigo-500 transition-colors">
                 Parcours en cours
               </span>
-              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[200px]">
+              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[200px] group-hover:text-indigo-600 transition-colors">
                 {activeParcours.category} {activeParcours.level}
               </h4>
-            </div>
+            </Link>
 
             <Link href={`/tef-irn/parcours/${activeParcours.slug}`}>
               <Button variant="ghost" size="sm" className="h-8 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
@@ -137,7 +137,7 @@ export function ParcoursTopBar() {
               </span>
             </Button>
 
-            {learningMode !== "academique" && (
+            {(learningMode !== "academique" || academicQuotaMet) && (
               <Button
                 onClick={() => handleNext(nextLesson)}
                 disabled={isResolving}

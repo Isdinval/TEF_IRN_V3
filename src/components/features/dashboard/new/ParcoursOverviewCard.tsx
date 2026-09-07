@@ -142,13 +142,21 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
           </div>
         )}
 
-        <Button
-          onClick={() => router.push("/tef-irn/parcours")}
-          variant="outline"
-          className="mt-6 h-12 w-full rounded-2xl border-2 border-zinc-100 font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all flex items-center justify-center gap-2"
-        >
-          Voir tous les parcours <ArrowRight size={16} />
-        </Button>
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button
+            onClick={() => router.push("/tef-irn/parcours")}
+            variant="outline"
+            className="h-12 w-full rounded-2xl border-2 border-zinc-100 font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all flex items-center justify-center gap-2"
+          >
+            Voir tous les parcours <ArrowRight size={16} />
+          </Button>
+          <Button
+            onClick={() => router.push("/tef-irn/progression")}
+            className="h-12 w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-sm text-white transition-all flex items-center justify-center gap-2"
+          >
+            Ma progression <ArrowRight size={16} />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

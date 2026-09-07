@@ -35,7 +35,8 @@ import {
   Map,
   Users,
   Gauge,
-  Shuffle
+  Shuffle,
+  Route
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -103,6 +104,7 @@ function SidebarContent() {
         { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
         { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam" },
         { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours", section: "guide" as const },
+        { label: "Ma progression", icon: Route, href: "/tef-irn/progression", section: "guide" as const },
         { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons", section: "libre" as const },
         { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check", section: "libre" as const },
         { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab", section: "libre" as const },

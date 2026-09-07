@@ -427,6 +427,33 @@ export function VocabCoachContent() {
     }
   };
 
+  useEffect(() => {
+    if (mode !== "training") return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      if (step === "presentation") {
+        e.preventDefault();
+        handleStepComplete(true);
+      } else if (step === "quiz") {
+        e.preventDefault();
+        if (!quizChecked) {
+          if (selectedOption) setQuizChecked(true);
+        } else {
+          handleStepComplete(selectedOption === cards[index]?.definition);
+        }
+      } else if (step === "type" && typeChecked) {
+        // Tant que non validée, la réponse est gérée par le onKeyDown local
+        // de l'Input (plus haut) -- ici seulement l'avancée après validation,
+        // pour ne pas déclencher deux fois la validation sur le même Entrée.
+        e.preventDefault();
+        handleStepComplete(validationResult?.isValid || false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, step, quizChecked, selectedOption, typeChecked, validationResult, cards, index]);
+
   const handleSkip = () => {
     if (index < cards.length - 1) {
       setIndex(index + 1);

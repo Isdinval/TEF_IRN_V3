@@ -6,7 +6,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import GrammarCheckTreeCatalogue, { LessonMeta } from "./components/GrammarCheckTreeCatalogue";
-import { Exercise, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { Exercise, getLessonExerciseQuota, getUnlockedLessonIdsForInProgressParcours } from "@/lib/parcours";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Target, Sparkles, Zap, GraduationCap, ArrowRight, RotateCcw, BookOpen, ChevronUp, Search, AlertTriangle } from "lucide-react";
@@ -128,6 +129,10 @@ export function GrammarCheckContent() {
   const [status, setStatus] = useState<"typing" | "correct" | "wrong">("typing");
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(0);
+  // Quota d'exercices de la leçon de rattachement, affiché sur l'écran de
+  // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
+  // mais pour un exercice lancé depuis la TopBar (bouton Chasse aux erreurs).
+  const [lessonQuota, setLessonQuota] = useState<{ done: number; required: number } | null>(null);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
@@ -430,9 +435,18 @@ export function GrammarCheckContent() {
           const studyTimeMinutes = sessionStartRef.current
             ? Math.round((Date.now() - sessionStartRef.current) / 60000)
             : 0;
+          setLessonQuota(null);
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && activeExerciseId) {
+              const lessonId = questions[0]?.lesson_id;
+              // Retour Olivier après tests manuels : la version précédente
+              // parallélisait le POST exercise-complete (écriture de la
+              // tentative) et la lecture du quota -- rien ne garantissait
+              // que l'écriture soit committée avant la lecture, d'où un
+              // badge affichant parfois 1 de moins que la réalité. La
+              // lecture du quota attend maintenant explicitement la fin du
+              // POST.
               await fetch('/api/exercise-complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -450,12 +464,37 @@ export function GrammarCheckContent() {
               // appel explicite, le compteur restait figé jusqu'au prochain reload.
               refreshProgress();
               refreshExerciseCounts();
+
+              if (learningMode === "academique" && lessonId) {
+                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'trous', supabase));
+              }
             }
           } catch (err) {
             console.error("Error saving attempt:", err);
           }
         }
       };
+
+  // Retour Olivier après tests manuels : la touche Entrée déclenche l'action
+  // principale de l'écran d'exercice, comme un clic -- "Vérifier ma
+  // correction" tant qu'un mot (ou "Pas d'erreur") est sélectionné et non
+  // encore validé, l'action suivante une fois la correction affichée.
+  // N'agit que sur l'écran "training" (mode question par question).
+  useEffect(() => {
+    if (mode !== "training") return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (status === "typing") {
+        if (selectedWordIndex !== null || selectedNoError) checkCorrection();
+      } else {
+        handleNextAction();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, status, selectedWordIndex, selectedNoError, currentIdx]);
 
   const toggleLesson = useCallback(async (lessonId?: string) => {
     if (!lessonId) return;
@@ -581,6 +620,9 @@ export function GrammarCheckContent() {
               <div className="text-2xl font-black text-emerald-600">{score} / {questions.length}</div>
             </div>
           </div>
+          {learningMode === "academique" && lessonQuota && (
+            <ExerciseQuotaBadge done={lessonQuota.done} required={lessonQuota.required} label="chasse aux erreurs" />
+          )}
           <div className="flex flex-col gap-3">
             <Button
               onClick={() => {

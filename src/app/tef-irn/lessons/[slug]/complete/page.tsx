@@ -3,10 +3,11 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { getParcours, getLessonBySlug, getLessonById, Exercise } from "@/lib/parcours";
+import { getParcours, getLessonBySlug, getLessonById, getLessonExerciseQuota, Exercise } from "@/lib/parcours";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { useParcours } from "@/contexts/ParcoursContext";
 import ExerciseCard from "@/app/tef-irn/parcours/[slug]/components/ExerciseCard";
+import { ExerciseQuotaBadge } from "@/components/shared/ExerciseQuotaBadge";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -28,9 +29,13 @@ interface PathLesson {
 }
 
 // Bloc D de l'item 4 ("remontées LlamaKusi août 2026") : nombre d'exercices
-// qcm/trous à compléter sur la leçon courante avant de pouvoir passer à la
-// suivante, uniquement en mode académique.
-const REQUIRED_EXERCISES = 3;
+// de CHAQUE type (qcm et trous) à compléter sur la leçon courante avant de
+// pouvoir passer à la suivante, uniquement en mode académique. Phase 2
+// (cohérence quota parcours guidé) : deux seuils indépendants au lieu d'un
+// total mixé de 3 -- un utilisateur ne pouvait jusqu'ici débloquer la suite
+// qu'avec des QCM, sans jamais pratiquer la Chasse aux erreurs.
+const REQUIRED_QCM = 3;
+const REQUIRED_TROUS = 3;
 
 export default function LessonComplete({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -43,7 +48,8 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const [nextLesson, setNextLesson] = useState<PathLesson | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
   const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
-  const [exercisesDoneCount, setExercisesDoneCount] = useState(0);
+  const [qcmQuota, setQcmQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_QCM });
+  const [trousQuota, setTrousQuota] = useState<{ done: number; required: number }>({ done: 0, required: REQUIRED_TROUS });
 
   const supabase = createClient();
 
@@ -119,37 +125,38 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
         setParcoursSlug(currentParcours.slug);
       }
 
-      // Moteur de recommandation unifié : contexte = leçon qu'on vient de terminer
-      const nextExercises = await resolveNextExercises(
-        user.id,
-        { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id },
-        supabase
-      );
-      setRecommendedExercises(nextExercises);
+      // Moteur de recommandation unifié : contexte = leçon qu'on vient de terminer.
+      // Retour Olivier après tests manuels : un seul appel mixte (limit par défaut
+      // = 6) ne garantissait aucune répartition par type -- 2 appels typés (qcm/trous,
+      // 3 chacun) pour rester cohérent avec le quota réellement exigé plus bas.
+      const [qcmExercises, trousExercises] = await Promise.all([
+        resolveNextExercises(
+          user.id,
+          { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id, type: 'qcm' },
+          supabase,
+          REQUIRED_QCM
+        ),
+        resolveNextExercises(
+          user.id,
+          { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id, type: 'trous' },
+          supabase,
+          REQUIRED_TROUS
+        ),
+      ]);
+      setRecommendedExercises([...qcmExercises, ...trousExercises]);
 
       // Bloc D (item 4) : quota d'exercices avant la leçon suivante, calculé
-      // uniquement en mode académique (coût réseau évité en libre).
+      // uniquement en mode académique (coût réseau évité en libre). Deux
+      // appels indépendants à getLessonExerciseQuota() (Phase 2) -- un quota
+      // par type, cohérent avec getTrulyCompletedLessonIds() qui vérifie
+      // désormais les deux séparément plutôt qu'un total mixé.
       if (learningMode === "academique") {
-        const { data: lessonExercises } = await supabase
-          .from('exercises')
-          .select('id')
-          .eq('lesson_id', currentLesson.id)
-          .in('type', ['qcm', 'trous']);
-        const exerciseIds = (lessonExercises || []).map((e: any) => e.id);
-        if (exerciseIds.length > 0) {
-          const { data: doneAttempts } = await supabase
-            .from('exercise_attempts')
-            .select('exercise_id')
-            .eq('user_id', user.id)
-            .eq('is_completed', true)
-            .in('exercise_id', exerciseIds);
-          setExercisesDoneCount(new Set((doneAttempts || []).map((a: any) => a.exercise_id)).size);
-        } else {
-          // Pas d'exercice qcm/trous sur cette leçon (leçon "Vocabulaire" par
-          // exemple, cf. item vocabulaire architecturalement isolé) -- ne pas
-          // bloquer indéfiniment sur un quota impossible à atteindre.
-          setExercisesDoneCount(REQUIRED_EXERCISES);
-        }
+        const [qcm, trous] = await Promise.all([
+          getLessonExerciseQuota(user.id, currentLesson.id, 'qcm', supabase, REQUIRED_QCM),
+          getLessonExerciseQuota(user.id, currentLesson.id, 'trous', supabase, REQUIRED_TROUS),
+        ]);
+        setQcmQuota(qcm);
+        setTrousQuota(trous);
       }
 
       setLoading(false);
@@ -168,8 +175,10 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   if (!lesson) return <div className="p-8 text-center">Leçon non trouvée.</div>;
 
   const [heroExercise, ...restExercises] = recommendedExercises;
-  const canAdvance = learningMode !== "academique" || exercisesDoneCount >= REQUIRED_EXERCISES;
-  const remaining = REQUIRED_EXERCISES - exercisesDoneCount;
+  const canAdvance = learningMode !== "academique" || (qcmQuota.done >= qcmQuota.required && trousQuota.done >= trousQuota.required);
+  const qcmRemaining = qcmQuota.required - qcmQuota.done;
+  const trousRemaining = trousQuota.required - trousQuota.done;
+  const remaining = qcmRemaining + trousRemaining;
 
   return (
     <div className="max-w-5xl mx-auto p-8 py-16 min-h-screen space-y-16">
@@ -226,17 +235,10 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <p className="text-xl md:text-2xl font-black text-amber-700">
               Faites {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour débloquer {nextLesson ? "la leçon suivante" : "la fin du parcours"}
             </p>
-            <div className="flex items-center justify-center gap-2">
-              {Array.from({ length: REQUIRED_EXERCISES }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-2.5 w-14 rounded-full transition-colors ${i < exercisesDoneCount ? "bg-amber-500" : "bg-amber-100"}`}
-                />
-              ))}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <ExerciseQuotaBadge done={qcmQuota.done} required={qcmQuota.required} label="QCM" />
+              <ExerciseQuotaBadge done={trousQuota.done} required={trousQuota.required} label="chasse aux erreurs" />
             </div>
-            <p className="text-xs font-black uppercase tracking-widest text-amber-500">
-              {exercisesDoneCount}/{REQUIRED_EXERCISES} exercices complétés
-            </p>
           </div>
 
           {heroExercise ? (
