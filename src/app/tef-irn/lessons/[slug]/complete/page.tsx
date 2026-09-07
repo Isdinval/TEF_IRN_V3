@@ -125,13 +125,25 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
         setParcoursSlug(currentParcours.slug);
       }
 
-      // Moteur de recommandation unifié : contexte = leçon qu'on vient de terminer
-      const nextExercises = await resolveNextExercises(
-        user.id,
-        { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id },
-        supabase
-      );
-      setRecommendedExercises(nextExercises);
+      // Moteur de recommandation unifié : contexte = leçon qu'on vient de terminer.
+      // Retour Olivier après tests manuels : un seul appel mixte (limit par défaut
+      // = 6) ne garantissait aucune répartition par type -- 2 appels typés (qcm/trous,
+      // 3 chacun) pour rester cohérent avec le quota réellement exigé plus bas.
+      const [qcmExercises, trousExercises] = await Promise.all([
+        resolveNextExercises(
+          user.id,
+          { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id, type: 'qcm' },
+          supabase,
+          REQUIRED_QCM
+        ),
+        resolveNextExercises(
+          user.id,
+          { level: currentLesson.level, category: currentLesson.category, lessonId: currentLesson.id, type: 'trous' },
+          supabase,
+          REQUIRED_TROUS
+        ),
+      ]);
+      setRecommendedExercises([...qcmExercises, ...trousExercises]);
 
       // Bloc D (item 4) : quota d'exercices avant la leçon suivante, calculé
       // uniquement en mode académique (coût réseau évité en libre). Deux
