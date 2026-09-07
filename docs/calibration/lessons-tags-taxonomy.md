@@ -170,7 +170,7 @@ portent aussi `category`/`tags`, selon la même logique que `exercises` :
   formats évaluent une compréhension globale, pas une notion isolée.
 - **CE format `trous`** : tag précis choisi dans cette liste, car ce format
   teste une distinction lexicale/grammaticale ciblée (règle n°3,
-  `docs/ce-content-calibration-rules.md`), comme un exercice `trous` classique.
+  `docs/calibration/ce-content-calibration-rules.md`), comme un exercice `trous` classique.
 
 **Contrat `user_errors.sub_category` / `recommendations.sub_category`** :
 cette colonne n'est **pas** un synonyme de tag. Elle vaut soit un tag de cette

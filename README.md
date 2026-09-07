@@ -65,27 +65,27 @@ npm run dev
 ## 📄 Documentation
 
 ### Pour démarrer
-- [Documentation Technique](./docs/technical-documentation.md)
-- [Fonctionnalités Produit](./docs/FEATURES.md)
-- [Référentiel TEF IRN](./docs/tef-irn-reference.md)
+- [Documentation Technique](./docs/architecture/technical-overview.md)
+- [Fonctionnalités Produit](./docs/product/features.md)
+- [Référentiel TEF IRN](./docs/product/tef-irn-reference.md)
 - [Guide du Coach IA](./COACH_GUIDE.md)
 
 ### Architecture & Base de données
-- [Systèmes IA](./docs/AI_SYSTEMS.md)
-- [Base de données & SRS](./docs/DATABASE_AND_SRS.md)
-- [Catalogue des simulations d'examen (oral/écrit)](./docs/EXAM_SCENARIOS_CATALOGUE.md)
+- [Systèmes IA](./docs/architecture/ai-systems.md)
+- [Base de données & SRS](./docs/architecture/database-and-srs.md)
+- [Catalogue des simulations d'examen (oral/écrit)](./docs/architecture/exam-scenarios.md)
 
 ### Calibration pédagogique (prompts IA)
-- [Correction Expression Écrite par niveau CECRL](./docs/writing-correction-levels.md)
-- [Notation Expression Orale par niveau CECRL](./docs/oral-analysis-levels.md)
-- [Calibration Compréhension Écrite](./docs/ce-content-calibration-rules.md)
-- [Contraintes de génération Compréhension Orale](./docs/CO-contraintes-generation-texte.md)
-- [Taxonomie des tags de leçons](./docs/lessons-tags-taxonomy.md)
-- [Particularités du Vocabulaire dans le moteur de recommandation](./docs/vocabulaire-particularites-recommandation.md)
+- [Correction Expression Écrite par niveau CECRL](./docs/calibration/writing-correction-levels.md)
+- [Notation Expression Orale par niveau CECRL](./docs/calibration/oral-analysis-levels.md)
+- [Calibration Compréhension Écrite](./docs/calibration/ce-content-calibration-rules.md)
+- [Contraintes de génération Compréhension Orale](./docs/calibration/co-contraintes-generation-texte.md)
+- [Taxonomie des tags de leçons](./docs/calibration/lessons-tags-taxonomy.md)
+- [Particularités du Vocabulaire dans le moteur de recommandation](./docs/calibration/vocabulaire-particularites-recommandation.md)
 
 ### Ops & contribution
-- [Guide de Contribution](./docs/CONTRIBUTING.md)
-- [Piège PostgREST : troncature à 1000 lignes](./docs/postgrest-max-rows-truncation.md)
+- [Guide de Contribution](./docs/ops/contributing.md)
+- [Piège PostgREST : troncature à 1000 lignes](./docs/ops/postgrest-max-rows-truncation.md)
 
 ### Pour les agents IA
 - [AGENTS.md](./AGENTS.md) — conventions, structure des dossiers, méthode de travail

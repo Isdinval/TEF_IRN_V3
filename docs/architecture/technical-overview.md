@@ -29,7 +29,7 @@ src/
 ├── types/        # Définitions TypeScript centralisées
 └── middleware.ts # Gestion de la session et des redirections
 ```
-> Arborescence détaillée (sous-dossiers de `tef-irn/` et `examen-civique/`, routes protégées vs publiques) : voir [`AGENTS.md`](../AGENTS.md#structure-des-dossiers), qui fait référence pour éviter que les deux documents divergent.
+> Arborescence détaillée (sous-dossiers de `tef-irn/` et `examen-civique/`, routes protégées vs publiques) : voir [`AGENTS.md`](../../AGENTS.md#structure-des-dossiers), qui fait référence pour éviter que les deux documents divergent.
 
 ## 4. Gestion de l'État
 LlamaKusi utilise une approche hybride pour la gestion de l'état :
@@ -40,7 +40,7 @@ LlamaKusi utilise une approche hybride pour la gestion de l'état :
 ## 5. Base de Données (Supabase)
 - **Migrations** : Toutes les modifications de schéma sont tracées dans `supabase/migrations`.
 - **RLS (Row Level Security)** : La sécurité est gérée au niveau de la base de données. Chaque table possède des politiques strictes garantissant que l'utilisateur ne peut accéder qu'à ses propres données.
-- **Domaines couverts** : contenu pédagogique TEF IRN (parcours, leçons, exercices), simulations d'examen, coach IA (chat + RAG via `pgvector`), Examen Civique (produit distinct), gamification, administration. Schéma complet (37 tables), les 3 systèmes SRS et les fonctions RPC : voir [`docs/DATABASE_AND_SRS.md`](./DATABASE_AND_SRS.md), qui fait référence pour éviter toute divergence avec ce document.
+- **Domaines couverts** : contenu pédagogique TEF IRN (parcours, leçons, exercices), simulations d'examen, coach IA (chat + RAG via `pgvector`), Examen Civique (produit distinct), gamification, administration. Schéma complet (37 tables), les 3 systèmes SRS et les fonctions RPC : voir [`docs/architecture/database-and-srs.md`](./database-and-srs.md), qui fait référence pour éviter toute divergence avec ce document.
 
 ## 6. Conventions de Développement
 - **Server Components par défaut** : Optimisation de la performance et du SEO.

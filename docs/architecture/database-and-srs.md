@@ -41,7 +41,7 @@ pour optimiser la mémorisation.
 | `vocabulary` | Mots du module SRS vocabulaire (indépendant des `exercises`) |
 | `guides` | Guides SEO publics, partagés entre les deux produits via `product` (`tef-irn` / `examen-civique`) et `silo_role` (`hub`/`pilier`/`satellite`) |
 
-### 1.3 Simulations d'examen (hors SRS — voir `docs/EXAM_SCENARIOS_CATALOGUE.md`)
+### 1.3 Simulations d'examen (hors SRS — voir `docs/architecture/exam-scenarios.md`)
 
 | Table | Rôle |
 |---|---|
@@ -133,11 +133,11 @@ pas de formule pondérée :
 3. **Déjà tenté**, trié par score croissant
 
 Chaque exercice retourné porte un `recommendation_reason`, affiché sur `ExerciseCard`
-(variant `hero`). Voir `docs/vocabulaire-particularites-recommandation.md` pour le cas
+(variant `hero`). Voir `docs/calibration/vocabulaire-particularites-recommandation.md` pour le cas
 particulier du Vocabulaire dans ce pipeline.
 
 > Ce moteur ne couvre ni les scénarios d'examen (`oral_exam_scenarios` / `writing_exam_scenarios`
-> — voir `docs/EXAM_SCENARIOS_CATALOGUE.md`), ni le module Examen Civique, qui a son propre
+> — voir `docs/architecture/exam-scenarios.md`), ni le module Examen Civique, qui a son propre
 > cycle entraînement → SRS → examen blanc entièrement indépendant.
 
 ## 4. Fonctions RPC principales (hors pgvector)
