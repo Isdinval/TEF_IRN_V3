@@ -23,8 +23,6 @@ import { DashboardHeader } from "@/components/features/dashboard/new/DashboardHe
 import { StatsOverview } from "@/components/features/dashboard/new/StatsOverview";
 import { ExamCountdownCard } from "@/components/features/dashboard/new/ExamCountdownCard";
 import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCard";
-import { NextActionCard } from "@/components/features/dashboard/new/NextActionCard";
-import { TodayChecklistCard } from "@/components/features/dashboard/new/TodayChecklistCard";
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ParcoursOverviewCard } from "@/components/features/dashboard/new/ParcoursOverviewCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
@@ -96,18 +94,6 @@ export default function DashboardPage() {
       const { data: stats, error: rpcError } = await supabase.rpc("get_trous_stats");
       if (rpcError) throw rpcError;
       return stats;
-    },
-    enabled: isMounted,
-  });
-
-  // RPC dédiée (checklist "Objectif du jour"), même convention que
-  // qcm-stats/trous-stats ci-dessus.
-  const { data: todayChecklist } = useQuery({
-    queryKey: ["today-checklist"],
-    queryFn: async () => {
-      const { data: checklist, error: rpcError } = await supabase.rpc("get_today_checklist");
-      if (rpcError) throw rpcError;
-      return checklist;
     },
     enabled: isMounted,
   });
@@ -242,16 +228,6 @@ export default function DashboardPage() {
           </h2>
 
           <div className="space-y-6">
-            <NextActionCard
-              vocabReviewsDue={vocab_reviews_due}
-              exerciseReviewsDue={exercise_reviews_due}
-              inProgressParcours={in_progress_parcours}
-              recommendations={recommendations}
-              targetExamDate={target_exam_date}
-            />
-
-            <TodayChecklistCard checklist={todayChecklist} />
-
             {profile.learning_mode !== "academique" && in_progress_parcours.length === 0 && !academicBannerDismissed && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-[2rem] bg-indigo-600 text-white relative">
                 <Compass size={32} className="shrink-0 opacity-90" />
