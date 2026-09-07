@@ -26,11 +26,13 @@ import { ActionPlanCard } from "@/components/features/dashboard/new/ActionPlanCa
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ParcoursOverviewCard } from "@/components/features/dashboard/new/ParcoursOverviewCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
-import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
+import { ExamReadinessCard } from "@/components/features/dashboard/new/ExamReadinessCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
 import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
 import { TrousStatsCard } from "@/components/features/dashboard/new/TrousStatsCard";
+import { EEStatsCard } from "@/components/features/dashboard/new/EEStatsCard";
+import { OralStatsCard } from "@/components/features/dashboard/new/OralStatsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +42,6 @@ import { useRouter } from "next/navigation";
 
 // Dynamic imports with SSR disabled
 const PerformanceRadar = dynamic(() => import("@/components/features/dashboard/new/PerformanceRadar").then(mod => mod.PerformanceRadar), { ssr: false });
-const XPChart = dynamic(() => import("@/components/features/dashboard/new/XPChart").then(mod => mod.XPChart), { ssr: false });
 const SubSkillHeatmap = dynamic(() => import("@/components/features/dashboard/new/SubSkillHeatmap").then(mod => mod.SubSkillHeatmap), { ssr: false });
 
 export default function DashboardPage() {
@@ -97,6 +98,36 @@ export default function DashboardPage() {
     enabled: isMounted,
   });
 
+  const { data: eoStats } = useQuery({
+    queryKey: ["eo-stats"],
+    queryFn: async () => {
+      const { data: stats, error: rpcError } = await supabase.rpc("get_eo_stats");
+      if (rpcError) throw rpcError;
+      return stats;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: examReadiness } = useQuery({
+    queryKey: ["exam-readiness"],
+    queryFn: async () => {
+      const { data: readiness, error: rpcError } = await supabase.rpc("get_exam_readiness");
+      if (rpcError) throw rpcError;
+      return readiness;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: eeStats } = useQuery({
+    queryKey: ["ee-stats"],
+    queryFn: async () => {
+      const { data: stats, error: rpcError } = await supabase.rpc("get_ee_stats");
+      if (rpcError) throw rpcError;
+      return stats;
+    },
+    enabled: isMounted,
+  });
+
   useEffect(() => {
     if (data?.profile && data.profile.onboarding_completed === false) {
       router.replace("/tef-irn/onboarding");
@@ -133,14 +164,12 @@ export default function DashboardPage() {
   const parcours_overview = data.parcours_overview || null;
   const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
   const reviews_count = data.reviews_count || 0;
-  const xp_last_7_days = Array.isArray(data.xp_last_7_days) ? data.xp_last_7_days : [];
   const pending_corrections = data.pending_corrections || 0;
   const vocab_reviews_due = data.vocab_reviews_due || 0;
   const exercise_reviews_due = data.exercise_reviews_due || 0;
   const vocab_stats = data.vocab_stats || null;
   const weak_points = Array.isArray(data.weak_points) ? data.weak_points : [];
   const target_exam_date = profile.target_exam_date || null;
-  const league_stats = data.league_stats || null;
 
   // recent_corrections remonte désormais jusqu'à 5 éléments par branche
   // (migrations 20260731000002/000003), et depuis 20260805000003 le bloc
@@ -280,9 +309,14 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
             <div className="space-y-6">
+              <ExamReadinessCard
+                lessonsRemaining={examReadiness?.lessons_remaining ?? null}
+                lessonsPerWeek={examReadiness?.lessons_per_week ?? null}
+                targetExamDate={target_exam_date}
+                goalLevel={profile.goal_level || null}
+              />
               <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
               <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
-              {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
             </div>
             <div className="space-y-6">
               {vocab_stats && (
@@ -312,6 +346,22 @@ export default function DashboardPage() {
                   successRate={trousStats.success_rate}
                 />
               )}
+              {eeStats && (
+                <EEStatsCard
+                  total={eeStats.total}
+                  successRate={eeStats.success_rate}
+                  lastScore={eeStats.last_score}
+                />
+              )}
+              {eoStats && (
+                <OralStatsCard
+                  total={eoStats.total}
+                  levels={eoStats.levels}
+                  successRate={eoStats.success_rate}
+                  lastScore={eoStats.last_score}
+                  weakestCriterion={eoStats.weakest_criterion}
+                />
+              )}
             </div>
           </div>
         </section>
@@ -322,13 +372,12 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
-            <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique, historique XP et corrections récentes." />
+            <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique et corrections récentes." />
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <PerformanceRadar data={competency_radar} />
             <SubSkillHeatmap data={sub_competencies} />
           </div>
-          <XPChart data={xp_last_7_days} />
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <RecentCorrectionsList
               corrections={examCorrections}
