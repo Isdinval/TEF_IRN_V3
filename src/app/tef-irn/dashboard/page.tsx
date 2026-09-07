@@ -28,6 +28,7 @@ import { TodayChecklistCard } from "@/components/features/dashboard/new/TodayChe
 import { ParcoursCard } from "@/components/features/dashboard/new/ParcoursCard";
 import { ParcoursOverviewCard } from "@/components/features/dashboard/new/ParcoursOverviewCard";
 import { ScoreProjection } from "@/components/features/dashboard/new/ScoreProjection";
+import { ExamReadinessCard } from "@/components/features/dashboard/new/ExamReadinessCard";
 import { LeagueCard } from "@/components/features/dashboard/new/LeagueCard";
 import { RecentCorrectionsList } from "@/components/features/dashboard/new/RecentCorrectionsList";
 import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCard";
@@ -118,6 +119,16 @@ export default function DashboardPage() {
       const { data: stats, error: rpcError } = await supabase.rpc("get_eo_stats");
       if (rpcError) throw rpcError;
       return stats;
+    },
+    enabled: isMounted,
+  });
+
+  const { data: examReadiness } = useQuery({
+    queryKey: ["exam-readiness"],
+    queryFn: async () => {
+      const { data: readiness, error: rpcError } = await supabase.rpc("get_exam_readiness");
+      if (rpcError) throw rpcError;
+      return readiness;
     },
     enabled: isMounted,
   });
@@ -317,6 +328,12 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
               <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
+              <ExamReadinessCard
+                lessonsRemaining={examReadiness?.lessons_remaining ?? null}
+                lessonsPerWeek={examReadiness?.lessons_per_week ?? null}
+                targetExamDate={target_exam_date}
+                goalLevel={profile.goal_level || null}
+              />
               {league_stats && <LeagueCard leagueName={league_stats.league_name} rank={league_stats.rank} totalMembers={league_stats.total_members} />}
             </div>
             <div className="space-y-6">
