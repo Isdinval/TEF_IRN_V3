@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 function ExamPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state, isLoading, exams, isLoadingExams } = useExam();
+  const { state, isLoading, exams, isLoadingExams, startExam } = useExam();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<ExamMetadata | null>(null);
 
@@ -24,23 +24,39 @@ function ExamPageContent() {
   }, [isLoading, state.status, router]);
 
   // Lancement direct depuis un lien externe (checkpoint "Examen blanc" de
-  // /tef-irn/progression, item Phase 3bis) : ?examId=<uuid> ouvre directement
-  // le TimerModal du bon examen, sans repasser par le catalogue. Ne se
-  // déclenche qu'une fois (autoLaunchedRef) pour ne pas rouvrir le modal si
-  // l'utilisateur le ferme volontairement, et jamais si une session est déjà
-  // en cours (le useEffect ci-dessus prend la main dans ce cas).
+  // /tef-irn/progression) : ?examId=<uuid> lance directement l'examen
+  // complet en conditions réelles -- même action que le premier bouton du
+  // TimerModal (handleFullExam()) -- au lieu de seulement pré-ouvrir le
+  // modal, qui laissait un clic de plus à faire (retour Olivier après tests
+  // manuels). Ne se déclenche qu'une fois (autoLaunchedRef), et jamais si
+  // une session est déjà en cours (le useEffect ci-dessus prend la main).
   const examIdParam = searchParams.get('examId');
   const autoLaunchedRef = useRef(false);
+  const [matchNotFound, setMatchNotFound] = useState(false);
   useEffect(() => {
     if (autoLaunchedRef.current || !examIdParam || isLoading || isLoadingExams) return;
     if (state.status !== 'idle') return;
     const match = exams.find((e) => e.id === examIdParam);
     if (match) {
       autoLaunchedRef.current = true;
-      setSelectedExam(match);
-      setIsModalOpen(true);
+      startExam('full', undefined, match.id, true);
+      router.push('/tef-irn/exam/session');
+    } else {
+      // examId invalide/introuvable : repli sur le catalogue plutôt que de
+      // rester bloqué sur un loader indéfiniment.
+      setMatchNotFound(true);
     }
-  }, [examIdParam, exams, isLoading, isLoadingExams, state.status]);
+  }, [examIdParam, exams, isLoading, isLoadingExams, state.status, startExam, router]);
+
+  // Le catalogue ne doit jamais s'afficher le temps du lancement auto --
+  // sinon flash visible avant la redirection vers /session.
+  if (examIdParam && !matchNotFound && !autoLaunchedRef.current) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    );
+  }
 
   return (
     <>
