@@ -57,6 +57,19 @@ function examCoversLevel(examLevel: string, level: CecrlLevel): boolean {
 }
 
 /**
+ * Choisit UN examen précis pour le checkpoint d'un niveau, parmi ceux qui le
+ * couvrent (plusieurs peuvent matcher, ex. B1 est couvert par 'A2-B1', 'B1'
+ * ET 'B1-B2') -- priorité à la correspondance exacte ('B1' pour le niveau
+ * B1), sinon le premier de la liste (déjà triée par level en base). Permet
+ * au checkpoint "Examen blanc" de /tef-irn/progression de renvoyer vers un
+ * examen précis (?examId=...) plutôt que vers le catalogue générique.
+ */
+function pickExamForLevel(exams: { id: string; level: string | null }[], level: CecrlLevel) {
+  const matching = exams.filter((e) => e.level && examCoversLevel(e.level, level));
+  return matching.find((e) => e.level === level) || matching[0] || null;
+}
+
+/**
  * Progression macro par niveau CECRL (A1 à B2) : statut de chaque parcours
  * du niveau, puis des checkpoints EE / EO / Examen blanc une fois tous les
  * parcours terminés -- alimente la page /tef-irn/progression (accordéons).
@@ -128,7 +141,14 @@ export async function getLevelProgression(
           examDone = (count || 0) > 0;
         }
       }
-      examBlanc = { done: examDone, href: '/tef-irn/exam' };
+      const targetExam = pickExamForLevel(exams, level);
+      examBlanc = {
+        done: examDone,
+        // targetExam ne devrait être null que si aucun examen n'existe encore
+        // pour ce niveau (catalogue vide) -- repli sur le catalogue générique
+        // dans ce cas, jamais atteint aujourd'hui pour A2/B1/B2.
+        href: targetExam ? `/tef-irn/exam?examId=${targetExam.id}` : '/tef-irn/exam',
+      };
     }
 
     const isLevelComplete =

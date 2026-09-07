@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { CompletionBadge, completionCardStyles } from "@/components/ui/CompletionVisuals";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
-import { CheckCircle2, Circle, PenTool, Mic, ClipboardCheck, Compass } from "lucide-react";
-import type { LevelProgression, CecrlLevel } from "@/lib/progression";
+import { CheckCircle2, Circle, PenTool, Mic, ClipboardCheck, Compass, ChevronDown, Loader2 } from "lucide-react";
+import ParcoursExerciseTreeCatalogue, { CatalogueExercise, LessonMeta } from "@/app/tef-irn/parcours/[slug]/components/ParcoursExerciseTreeCatalogue";
+import { getExerciseUrl } from "@/lib/parcours";
+import type { LevelProgression, ParcoursStepStatus } from "@/lib/progression";
 
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
@@ -78,6 +80,80 @@ function StepRow({
   );
 }
 
+function ParcoursTreeStep({ p, level, why }: { p: ParcoursStepStatus; level: string; why: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<{ catalogueExercises: CatalogueExercise[]; lessonMeta: Record<string, LessonMeta> } | null>(null);
+  const [error, setError] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await fetch(`/api/progression/parcours-catalogue?parcoursId=${p.id}`);
+      if (!res.ok) throw new Error("fetch failed");
+      setData(await res.json());
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggle = () => {
+    const next = !isOpen;
+    setIsOpen(next);
+    if (next && !data && !loading) load();
+  };
+
+  return (
+    <div className={`rounded-2xl border transition-colors ${p.isCompleted ? "border-emerald-100 bg-emerald-50/50" : "border-zinc-100 bg-white"}`}>
+      <button onClick={handleToggle} className="w-full flex items-center gap-3 p-4 text-left">
+        <StatusIcon done={p.isCompleted} />
+        <Compass size={16} className="text-zinc-400 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-black text-zinc-900 truncate">
+              Parcours {CATEGORY_LABEL[p.category.toLowerCase()] || p.category} {level}
+            </p>
+            <span onClick={(e) => e.stopPropagation()}>
+              <InfoTooltip text={why} />
+            </span>
+          </div>
+          <p className="text-xs font-medium text-zinc-400">{p.completed}/{p.total} leçons terminées</p>
+        </div>
+        <ChevronDown size={16} className={`shrink-0 text-zinc-300 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4">
+          {loading && (
+            <div className="flex justify-center py-6 text-zinc-300">
+              <Loader2 className="animate-spin" size={20} />
+            </div>
+          )}
+          {!loading && error && (
+            <p className="text-xs font-bold text-red-500 px-1">
+              Impossible de charger le détail.{" "}
+              <button onClick={load} className="underline underline-offset-2">Réessayer</button>
+            </p>
+          )}
+          {!loading && !error && data && (
+            data.catalogueExercises.length > 0 ? (
+              <ParcoursExerciseTreeCatalogue
+                exercises={data.catalogueExercises}
+                lessonMeta={data.lessonMeta}
+                getUrl={(ex) => getExerciseUrl(ex, p.id)}
+              />
+            ) : (
+              <p className="text-xs text-zinc-400 italic px-1">Aucun exercice débloqué pour l'instant.</p>
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LevelPanel({ level }: { level: LevelProgression }) {
   const hasChecklistSteps = level.ee !== null;
 
@@ -88,13 +164,10 @@ function LevelPanel({ level }: { level: LevelProgression }) {
       )}
 
       {level.parcours.map((p) => (
-        <StepRow
+        <ParcoursTreeStep
           key={p.id}
-          icon={Compass}
-          title={`Parcours ${CATEGORY_LABEL[p.category.toLowerCase()] || p.category} ${level.level}`}
-          subtitle={`${p.completed}/${p.total} leçons terminées`}
-          done={p.isCompleted}
-          href={`/tef-irn/parcours/${p.slug}`}
+          p={p}
+          level={level.level}
           why={CATEGORY_WHY[p.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
         />
       ))}
