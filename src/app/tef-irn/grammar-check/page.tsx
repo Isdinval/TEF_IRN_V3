@@ -439,16 +439,26 @@ export function GrammarCheckContent() {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && activeExerciseId) {
-              await fetch('/api/exercise-complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  exerciseId: activeExerciseId,
-                  score: finalScore,
-                  answers: { correct: score, total: questions.length },
-                  studyTimeMinutes
-                })
-              });
+              const lessonId = questions[0]?.lesson_id;
+              // Parallélisé plutôt qu'enchaîné (retour Olivier après tests
+              // manuels : le badge de quota mettait 1-2s à apparaître,
+              // visiblement après coup, car ce fetch n'était lancé qu'une
+              // fois le POST exercise-complete entièrement terminé).
+              const [, quota] = await Promise.all([
+                fetch('/api/exercise-complete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    exerciseId: activeExerciseId,
+                    score: finalScore,
+                    answers: { correct: score, total: questions.length },
+                    studyTimeMinutes
+                  })
+                }),
+                (learningMode === "academique" && lessonId)
+                  ? getLessonExerciseQuota(user.id, lessonId, 'trous', supabase)
+                  : Promise.resolve(null),
+              ]);
               // La TopBar (progress bar + compteurs QCM/Chasse aux erreurs, item #4)
               // ne se rafraîchit normalement que sur changement de pathname -- ici
               // on reste sur /grammar-check/[id] (setMode("result") est un state
@@ -457,16 +467,34 @@ export function GrammarCheckContent() {
               refreshProgress();
               refreshExerciseCounts();
 
-              const lessonId = questions[0]?.lesson_id;
-              if (learningMode === "academique" && lessonId) {
-                setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'trous', supabase));
-              }
+              if (quota) setLessonQuota(quota);
             }
           } catch (err) {
             console.error("Error saving attempt:", err);
           }
         }
       };
+
+  // Retour Olivier après tests manuels : la touche Entrée déclenche l'action
+  // principale de l'écran d'exercice, comme un clic -- "Vérifier ma
+  // correction" tant qu'un mot (ou "Pas d'erreur") est sélectionné et non
+  // encore validé, l'action suivante une fois la correction affichée.
+  // N'agit que sur l'écran "training" (mode question par question).
+  useEffect(() => {
+    if (mode !== "training") return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (status === "typing") {
+        if (selectedWordIndex !== null || selectedNoError) checkCorrection();
+      } else {
+        handleNextAction();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, status, selectedWordIndex, selectedNoError, currentIdx]);
 
   const toggleLesson = useCallback(async (lessonId?: string) => {
     if (!lessonId) return;

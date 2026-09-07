@@ -664,7 +664,22 @@ export function PracticeContent() {
       setIsChecked(false);
       setLessonVisible(false);
     } else {
-      const saved = await saveScore();
+      const lessonId = questions[0]?.lesson_id;
+      setLessonQuota(null);
+
+      // Démarré en parallèle de saveScore() plutôt qu'après (retour Olivier
+      // après tests manuels : le badge de quota mettait 1-2s à apparaître,
+      // visiblement après coup, car ce fetch n'était lancé qu'une fois
+      // saveScore() entièrement terminé -- les deux allers-retours réseau
+      // s'additionnaient au lieu de se chevaucher).
+      const quotaPromise = (learningMode === "academique" && lessonId)
+        ? (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            return user ? getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase) : null;
+          })()
+        : Promise.resolve(null);
+
+      const [saved, quota] = await Promise.all([saveScore(), quotaPromise]);
       setSaveScoreError(!saved);
       setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
       setMode("result");
@@ -675,16 +690,31 @@ export function PracticeContent() {
       refreshProgress();
       refreshExerciseCounts();
 
-      const lessonId = questions[0]?.lesson_id;
-      setLessonQuota(null);
-      if (learningMode === "academique" && lessonId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setLessonQuota(await getLessonExerciseQuota(user.id, lessonId, 'qcm', supabase));
-        }
-      }
+      if (quota) setLessonQuota(quota);
     }
   };
+
+  // Retour Olivier après tests manuels : la touche Entrée déclenche l'action
+  // principale de l'écran d'exercice, comme un clic -- "Vérifier ma réponse"
+  // tant qu'une option est sélectionnée et non encore validée, "Question
+  // suivante"/"Voir mon résultat" une fois la correction affichée. N'agit
+  // que sur l'écran "practice" (mode question par question), jamais sur le
+  // catalogue ou l'écran de résultat.
+  useEffect(() => {
+    if (mode !== "practice") return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (!isChecked) {
+        if (selected !== null) handleCheck();
+      } else {
+        handleNext();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, isChecked, selected, currentIdx]);
 
   const saveScore = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
