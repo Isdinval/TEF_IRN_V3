@@ -55,6 +55,8 @@ const SECTION_META: Record<string, { label: string; icon: React.ElementType }> =
   guide: { label: "Parcours guidé", icon: GraduationCap },
   libre: { label: "Entraînement libre", icon: Shuffle },
   "tronc-commun": { label: "Suivi & Ressources", icon: Library },
+  "civic-apprendre": { label: "Apprendre", icon: BookOpen },
+  "civic-entrainer": { label: "S'entraîner", icon: Brain },
 };
 
 function SidebarContent() {
@@ -125,11 +127,11 @@ function SidebarContent() {
       activePrefix: "/examen-civique",
       items: [
         { label: "Tableau de bord", icon: Landmark, href: "/examen-civique" },
-        { label: "Livret du citoyen", icon: BookOpen, href: "/examen-civique/livret" },
-        { label: "Éligibilité", icon: HelpCircle, href: "/examen-civique/eligibilite" },
-        { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir" },
-        { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement" },
-        { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc" },
+        { label: "Livret du citoyen", icon: BookOpen, href: "/examen-civique/livret", section: "civic-apprendre" as const },
+        { label: "Éligibilité", icon: HelpCircle, href: "/examen-civique/eligibilite", section: "civic-apprendre" as const },
+        { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir", section: "civic-apprendre" as const },
+        { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement", section: "civic-entrainer" as const },
+        { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc", section: "civic-entrainer" as const },
         { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres" },
         { label: "Guides", icon: Sparkles, href: "/examen-civique/guides" },
       ],
