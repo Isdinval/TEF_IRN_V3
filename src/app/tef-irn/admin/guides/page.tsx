@@ -61,6 +61,10 @@ interface GuideRow {
   is_published: boolean;
   created_at: string;
   key_points: string[] | null;
+  mot_cle_principal: string | null;
+  cta_doux_variant: string | null;
+  cta_fort_variant: string | null;
+  aide_variant: string | null;
 }
 
 interface ParcoursOption {
@@ -82,6 +86,10 @@ interface GuideImportMeta {
   reading_time?: number;
   is_published?: boolean;
   key_points?: string[];
+  mot_cle_principal?: string;
+  cta_doux_variant?: string;
+  cta_fort_variant?: string;
+  aide_variant?: string;
 }
 
 function slugify(title: string): string {
@@ -109,6 +117,10 @@ const EMPTY_FORM = {
   imageCaption: "",
   icon: "",
   keyPoints: "",
+  motClePrincipal: "",
+  ctaDouxVariant: "",
+  ctaFortVariant: "",
+  aideVariant: "",
   parcoursId: "",
   isPublished: false,
 };
@@ -197,6 +209,10 @@ export default function GuidesAdmin() {
       imageCaption: g.image_caption || "",
       icon: g.icon || "",
       keyPoints: (g.key_points || []).join("\n"),
+      motClePrincipal: g.mot_cle_principal || "",
+      ctaDouxVariant: g.cta_doux_variant || "",
+      ctaFortVariant: g.cta_fort_variant || "",
+      aideVariant: g.aide_variant || "",
       parcoursId: g.parcours_id || "",
       isPublished: g.is_published,
     });
@@ -239,6 +255,10 @@ export default function GuidesAdmin() {
         readingTime: meta.reading_time != null ? String(meta.reading_time) : f.readingTime,
         icon: meta.icon ?? f.icon,
         keyPoints: meta.key_points ? meta.key_points.join("\n") : f.keyPoints,
+        motClePrincipal: meta.mot_cle_principal ?? f.motClePrincipal,
+        ctaDouxVariant: meta.cta_doux_variant ?? f.ctaDouxVariant,
+        ctaFortVariant: meta.cta_fort_variant ?? f.ctaFortVariant,
+        aideVariant: meta.aide_variant ?? f.aideVariant,
         isPublished: meta.is_published ?? f.isPublished,
       }));
       setJsonImportStatus({ name: file.name });
@@ -323,6 +343,10 @@ export default function GuidesAdmin() {
         image_caption: form.imageCaption.trim() || null,
         icon: form.icon.trim() || null,
         key_points: form.keyPoints.split("\n").map((p) => p.trim()).filter(Boolean),
+        mot_cle_principal: form.motClePrincipal.trim() || null,
+        cta_doux_variant: form.ctaDouxVariant.trim() || null,
+        cta_fort_variant: form.ctaFortVariant.trim() || null,
+        aide_variant: form.aideVariant.trim() || null,
         parcours_id: form.parcoursId || null,
         is_published: form.isPublished,
       };
@@ -408,6 +432,9 @@ export default function GuidesAdmin() {
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{g.title}</p>
                 <p className="text-xs text-zinc-400 truncate">/{g.slug}</p>
+                {g.mot_cle_principal && (
+                  <p className="text-[11px] text-indigo-400 truncate">🎯 {g.mot_cle_principal}</p>
+                )}
               </div>
               <div className="flex gap-2 shrink-0">
                 {g.is_published ? (
@@ -603,6 +630,46 @@ export default function GuidesAdmin() {
                 className="mt-1"
                 placeholder={"Comprendre le format de l'épreuve\nS'entraîner avec des sujets types\n..."}
               />
+            </div>
+
+            <div>
+              <Label className="text-xs font-black uppercase text-zinc-400">Mot-clé principal (SEO, anti-cannibalisation)</Label>
+              <Input
+                value={form.motClePrincipal}
+                onChange={(e) => setForm((f) => ({ ...f, motClePrincipal: e.target.value }))}
+                className="mt-1"
+                placeholder="ex: annulation remboursement TEF IRN"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">Variante CTA doux</Label>
+                <Input
+                  value={form.ctaDouxVariant}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaDouxVariant: e.target.value }))}
+                  className="mt-1"
+                  placeholder="1-4"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">Variante CTA fort</Label>
+                <Input
+                  value={form.ctaFortVariant}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaFortVariant: e.target.value }))}
+                  className="mt-1"
+                  placeholder="1-4"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">Variante &quot;Comment LlamaKusi vous aide&quot;</Label>
+                <Input
+                  value={form.aideVariant}
+                  onChange={(e) => setForm((f) => ({ ...f, aideVariant: e.target.value }))}
+                  className="mt-1"
+                  placeholder="1-4"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
