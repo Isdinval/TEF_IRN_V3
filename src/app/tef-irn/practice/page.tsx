@@ -582,6 +582,9 @@ export function PracticeContent() {
       instructions: q.instructions,
       currentIndex: currentIdx + 1,
       totalQuestions: questions.length,
+      questionText: q.text,
+      options: q.options,
+      correctAnswer: q.options?.[q.correctAnswer],
     });
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps

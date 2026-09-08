@@ -71,6 +71,11 @@ export type CoachPageContext =
       instructions?: string;
       currentIndex: number;
       totalQuestions: number;
+      // Contenu réel affiché à l'écran -- sans ça le coach ne peut pas aider sur
+      // "cette question", seulement parler de la catégorie/niveau en général.
+      questionText?: string;
+      options?: string[];
+      correctAnswer?: string;
     }
   | {
       type: "vocab";

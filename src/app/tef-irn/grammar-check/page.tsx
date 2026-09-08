@@ -325,6 +325,11 @@ export function GrammarCheckContent() {
       instructions: q.instructions,
       currentIndex: currentIdx + 1,
       totalQuestions: questions.length,
+      // q.sentence contient déjà le mot fautif encadré par des crochets s'il y en a
+      // un (cf. commentaire GrammarQuestion.sentence) -- utile pour que le coach
+      // sache exactement quoi chercher, jamais affiché tel quel à l'utilisateur.
+      questionText: q.sentence,
+      correctAnswer: q.correct_word,
     });
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -45,6 +45,9 @@ interface CoachPageContext {
   exerciseType?: 'qcm' | 'trous';
   currentIndex?: number;
   totalQuestions?: number;
+  questionText?: string;
+  options?: string[];
+  correctAnswer?: string;
   // Variante 'vocab'
   word?: string;
   totalCards?: number;
@@ -127,7 +130,10 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       const posLine = pageContext.currentIndex && pageContext.totalQuestions
         ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
         : '';
-      return `L'utilisateur est en train de faire un exercice de type ${kind} (${pageContext.category} ${pageContext.level}).${posLine}${pageContext.instructions ? ` Consigne : "${pageContext.instructions}".` : ''}`;
+      const questionLine = pageContext.questionText ? `\nÉnoncé exact affiché à l'écran : "${pageContext.questionText}"` : '';
+      const optionsLine = pageContext.options?.length ? `\nOptions proposées : ${pageContext.options.map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`).join(', ')}` : '';
+      const answerLine = pageContext.correctAnswer ? `\nBonne réponse (pour ton usage pédagogique, ne la révèle pas d'un coup -- guide l'utilisateur vers elle) : "${pageContext.correctAnswer}"` : '';
+      return `L'utilisateur est en train de faire un exercice de type ${kind} (${pageContext.category} ${pageContext.level}).${posLine}${pageContext.instructions ? ` Consigne générale : "${pageContext.instructions}".` : ''}${questionLine}${optionsLine}${answerLine}`;
     }
     case 'vocab': {
       const posLine = pageContext.currentIndex && pageContext.totalCards
