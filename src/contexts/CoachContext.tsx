@@ -71,6 +71,15 @@ export type CoachPageContext =
       instructions?: string;
       currentIndex: number;
       totalQuestions: number;
+    }
+  | {
+      type: "vocab";
+      word: string;
+      category: string;
+      level: string;
+      currentIndex: number;
+      totalCards: number;
+      isReviewMode: boolean;
     };
 
 interface CoachContextType {

@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab';
   title?: string;
   level?: string;
   category?: string;
@@ -45,6 +45,10 @@ interface CoachPageContext {
   exerciseType?: 'qcm' | 'trous';
   currentIndex?: number;
   totalQuestions?: number;
+  // Variante 'vocab'
+  word?: string;
+  totalCards?: number;
+  isReviewMode?: boolean;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -113,6 +117,13 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
         ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
         : '';
       return `L'utilisateur est en train de faire un exercice de type ${kind} (${pageContext.category} ${pageContext.level}).${posLine}${pageContext.instructions ? ` Consigne : "${pageContext.instructions}".` : ''}`;
+    }
+    case 'vocab': {
+      const posLine = pageContext.currentIndex && pageContext.totalCards
+        ? ` Carte ${pageContext.currentIndex}/${pageContext.totalCards}.`
+        : '';
+      const reviewLine = pageContext.isReviewMode ? ' (session de révision SRS)' : '';
+      return `L'utilisateur révise du vocabulaire${reviewLine} — thème "${pageContext.category}", niveau ${pageContext.level}. Mot actuel : "${pageContext.word}".${posLine}`;
     }
     default:
       return 'Dashboard';

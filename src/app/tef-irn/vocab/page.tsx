@@ -33,6 +33,7 @@ import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDecoration";
 import { DestinationLandmarkDecoration } from "@/components/decorative/DestinationLandmarkDecoration";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 interface Flashcard {
   id: string;
@@ -57,6 +58,7 @@ export function VocabCoachContent() {
   const supabase = useMemo(() => createClient(), []);
   const { nextLesson } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Administration");
+  const { setPageContext } = useCoachContext();
 
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [index, setIndex] = useState(0);
@@ -208,6 +210,24 @@ export function VocabCoachContent() {
       fetchReviewDueCount();
     }
   }, [fetchCatalogue, fetchReviewDueCount, mode]);
+
+  // Contexte coach : uniquement pendant la session de flashcards, pas sur le catalogue.
+  useEffect(() => {
+    if (mode !== "training") return;
+    const card = cards[index];
+    if (!card) return;
+    setPageContext({
+      type: "vocab",
+      word: card.word,
+      category: card.category,
+      level: card.level,
+      currentIndex: index + 1,
+      totalCards: cards.length,
+      isReviewMode,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, index, cards, isReviewMode]);
 
   const startSpecificCard = useCallback(async (id: string) => {
     setLoading(true);
