@@ -1,14 +1,54 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ChatCoach } from '@/components/features/coach/ChatCoach';
-import { Bot, Sparkles, Target, Zap, History, Loader2 } from 'lucide-react';
+import { Bot, Sparkles, Target, Zap, History, Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { createClient } from '@/lib/supabase';
 
 function CoachPageContent() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get('prompt') || undefined;
+  const { user } = useAuth();
+  const supabase = React.useMemo(() => createClient(), []);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!user) { setSubscriptionTier(null); return; }
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
+  }, [supabase, user]);
+
+  // undefined = chargement en cours, ne rien afficher pour éviter un flash.
+  if (subscriptionTier === undefined) {
+    return <div className="flex justify-center h-screen items-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
+  }
+
+  if (!subscriptionTier || subscriptionTier === 'free') {
+    return (
+      <div className="max-w-2xl mx-auto p-8 py-24 text-center space-y-6">
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">
+          <Lock className="w-7 h-7 text-indigo-600" />
+        </div>
+        <h1 className="text-2xl font-black text-zinc-900">Le Coach IA n'est pas inclus dans le plan Gratuit</h1>
+        <p className="text-zinc-500 font-medium">
+          Passez à un abonnement payant pour débloquer l'Assistant LlamaKusi : explications personnalisées, exercices générés à la volée, et suivi de votre progression en temps réel.
+        </p>
+        <Link href="/tef-irn/pricing">
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 rounded-xl shadow-lg shadow-indigo-100">
+            Voir les abonnements
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
       <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">

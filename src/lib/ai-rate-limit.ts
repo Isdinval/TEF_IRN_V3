@@ -9,7 +9,11 @@ export type AiRoute = "coach_chat" | "writing_correct" | "oral_analyze" | "oral_
 // plafond anti-abus (script, bug, compte compromis), pas une vraie limite --
 // settings/page.tsx promet "Accès illimité à l'IA" pour ce palier.
 const DAILY_LIMITS: Record<AiRoute, { free: number; premium: number }> = {
-  coach_chat: { free: 15, premium: 300 },
+  // coach_chat.free = 0 : le Coach IA n'est pas inclus dans le plan Gratuit (voir
+  // landing /tef-irn/pricing). Le vrai verrou est un 403 explicite dans
+  // api/coach/chat/route.ts avant même d'atteindre ce quota -- 0 ici est une
+  // seconde ligne de défense, pas le mécanisme principal.
+  coach_chat: { free: 0, premium: 300 },
   writing_correct: { free: 3, premium: 100 },
   oral_analyze: { free: 3, premium: 100 },
   oral_session: { free: 2, premium: 50 },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { CompletionBadge } from "@/components/ui/CompletionVisuals";
@@ -8,6 +8,7 @@ import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { CheckCircle2, Circle, Lock, PenTool, Mic, ClipboardCheck, Compass, ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LevelProgression, LevelStep, ParcoursStepStatus, ChecklistStepStatus, CheckpointStatus } from "@/lib/progression";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
@@ -328,6 +329,24 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
   const [openLevels, setOpenLevels] = useState<string[]>(
     levels.some((l) => l.level === currentLevel) ? [currentLevel] : [levels[0]?.level].filter(Boolean) as string[]
   );
+  const { setPageContext } = useCoachContext();
+
+  useEffect(() => {
+    setPageContext({
+      type: "progression",
+      currentLevel,
+      levelsSummary: levels.map((l) => ({
+        level: l.level,
+        completedSteps: l.steps.filter((s) =>
+          s.kind === 'parcours' ? s.data.isCompleted : s.data.done
+        ).length,
+        totalSteps: l.steps.length,
+        isLevelComplete: l.isLevelComplete,
+      })),
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levels, currentLevel]);
 
   return (
     <div className="max-w-5xl mx-auto p-6 py-12 space-y-8">

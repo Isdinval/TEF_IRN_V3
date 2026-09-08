@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab' | 'progression' | 'civic';
   title?: string;
   level?: string;
   category?: string;
@@ -35,6 +35,34 @@ interface CoachPageContext {
     lessonTitle?: string;
     lessonSlug?: string;
   } | null;
+  // Variante 'dashboard'
+  currentLevel?: string;
+  goalLevel?: string;
+  targetExamDate?: string | null;
+  weakPoints?: string[];
+  inProgressParcoursCount?: number;
+  // Variante 'exercise'
+  exerciseType?: 'qcm' | 'trous';
+  currentIndex?: number;
+  totalQuestions?: number;
+  questionText?: string;
+  options?: string[];
+  correctAnswer?: string;
+  // Variante 'vocab'
+  word?: string;
+  totalCards?: number;
+  isReviewMode?: boolean;
+  // Variante 'progression'
+  levelsSummary?: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
+  // Variante 'civic'
+  page?: 'training' | 'eligibility' | 'hub';
+  mention?: string | null;
+  theme?: string;
+  step?: number;
+  totalSteps?: number;
+  dueCount?: number;
+  masteredCount?: number;
+  bestScore?: number | null;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -88,6 +116,51 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       return pageContext.section === 'guides'
         ? `L'utilisateur parcourt la liste des guides TEF IRN, à la recherche d'un guide à lire.`
         : `L'utilisateur parcourt la liste des leçons, à la recherche d'une leçon à faire.`;
+    case 'dashboard': {
+      const examLine = pageContext.targetExamDate ? ` Date d'examen visée : ${pageContext.targetExamDate}.` : '';
+      const goalLine = pageContext.goalLevel ? ` Niveau visé : ${pageContext.goalLevel}.` : '';
+      const weakLine = pageContext.weakPoints?.length ? ` Points faibles récurrents : ${pageContext.weakPoints.join(', ')}.` : '';
+      const parcoursLine = pageContext.inProgressParcoursCount
+        ? ` ${pageContext.inProgressParcoursCount} parcours en cours.`
+        : ` Aucun parcours en cours actuellement.`;
+      return `L'utilisateur consulte son Dashboard.${goalLine}${examLine}${weakLine}${parcoursLine}`;
+    }
+    case 'exercise': {
+      const kind = pageContext.exerciseType === 'trous' ? 'Chasse aux erreurs (Trous)' : 'QCM';
+      const posLine = pageContext.currentIndex && pageContext.totalQuestions
+        ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
+        : '';
+      const questionLine = pageContext.questionText ? `\nÉnoncé exact affiché à l'écran : "${pageContext.questionText}"` : '';
+      const optionsLine = pageContext.options?.length ? `\nOptions proposées : ${pageContext.options.map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`).join(', ')}` : '';
+      const answerLine = pageContext.correctAnswer ? `\nBonne réponse (pour ton usage pédagogique, ne la révèle pas d'un coup -- guide l'utilisateur vers elle) : "${pageContext.correctAnswer}"` : '';
+      return `L'utilisateur est en train de faire un exercice de type ${kind} (${pageContext.category} ${pageContext.level}).${posLine}${pageContext.instructions ? ` Consigne générale : "${pageContext.instructions}".` : ''}${questionLine}${optionsLine}${answerLine}`;
+    }
+    case 'vocab': {
+      const posLine = pageContext.currentIndex && pageContext.totalCards
+        ? ` Carte ${pageContext.currentIndex}/${pageContext.totalCards}.`
+        : '';
+      const reviewLine = pageContext.isReviewMode ? ' (session de révision SRS)' : '';
+      return `L'utilisateur révise du vocabulaire${reviewLine} — thème "${pageContext.category}", niveau ${pageContext.level}. Mot actuel : "${pageContext.word}".${posLine}`;
+    }
+    case 'progression': {
+      const summary = (pageContext.levelsSummary || [])
+        .map((l) => `${l.level} : ${l.completedSteps}/${l.totalSteps} étapes${l.isLevelComplete ? ' (terminé)' : ''}`)
+        .join(', ');
+      return `L'utilisateur consulte sa page de progression macro (A1-B2). Niveau actuel : ${pageContext.currentLevel}. Détail par niveau : ${summary || 'aucune donnée'}.`;
+    }
+    case 'civic': {
+      const mentionLine = pageContext.mention ? ` Mention visée : ${pageContext.mention}.` : ' Mention visée : pas encore déterminée.';
+      if (pageContext.page === 'training') {
+        const posLine = pageContext.currentIndex && pageContext.totalQuestions
+          ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
+          : '';
+        return `L'utilisateur s'entraîne sur les questions de l'examen civique (thème "${pageContext.theme}").${mentionLine}${posLine}`;
+      }
+      if (pageContext.page === 'eligibility') {
+        return `L'utilisateur remplit le questionnaire d'éligibilité à l'examen civique, étape ${pageContext.step}/${pageContext.totalSteps}.${mentionLine} Aide-le à comprendre les critères (CSP, carte de résident, naturalisation) sans jamais te substituer à une décision officielle de préfecture.`;
+      }
+      return `L'utilisateur consulte le tableau de bord Examen Civique (hub).${mentionLine}${pageContext.dueCount !== undefined ? ` ${pageContext.dueCount} question(s) à réviser aujourd'hui.` : ''}${pageContext.bestScore != null ? ` Meilleur score aux examens blancs : ${pageContext.bestScore}.` : ''}`;
+    }
     default:
       return 'Dashboard';
   }
@@ -134,11 +207,39 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
     }
 
+    // Persistance du message utilisateur (le message assistant est inséré dans onFinish
+    // plus bas) -- nécessite que chat_sessions existe déjà (créé côté client avant l'envoi,
+    // voir ensureSessionCreated dans ChatCoach.tsx). Best-effort : une erreur ici ne doit
+    // jamais bloquer la réponse du coach.
+    const lastMessage = messages[messages.length - 1];
+    if (sessionId && lastMessage?.role === 'user' && lastMessage?.content) {
+      try {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          role: 'user',
+          content: lastMessage.content,
+        });
+      } catch (dbErr) {
+        console.error('DB Error (user message):', dbErr);
+      }
+    }
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, current_level, goal_level, subscription_tier')
         .eq('id', user.id)
         .single();
+
+    // Le Coach IA n'est pas inclus dans le plan Gratuit (voir landing /tef-irn/pricing).
+    // NOTE : le modèle de données actuel ne connaît que 'free' | 'premium' | 'pro' --
+    // pas de distinction Essentiel/Premium/Super Premium (4 paliers affichés sur la
+    // landing page). Gating binaire en attendant une éventuelle évolution du schéma.
+    if (!profile?.subscription_tier || profile.subscription_tier === 'free') {
+      return new Response(
+        JSON.stringify({ error: "Le Coach IA n'est pas disponible avec le plan Gratuit. Passez à un abonnement payant pour y accéder." }),
+        { status: 403 }
+      );
+    }
 
     // Audit sécurité item 7 : quota IA quotidien avant d'appeler OpenAI --
     // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
@@ -152,8 +253,8 @@ export async function POST(req: Request) {
 
     const userLevel = profile?.current_level || 'A2';
 
-    const systemPrompt = `Tu es Assistant LlamaKusi, un professeur de français expert, pédagogue, patient et encourageant.
-Ton but est d'aider l'utilisateur à préparer son examen TEF IRN.
+    const systemPrompt = `Tu es Assistant LlamaKusi, un professeur de français et de préparation civique, expert, pédagogue, patient et encourageant.
+Ton but est d'aider l'utilisateur à préparer son examen TEF IRN et/ou son examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle).
 
 TON PERSONA:
 - Chaleureux, naturel, encourageant.
@@ -161,9 +262,9 @@ TON PERSONA:
 - Ne juge jamais. Sois toujours positif.
 
 TON RÔLE & PÉRIMÈTRE:
-- Tu ne réponds QU'AUX questions liées à l'apprentissage du français ou au TEF IRN.
-- Grammaire, orthographe, syntaxe, vocabulaire, conjugaison, expression/compréhension (écrite/orale), méthodologie TEF.
-- Si la question est hors sujet (ex: code, cuisine, sport), réponds: "Désolé, je suis Assistant LlamaKusi, je suis spécialisé uniquement en français et en préparation au TEF IRN. Je ne peux pas t'aider avec ce sujet. Veux-tu que l'on travaille sur une règle de grammaire ou un exercice ?"
+- Tu ne réponds QU'AUX questions liées à l'apprentissage du français, au TEF IRN, ou à l'examen civique (institutions, histoire, valeurs de la République, symboles, éligibilité CSP/CR/naturalisation).
+- Grammaire, orthographe, syntaxe, vocabulaire, conjugaison, expression/compréhension (écrite/orale), méthodologie TEF, connaissances civiques.
+- Si la question est hors sujet (ex: code, cuisine, sport), réponds: "Désolé, je suis Assistant LlamaKusi, je suis spécialisé uniquement en français, en préparation au TEF IRN et à l'examen civique. Je ne peux pas t'aider avec ce sujet. Veux-tu que l'on travaille sur une règle de grammaire ou une question civique ?"
 
 LOGIQUE DE RESSOURCES & CONTRAINTES:
 - Tu n'utilises JAMAIS d'URLs ou de liens vers le site ou l'extérieur. Tout se passe dans le chat.
@@ -335,7 +436,7 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
             }
         })
       },
-      onFinish: async ({ text }: { text: string }) => {
+      onFinish: async ({ text, usage, toolCalls, steps }: any) => {
         if (sessionId && text) {
           try {
             await supabase.from('chat_messages').insert({
@@ -346,6 +447,21 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
           } catch (dbErr) {
             console.error('DB Error:', dbErr);
           }
+        }
+        // Instrumentation coût/usage (M4) -- best-effort, ne doit jamais faire
+        // échouer la réponse déjà envoyée à l'utilisateur.
+        try {
+          await supabase.from('coach_usage_log').insert({
+            user_id: user.id,
+            session_id: sessionId || null,
+            prompt_tokens: usage?.promptTokens ?? 0,
+            completion_tokens: usage?.completionTokens ?? 0,
+            total_tokens: usage?.totalTokens ?? 0,
+            tool_calls_count: toolCalls?.length ?? 0,
+            steps_count: steps?.length ?? 1,
+          });
+        } catch (dbErr) {
+          console.error('DB Error (usage log):', dbErr);
         }
       }
     } as any);

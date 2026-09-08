@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Trophy, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 interface CivicQuestion {
   id: string;
@@ -40,6 +41,7 @@ function CivicTrainingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mention, theme, setMention, setTheme } = useCivicContext();
+  const { setPageContext } = useCoachContext();
 
   const showCTATef = useShowCivicTefBridge();
   const [dueCount, setDueCount] = useState<number | null>(null);
@@ -71,6 +73,23 @@ function CivicTrainingContent() {
   }, [supabase]);
 
   useEffect(() => { fetchDueCount(); }, [fetchDueCount]);
+
+  // Contexte coach : uniquement pendant la session démarrée, pas sur l'écran de sélection.
+  useEffect(() => {
+    if (!started) return;
+    const q = questions[index];
+    if (!q) return;
+    setPageContext({
+      type: "civic",
+      page: "training",
+      mention,
+      theme: q.theme,
+      currentIndex: index + 1,
+      totalQuestions: questions.length,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, index, questions, mention]);
 
   const startTraining = useCallback(async (review: boolean) => {
     setLoading(true);

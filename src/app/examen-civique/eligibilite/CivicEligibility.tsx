@@ -8,6 +8,7 @@ import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { CheckCircle2, XCircle, HelpCircle, Info, ArrowLeft, RotateCcw, ExternalLink } from "lucide-react";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 type Mention = "csp" | "cr" | "naturalisation";
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -63,12 +64,25 @@ interface CivicEligibilityProps {
 
 export function CivicEligibility({ faqItems }: CivicEligibilityProps) {
   const { setMention, buildHref } = useCivicContext();
+  const { setPageContext } = useCoachContext();
 
   const [step, setStep] = useState<Step>(1);
   const [track, setTrack] = useState<"decret" | "declaration" | null>(null);
   const [mention, setLocalMention] = useState<Mention | null>(null);
   const [isFirstRequest, setIsFirstRequest] = useState<boolean | null>(null);
   const [situations, setSituations] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setPageContext({
+      type: "civic",
+      page: "eligibility",
+      mention,
+      step: Math.min(step, TOTAL_STEPS),
+      totalSteps: TOTAL_STEPS,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, mention]);
 
   const visibleSituations = useMemo(
     () => SITUATIONS.filter((s) => !mention || s.appliesTo.includes(mention)),

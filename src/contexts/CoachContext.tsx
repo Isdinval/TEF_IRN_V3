@@ -53,6 +53,59 @@ export type CoachPageContext =
       sujet: string;
       objectifs: string[];
       level: string;
+    }
+  | {
+      type: "dashboard";
+      currentLevel: string;
+      goalLevel?: string;
+      targetExamDate?: string | null;
+      // Libellés courts (sub_category ou category) des points faibles les plus fréquents -- pas l'objet complet.
+      weakPoints?: string[];
+      inProgressParcoursCount: number;
+    }
+  | {
+      type: "exercise";
+      exerciseType: "qcm" | "trous";
+      category: string;
+      level: string;
+      instructions?: string;
+      currentIndex: number;
+      totalQuestions: number;
+      // Contenu réel affiché à l'écran -- sans ça le coach ne peut pas aider sur
+      // "cette question", seulement parler de la catégorie/niveau en général.
+      questionText?: string;
+      options?: string[];
+      correctAnswer?: string;
+    }
+  | {
+      type: "vocab";
+      word: string;
+      category: string;
+      level: string;
+      currentIndex: number;
+      totalCards: number;
+      isReviewMode: boolean;
+    }
+  | {
+      type: "progression";
+      currentLevel: string;
+      // Résumé compact par niveau CECRL (A1-B2) -- pas le détail des steps.
+      levelsSummary: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
+    }
+  | {
+      type: "civic";
+      // Produit distinct du TEF IRN (naturalisation/CSP/CR) -- un seul type flexible plutôt
+      // qu'une variante par sous-page, vu le nombre de pages et leur interactivité limitée.
+      page: "training" | "eligibility" | "hub";
+      mention?: string | null;
+      theme?: string;
+      currentIndex?: number;
+      totalQuestions?: number;
+      step?: number;
+      totalSteps?: number;
+      dueCount?: number;
+      masteredCount?: number;
+      bestScore?: number | null;
     };
 
 interface CoachContextType {

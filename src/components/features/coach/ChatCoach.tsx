@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useChat } from '@ai-sdk/react';
 import {
-  X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check
+  X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check, MessageSquarePlus, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useCoachContext } from '@/contexts/CoachContext';
+import { createClient } from '@/lib/supabase';
 import {
   VICTORY_MASCOT_URLS,
   PERPLEXED_MASCOT_URLS,
@@ -86,6 +87,43 @@ function getContextualSuggestions(pageContext: ReturnType<typeof useCoachContext
         { label: "Aide-moi à préparer ce scénario", prompt: `Comment aborder ce scénario oral : "${pageContext.title}" (${pageContext.sujet}) ?`, icon: GraduationCap },
         { label: "Phrases utiles", prompt: "Donne-moi quelques phrases toutes faites utiles pour ce type de scénario oral.", icon: Sparkles }
       ];
+    case 'dashboard':
+      return [
+        { label: "Mes points faibles", prompt: "Quels sont mes points faibles en ce moment ?", icon: AlertCircle },
+        { label: "Comment réviser aujourd'hui ?", prompt: "Quelles sont les meilleures révisions à faire aujourd'hui selon mon profil ?", icon: Sparkles }
+      ];
+    case 'exercise':
+      return [
+        { label: "Aide-moi sur cette question", prompt: "Aide-moi sur cette question", icon: HelpCircle },
+        { label: "Explique-moi la règle", prompt: "Peux-tu m'expliquer la règle derrière cette question, sans me donner directement la réponse ?", icon: BookOpen }
+      ];
+    case 'vocab':
+      return [
+        { label: "Donne-moi un exemple", prompt: "Donne-moi un exemple avec ce mot", icon: BookOpen },
+        { label: "Autre façon de le dire", prompt: "Y a-t-il un synonyme ou une autre façon d'utiliser ce mot ?", icon: Sparkles }
+      ];
+    case 'progression':
+      return [
+        { label: "Où j'en suis niveau par niveau ?", prompt: "Où j'en suis niveau par niveau ?", icon: GraduationCap },
+        { label: "Quelle est ma prochaine étape ?", prompt: "Vu ma progression, quelle leçon ou quel parcours me recommandes-tu de faire ensuite ?", icon: Sparkles }
+      ];
+    case 'civic':
+      if (pageContext.page === 'training') {
+        return [
+          { label: "Explique-moi cette question", prompt: "Explique-moi cette question", icon: HelpCircle },
+          { label: "Pourquoi cette réponse ?", prompt: "Pourquoi la bonne réponse à cette question est-elle correcte ?", icon: BookOpen }
+        ];
+      }
+      if (pageContext.page === 'eligibility') {
+        return [
+          { label: "Explique-moi ce critère", prompt: "Peux-tu m'expliquer ce critère d'éligibilité plus simplement ?", icon: HelpCircle },
+          { label: "CSP, CR, naturalisation : la différence ?", prompt: "Quelle est la différence entre la CSP, la carte de résident et la naturalisation ?", icon: BookOpen }
+        ];
+      }
+      return [
+        { label: "Combien à réviser aujourd'hui ?", prompt: "Combien de questions j'ai à réviser aujourd'hui ?", icon: Sparkles },
+        { label: "Teste-moi", prompt: "Quelle est la devise de la France ?", icon: GraduationCap }
+      ];
     default:
       return null;
   }
@@ -112,6 +150,24 @@ const DEFAULT_SUGGESTIONS = [
   { label: "Génère un exercice", prompt: "Génère-moi un petit exercice de grammaire rapide pour m'entraîner.", icon: PenTool }
 ];
 
+// Un nouvel id à chaque appel (Date.now()) -- évite tout conflit de clé React si
+// l'ancien message 'welcome' figurait encore dans un état React pas totalement
+// vidé (cas limite, ceinture et bretelles).
+function createWelcomeMessage() {
+  return {
+    id: `welcome-${Date.now()}`,
+    role: 'assistant' as const,
+    content: 'Bonjour ! Je suis ton **Assistant LlamaKusi**, ton professeur particulier de français. Je suis là pour t\'aider à préparer ton examen TEF IRN avec bienveillance et pédagogie.'
+  };
+}
+
+// Au-delà de ce délai d'inactivité, le prochain message envoyé démarre une
+// nouvelle conversation plutôt que de continuer l'ancienne (évite qu'une
+// conversation ne s'allonge indéfiniment au fil d'une longue session de
+// navigation -- coût token proportionnel à la durée d'inactivité, pas à
+// l'usage réel).
+const INACTIVITY_RESET_MS = 30 * 60 * 1000;
+
 export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' | 'full', initialMessage?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -123,6 +179,51 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   // Une seule pose "neutre" tirée par montage, pour éviter que l'avatar change à chaque re-render.
   const [idleMascotUrl] = useState(() => pickRandomImage(NEUTRAL_MASCOT_URLS));
 
+  // Id généré côté client dès le montage (pas d'appel réseau ici, juste un UUID) --
+  // stable immédiatement, donc jamais de race avec le body de useChat ci-dessous.
+  // La ligne chat_sessions correspondante n'est créée en base qu'au premier envoi
+  // réel (ensureSessionCreated), pour ne pas polluer la table à chaque ouverture
+  // du popup (ChatCoach reste monté en permanence pour tout utilisateur connecté).
+  const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
+  const sessionCreatedRef = useRef(false);
+  const lastActivityRef = useRef<number>(Date.now());
+  const supabase = useMemo(() => createClient(), []);
+
+  // Démarre une conversation neuve (nouvel id, historique vidé) -- utilisé par le
+  // bouton manuel, le reset auto sur inactivité et le reset auto sur changement de
+  // contexte de page. Retourne le nouvel id pour un usage immédiat dans le même
+  // appel (setSessionId est async, sa valeur n'est pas encore lue par `sessionId`
+  // au moment où cette fonction retourne).
+  const startNewConversation = () => {
+    const newId = crypto.randomUUID();
+    setSessionId(newId);
+    sessionCreatedRef.current = false;
+    setInteractionCount(0);
+    setMessages([createWelcomeMessage()]);
+    return newId;
+  };
+
+  const ensureSessionCreated = async () => {
+    const now = Date.now();
+    let activeSessionId = sessionId;
+    if (now - lastActivityRef.current > INACTIVITY_RESET_MS && messages.length > 1) {
+      activeSessionId = startNewConversation();
+    }
+    lastActivityRef.current = now;
+
+    if (sessionCreatedRef.current) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error: insertError } = await supabase
+      .from('chat_sessions')
+      .insert({ id: activeSessionId, user_id: user.id });
+    if (!insertError) {
+      sessionCreatedRef.current = true;
+    } else {
+      console.error('Coach session creation error:', insertError);
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -132,21 +233,30 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
     body: {
         // Contexte structuré (leçon/parcours/writing/oral) si disponible, sinon fallback pathname brut.
         pageContext: pageContext ?? pathname,
-        interactionCount: interactionCount
+        interactionCount: interactionCount,
+        sessionId,
     },
-    initialMessages: [
-      {
-        id: 'welcome',
-        role: 'assistant',
-        content: 'Bonjour ! Je suis ton **Assistant LlamaKusi**, ton professeur particulier de français. Je suis là pour t\'aider à préparer ton examen TEF IRN avec bienveillance et pédagogie.'
-      }
-    ],
+    initialMessages: [createWelcomeMessage()],
     onFinish: () => {
         setInteractionCount(prev => prev + 1);
+        lastActivityRef.current = Date.now();
     }
   });
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload } = chat as any;
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload, setMessages } = chat as any;
+
+  // Reset auto sur changement de contexte de page (ex: quitter un exercice pour
+  // aller sur le Dashboard) -- uniquement s'il y a une vraie conversation en cours
+  // (pas sur le tout premier contexte reçu au montage, ni si rien n'a encore été dit).
+  const prevContextKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const key = pageContext?.type ?? pathname ?? null;
+    if (prevContextKeyRef.current !== null && prevContextKeyRef.current !== key && messages.length > 1) {
+      startNewConversation();
+    }
+    prevContextKeyRef.current = key;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageContext?.type, pathname]);
 
   const lastAssistantMessage = [...messages].reverse().find((m: any) => m.role === 'assistant');
   const currentMood: CoachMood = isLoading ? 'reflechit' : (stripMoodTag(lastAssistantMessage?.content || '').mood || 'neutre');
@@ -164,8 +274,9 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
   useEffect(() => {
     if (isMounted && initialMessage && (isOpen || mode === 'full') && messages.length <= 1) {
-      append({ role: 'user', content: initialMessage });
+      ensureSessionCreated().then(() => append({ role: 'user', content: initialMessage }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted, initialMessage, isOpen, mode, messages.length, append]);
 
   useEffect(() => {
@@ -205,6 +316,17 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {messages.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startNewConversation}
+              title="Nouvelle conversation"
+              className="text-white hover:bg-white/10 rounded-full h-9 w-9"
+            >
+              <MessageSquarePlus className="w-5 h-5" />
+            </Button>
+          )}
           {mode === 'popup' && (
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="text-white hover:bg-white/10 rounded-full h-9 w-9">
               <X className="w-5 h-5" />
@@ -238,7 +360,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                   <ReactMarkdown>{displayContent || ''}</ReactMarkdown>
                 </div>
 
-                {m.role === 'assistant' && m.id !== 'welcome' && (
+                {m.role === 'assistant' && !m.id?.startsWith('welcome') && (
                   <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={() => copyToClipboard(displayContent, m.id)}
@@ -297,7 +419,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                     {currentSuggestions.map((s, i) => (
                         <button
                             key={i}
-                            onClick={() => append({ role: 'user', content: s.prompt })}
+                            onClick={() => ensureSessionCreated().then(() => append({ role: 'user', content: s.prompt }))}
                             className="flex items-center gap-3 p-3 bg-white border border-zinc-200 rounded-xl text-left hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group"
                         >
                             <div className="p-2 bg-zinc-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
@@ -318,7 +440,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       <div className="p-4 border-t bg-white shrink-0">
         <form onSubmit={(e: any) => {
             e.preventDefault();
-            handleSubmit(e);
+            ensureSessionCreated().then(() => handleSubmit(e));
         }} className="flex gap-2 items-center bg-zinc-100 p-1.5 rounded-2xl border border-zinc-200">
           <Input
             value={input}
