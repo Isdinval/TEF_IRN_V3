@@ -57,6 +57,7 @@ const SECTION_META: Record<string, { label: string; icon: React.ElementType }> =
   "tronc-commun": { label: "Suivi & Ressources", icon: Library },
   "civic-apprendre": { label: "Apprendre", icon: BookOpen },
   "civic-entrainer": { label: "S'entraîner", icon: Brain },
+  "civic-ressources": { label: "Suivi & Ressources", icon: Library },
 };
 
 function SidebarContent() {
@@ -132,8 +133,8 @@ function SidebarContent() {
         { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir", section: "civic-apprendre" as const },
         { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement", section: "civic-entrainer" as const },
         { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc", section: "civic-entrainer" as const },
-        { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres" },
-        { label: "Guides", icon: Sparkles, href: "/examen-civique/guides" },
+        { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres", section: "civic-ressources" as const },
+        { label: "Guides", icon: Sparkles, href: "/examen-civique/guides", section: "civic-ressources" as const },
       ],
     },
   ];
