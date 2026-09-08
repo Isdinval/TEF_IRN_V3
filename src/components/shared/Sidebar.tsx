@@ -36,7 +36,8 @@ import {
   Users,
   Gauge,
   Shuffle,
-  Route
+  Route,
+  Library
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -53,6 +54,10 @@ const GROUP_THEME: Record<string, { bg: string; border: string; text: string; ic
 const SECTION_META: Record<string, { label: string; icon: React.ElementType }> = {
   guide: { label: "Parcours guidé", icon: GraduationCap },
   libre: { label: "Entraînement libre", icon: Shuffle },
+  "tronc-commun": { label: "Suivi & Ressources", icon: Library },
+  "civic-apprendre": { label: "Apprendre", icon: BookOpen },
+  "civic-entrainer": { label: "S'entraîner", icon: Brain },
+  "civic-ressources": { label: "Suivi & Ressources", icon: Library },
 };
 
 function SidebarContent() {
@@ -102,7 +107,6 @@ function SidebarContent() {
       activePrefix: "/tef-irn",
       items: [
         { label: "Tableau de bord", icon: LayoutDashboard, href: "/tef-irn/dashboard" },
-        { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam" },
         { label: "Mes Parcours", icon: Flag, href: "/tef-irn/parcours", section: "guide" as const },
         { label: "Ma progression", icon: Route, href: "/tef-irn/progression", section: "guide" as const },
         { label: "Leçons", icon: BookOpen, href: "/tef-irn/lessons", section: "libre" as const },
@@ -111,8 +115,9 @@ function SidebarContent() {
         { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice", section: "libre" as const },
         { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing", section: "libre" as const },
         { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral", section: "libre" as const },
-        { label: "Corrections", icon: History, href: "/tef-irn/correction" },
-        { label: "Guides", icon: Sparkles, href: "/tef-irn/guides" },
+        { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam", section: "libre" as const },
+        { label: "Corrections", icon: History, href: "/tef-irn/correction", section: "tronc-commun" as const },
+        { label: "Guides", icon: Sparkles, href: "/tef-irn/guides", section: "tronc-commun" as const },
       ],
     },
     {
@@ -123,13 +128,13 @@ function SidebarContent() {
       activePrefix: "/examen-civique",
       items: [
         { label: "Tableau de bord", icon: Landmark, href: "/examen-civique" },
-        { label: "Livret du citoyen", icon: BookOpen, href: "/examen-civique/livret" },
-        { label: "Éligibilité", icon: HelpCircle, href: "/examen-civique/eligibilite" },
-        { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir" },
-        { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement" },
-        { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc" },
-        { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres" },
-        { label: "Guides", icon: Sparkles, href: "/examen-civique/guides" },
+        { label: "Livret du citoyen", icon: BookOpen, href: "/examen-civique/livret", section: "civic-apprendre" as const },
+        { label: "Éligibilité", icon: HelpCircle, href: "/examen-civique/eligibilite", section: "civic-apprendre" as const },
+        { label: "Parcourir les questions", icon: BookOpen, href: "/examen-civique/parcourir", section: "civic-apprendre" as const },
+        { label: "Entraînement", icon: Brain, href: "/examen-civique/entrainement", section: "civic-entrainer" as const },
+        { label: "Examen blanc", icon: Clock, href: "/examen-civique/examen-blanc", section: "civic-entrainer" as const },
+        { label: "Centres d'examen", icon: MapPin, href: "/examen-civique/centres", section: "civic-ressources" as const },
+        { label: "Guides", icon: Sparkles, href: "/examen-civique/guides", section: "civic-ressources" as const },
       ],
     },
   ];

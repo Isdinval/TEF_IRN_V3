@@ -32,7 +32,6 @@ import { VocabStatsCard } from "@/components/features/dashboard/new/VocabStatsCa
 import { QcmStatsCard } from "@/components/features/dashboard/new/QcmStatsCard";
 import { TrousStatsCard } from "@/components/features/dashboard/new/TrousStatsCard";
 import { EEStatsCard } from "@/components/features/dashboard/new/EEStatsCard";
-import { OralStatsCard } from "@/components/features/dashboard/new/OralStatsCard";
 import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
 import { DashboardSectionNav, type DashboardSectionId } from "@/components/features/dashboard/new/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
@@ -92,16 +91,6 @@ export default function DashboardPage() {
     queryKey: ["trous-stats"],
     queryFn: async () => {
       const { data: stats, error: rpcError } = await supabase.rpc("get_trous_stats");
-      if (rpcError) throw rpcError;
-      return stats;
-    },
-    enabled: isMounted,
-  });
-
-  const { data: eoStats } = useQuery({
-    queryKey: ["eo-stats"],
-    queryFn: async () => {
-      const { data: stats, error: rpcError } = await supabase.rpc("get_eo_stats");
       if (rpcError) throw rpcError;
       return stats;
     },
@@ -316,9 +305,9 @@ export default function DashboardPage() {
                 goalLevel={profile.goal_level || null}
               />
               <ParcoursOverviewCard overview={parcours_overview} inProgressParcours={in_progress_parcours} learningMode={profile.learning_mode === "academique" ? "academique" : "libre"} />
-              <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
             </div>
             <div className="space-y-6">
+              <ScoreProjection currentLevel={profile.current_level || 'A1'} goalLevel={profile.goal_level || 'B2'} skills={competency_radar} />
               {vocab_stats && (
                 <VocabStatsCard
                   total={vocab_stats.total}
@@ -351,15 +340,6 @@ export default function DashboardPage() {
                   total={eeStats.total}
                   successRate={eeStats.success_rate}
                   lastScore={eeStats.last_score}
-                />
-              )}
-              {eoStats && (
-                <OralStatsCard
-                  total={eoStats.total}
-                  levels={eoStats.levels}
-                  successRate={eoStats.success_rate}
-                  lastScore={eoStats.last_score}
-                  weakestCriterion={eoStats.weakest_criterion}
                 />
               )}
             </div>
