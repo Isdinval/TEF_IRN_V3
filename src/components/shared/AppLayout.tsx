@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Logo } from "@/components/landing/Logo";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase";
 
 // Client-only component for the Coach
 const ChatCoach = dynamic(() => import("@/components/features/coach/ChatCoach").then(mod => mod.ChatCoach), {
@@ -20,10 +21,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
+  // Le Coach IA n'est pas inclus dans le plan Gratuit -- même pattern de fetch
+  // que Sidebar.tsx (pas de contexte profil partagé dans ce projet). Le vrai
+  // verrou est côté serveur (api/coach/chat/route.ts) ; ceci évite juste
+  // d'afficher une bulle inutilisable à un compte gratuit.
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
+  const supabase = React.useMemo(() => createClient(), []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!user) { setSubscriptionTier(null); return; }
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
+  }, [supabase, user]);
+
+  const canUseCoach = !!subscriptionTier && subscriptionTier !== 'free';
 
   // Public routes check
   const publicRoutes = [ "/tef-irn/login", "/tef-irn/guides", "/tef-irn/pricing", "/tef-irn/exercice-gratuit", "/tef-irn/placement-test", "/tef-irn/onboarding", "/tef-irn/notre-histoire"];
@@ -76,8 +95,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto">
           {children}
         </main>
-        {/* Only mount Coach on client side, if not on /coach page AND if user is logged in */}
-        {mounted && user && pathname !== "/tef-irn/coach" && (
+        {/* Only mount Coach on client side, if not on /coach page, logged in, ET plan payant */}
+        {mounted && user && canUseCoach && pathname !== "/tef-irn/coach" && (
            <div className="hidden md:block">
              <Suspense fallback={null}>
                <ChatCoach mode="popup" />

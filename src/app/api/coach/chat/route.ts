@@ -230,6 +230,17 @@ export async function POST(req: Request) {
         .eq('id', user.id)
         .single();
 
+    // Le Coach IA n'est pas inclus dans le plan Gratuit (voir landing /tef-irn/pricing).
+    // NOTE : le modèle de données actuel ne connaît que 'free' | 'premium' | 'pro' --
+    // pas de distinction Essentiel/Premium/Super Premium (4 paliers affichés sur la
+    // landing page). Gating binaire en attendant une éventuelle évolution du schéma.
+    if (!profile?.subscription_tier || profile.subscription_tier === 'free') {
+      return new Response(
+        JSON.stringify({ error: "Le Coach IA n'est pas disponible avec le plan Gratuit. Passez à un abonnement payant pour y accéder." }),
+        { status: 403 }
+      );
+    }
+
     // Audit sécurité item 7 : quota IA quotidien avant d'appeler OpenAI --
     // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
     const rateLimit = await checkAiRateLimit(user.id, 'coach_chat', profile?.subscription_tier);
