@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 // Dynamic imports with SSR disabled
 const PerformanceRadar = dynamic(() => import("@/components/features/dashboard/new/PerformanceRadar").then(mod => mod.PerformanceRadar), { ssr: false });
@@ -46,6 +47,7 @@ const SubSkillHeatmap = dynamic(() => import("@/components/features/dashboard/ne
 export default function DashboardPage() {
   const supabase = createClient();
   const router = useRouter();
+  const { setPageContext } = useCoachContext();
   const [isMounted, setIsMounted] = useState(false);
   const [activeSection, setActiveSection] = useState<DashboardSectionId>("today");
   const [academicBannerDismissed, setAcademicBannerDismissed] = useState(false);
@@ -122,6 +124,25 @@ export default function DashboardPage() {
       router.replace("/tef-irn/onboarding");
     }
   }, [data, router]);
+
+  // Contexte coach : uniquement une fois les données chargées (pas de contenu long, juste un résumé).
+  useEffect(() => {
+    if (!data?.profile) return;
+    const weakPointLabels = (Array.isArray(data.weak_points) ? data.weak_points : [])
+      .slice(0, 3)
+      .map((wp: any) => wp.sub_category || wp.category)
+      .filter(Boolean);
+    setPageContext({
+      type: "dashboard",
+      currentLevel: data.profile.current_level || "A2",
+      goalLevel: data.profile.goal_level || undefined,
+      targetExamDate: data.profile.target_exam_date || null,
+      weakPoints: weakPointLabels,
+      inProgressParcoursCount: Array.isArray(data.in_progress_parcours) ? data.in_progress_parcours.length : 0,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   if (!isMounted || isLoading || data?.profile?.onboarding_completed === false) {
     return (

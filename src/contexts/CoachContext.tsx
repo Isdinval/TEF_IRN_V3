@@ -53,6 +53,15 @@ export type CoachPageContext =
       sujet: string;
       objectifs: string[];
       level: string;
+    }
+  | {
+      type: "dashboard";
+      currentLevel: string;
+      goalLevel?: string;
+      targetExamDate?: string | null;
+      // Libellés courts (sub_category ou category) des points faibles les plus fréquents -- pas l'objet complet.
+      weakPoints?: string[];
+      inProgressParcoursCount: number;
     };
 
 interface CoachContextType {

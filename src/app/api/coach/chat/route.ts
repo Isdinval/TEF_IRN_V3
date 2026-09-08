@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard';
   title?: string;
   level?: string;
   category?: string;
@@ -35,6 +35,12 @@ interface CoachPageContext {
     lessonTitle?: string;
     lessonSlug?: string;
   } | null;
+  // Variante 'dashboard'
+  currentLevel?: string;
+  goalLevel?: string;
+  targetExamDate?: string | null;
+  weakPoints?: string[];
+  inProgressParcoursCount?: number;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -88,6 +94,15 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
       return pageContext.section === 'guides'
         ? `L'utilisateur parcourt la liste des guides TEF IRN, à la recherche d'un guide à lire.`
         : `L'utilisateur parcourt la liste des leçons, à la recherche d'une leçon à faire.`;
+    case 'dashboard': {
+      const examLine = pageContext.targetExamDate ? ` Date d'examen visée : ${pageContext.targetExamDate}.` : '';
+      const goalLine = pageContext.goalLevel ? ` Niveau visé : ${pageContext.goalLevel}.` : '';
+      const weakLine = pageContext.weakPoints?.length ? ` Points faibles récurrents : ${pageContext.weakPoints.join(', ')}.` : '';
+      const parcoursLine = pageContext.inProgressParcoursCount
+        ? ` ${pageContext.inProgressParcoursCount} parcours en cours.`
+        : ` Aucun parcours en cours actuellement.`;
+      return `L'utilisateur consulte son Dashboard.${goalLine}${examLine}${weakLine}${parcoursLine}`;
+    }
     default:
       return 'Dashboard';
   }
