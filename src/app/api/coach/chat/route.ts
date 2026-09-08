@@ -419,7 +419,7 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
             }
         })
       },
-      onFinish: async ({ text }: { text: string }) => {
+      onFinish: async ({ text, usage, toolCalls, steps }: any) => {
         if (sessionId && text) {
           try {
             await supabase.from('chat_messages').insert({
@@ -430,6 +430,21 @@ Contexte de la page actuelle : ${describePageContext(pageContext)}`;
           } catch (dbErr) {
             console.error('DB Error:', dbErr);
           }
+        }
+        // Instrumentation coût/usage (M4) -- best-effort, ne doit jamais faire
+        // échouer la réponse déjà envoyée à l'utilisateur.
+        try {
+          await supabase.from('coach_usage_log').insert({
+            user_id: user.id,
+            session_id: sessionId || null,
+            prompt_tokens: usage?.promptTokens ?? 0,
+            completion_tokens: usage?.completionTokens ?? 0,
+            total_tokens: usage?.totalTokens ?? 0,
+            tool_calls_count: toolCalls?.length ?? 0,
+            steps_count: steps?.length ?? 1,
+          });
+        } catch (dbErr) {
+          console.error('DB Error (usage log):', dbErr);
         }
       }
     } as any);
