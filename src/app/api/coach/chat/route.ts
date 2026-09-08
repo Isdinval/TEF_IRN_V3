@@ -201,6 +201,23 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
     }
 
+    // Persistance du message utilisateur (le message assistant est inséré dans onFinish
+    // plus bas) -- nécessite que chat_sessions existe déjà (créé côté client avant l'envoi,
+    // voir ensureSessionCreated dans ChatCoach.tsx). Best-effort : une erreur ici ne doit
+    // jamais bloquer la réponse du coach.
+    const lastMessage = messages[messages.length - 1];
+    if (sessionId && lastMessage?.role === 'user' && lastMessage?.content) {
+      try {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          role: 'user',
+          content: lastMessage.content,
+        });
+      } catch (dbErr) {
+        console.error('DB Error (user message):', dbErr);
+      }
+    }
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, current_level, goal_level, subscription_tier')

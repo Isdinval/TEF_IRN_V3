@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useChat } from '@ai-sdk/react';
 import {
@@ -13,6 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useCoachContext } from '@/contexts/CoachContext';
+import { createClient } from '@/lib/supabase';
 import {
   VICTORY_MASCOT_URLS,
   PERPLEXED_MASCOT_URLS,
@@ -123,6 +124,29 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
   // Une seule pose "neutre" tirée par montage, pour éviter que l'avatar change à chaque re-render.
   const [idleMascotUrl] = useState(() => pickRandomImage(NEUTRAL_MASCOT_URLS));
 
+  // Id généré côté client dès le montage (pas d'appel réseau ici, juste un UUID) --
+  // stable immédiatement, donc jamais de race avec le body de useChat ci-dessous.
+  // La ligne chat_sessions correspondante n'est créée en base qu'au premier envoi
+  // réel (ensureSessionCreated), pour ne pas polluer la table à chaque ouverture
+  // du popup (ChatCoach reste monté en permanence pour tout utilisateur connecté).
+  const [sessionId] = useState<string>(() => crypto.randomUUID());
+  const sessionCreatedRef = useRef(false);
+  const supabase = useMemo(() => createClient(), []);
+
+  const ensureSessionCreated = async () => {
+    if (sessionCreatedRef.current) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error: insertError } = await supabase
+      .from('chat_sessions')
+      .insert({ id: sessionId, user_id: user.id });
+    if (!insertError) {
+      sessionCreatedRef.current = true;
+    } else {
+      console.error('Coach session creation error:', insertError);
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -132,7 +156,8 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
     body: {
         // Contexte structuré (leçon/parcours/writing/oral) si disponible, sinon fallback pathname brut.
         pageContext: pageContext ?? pathname,
-        interactionCount: interactionCount
+        interactionCount: interactionCount,
+        sessionId,
     },
     initialMessages: [
       {
@@ -164,8 +189,9 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
 
   useEffect(() => {
     if (isMounted && initialMessage && (isOpen || mode === 'full') && messages.length <= 1) {
-      append({ role: 'user', content: initialMessage });
+      ensureSessionCreated().then(() => append({ role: 'user', content: initialMessage }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted, initialMessage, isOpen, mode, messages.length, append]);
 
   useEffect(() => {
@@ -297,7 +323,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
                     {currentSuggestions.map((s, i) => (
                         <button
                             key={i}
-                            onClick={() => append({ role: 'user', content: s.prompt })}
+                            onClick={() => ensureSessionCreated().then(() => append({ role: 'user', content: s.prompt }))}
                             className="flex items-center gap-3 p-3 bg-white border border-zinc-200 rounded-xl text-left hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group"
                         >
                             <div className="p-2 bg-zinc-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
@@ -318,7 +344,7 @@ export function ChatCoach({ mode = 'popup', initialMessage }: { mode?: 'popup' |
       <div className="p-4 border-t bg-white shrink-0">
         <form onSubmit={(e: any) => {
             e.preventDefault();
-            handleSubmit(e);
+            ensureSessionCreated().then(() => handleSubmit(e));
         }} className="flex gap-2 items-center bg-zinc-100 p-1.5 rounded-2xl border border-zinc-200">
           <Input
             value={input}
