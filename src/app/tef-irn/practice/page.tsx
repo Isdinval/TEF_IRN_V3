@@ -41,6 +41,7 @@ import { useResizableSplit } from "@/hooks/useResizableSplit";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { captureEvent } from "@/lib/analytics";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 // --- Types ---
 interface Question {
@@ -113,6 +114,7 @@ export function PracticeContent() {
   const supabase = createClient();
   const { activeParcours, nextLesson, refreshProgress, refreshExerciseCounts, learningMode } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
+  const { setPageContext } = useCoachContext();
 
   const [mode, setMode] = useState<"selection" | "practice" | "result">("selection");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -566,6 +568,24 @@ export function PracticeContent() {
       sessionStartRef.current = Date.now();
     }
   }, [mode]);
+
+  // Contexte coach : uniquement pendant l'exercice en cours, pas sur le catalogue/résultat.
+  useEffect(() => {
+    if (mode !== "practice") return;
+    const q = questions[currentIdx];
+    if (!q) return;
+    setPageContext({
+      type: "exercise",
+      exerciseType: "qcm",
+      category: q.category,
+      level: q.level,
+      instructions: q.instructions,
+      currentIndex: currentIdx + 1,
+      totalQuestions: questions.length,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, currentIdx, questions]);
 
   // Item 3ter : nouvelle session (nouvelle référence de tableau `questions`,
   // posée par chaque fetch* / autoStart) -> journal de réponses réinitialisé.

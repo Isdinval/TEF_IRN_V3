@@ -62,6 +62,15 @@ export type CoachPageContext =
       // Libellés courts (sub_category ou category) des points faibles les plus fréquents -- pas l'objet complet.
       weakPoints?: string[];
       inProgressParcoursCount: number;
+    }
+  | {
+      type: "exercise";
+      exerciseType: "qcm" | "trous";
+      category: string;
+      level: string;
+      instructions?: string;
+      currentIndex: number;
+      totalQuestions: number;
     };
 
 interface CoachContextType {

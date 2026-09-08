@@ -29,6 +29,7 @@ import {
   PERPLEXED_MASCOT_URLS,
   pickRandomImage,
 } from "@/data/grammar-check-images";
+import { useCoachContext } from "@/contexts/CoachContext";
 
 interface GrammarQuestion {
   difficulty?: string;
@@ -120,6 +121,7 @@ export function GrammarCheckContent() {
   const supabase = useMemo(() => createClient(), []);
   const { nextLesson, refreshProgress, refreshExerciseCounts, learningMode } = useParcours();
   const { filters, setLevel, setCategory } = useExerciseFilters("A2", "Grammaire");
+  const { setPageContext } = useCoachContext();
 
   const [mode, setMode] = useState<"selection" | "training" | "result">("selection");
   const [questions, setQuestions] = useState<GrammarQuestion[]>([]);
@@ -309,6 +311,24 @@ export function GrammarCheckContent() {
       sessionStartRef.current = Date.now();
     }
   }, [mode]);
+
+  // Contexte coach : uniquement pendant l'exercice en cours, pas sur le catalogue/résultat.
+  useEffect(() => {
+    if (mode !== "training") return;
+    const q = questions[currentIdx];
+    if (!q) return;
+    setPageContext({
+      type: "exercise",
+      exerciseType: "trous",
+      category: q.category,
+      level: q.level,
+      instructions: q.instructions,
+      currentIndex: currentIdx + 1,
+      totalQuestions: questions.length,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, currentIdx, questions]);
 
   const startTraining = useCallback(async (id: string) => {
     if (!id) return;

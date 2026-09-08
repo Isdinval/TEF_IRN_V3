@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise';
   title?: string;
   level?: string;
   category?: string;
@@ -41,6 +41,10 @@ interface CoachPageContext {
   targetExamDate?: string | null;
   weakPoints?: string[];
   inProgressParcoursCount?: number;
+  // Variante 'exercise'
+  exerciseType?: 'qcm' | 'trous';
+  currentIndex?: number;
+  totalQuestions?: number;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -102,6 +106,13 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
         ? ` ${pageContext.inProgressParcoursCount} parcours en cours.`
         : ` Aucun parcours en cours actuellement.`;
       return `L'utilisateur consulte son Dashboard.${goalLine}${examLine}${weakLine}${parcoursLine}`;
+    }
+    case 'exercise': {
+      const kind = pageContext.exerciseType === 'trous' ? 'Chasse aux erreurs (Trous)' : 'QCM';
+      const posLine = pageContext.currentIndex && pageContext.totalQuestions
+        ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
+        : '';
+      return `L'utilisateur est en train de faire un exercice de type ${kind} (${pageContext.category} ${pageContext.level}).${posLine}${pageContext.instructions ? ` Consigne : "${pageContext.instructions}".` : ''}`;
     }
     default:
       return 'Dashboard';
