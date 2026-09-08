@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab' | 'progression';
   title?: string;
   level?: string;
   category?: string;
@@ -49,6 +49,8 @@ interface CoachPageContext {
   word?: string;
   totalCards?: number;
   isReviewMode?: boolean;
+  // Variante 'progression'
+  levelsSummary?: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -124,6 +126,12 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
         : '';
       const reviewLine = pageContext.isReviewMode ? ' (session de révision SRS)' : '';
       return `L'utilisateur révise du vocabulaire${reviewLine} — thème "${pageContext.category}", niveau ${pageContext.level}. Mot actuel : "${pageContext.word}".${posLine}`;
+    }
+    case 'progression': {
+      const summary = (pageContext.levelsSummary || [])
+        .map((l) => `${l.level} : ${l.completedSteps}/${l.totalSteps} étapes${l.isLevelComplete ? ' (terminé)' : ''}`)
+        .join(', ');
+      return `L'utilisateur consulte sa page de progression macro (A1-B2). Niveau actuel : ${pageContext.currentLevel}. Détail par niveau : ${summary || 'aucune donnée'}.`;
     }
     default:
       return 'Dashboard';

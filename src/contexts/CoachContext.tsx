@@ -80,6 +80,12 @@ export type CoachPageContext =
       currentIndex: number;
       totalCards: number;
       isReviewMode: boolean;
+    }
+  | {
+      type: "progression";
+      currentLevel: string;
+      // Résumé compact par niveau CECRL (A1-B2) -- pas le détail des steps.
+      levelsSummary: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
     };
 
 interface CoachContextType {
