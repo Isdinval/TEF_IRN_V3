@@ -11,7 +11,7 @@ export const runtime = 'edge';
 // Reflète le type CoachPageContext défini côté client (src/contexts/CoachContext.tsx).
 // Dupliqué volontairement ici (pas d'import cross-runtime) — edge function isolée.
 interface CoachPageContext {
-  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab' | 'progression';
+  type: 'lesson' | 'parcours' | 'writing' | 'oral' | 'guide' | 'browsing' | 'dashboard' | 'exercise' | 'vocab' | 'progression' | 'civic';
   title?: string;
   level?: string;
   category?: string;
@@ -51,6 +51,15 @@ interface CoachPageContext {
   isReviewMode?: boolean;
   // Variante 'progression'
   levelsSummary?: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
+  // Variante 'civic'
+  page?: 'training' | 'eligibility' | 'hub';
+  mention?: string | null;
+  theme?: string;
+  step?: number;
+  totalSteps?: number;
+  dueCount?: number;
+  masteredCount?: number;
+  bestScore?: number | null;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://llamakusi.com';
@@ -133,6 +142,19 @@ function describePageContext(pageContext: CoachPageContext | string | undefined)
         .join(', ');
       return `L'utilisateur consulte sa page de progression macro (A1-B2). Niveau actuel : ${pageContext.currentLevel}. Détail par niveau : ${summary || 'aucune donnée'}.`;
     }
+    case 'civic': {
+      const mentionLine = pageContext.mention ? ` Mention visée : ${pageContext.mention}.` : ' Mention visée : pas encore déterminée.';
+      if (pageContext.page === 'training') {
+        const posLine = pageContext.currentIndex && pageContext.totalQuestions
+          ? ` Question ${pageContext.currentIndex}/${pageContext.totalQuestions}.`
+          : '';
+        return `L'utilisateur s'entraîne sur les questions de l'examen civique (thème "${pageContext.theme}").${mentionLine}${posLine}`;
+      }
+      if (pageContext.page === 'eligibility') {
+        return `L'utilisateur remplit le questionnaire d'éligibilité à l'examen civique, étape ${pageContext.step}/${pageContext.totalSteps}.${mentionLine} Aide-le à comprendre les critères (CSP, carte de résident, naturalisation) sans jamais te substituer à une décision officielle de préfecture.`;
+      }
+      return `L'utilisateur consulte le tableau de bord Examen Civique (hub).${mentionLine}${pageContext.dueCount !== undefined ? ` ${pageContext.dueCount} question(s) à réviser aujourd'hui.` : ''}${pageContext.bestScore != null ? ` Meilleur score aux examens blancs : ${pageContext.bestScore}.` : ''}`;
+    }
     default:
       return 'Dashboard';
   }
@@ -197,8 +219,8 @@ export async function POST(req: Request) {
 
     const userLevel = profile?.current_level || 'A2';
 
-    const systemPrompt = `Tu es Assistant LlamaKusi, un professeur de français expert, pédagogue, patient et encourageant.
-Ton but est d'aider l'utilisateur à préparer son examen TEF IRN.
+    const systemPrompt = `Tu es Assistant LlamaKusi, un professeur de français et de préparation civique, expert, pédagogue, patient et encourageant.
+Ton but est d'aider l'utilisateur à préparer son examen TEF IRN et/ou son examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle).
 
 TON PERSONA:
 - Chaleureux, naturel, encourageant.
@@ -206,9 +228,9 @@ TON PERSONA:
 - Ne juge jamais. Sois toujours positif.
 
 TON RÔLE & PÉRIMÈTRE:
-- Tu ne réponds QU'AUX questions liées à l'apprentissage du français ou au TEF IRN.
-- Grammaire, orthographe, syntaxe, vocabulaire, conjugaison, expression/compréhension (écrite/orale), méthodologie TEF.
-- Si la question est hors sujet (ex: code, cuisine, sport), réponds: "Désolé, je suis Assistant LlamaKusi, je suis spécialisé uniquement en français et en préparation au TEF IRN. Je ne peux pas t'aider avec ce sujet. Veux-tu que l'on travaille sur une règle de grammaire ou un exercice ?"
+- Tu ne réponds QU'AUX questions liées à l'apprentissage du français, au TEF IRN, ou à l'examen civique (institutions, histoire, valeurs de la République, symboles, éligibilité CSP/CR/naturalisation).
+- Grammaire, orthographe, syntaxe, vocabulaire, conjugaison, expression/compréhension (écrite/orale), méthodologie TEF, connaissances civiques.
+- Si la question est hors sujet (ex: code, cuisine, sport), réponds: "Désolé, je suis Assistant LlamaKusi, je suis spécialisé uniquement en français, en préparation au TEF IRN et à l'examen civique. Je ne peux pas t'aider avec ce sujet. Veux-tu que l'on travaille sur une règle de grammaire ou une question civique ?"
 
 LOGIQUE DE RESSOURCES & CONTRAINTES:
 - Tu n'utilises JAMAIS d'URLs ou de liens vers le site ou l'extérieur. Tout se passe dans le chat.

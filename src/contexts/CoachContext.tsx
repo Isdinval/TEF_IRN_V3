@@ -86,6 +86,21 @@ export type CoachPageContext =
       currentLevel: string;
       // Résumé compact par niveau CECRL (A1-B2) -- pas le détail des steps.
       levelsSummary: { level: string; completedSteps: number; totalSteps: number; isLevelComplete: boolean }[];
+    }
+  | {
+      type: "civic";
+      // Produit distinct du TEF IRN (naturalisation/CSP/CR) -- un seul type flexible plutôt
+      // qu'une variante par sous-page, vu le nombre de pages et leur interactivité limitée.
+      page: "training" | "eligibility" | "hub";
+      mention?: string | null;
+      theme?: string;
+      currentIndex?: number;
+      totalQuestions?: number;
+      step?: number;
+      totalSteps?: number;
+      dueCount?: number;
+      masteredCount?: number;
+      bestScore?: number | null;
     };
 
 interface CoachContextType {

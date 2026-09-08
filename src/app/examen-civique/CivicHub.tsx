@@ -15,6 +15,7 @@ import {
   mentionLabel,
 } from "@/lib/civic-constants";
 import { guideCategoryForMention, CIVIC_GENERAL_GUIDE_CATEGORY } from "@/lib/civic-guide-categories";
+import { useCoachContext } from "@/contexts/CoachContext";
 import {
   getLocalDueCount,
   getLocalAttempts,
@@ -77,6 +78,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const supabase = useMemo(() => createClient(), []);
   const { user: currentUser } = useAuth();
   const { mention, theme, buildHref } = useCivicContext();
+  const { setPageContext } = useCoachContext();
 
   const [civicStreak, setCivicStreak] = useState(0);
   const [localStats, setLocalStats] = useState({ seen: 0, mastered: 0, scheduled: 0 });
@@ -99,6 +101,19 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const last5Count = last5.length;
   const last5Average = last5Count > 0 ? Math.round(last5.reduce((sum, a) => sum + a.score, 0) / last5Count) : null;
   const isExamReady = last5Average !== null && last5Average >= EXAM_PASS_THRESHOLD;
+
+  useEffect(() => {
+    setPageContext({
+      type: "civic",
+      page: "hub",
+      mention,
+      dueCount: dueCount ?? undefined,
+      masteredCount: localStats.mastered,
+      bestScore,
+    });
+    return () => setPageContext(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mention, dueCount, localStats.mastered, bestScore]);
 
   const fetchDueCount = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
