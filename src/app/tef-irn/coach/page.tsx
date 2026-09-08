@@ -23,7 +23,7 @@ function CoachPageContent() {
       .select('subscription_tier')
       .eq('id', user.id)
       .single()
-      .then(({ data }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
   }, [supabase, user]);
 
   // undefined = chargement en cours, ne rien afficher pour éviter un flash.
