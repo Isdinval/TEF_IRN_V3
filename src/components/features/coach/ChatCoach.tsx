@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { useChat } from '@ai-sdk/react';
 import {
-  X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check, MessageSquarePlus
+  X, Send, Sparkles, AlertCircle, BookOpen, GraduationCap, PenTool, Copy, ThumbsUp, ThumbsDown, RotateCcw, Check, MessageSquarePlus, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,6 +86,43 @@ function getContextualSuggestions(pageContext: ReturnType<typeof useCoachContext
       return [
         { label: "Aide-moi à préparer ce scénario", prompt: `Comment aborder ce scénario oral : "${pageContext.title}" (${pageContext.sujet}) ?`, icon: GraduationCap },
         { label: "Phrases utiles", prompt: "Donne-moi quelques phrases toutes faites utiles pour ce type de scénario oral.", icon: Sparkles }
+      ];
+    case 'dashboard':
+      return [
+        { label: "Mes points faibles", prompt: "Quels sont mes points faibles en ce moment ?", icon: AlertCircle },
+        { label: "Comment réviser aujourd'hui ?", prompt: "Quelles sont les meilleures révisions à faire aujourd'hui selon mon profil ?", icon: Sparkles }
+      ];
+    case 'exercise':
+      return [
+        { label: "Aide-moi sur cette question", prompt: "Aide-moi sur cette question", icon: HelpCircle },
+        { label: "Explique-moi la règle", prompt: "Peux-tu m'expliquer la règle derrière cette question, sans me donner directement la réponse ?", icon: BookOpen }
+      ];
+    case 'vocab':
+      return [
+        { label: "Donne-moi un exemple", prompt: "Donne-moi un exemple avec ce mot", icon: BookOpen },
+        { label: "Autre façon de le dire", prompt: "Y a-t-il un synonyme ou une autre façon d'utiliser ce mot ?", icon: Sparkles }
+      ];
+    case 'progression':
+      return [
+        { label: "Où j'en suis niveau par niveau ?", prompt: "Où j'en suis niveau par niveau ?", icon: GraduationCap },
+        { label: "Quelle est ma prochaine étape ?", prompt: "Vu ma progression, quelle leçon ou quel parcours me recommandes-tu de faire ensuite ?", icon: Sparkles }
+      ];
+    case 'civic':
+      if (pageContext.page === 'training') {
+        return [
+          { label: "Explique-moi cette question", prompt: "Explique-moi cette question", icon: HelpCircle },
+          { label: "Pourquoi cette réponse ?", prompt: "Pourquoi la bonne réponse à cette question est-elle correcte ?", icon: BookOpen }
+        ];
+      }
+      if (pageContext.page === 'eligibility') {
+        return [
+          { label: "Explique-moi ce critère", prompt: "Peux-tu m'expliquer ce critère d'éligibilité plus simplement ?", icon: HelpCircle },
+          { label: "CSP, CR, naturalisation : la différence ?", prompt: "Quelle est la différence entre la CSP, la carte de résident et la naturalisation ?", icon: BookOpen }
+        ];
+      }
+      return [
+        { label: "Combien à réviser aujourd'hui ?", prompt: "Combien de questions j'ai à réviser aujourd'hui ?", icon: Sparkles },
+        { label: "Teste-moi", prompt: "Quelle est la devise de la France ?", icon: GraduationCap }
       ];
     default:
       return null;
