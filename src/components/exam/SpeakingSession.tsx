@@ -2,8 +2,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Loader2, PhoneCall } from 'lucide-react';
+import { Mic, MicOff, Loader2, PhoneCall, Lock } from 'lucide-react';
 import { OralAnalysis, OralTurn } from '@/lib/oral-criteria';
+import Link from 'next/link';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { createClient } from '@/lib/supabase';
+import { getEntitlements } from '@/lib/entitlements';
 
 type Status = 'idle' | 'connecting' | 'active' | 'analyzing';
 
@@ -28,6 +32,29 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
   const [status, setStatus] = useState<Status>('idle');
   const [isListening, setIsListening] = useState(false);
   const [scenario, setScenario] = useState<ScenarioInfo | null>(null);
+
+  // Chantier abonnements (2026-09) : le Coach Oral n'est inclus qu'à partir
+  // du palier Premium (voir src/lib/entitlements.ts, verrou dur déjà en
+  // place côté serveur sur /api/oral/session). On vérifie ici en plus côté
+  // client pour éviter de proposer un bouton "Démarrer l'échange" qui
+  // échouerait systématiquement pour Gratuit/Essentiel -- undefined tant
+  // que le fetch n'a pas résolu, pour ne pas flasher le bouton avant de le
+  // remplacer par l'aperçu verrouillé.
+  const { user } = useAuth();
+  const supabase = React.useMemo(() => createClient(), []);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!user) { setSubscriptionTier(null); return; }
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
+  }, [supabase, user]);
+
+  const hasOralCoach = getEntitlements(subscriptionTier).hasOralCoach;
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const mediaStream = useRef<MediaStream | null>(null);
@@ -132,7 +159,16 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
     } catch (err) {
       console.error('Speaking session start error:', err);
       setStatus('idle');
-      alert("Erreur lors de la connexion au micro. Vérifiez les autorisations.");
+      // Le 403 d'entitlement (message explicite, voir api/oral/session)
+      // ne devrait plus être atteignable ici (verrou déjà posé avant
+      // d'appeler startSession, voir le rendu 'idle' ci-dessous) -- ce
+      // catch reste un filet de sécurité pour une course si le fetch du
+      // palier n'a pas encore résolu. On ne réutilise ce message que s'il
+      // s'agit bien de ce 403 reconnu ; toute autre erreur (permission
+      // micro refusée, RTC...) garde le message générique existant, plus
+      // clair qu'un message d'erreur brut du navigateur.
+      const isEntitlementError = err instanceof Error && err.message.includes("Coach Oral n'est pas disponible");
+      alert(isEntitlementError ? (err as Error).message : "Erreur lors de la connexion au micro. Vérifiez les autorisations.");
     }
   };
 
@@ -203,6 +239,35 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
   ];
 
   if (status === 'idle') {
+    // undefined = palier pas encore chargé -- petit loader plutôt que de
+    // flasher le bouton "Démarrer" puis le remplacer par l'aperçu verrouillé.
+    if (subscriptionTier === undefined) {
+      return (
+        <div className="flex justify-center py-6">
+          <Loader2 className="animate-spin text-indigo-400" size={22} />
+        </div>
+      );
+    }
+
+    if (!hasOralCoach) {
+      return (
+        <div className="flex flex-col items-center gap-4 py-3 text-center">
+          <div className="w-14 h-14 bg-zinc-100 text-zinc-400 rounded-2xl flex items-center justify-center">
+            <Lock size={24} />
+          </div>
+          <p className="max-w-md text-zinc-500 text-sm font-medium">
+            Cette question est présentée à titre d'aperçu. La correction par le Coach Oral IA
+            n'est disponible qu'à partir du palier Premium.
+          </p>
+          <Link href="/tef-irn/pricing">
+            <Button className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 rounded-2xl text-sm font-bold">
+              Découvrir le palier Premium
+            </Button>
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center gap-4 py-3 text-center">
         <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
