@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase";
+import { captureEvent } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,16 @@ import { ChevronRight, ChevronLeft, Loader2, Rocket, Headphones, BookOpen, Mic, 
 import { motion, AnimatePresence } from "framer-motion";
 
 const TOTAL_STEPS = 6;
+
+// Noms lisibles des étapes pour le funnel PostHog onboarding_step_completed.
+const STEP_NAMES: Record<number, string> = {
+  1: "niveau",
+  2: "objectif",
+  3: "competence_faible",
+  4: "date_examen",
+  5: "disponibilite",
+  6: "mode_apprentissage",
+};
 
 const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2"] as const;
 
@@ -105,6 +116,9 @@ export default function Onboarding() {
   const router = useRouter();
   const supabase = createClient();
   const queryClient = useQueryClient();
+  // Évite de reporter un abandon si l'utilisateur vient de terminer l'onboarding
+  // (handleFinish() passe ce flag à true avant la navigation vers le dashboard).
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -119,8 +133,27 @@ export default function Onboarding() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Détection d'abandon : se déclenche quand l'onglet/la fenêtre se ferme ou
+  // qu'on quitte réellement la page (fermeture, rafraîchissement, nouvelle URL)
+  // avant que l'onboarding soit terminé. Une navigation interne via router.push
+  // (ex: fin d'onboarding réussie) ne déclenche PAS "pagehide" en Next.js App
+  // Router, donc pas besoin d'ignorer ce cas séparément -- le flag finishedRef
+  // reste une sécurité pour les cas où une future navigation interne changerait
+  // ce comportement.
+  useEffect(() => {
+    if (checkingAuth) return;
+    const handlePageHide = () => {
+      if (!finishedRef.current) {
+        captureEvent("onboarding_abandoned_at_step", { step, step_name: STEP_NAMES[step] });
+      }
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, [step, checkingAuth]);
+
   const handleFinish = async () => {
     setLoading(true);
+    captureEvent("onboarding_step_completed", { step: 6, step_name: STEP_NAMES[6], value: learningMode });
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase.from('profiles').update({
@@ -138,6 +171,13 @@ export default function Onboarding() {
         setLoading(false);
         return;
       }
+      captureEvent("onboarding_finished", {
+        level,
+        goal,
+        weak_skill: weakSkill,
+        learning_mode: learningMode,
+      });
+      finishedRef.current = true;
       // Le dashboard garde en cache (React Query) la réponse du RPC
       // get_dashboard_data() obtenue lors du 1er passage sur /dashboard,
       // où onboarding_completed valait encore false. Sans ce removeQueries,
@@ -187,7 +227,10 @@ export default function Onboarding() {
                 </div>
                 <Button
                   disabled={!level}
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    captureEvent("onboarding_step_completed", { step: 1, step_name: STEP_NAMES[1], value: level });
+                    setStep(2);
+                  }}
                   className="w-full mt-6 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                 >
                   Continuer <ChevronRight size={16} className="ml-1" />
@@ -210,7 +253,10 @@ export default function Onboarding() {
                   </Button>
                   <Button
                     disabled={!goal}
-                    onClick={() => setStep(3)}
+                    onClick={() => {
+                      captureEvent("onboarding_step_completed", { step: 2, step_name: STEP_NAMES[2], value: goal });
+                      setStep(3);
+                    }}
                     className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
@@ -234,7 +280,10 @@ export default function Onboarding() {
                   </Button>
                   <Button
                     disabled={!weakSkill}
-                    onClick={() => setStep(4)}
+                    onClick={() => {
+                      captureEvent("onboarding_step_completed", { step: 3, step_name: STEP_NAMES[3], value: weakSkill });
+                      setStep(4);
+                    }}
                     className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
@@ -271,7 +320,14 @@ export default function Onboarding() {
                   </Button>
                   <Button
                     disabled={!noExamDateYet && !examDate}
-                    onClick={() => setStep(5)}
+                    onClick={() => {
+                      captureEvent("onboarding_step_completed", {
+                        step: 4,
+                        step_name: STEP_NAMES[4],
+                        value: noExamDateYet ? "non_definie" : examDate,
+                      });
+                      setStep(5);
+                    }}
                     className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
@@ -295,7 +351,10 @@ export default function Onboarding() {
                   </Button>
                   <Button
                     disabled={!availability}
-                    onClick={() => setStep(6)}
+                    onClick={() => {
+                      captureEvent("onboarding_step_completed", { step: 5, step_name: STEP_NAMES[5], value: availability });
+                      setStep(6);
+                    }}
                     className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />

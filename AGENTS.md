@@ -131,6 +131,8 @@ l'agent doit **toujours** produire une réponse structurée en 3 blocs, dans cet
 
 Ne jamais sauter à l'implémentation directement après ce type de message, même si la demande semble simple.
 
+**Résumé simple obligatoire** : à chaque fois qu'un plan MoSCoW est produit (via ce déclencheur ou toute autre demande de plan), le faire suivre systématiquement d'un résumé simple, sans code ni détail d'implémentation, qui parle uniquement fonctionnalité/effet produit — compréhensible sans lire le code.
+
 ### Suivi du plan entre les messages
 
 Une fois un plan MoSCoW validé par Olivier :
