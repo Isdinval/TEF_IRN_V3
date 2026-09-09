@@ -354,7 +354,7 @@ export default function ProfilesAdmin() {
           )}
           <Select
             value={profile.subscription_tier ?? "gratuit"}
-            onValueChange={(val) => changeSubscriptionTier(profile, val)}
+            onValueChange={(val) => { if (val) changeSubscriptionTier(profile, val); }}
             disabled={tierChangingId === profile.id}
           >
             <SelectTrigger size="sm" className="w-auto gap-1 rounded-md border-none bg-zinc-100 px-2 text-[10px] font-black uppercase text-zinc-600 [&_svg]:size-3">
