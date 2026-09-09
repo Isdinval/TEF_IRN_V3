@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase-admin";
 import { normalizeTier, type SubscriptionTier } from "@/lib/entitlements";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export type AiRoute = "coach_chat" | "writing_correct" | "oral_analyze" | "oral_session";
 
@@ -46,6 +47,8 @@ const DAILY_LIMITS: Record<AiRoute, Record<SubscriptionTier, number>> = {
 export interface AiRateLimitResult {
   allowed: boolean;
   limit: number;
+  /** Compte réel d'appels aujourd'hui pour cette route (item 11). */
+  count: number;
 }
 
 /**
@@ -58,10 +61,11 @@ export async function checkAiRateLimit(
   route: AiRoute,
   subscriptionTier: string | null | undefined
 ): Promise<AiRateLimitResult> {
-  const limit = DAILY_LIMITS[route][normalizeTier(subscriptionTier)];
+  const tier = normalizeTier(subscriptionTier);
+  const limit = DAILY_LIMITS[route][tier];
 
   const admin = createAdminClient();
-  const { data, error } = await admin.rpc("check_and_increment_ai_usage", {
+  const { data: count, error } = await admin.rpc("check_and_increment_ai_usage", {
     p_user_id: userId,
     p_route: route,
     p_limit: limit,
@@ -72,8 +76,24 @@ export async function checkAiRateLimit(
     // bloquer tout le monde -- on laisse passer plutôt que de casser une
     // fonctionnalité principale à cause du garde-fou lui-même.
     console.error(`AI rate limit check failed for ${route}:`, error);
-    return { allowed: true, limit };
+    return { allowed: true, limit, count: 0 };
   }
 
-  return { allowed: data === true, limit };
+  const allowed = (count ?? 0) <= limit;
+
+  // Item 11 (2026-09) : un seul endroit à instrumenter pour couvrir les 4
+  // routes IA (checkAiRateLimit est le seul point de passage commun) --
+  // objectif : recalibrer les 6 chiffres de DAILY_LIMITS ci-dessus avec de
+  // la vraie donnée d'usage, au lieu de deviner sans base. Best-effort
+  // (captureServerEvent gère déjà ses propres erreurs en interne, voir
+  // posthog-server.ts) : ne doit jamais bloquer la réponse à l'appelant.
+  await captureServerEvent(userId, "ai_usage_checked", {
+    route,
+    subscription_tier: tier,
+    count,
+    limit,
+    allowed,
+  });
+
+  return { allowed, limit, count: count ?? 0 };
 }
