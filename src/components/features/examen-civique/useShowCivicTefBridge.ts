@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 
 /**
  * true si l'utilisateur doit voir le pont vers LlamaKusi/TEF IRN : anonyme, connecté sans
- * abonnement, ou abonnement "free". Centralise un fetch autrement dupliqué sur le sommaire,
+ * abonnement, ou abonnement "gratuit". Centralise un fetch autrement dupliqué sur le sommaire,
  * l'entraînement et l'examen blanc.
  */
 export function useShowCivicTefBridge(): boolean {
@@ -26,5 +26,5 @@ export function useShowCivicTefBridge(): boolean {
       });
   }, [user]);
 
-  return !user || subscriptionTier === "free" || subscriptionTier === null;
+  return !user || subscriptionTier === "gratuit" || subscriptionTier === null;
 }

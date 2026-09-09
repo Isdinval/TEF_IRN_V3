@@ -280,7 +280,7 @@ function SidebarContent() {
         <div className="px-4 py-2 flex items-center justify-between text-xs font-bold bg-white border border-zinc-100 rounded-2xl shadow-sm">
           <div className="flex items-center gap-2 text-orange-600"><Flame size={16} fill="currentColor" /><span>{profile?.streak_count || 0}d</span></div>
           <div className="w-px h-4 bg-zinc-100" />
-          <div className="flex items-center gap-2 text-indigo-600 uppercase text-[10px] font-black tracking-widest"><Shield size={14} /> {profile?.subscription_tier === 'premium' ? 'Pro' : 'Free'}</div>
+          <div className="flex items-center gap-2 text-indigo-600 uppercase text-[10px] font-black tracking-widest"><Shield size={14} /> {profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'Pro' : 'Free'}</div>
         </div>
         <div className="flex flex-col gap-1">
           <Link href={getHrefWithContext("/tef-irn/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/tef-irn/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>

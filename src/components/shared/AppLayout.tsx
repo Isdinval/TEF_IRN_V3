@@ -39,10 +39,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       .select('subscription_tier')
       .eq('id', user.id)
       .single()
-      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
   }, [supabase, user]);
 
-  const canUseCoach = !!subscriptionTier && subscriptionTier !== 'free';
+  const canUseCoach = !!subscriptionTier && subscriptionTier !== 'gratuit';
 
   // Public routes check
   const publicRoutes = [ "/tef-irn/login", "/tef-irn/guides", "/tef-irn/pricing", "/tef-irn/exercice-gratuit", "/tef-irn/placement-test", "/tef-irn/onboarding", "/tef-irn/notre-histoire"];

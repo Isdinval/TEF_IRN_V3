@@ -27,8 +27,16 @@ export interface AiRateLimitResult {
 /**
  * Vérifie et incrémente (atomique côté Postgres, voir
  * check_and_increment_ai_usage) le quota IA quotidien de l'utilisateur pour
- * une route donnée, avant d'appeler OpenAI. 'pro' est traité comme 'premium'
- * (même palier haut, pas de palier supplémentaire pour l'instant).
+ * une route donnée, avant d'appeler OpenAI.
+ *
+ * NOTE (2026-09-09) : depuis la migration 20260909000001, subscription_tier
+ * connaît 4 valeurs réelles ('gratuit' | 'essentiel' | 'premium' |
+ * 'super_premium'). Ce quota reste temporairement à 2 seuils : 'super_premium'
+ * est rattaché au seuil 'premium' (le palier le plus cher ne doit pas se
+ * retrouver avec le quota le plus bas), mais 'essentiel' retombe encore sur
+ * le seuil 'free' -- passage à 4 seuils distincts prévu dans un item séparé
+ * du chantier abonnements, pour ne pas mélanger renommage et nouvelle
+ * logique métier dans le même patch.
  */
 export async function checkAiRateLimit(
   userId: string,
@@ -36,7 +44,7 @@ export async function checkAiRateLimit(
   subscriptionTier: string | null | undefined
 ): Promise<AiRateLimitResult> {
   const limit =
-    subscriptionTier === "premium" || subscriptionTier === "pro"
+    subscriptionTier === "premium" || subscriptionTier === "super_premium"
       ? DAILY_LIMITS[route].premium
       : DAILY_LIMITS[route].free;
 

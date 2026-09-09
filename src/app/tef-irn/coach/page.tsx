@@ -23,7 +23,7 @@ function CoachPageContent() {
       .select('subscription_tier')
       .eq('id', user.id)
       .single()
-      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'free'));
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
   }, [supabase, user]);
 
   // undefined = chargement en cours, ne rien afficher pour éviter un flash.
@@ -31,7 +31,7 @@ function CoachPageContent() {
     return <div className="flex justify-center h-screen items-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
   }
 
-  if (!subscriptionTier || subscriptionTier === 'free') {
+  if (!subscriptionTier || subscriptionTier === 'gratuit') {
     return (
       <div className="max-w-2xl mx-auto p-8 py-24 text-center space-y-6">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">

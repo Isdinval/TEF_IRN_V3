@@ -372,13 +372,13 @@ export default function ProfilesAdmin() {
           disabled={
             deletePendingId === profile.id ||
             profile.is_admin ||
-            (!!profile.subscription_tier && profile.subscription_tier !== "free")
+            (!!profile.subscription_tier && profile.subscription_tier !== "gratuit")
           }
           onClick={() => { setDeleteConfirmText(""); setDeleteTarget(profile); }}
           title={
             profile.is_admin
               ? "Rétrogradez d'abord ce compte avant de le supprimer."
-              : profile.subscription_tier && profile.subscription_tier !== "free"
+              : profile.subscription_tier && profile.subscription_tier !== "gratuit"
               ? "Abonnement actif : annulez-le côté Stripe avant de supprimer le compte."
               : undefined
           }

@@ -373,9 +373,9 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
             <div className="flex flex-wrap gap-2 justify-center md:justify-start mt-4">
               <Badge className={cn(
                 "border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full",
-                profile?.subscription_tier === 'premium' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-500'
+                profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-500'
               )}>
-                {profile?.subscription_tier === 'premium' ? 'Membre Premium' : 'Compte Gratuit'}
+                {profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'Membre Premium' : 'Compte Gratuit'}
               </Badge>
               {profile?.current_level && (
                 <Badge className="bg-emerald-50 text-emerald-600 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
@@ -485,7 +485,7 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
 
 function SubscriptionSection({ profile, openPortal, saving }: any) {
   const router = useRouter();
-  const features = profile?.subscription_tier === 'premium'
+  const features = profile?.subscription_tier && profile.subscription_tier !== 'gratuit'
     ? ["Accès illimité à l&apos;IA", "Tous les examens blancs", "Correction détaillée 24/7", "Coaching oral illimité", "Support prioritaire"]
     : ["Accès limité à l&apos;IA", "2 examens blancs", "Corrections simples", "Accès partiel aux leçons"];
 
@@ -500,15 +500,15 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
             <div>
               <Badge className={cn(
                 "px-5 py-2 font-black uppercase tracking-[0.3em] text-[10px] rounded-full mb-6",
-                profile?.subscription_tier === 'free' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
+                profile?.subscription_tier === 'gratuit' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
               )}>
-                {profile?.subscription_tier === 'free' ? 'Plan Gratuit' : 'Plan Premium'}
+                {profile?.subscription_tier === 'gratuit' ? 'Plan Gratuit' : 'Plan Premium'}
               </Badge>
               <CardTitle className="text-4xl md:text-5xl font-black text-zinc-900 leading-tight">
-                {profile?.subscription_tier === 'free' ? "Explosez vos scores avec le Premium" : "Vous avez le meilleur plan"}
+                {profile?.subscription_tier === 'gratuit' ? "Explosez vos scores avec le Premium" : "Vous avez le meilleur plan"}
               </CardTitle>
               <CardDescription className="text-indigo-900/60 font-bold mt-4 text-xl leading-relaxed max-w-xl">
-                {profile?.subscription_tier === 'free'
+                {profile?.subscription_tier === 'gratuit'
                   ? "Rejoignez les milliers de candidats qui ont réussi leur TEF IRN grâce à nos outils IA avancés."
                   : "Profitez de l&apos;intégralité des fonctionnalités pour une réussite garantie."}
               </CardDescription>
@@ -536,7 +536,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
             <p className="text-sm text-slate-400 font-bold italic mt-1">Prochain renouvellement automatique : --/--/----</p>
           </div>
           <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
-            {profile?.subscription_tier !== 'free' && (
+            {profile?.subscription_tier !== 'gratuit' && (
               <Button
                 variant="outline"
                 className="h-16 px-10 rounded-[1.5rem] font-black border-slate-200 hover:bg-slate-50 transition-all text-lg shadow-sm"
@@ -551,7 +551,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
               className="h-16 px-10 rounded-[1.5rem] font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 text-lg"
               onClick={() => router.push('/pricing?ref=settings')}
             >
-              {profile?.subscription_tier === 'free' ? "Passer au Premium" : "Comparer les offres"}
+              {profile?.subscription_tier === 'gratuit' ? "Passer au Premium" : "Comparer les offres"}
             </Button>
           </div>
         </CardFooter>

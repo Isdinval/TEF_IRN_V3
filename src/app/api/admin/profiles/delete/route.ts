@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (targetProfile.subscription_tier && targetProfile.subscription_tier !== "free") {
+  if (targetProfile.subscription_tier && targetProfile.subscription_tier !== "gratuit") {
     return NextResponse.json(
       { error: "Ce compte a un abonnement actif. Annulez l'abonnement Stripe avant de supprimer le compte." },
       { status: 409 }
