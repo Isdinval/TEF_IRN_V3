@@ -4,6 +4,7 @@ import { getOpenAIClient } from '@/lib/openai';
 import { createClient } from '@/lib/supabase-server';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { checkAiRateLimit } from '@/lib/ai-rate-limit';
+import { getEntitlements } from '@/lib/entitlements';
 
 // Nombre de mots minimum par défaut si le sujet ne fournit pas min_words (cas legacy /
 // entrée libre). Correspond aux seuils standards du barème TEF IRN par section.
@@ -293,6 +294,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
+    const body = await req.json();
+    ({ text } = body);
+    const { subject, targetLevel, learnerLevel, minWords, context } = body;
+
     // Audit sécurité item 7 : quota IA quotidien avant d'appeler OpenAI --
     // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
     const { data: rateLimitProfile } = await supabase
@@ -300,6 +305,19 @@ export async function POST(req: Request) {
       .select('subscription_tier')
       .eq('id', user.id)
       .maybeSingle();
+
+    // Chantier abonnements (2026-09) : dans l'EXAMEN BLANC uniquement
+    // (context === 'exam', envoyé par ExamContext.tsx), le palier Gratuit
+    // voit la question EE mais n'a pas de correction IA. La pratique libre
+    // EE (page /writing, sans ce paramètre) n'est PAS concernée -- elle
+    // garde son quota existant (voir ai-rate-limit.ts).
+    if (context === 'exam' && !getEntitlements(rateLimitProfile?.subscription_tier).hasExamWritingCorrection) {
+      return NextResponse.json(
+        { error: "La correction IA de l'Expression Écrite n'est pas disponible avec le plan Gratuit dans l'examen blanc. Passez au palier Essentiel pour y accéder." },
+        { status: 403 }
+      );
+    }
+
     const rateLimit = await checkAiRateLimit(user.id, 'writing_correct', rateLimitProfile?.subscription_tier);
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -308,9 +326,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
-    ({ text } = body);
-    const { subject, targetLevel, learnerLevel, minWords } = body;
     const openai = getOpenAIClient();
 
     if (!openai) {

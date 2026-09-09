@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
+import { getEntitlements } from "@/lib/entitlements";
 
 type OralScenario = {
   id: string;
@@ -163,6 +164,20 @@ export async function GET(request: Request) {
     .select('subscription_tier')
     .eq('id', user.id)
     .maybeSingle();
+
+  // Chantier abonnements (2026-09) : le Coach Oral n'est inclus qu'à partir
+  // du palier Premium (voir landing /tef-irn/pricing). Jusqu'ici, seul le
+  // quota ci-dessous existait -- un compte Gratuit/Essentiel pouvait quand
+  // même créer 2-3 sessions/jour. Même verrou utilisé en pratique libre
+  // (page /tef-irn/oral) et dans l'examen blanc (section EO, SpeakingSession
+  // appelle cette même route).
+  if (!getEntitlements(rateLimitProfile?.subscription_tier).hasOralCoach) {
+    return NextResponse.json(
+      { error: "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder." },
+      { status: 403 }
+    );
+  }
+
   const rateLimit = await checkAiRateLimit(user.id, 'oral_session', rateLimitProfile?.subscription_tier);
   if (!rateLimit.allowed) {
     return NextResponse.json(

@@ -353,6 +353,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
             text,
             subject: (q as any).prompt,
             targetLevel: activeExam?.level,
+            context: 'exam',
           }),
         });
         if (response.ok) {

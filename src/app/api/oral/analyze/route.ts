@@ -4,6 +4,7 @@ import { getOpenAIClient } from "@/lib/openai";
 import { createClient } from "@/lib/supabase-server";
 import { trackUserError, analyzeUserErrorsAndRecommend } from "@/lib/recommendation-engine";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
+import { getEntitlements } from "@/lib/entitlements";
 
 type Turn = { role: "candidat" | "coach"; text: string };
 
@@ -103,6 +104,16 @@ export async function POST(req: Request) {
       .select('subscription_tier')
       .eq('id', user.id)
       .maybeSingle();
+
+    // Chantier abonnements (2026-09) : même verrou que /api/oral/session --
+    // voir ce fichier pour le contexte complet.
+    if (!getEntitlements(rateLimitProfile?.subscription_tier).hasOralCoach) {
+      return NextResponse.json(
+        { error: "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder." },
+        { status: 403 }
+      );
+    }
+
     const rateLimit = await checkAiRateLimit(user.id, 'oral_analyze', rateLimitProfile?.subscription_tier);
     if (!rateLimit.allowed) {
       return NextResponse.json(
