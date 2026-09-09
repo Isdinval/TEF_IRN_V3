@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  await admin.from("admin_actions_log").insert({
+  const { error: logError } = await admin.from("admin_actions_log").insert({
     admin_id: user.id,
     admin_email: user.email ?? "",
     action: "change_subscription_tier",
@@ -61,6 +61,14 @@ export async function POST(request: NextRequest) {
     target_email: targetEmail,
     details: { from: previousTier, to: subscriptionTier },
   });
+  if (logError) {
+    // Best-effort : le changement de palier a déjà réussi (update ci-dessus),
+    // on ne fait pas échouer la requête pour un souci de log -- mais on ne
+    // le laisse plus jamais passer sous silence comme avant ce correctif
+    // (voir migration 20260909000005 : c'était une contrainte CHECK qui
+    // rejetait 'change_subscription_tier', jamais surfacée).
+    console.error("Échec du log admin_actions_log pour change_subscription_tier:", logError);
+  }
 
   return NextResponse.json({ success: true });
 }

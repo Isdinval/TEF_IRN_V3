@@ -324,19 +324,21 @@ function OralCoachContent() {
 
   if (!hasOralCoach) {
     return (
-      <div className="max-w-2xl mx-auto p-8 py-24 text-center space-y-6">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">
-          <Lock className="w-7 h-7 text-indigo-600" />
+      <div className="min-h-full flex items-center justify-center p-8">
+        <div className="max-w-2xl text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">
+            <Lock className="w-7 h-7 text-indigo-600" />
+          </div>
+          <h1 className="text-2xl font-black text-zinc-900">Le Coach Oral n'est pas inclus dans votre abonnement actuel</h1>
+          <p className="text-zinc-500 font-medium">
+            Passez au palier Premium pour débloquer les mises en situation orales avec le Coach IA : session vocale en temps réel, transcription en direct et correction détaillée selon la grille officielle TEF IRN.
+          </p>
+          <Link href="/tef-irn/pricing">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 rounded-xl shadow-lg shadow-indigo-100">
+              Voir les abonnements
+            </Button>
+          </Link>
         </div>
-        <h1 className="text-2xl font-black text-zinc-900">Le Coach Oral n'est pas inclus dans votre abonnement actuel</h1>
-        <p className="text-zinc-500 font-medium">
-          Passez au palier Premium pour débloquer les mises en situation orales avec le Coach IA : session vocale en temps réel, transcription en direct et correction détaillée selon la grille officielle TEF IRN.
-        </p>
-        <Link href="/tef-irn/pricing">
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 rounded-xl shadow-lg shadow-indigo-100">
-            Voir les abonnements
-          </Button>
-        </Link>
       </div>
     );
   }
