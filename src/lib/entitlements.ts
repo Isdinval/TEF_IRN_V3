@@ -41,14 +41,21 @@ const ENTITLEMENTS: Record<SubscriptionTier, Entitlements> = {
 const VALID_TIERS = new Set<string>(Object.keys(ENTITLEMENTS));
 
 /**
- * Retourne les droits du palier donné. Tout ce qui n'est pas une valeur
- * reconnue (null, undefined, valeur corrompue) retombe sur 'gratuit' --
+ * Normalise n'importe quelle valeur en un palier valide. Tout ce qui n'est
+ * pas reconnu (null, undefined, valeur corrompue) retombe sur 'gratuit' --
  * échec fermé plutôt qu'ouvert, cohérent avec le comportement déjà en place
  * dans coach/chat/route.ts (`!profile?.subscription_tier || ...`).
+ * Exportée pour être réutilisée par tout autre module ayant besoin de la
+ * même règle de repli (ex. ai-rate-limit.ts), au lieu de la dupliquer.
  */
-export function getEntitlements(tier: string | null | undefined): Entitlements {
+export function normalizeTier(tier: string | null | undefined): SubscriptionTier {
   if (tier && VALID_TIERS.has(tier)) {
-    return ENTITLEMENTS[tier as SubscriptionTier];
+    return tier as SubscriptionTier;
   }
-  return ENTITLEMENTS.gratuit;
+  return "gratuit";
+}
+
+/** Retourne les droits du palier donné (voir normalizeTier pour la règle de repli). */
+export function getEntitlements(tier: string | null | undefined): Entitlements {
+  return ENTITLEMENTS[normalizeTier(tier)];
 }
