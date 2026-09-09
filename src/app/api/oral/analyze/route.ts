@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getOpenAIClient } from "@/lib/openai";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { trackUserError, analyzeUserErrorsAndRecommend } from "@/lib/recommendation-engine";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
 import { getEntitlements } from "@/lib/entitlements";
@@ -123,17 +124,37 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { transcript, scenario, endedBy, context } = body as {
+    const { transcript, scenario, endedBy, context, durationSeconds } = body as {
       transcript: Turn[];
       scenario: { id: string; section: "A" | "B"; level: "A2" | "B1" | "B2"; sujet: string; objectifs: string[] };
       endedBy: "user" | "ai" | "timeout";
       context?: string;
+      durationSeconds?: number;
     };
 
     // 'standalone' par défaut : couvre la page Expression Orale (pratique libre) et tout
     // appelant qui ne précise pas encore ce champ. 'exam' est réservé aux sessions EO passées
     // dans le cadre d'un examen blanc complet (/tef-irn/exam), voir item 6 du plan dashboard.
     const sessionContext = context === 'exam' ? 'exam' : 'standalone';
+
+    // Item 10 (2026-09) : enregistre la durée réelle consommée, déclarée par
+    // le client (seule source possible, voir la migration
+    // 20260909000003_oral_seconds_tracking.sql pour le contexte complet).
+    // Fait AVANT le reste du traitement et indépendamment de son succès :
+    // la session vocale OpenAI Realtime a déjà eu lieu et coûté de l'argent
+    // à ce stade, que l'analyse texte qui suit réussisse ou non. Best-effort
+    // (try isolé) : un souci sur ce compteur annexe ne doit jamais bloquer
+    // le retour du feedback au candidat.
+    if (typeof durationSeconds === 'number' && durationSeconds > 0) {
+      try {
+        await createAdminClient().rpc('increment_oral_seconds', {
+          p_user_id: user.id,
+          p_seconds: Math.round(durationSeconds),
+        });
+      } catch (durationError) {
+        console.error("Échec de l'enregistrement de la durée oral (non bloquant):", durationError);
+      }
+    }
 
     if (!transcript || transcript.length === 0) {
       return NextResponse.json({ error: "Transcription vide" }, { status: 400 });

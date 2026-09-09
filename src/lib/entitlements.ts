@@ -17,10 +17,12 @@
  *   même endpoint sans ce paramètre) n'est PAS concernée par ce chantier :
  *   elle reste sur son quota existant (voir ai-rate-limit.ts, écart connu
  *   avec la pricing page déjà documenté séparément, hors scope ici).
- * - oralDailyMinutes : fondation pour un futur quota en minutes (40 vs 75
- *   min/jour promis par la pricing page). Pas encore branché nulle part :
- *   ai-rate-limit.ts compte des appels, pas des minutes. À exploiter dans
- *   un item dédié.
+ * - oralDailyMinutes : quota réel en minutes (item 10, 2026-09), vérifié par
+ *   /api/oral/session (refuse un nouveau token si le quota du jour est déjà
+ *   atteint) et alimenté par /api/oral/analyze (durée déclarée par le
+ *   client, cumulée dans ai_usage_daily.seconds_used -- voir la migration
+ *   20260909000003_oral_seconds_tracking.sql pour le détail et les
+ *   limites de cette approche).
  */
 
 export type SubscriptionTier = "gratuit" | "essentiel" | "premium" | "super_premium";

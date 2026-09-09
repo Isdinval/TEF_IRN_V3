@@ -63,6 +63,11 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
   const currentCoachTurn = useRef<string>('');
   const scenarioRef = useRef<ScenarioInfo | null>(null);
   const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Item 10 : horodatage du début réel de la conversation (setStatus('active'),
+  // pas le clic sur "Démarrer" -- exclut le temps de connexion WebRTC/OpenAI,
+  // qui n'est pas du temps de coaching consommé). Sert à calculer la durée
+  // envoyée à /api/oral/analyze pour le quota en minutes.
+  const sessionStartRef = useRef<number | null>(null);
   const [, forceTick] = useState(0);
 
   const startSession = async () => {
@@ -152,6 +157,7 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
 
       setStatus('active');
       setIsListening(true);
+      sessionStartRef.current = Date.now();
 
       // Filet de sécurité si le coach n'appelle jamais l'outil de fin d'exercice :
       // temps de parole officiel + marge.
@@ -198,6 +204,12 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
 
     const transcript = turnsRef.current;
     const currentScenario = scenarioRef.current;
+    // Item 10 : capturé avant reset -- ratio de secondes écoulées depuis le
+    // vrai début de conversation (voir sessionStartRef ci-dessus).
+    const durationSeconds = sessionStartRef.current
+      ? Math.round((Date.now() - sessionStartRef.current) / 1000)
+      : undefined;
+    sessionStartRef.current = null;
 
     if (!currentScenario || transcript.length === 0) {
       setStatus('idle');
@@ -210,7 +222,7 @@ export function SpeakingSession({ scenarioId, speakTime, onComplete }: SpeakingS
       const res = await fetch('/api/oral/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, scenario: currentScenario, endedBy: 'user', context: 'exam' }),
+        body: JSON.stringify({ transcript, scenario: currentScenario, endedBy: 'user', context: 'exam', durationSeconds }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

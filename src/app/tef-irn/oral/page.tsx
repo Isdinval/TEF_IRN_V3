@@ -87,6 +87,9 @@ function OralCoachContent() {
   const turnsRef = useRef<OralTurn[]>([]);
   const currentCoachTurn = useRef<string>("");
   const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Item 10 : horodatage du début réel de la conversation (setStatus("active")),
+  // pas le clic sur un scénario -- exclut le temps de connexion WebRTC/OpenAI.
+  const sessionStartRef = useRef<number | null>(null);
 
   // Force re-render pour afficher la transcription en cours (turnsRef n'est pas réactif seul)
   const [, forceTick] = useState(0);
@@ -230,6 +233,7 @@ function OralCoachContent() {
 
       setStatus("active");
       setIsListening(true);
+      sessionStartRef.current = Date.now();
 
       sessionTimeout.current = setTimeout(() => finishSession("timeout"), MAX_SESSION_MS);
     } catch (err) {
@@ -256,6 +260,12 @@ function OralCoachContent() {
 
     const transcript = turnsRef.current;
     const currentScenario = scenarioRef.current;
+    // Item 10 : capturé avant reset -- durée écoulée depuis le vrai début
+    // de conversation (voir sessionStartRef ci-dessus).
+    const durationSeconds = sessionStartRef.current
+      ? Math.round((Date.now() - sessionStartRef.current) / 1000)
+      : undefined;
+    sessionStartRef.current = null;
 
     if (!currentScenario || transcript.length === 0) {
       resetToCatalogue();
@@ -268,7 +278,7 @@ function OralCoachContent() {
       const res = await fetch("/api/oral/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript, scenario: currentScenario, endedBy }),
+        body: JSON.stringify({ transcript, scenario: currentScenario, endedBy, durationSeconds }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

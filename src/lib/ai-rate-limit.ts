@@ -22,12 +22,16 @@ export type AiRoute = "coach_chat" | "writing_correct" | "oral_analyze" | "oral_
 // (techniquement sans effet, le verrou dur de entitlements.ts bloque déjà
 // Essentiel en amont -- 403 avant même d'atteindre ce quota -- gardé
 // cohérent plutôt qu'à 0, en filet de sécurité si ce verrou changeait).
-// Premium et Super Premium partagent le même plafond d'APPELS : ce compteur
-// ne mesure pas la durée des sessions, donc il ne peut pas refléter
-// fidèlement la vraie différence commerciale (40 vs 75 min/jour, voir
-// entitlements.ts `oralDailyMinutes`). Un vrai quota en minutes est un
-// chantier séparé (item 10) -- pas approximé ici par un chiffre d'appels
-// arbitraire, pour ne pas donner une fausse impression de précision.
+// Premium et Super Premium partagent le même plafond d'APPELS (nombre de
+// sessions/analyses), qui reste un garde-fou de second niveau. Le VRAI
+// quota commercial (40 vs 75 min/jour) est désormais vérifié ailleurs
+// depuis l'item 10 (2026-09) : voir entitlements.ts `oralDailyMinutes` et
+// /api/oral/session (check) + /api/oral/analyze (incrément), sur un
+// compteur en secondes distinct de celui-ci (ai_usage_daily.seconds_used).
+// Ce plafond d'appels-ci ne mesure toujours pas la durée -- il n'a pas
+// vocation à être précis, seulement à couvrir un cas où quelqu'un ferait
+// énormément de sessions très courtes (contourner un quota en minutes par
+// le volume plutôt que la durée).
 const DAILY_LIMITS: Record<AiRoute, Record<SubscriptionTier, number>> = {
   // coach_chat.gratuit = 0 : le Coach IA n'est pas inclus dans le plan
   // Gratuit (voir landing /tef-irn/pricing). Le vrai verrou est un 403

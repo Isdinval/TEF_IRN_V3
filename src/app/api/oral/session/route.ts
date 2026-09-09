@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
 import { getEntitlements } from "@/lib/entitlements";
 
@@ -165,16 +166,39 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .maybeSingle();
 
+  const entitlements = getEntitlements(rateLimitProfile?.subscription_tier);
+
   // Chantier abonnements (2026-09) : le Coach Oral n'est inclus qu'à partir
   // du palier Premium (voir landing /tef-irn/pricing). Jusqu'ici, seul le
   // quota ci-dessous existait -- un compte Gratuit/Essentiel pouvait quand
   // même créer 2-3 sessions/jour. Même verrou utilisé en pratique libre
   // (page /tef-irn/oral) et dans l'examen blanc (section EO, SpeakingSession
   // appelle cette même route).
-  if (!getEntitlements(rateLimitProfile?.subscription_tier).hasOralCoach) {
+  if (!entitlements.hasOralCoach) {
     return NextResponse.json(
       { error: "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder." },
       { status: 403 }
+    );
+  }
+
+  // Item 10 (2026-09) : vrai quota en MINUTES (40 Premium, 75 Super Premium)
+  // au lieu du plafond d'appels générique de ai-rate-limit.ts. La durée est
+  // déclarée par le client à la fin de chaque session (voir
+  // /api/oral/analyze) et cumulée par jour dans ai_usage_daily.seconds_used
+  // -- on refuse ici de délivrer un nouveau token si le total du jour est
+  // déjà atteint.
+  const { data: oralSecondsUsed, error: oralSecondsError } = await createAdminClient().rpc(
+    "get_oral_seconds_used_today",
+    { p_user_id: user.id }
+  );
+  if (oralSecondsError) {
+    // Best-effort, même philosophie que checkAiRateLimit : un souci sur ce
+    // compteur annexe ne doit pas bloquer une fonctionnalité principale.
+    console.error("Lecture du quota oral en minutes échouée (non bloquant):", oralSecondsError);
+  } else if ((oralSecondsUsed ?? 0) >= entitlements.oralDailyMinutes * 60) {
+    return NextResponse.json(
+      { error: `Quota quotidien de coach oral atteint (${entitlements.oralDailyMinutes} min/jour). Réessayez demain.` },
+      { status: 429 }
     );
   }
 
