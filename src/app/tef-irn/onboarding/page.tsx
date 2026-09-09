@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
@@ -116,6 +116,9 @@ export default function Onboarding() {
   const router = useRouter();
   const supabase = createClient();
   const queryClient = useQueryClient();
+  // Évite de reporter un abandon si l'utilisateur vient de terminer l'onboarding
+  // (handleFinish() passe ce flag à true avant la navigation vers le dashboard).
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -129,6 +132,24 @@ export default function Onboarding() {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Détection d'abandon : se déclenche quand l'onglet/la fenêtre se ferme ou
+  // qu'on quitte réellement la page (fermeture, rafraîchissement, nouvelle URL)
+  // avant que l'onboarding soit terminé. Une navigation interne via router.push
+  // (ex: fin d'onboarding réussie) ne déclenche PAS "pagehide" en Next.js App
+  // Router, donc pas besoin d'ignorer ce cas séparément -- le flag finishedRef
+  // reste une sécurité pour les cas où une future navigation interne changerait
+  // ce comportement.
+  useEffect(() => {
+    if (checkingAuth) return;
+    const handlePageHide = () => {
+      if (!finishedRef.current) {
+        captureEvent("onboarding_abandoned_at_step", { step, step_name: STEP_NAMES[step] });
+      }
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, [step, checkingAuth]);
 
   const handleFinish = async () => {
     setLoading(true);
@@ -156,6 +177,7 @@ export default function Onboarding() {
         weak_skill: weakSkill,
         learning_mode: learningMode,
       });
+      finishedRef.current = true;
       // Le dashboard garde en cache (React Query) la réponse du RPC
       // get_dashboard_data() obtenue lors du 1er passage sur /dashboard,
       // où onboarding_completed valait encore false. Sans ce removeQueries,
