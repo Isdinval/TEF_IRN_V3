@@ -230,11 +230,11 @@ export async function POST(req: Request) {
         .eq('id', user.id)
         .single();
 
-    // Le Coach IA n'est pas inclus dans le plan Gratuit (voir landing /tef-irn/pricing).
-    // NOTE : le modèle de données actuel ne connaît que 'free' | 'premium' | 'pro' --
-    // pas de distinction Essentiel/Premium/Super Premium (4 paliers affichés sur la
-    // landing page). Gating binaire en attendant une éventuelle évolution du schéma.
-    if (!profile?.subscription_tier || profile.subscription_tier === 'free') {
+    // Le Coach IA (Expression Écrite) est inclus à partir du palier Essentiel
+    // (voir landing /tef-irn/pricing) -- seul le palier Gratuit en est privé,
+    // donc la comparaison reste binaire même avec les 4 paliers réels
+    // (gratuit/essentiel/premium/super_premium, voir types/database.ts).
+    if (!profile?.subscription_tier || profile.subscription_tier === 'gratuit') {
       return new Response(
         JSON.stringify({ error: "Le Coach IA n'est pas disponible avec le plan Gratuit. Passez à un abonnement payant pour y accéder." }),
         { status: 403 }

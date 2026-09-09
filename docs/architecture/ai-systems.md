@@ -46,14 +46,32 @@ Le moteur de recommandation a deux volets distincts :
 - **Optimisation des Tokens** : Utilisation de modèles "mini" pour les tâches de classification et d'analyse textuelle afin de garantir un service réactif et économiquement viable.
 - **Rate Limiting par Route** (`src/lib/ai-rate-limit.ts`, table `ai_usage_daily`, RPC `check_and_increment_ai_usage`) : quota quotidien par utilisateur et par route IA, distinct selon le palier d'abonnement.
 
-| Route | Free / jour | Premium / jour |
-|---|---|---|
-| `coach_chat` | 15 | 300 |
-| `writing_correct` | 3 | 100 |
-| `oral_analyze` | 3 | 100 |
-| `oral_session` | 2 | 50 |
+| Route | Gratuit / jour | Essentiel / jour | Premium / jour | Super Premium / jour |
+|---|---|---|---|---|
+| `coach_chat` | 0 | 300 | 300 | 300 |
+| `writing_correct` | 3 | 100 | 100 | 100 |
+| `oral_analyze` | 3 | 3 | 100 | 100 |
+| `oral_session` | 2 | 2 | 50 | 50 |
 
-  Le plafond "premium" est un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à ce palier.
+  Les plafonds "essentiel"/"premium"/"super_premium" sur `coach_chat`/`writing_correct` sont un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à l'écrit pour ces 3 paliers payants. Sur `oral_analyze`/`oral_session`, "essentiel" garde le seuil le plus bas mais c'est sans effet : le verrou dur décrit en §6 bloque déjà ce palier avant même d'atteindre ce quota.
+
+## 6. Paliers d'abonnement (Entitlements)
+
+Les 4 paliers réels (`gratuit`, `essentiel`, `premium`, `super_premium`, colonne `profiles.subscription_tier`) sont ceux affichés sur la landing page (`src/components/landing/sections/Pricing.tsx`). `src/lib/entitlements.ts` est la source de vérité unique de qui a accès à quoi — toute nouvelle route/composant qui doit gater une fonctionnalité par palier doit passer par `getEntitlements(tier)`, pas par une comparaison directe sur la chaîne `subscription_tier`.
+
+### Droits modélisés aujourd'hui
+- **`hasOralCoach`** (Premium/Super Premium uniquement) : verrou dur identique en pratique libre (`/tef-irn/oral`) et dans l'examen blanc (section EO), car les deux passent par les mêmes routes `/api/oral/session` et `/api/oral/analyze`.
+- **`hasExamWritingCorrection`** (Essentiel/Premium/Super Premium) : verrou dur, mais **uniquement** dans le contexte "examen blanc" de `/api/writing/correct` (paramètre `context: 'exam'` envoyé par `ExamContext.tsx`). La pratique libre EE (page `/writing`, même endpoint sans ce paramètre) garde son quota existant (voir tableau ci-dessus), non concernée par ce verrou.
+- **`oralDailyMinutes`** (40 pour Premium, 75 pour Super Premium) : fondation non branchée. Les quotas ci-dessus comptent des *appels*, pas des *minutes* — Premium et Super Premium partagent donc le même plafond d'appels sur `oral_analyze`/`oral_session`, ce qui ne reflète pas fidèlement la vraie différence commerciale. Un vrai tracking en minutes de session Realtime est un chantier séparé, non planifié à ce jour.
+
+### Où c'est appliqué
+- **Backend** : `api/coach/chat` (403 direct, Gratuit uniquement), `api/oral/session` + `api/oral/analyze` (403 via `hasOralCoach`), `api/writing/correct` (403 via `hasExamWritingCorrection`, uniquement si `context === 'exam'`).
+- **Frontend** (écran verrouillé + CTA `/tef-irn/pricing`, redondant avec le verrou serveur mais évite une UX cassée) : `coach/page.tsx`, `oral/page.tsx`, `SpeakingSession.tsx` (section EO de l'examen blanc, aperçu verrouillé plutôt qu'écran plein).
+- **Admin** : `/tef-irn/admin/profiles`, sélecteur de palier par compte (route `api/admin/profiles/set-subscription-tier`, loggé dans `admin_actions_log`) — c'est aujourd'hui le seul moyen de changer un palier, aucune intégration Stripe n'existe encore.
+
+### Écarts connus, non corrigés à ce jour
+- La pratique libre EE (Gratuit) promet "1 correction" sur la pricing page mais le code applique un quota de 3/jour (`writing_correct.gratuit`) — jamais réconcilié.
+- Aucun test A/B ni donnée d'usage réel n'a servi à fixer les 6 chiffres du tableau ci-dessus (hérités de l'audit sécurité 2026-08, avant même l'existence des 4 paliers) — une recalibration reste à faire.
 
 ---
 © 2025 LlamaKusi AI

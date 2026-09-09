@@ -9,8 +9,12 @@ import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  AlertTriangle,
+  Lock
 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
 import { FeedbackIA } from "./components/FeedbackIA";
@@ -32,6 +36,7 @@ export function WritingCoachContent() {
   const [text, setText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
+  const [correctionError, setCorrectionError] = useState<string | null>(null);
   const [activeErrorIndex, setActiveErrorIndex] = useState<number | null>(null);
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
@@ -52,6 +57,11 @@ export function WritingCoachContent() {
   // Niveau réel de l'apprenant (profiles.current_level), transmis à la correction pour
   // contextualiser l'écart avec le niveau du sujet choisi (voir handleCorrection).
   const [learnerLevel, setLearnerLevel] = useState<string | null>(null);
+  // Item 8 (retour Olivier) : connu AVANT que l'utilisateur écrive quoi que ce
+  // soit, pour l'avertir en amont plutôt qu'après un texte entier rédigé en
+  // vain. null = pas Gratuit (aucun avertissement nécessaire), 'available' =
+  // Gratuit, correction pas encore utilisée, 'used' = déjà utilisée.
+  const [freeCorrectionStatus, setFreeCorrectionStatus] = useState<'available' | 'used' | null>(null);
   // Garde-fou pour n'appliquer la pré-sélection du niveau (via goal_level) qu'une seule
   // fois, sans écraser un choix que l'apprenant aurait fait entre-temps dans le filtre.
   const appliedDefaultLevelRef = useRef(false);
@@ -94,11 +104,16 @@ export function WritingCoachContent() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("current_level, goal_level")
+        .select("current_level, goal_level, subscription_tier, free_ee_correction_used")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile?.current_level) setLearnerLevel(profile.current_level);
+      setFreeCorrectionStatus(
+        profile?.subscription_tier === 'gratuit'
+          ? (profile.free_ee_correction_used ? 'used' : 'available')
+          : null
+      );
 
       // Pré-sélection uniquement (pas de verrouillage) : l'apprenant reste libre de
       // choisir un autre niveau ensuite dans le catalogue.
@@ -214,6 +229,7 @@ export function WritingCoachContent() {
   const handleCorrection = useCallback(async () => {
     if (!text.trim()) return;
     setIsAnalyzing(true);
+    setCorrectionError(null);
     try {
       const response = await fetch("/api/writing/correct", {
         method: "POST",
@@ -227,7 +243,16 @@ export function WritingCoachContent() {
         }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        // Item 8 : le 403 "1 correction gratuite à vie" épuisée arrive ici
+        // -- data.error contient déjà un message prêt à afficher.
+        setCorrectionError(data.error || "Erreur lors de la correction.");
+        return;
+      }
       setFeedback(data);
+      // Item 8 : mise à jour optimiste -- le backend vient de marquer
+      // free_ee_correction_used=true pour ce palier, pas besoin de refetch.
+      if (freeCorrectionStatus === 'available') setFreeCorrectionStatus('used');
 
       // Save to database
       const { data: { user } } = await supabase.auth.getUser();
@@ -273,6 +298,7 @@ export function WritingCoachContent() {
       }
     } catch (error) {
       console.error("Correction error:", error);
+      setCorrectionError("Erreur lors de la correction. Vérifiez votre connexion, puis réessayez.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -403,6 +429,33 @@ export function WritingCoachContent() {
 
           <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">
             <div className="max-w-3xl mx-auto h-full flex flex-col gap-6">
+              {correctionError ? (
+                <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
+                  <AlertTriangle className="text-red-400 shrink-0" size={24} />
+                  <p className="text-sm font-bold text-zinc-600">{correctionError}</p>
+                </Card>
+              ) : freeCorrectionStatus === 'used' ? (
+                <Card className="rounded-[2rem] border-2 border-amber-200 bg-amber-50/50 p-6 flex items-center gap-4 shrink-0">
+                  <Lock className="text-amber-500 shrink-0" size={24} />
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-bold text-zinc-600">
+                      Vous avez déjà utilisé votre correction IA gratuite. Vous pouvez continuer à vous entraîner, mais ce texte ne sera pas corrigé par l'IA.
+                    </p>
+                    <Link href="/tef-irn/pricing">
+                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl">
+                        Passer à Essentiel pour une correction illimitée
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              ) : freeCorrectionStatus === 'available' ? (
+                <Card className="rounded-[2rem] border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
+                  <Lock className="text-indigo-400 shrink-0" size={18} />
+                  <p className="text-xs font-bold text-zinc-500">
+                    Il s'agit de votre unique correction IA gratuite sur ce palier. Passez à Essentiel pour une correction illimitée.
+                  </p>
+                </Card>
+              ) : null}
               <Card className="p-5 border-indigo-100 shadow-sm bg-white shrink-0">
                 <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Sujet à traiter</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
@@ -414,7 +467,7 @@ export function WritingCoachContent() {
                 text={text}
                 setText={setText}
                 onAnalyze={handleCorrection}
-                onReset={() => { setText(""); setFeedback(null); }}
+                onReset={() => { setText(""); setFeedback(null); setCorrectionError(null); }}
                 onSelectError={(idx) => setActiveErrorIndex(idx)}
                 isAnalyzing={isAnalyzing}
                 feedback={feedback}

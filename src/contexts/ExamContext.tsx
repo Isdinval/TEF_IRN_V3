@@ -186,6 +186,23 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       const savedResults = localStorage.getItem(RESULTS_KEY);
       const cachedQuestions = localStorage.getItem(QUESTIONS_CACHE_KEY);
 
+      // Bug retour Olivier (2026-09) : restauré ICI, avant tout early-return
+      // ci-dessous. Avant ce correctif, le cas "cache de questions valide"
+      // (le plus courant en reprenant un examen en cours -- ex. après avoir
+      // suivi le CTA du lock EO vers /tef-irn/pricing puis être revenu)
+      // faisait un `return` précoce qui sautait complètement la restauration
+      // de sessionResults plus bas dans la fonction. Résultat : sessionResults
+      // repartait de [] à chaque retour mid-examen, et la section suivante
+      // terminée (souvent EO, la dernière) se retrouvait seule dans les
+      // résultats affichés -- CO/CE/EE déjà complétées disparaissaient.
+      if (savedResults) {
+        try {
+          setSessionResults(JSON.parse(savedResults));
+        } catch (e) {
+          console.error("Failed to load session results", e);
+        }
+      }
+
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -208,14 +225,6 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
       } else {
         // No saved session, but we still want to preload the active exam metadata for the UI
         await fetchExamContent();
-      }
-
-      if (savedResults) {
-        try {
-          setSessionResults(JSON.parse(savedResults));
-        } catch (e) {
-          console.error("Failed to load session results", e);
-        }
       }
     };
 
@@ -353,6 +362,7 @@ export const ExamProvider = ({ children }: { children: ReactNode }) => {
             text,
             subject: (q as any).prompt,
             targetLevel: activeExam?.level,
+            context: 'exam',
           }),
         });
         if (response.ok) {

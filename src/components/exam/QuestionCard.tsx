@@ -11,13 +11,35 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { ArrowRight, Info, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Info, HelpCircle, CheckCircle2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/components/providers/AuthProvider';
+import { createClient } from '@/lib/supabase';
+import { getEntitlements } from '@/lib/entitlements';
 
 export function QuestionCard() {
   const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting, submitOralAnalysis, oralAnalyses } = useExam();
   const [wordCount, setWordCount] = useState(0);
   const [unansweredWarning, setUnansweredWarning] = useState<string | null>(null);
+
+  // Item 7 frontend (retour Olivier) : avertir AVANT que le candidat écrive
+  // pour l'EE, comme c'est déjà fait pour l'EO (SpeakingSession) -- même
+  // pattern de fetch autonome, cohérent avec le reste du chantier.
+  const { user } = useAuth();
+  const supabase = React.useMemo(() => createClient(), []);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!user) { setSubscriptionTier(null); return; }
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
+  }, [supabase, user]);
+
+  const hasExamWritingCorrection = getEntitlements(subscriptionTier).hasExamWritingCorrection;
 
   useEffect(() => {
     if (currentQuestion.type === 'writing') {
@@ -164,6 +186,15 @@ export function QuestionCard() {
           </p>
         </div>
 
+        {subscriptionTier !== undefined && !hasExamWritingCorrection && (
+          <div className="p-4 bg-amber-50/60 rounded-2xl border-l-4 border-amber-400 flex items-center gap-3">
+            <Lock size={18} className="text-amber-500 shrink-0" />
+            <p className="text-xs font-bold text-zinc-600">
+              Cette question est présentée à titre d'aperçu. La correction par le Coach IA n'est disponible qu'à partir du palier Essentiel.
+            </p>
+          </div>
+        )}
+
         <div className="relative">
           <Textarea
             value={value}
@@ -309,7 +340,7 @@ export function QuestionCard() {
                  disabled={isCorrecting}
                  className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 rounded-2xl text-base font-black shadow-xl shadow-indigo-600/20 disabled:opacity-60"
                >
-                 {isCorrecting
+                 {isCorrecting && hasExamWritingCorrection
                    ? "Correction IA en cours..."
                    : state.currentQuestionIndex < questions.length - 1
                      ? "Question suivante"

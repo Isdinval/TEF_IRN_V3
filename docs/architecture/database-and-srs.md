@@ -17,13 +17,13 @@ pour optimiser la mémorisation.
 
 | Table | Rôle |
 |---|---|
-| `profiles` | Identité, niveau courant/objectif, XP, streak, mode d'apprentissage (`libre`/`academique`), abonnement (`free`/`premium`), crédits IA, `is_admin` |
+| `profiles` | Identité, niveau courant/objectif, XP, streak, mode d'apprentissage (`libre`/`academique`), abonnement (`subscription_tier` : `gratuit`/`essentiel`/`premium`/`super_premium`, voir §6 de `ai-systems.md` pour les droits par palier), crédits IA, `is_admin` |
 | `leagues` | Paliers de ligues (nom, `min_xp`, couleur) pour le classement gamifié |
 | `weekly_challenges` / `user_challenges` | Défis hebdomadaires et progression par utilisateur (`current_progress`, `is_completed`) |
 | `user_streaks` | Série de jours consécutifs (`current_streak`, `longest_streak`) — distincte de `profiles.streak_count`, à ne pas confondre |
 | `study_activity` | Minutes étudiées par jour (`user_id`, `activity_date`) — alimente le heatmap d'activité du dashboard |
 | `user_preferences` | Préférences de notification (email, push, fréquence) |
-| `admin_actions_log` | Journal des actions admin (promotion, reset progression, suppression compte) |
+| `admin_actions_log` | Journal des actions admin (promotion, reset progression, suppression compte, changement de palier d'abonnement) |
 | `ai_usage_daily` | Compteur d'appels IA par utilisateur/route/jour — base du rate limiting (`check_and_increment_ai_usage`) |
 
 ### 1.2 Contenu pédagogique TEF IRN (parcours, leçons, exercices)

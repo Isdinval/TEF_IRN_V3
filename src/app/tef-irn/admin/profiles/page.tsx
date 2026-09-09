@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -52,9 +59,9 @@ function formatRelative(iso: string): string {
 interface LogEntry {
   id: string;
   admin_email: string;
-  action: "promote_admin" | "demote_admin" | "reset_progress" | "delete_account";
+  action: "promote_admin" | "demote_admin" | "reset_progress" | "delete_account" | "change_subscription_tier";
   target_email: string;
-  details: { deletedCount?: number } | null;
+  details: { deletedCount?: number; from?: string; to?: string } | null;
   created_at: string;
 }
 
@@ -63,6 +70,7 @@ const ACTION_LABELS: Record<LogEntry["action"], string> = {
   demote_admin: "a rétrogradé",
   reset_progress: "a réinitialisé",
   delete_account: "a supprimé",
+  change_subscription_tier: "a changé l'abonnement de",
 };
 
 interface CategoryStat {
@@ -84,6 +92,7 @@ interface UserStats {
 const CONFIRM_PHRASE = "RETROGRADER";
 const RESET_CONFIRM_PHRASE = "RESET";
 const DELETE_CONFIRM_PHRASE = "SUPPRIMER";
+const SUBSCRIPTION_TIERS = ["gratuit", "essentiel", "premium", "super_premium"] as const;
 
 export default function ProfilesAdmin() {
   const supabase = useMemo(() => createClient(), []);
@@ -114,6 +123,7 @@ export default function ProfilesAdmin() {
   const [actionsLog, setActionsLog] = useState<LogEntry[]>([]);
   const [logExpanded, setLogExpanded] = useState(false);
   const [testTogglingId, setTestTogglingId] = useState<string | null>(null);
+  const [tierChangingId, setTierChangingId] = useState<string | null>(null);
   // Vue détail : stats agrégées d'un compte (nb tentatives, score moyen, dernière connexion).
   const [detailTarget, setDetailTarget] = useState<ProfileRow | null>(null);
   const [detailStats, setDetailStats] = useState<UserStats | null>(null);
@@ -291,6 +301,28 @@ export default function ProfilesAdmin() {
     }
   };
 
+  const changeSubscriptionTier = async (profile: ProfileRow, nextTier: string) => {
+    if (nextTier === profile.subscription_tier) return;
+    if (!window.confirm(`Confirmer : passer "${profile.email}" de "${profile.subscription_tier}" à "${nextTier}" ?`)) return;
+    setTierChangingId(profile.id);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/admin/profiles/set-subscription-tier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: profile.id, subscriptionTier: nextTier }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur lors de la mise à jour.");
+      await fetchProfiles();
+      await fetchActionsLog();
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Erreur lors de la mise à jour.");
+    } finally {
+      setTierChangingId(null);
+    }
+  };
+
   const openDetail = async (profile: ProfileRow) => {
     setDetailTarget(profile);
     setDetailStats(null);
@@ -320,7 +352,22 @@ export default function ProfilesAdmin() {
           ) : (
             <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">Compte normal</Badge>
           )}
-          {profile.subscription_tier && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.subscription_tier}</Badge>}
+          <Select
+            value={profile.subscription_tier ?? "gratuit"}
+            onValueChange={(val) => { if (val) changeSubscriptionTier(profile, val); }}
+            disabled={tierChangingId === profile.id}
+          >
+            <SelectTrigger size="sm" className="w-auto gap-1 rounded-md border-none bg-zinc-100 px-2 text-[10px] font-black uppercase text-zinc-600 [&_svg]:size-3">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SUBSCRIPTION_TIERS.map((tier) => (
+                <SelectItem key={tier} value={tier} className="text-xs font-bold uppercase">
+                  {tier}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {profile.current_level && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.current_level}</Badge>}
           <button
             type="button"
@@ -372,13 +419,13 @@ export default function ProfilesAdmin() {
           disabled={
             deletePendingId === profile.id ||
             profile.is_admin ||
-            (!!profile.subscription_tier && profile.subscription_tier !== "free")
+            (!!profile.subscription_tier && profile.subscription_tier !== "gratuit")
           }
           onClick={() => { setDeleteConfirmText(""); setDeleteTarget(profile); }}
           title={
             profile.is_admin
               ? "Rétrogradez d'abord ce compte avant de le supprimer."
-              : profile.subscription_tier && profile.subscription_tier !== "free"
+              : profile.subscription_tier && profile.subscription_tier !== "gratuit"
               ? "Abonnement actif : annulez-le côté Stripe avant de supprimer le compte."
               : undefined
           }
@@ -480,6 +527,9 @@ export default function ProfilesAdmin() {
                     <span className="font-bold text-zinc-800">{entry.target_email}</span>
                     {entry.action === "reset_progress" && entry.details?.deletedCount !== undefined && (
                       <span className="text-zinc-400"> ({entry.details.deletedCount} enregistrements supprimés)</span>
+                    )}
+                    {entry.action === "change_subscription_tier" && entry.details?.from && entry.details?.to && (
+                      <span className="text-zinc-400"> ({entry.details.from} → {entry.details.to})</span>
                     )}
                     <span className="text-zinc-400"> · {formatRelative(entry.created_at)}</span>
                   </div>

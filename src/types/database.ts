@@ -9,7 +9,7 @@ export interface Profile {
   total_xp: number;
   streak_count: number;
   last_activity_at: string;
-  subscription_tier: 'free' | 'premium' | 'pro';
+  subscription_tier: 'gratuit' | 'essentiel' | 'premium' | 'super_premium';
   ai_credits: number;
   onboarding_completed: boolean;
   target_exam_date: string | null;
