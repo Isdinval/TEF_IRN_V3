@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getOpenAIClient } from '@/lib/openai';
 import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { checkAiRateLimit } from '@/lib/ai-rate-limit';
-import { getEntitlements } from '@/lib/entitlements';
+import { getEntitlements, normalizeTier } from '@/lib/entitlements';
 
 // Nombre de mots minimum par défaut si le sujet ne fournit pas min_words (cas legacy /
 // entrée libre). Correspond aux seuils standards du barème TEF IRN par section.
@@ -302,7 +303,7 @@ export async function POST(req: Request) {
     // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
     const { data: rateLimitProfile } = await supabase
       .from('profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, free_ee_correction_used')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -314,6 +315,24 @@ export async function POST(req: Request) {
     if (context === 'exam' && !getEntitlements(rateLimitProfile?.subscription_tier).hasExamWritingCorrection) {
       return NextResponse.json(
         { error: "La correction IA de l'Expression Écrite n'est pas disponible avec le plan Gratuit dans l'examen blanc. Passez au palier Essentiel pour y accéder." },
+        { status: 403 }
+      );
+    }
+
+    // Item 8 (2026-09) : en pratique libre (hors examen blanc, déjà bloqué à
+    // 100% ci-dessus pour Gratuit), Gratuit n'a droit qu'à UNE SEULE
+    // correction IA de l'Expression Écrite, à vie -- pas un quota quotidien
+    // comme writing_correct.gratuit dans ai-rate-limit.ts (ce quota reste
+    // une seconde ligne de défense, jamais atteint en pratique une fois ce
+    // verrou en place). "free_ee_correction_used" est mis à true seulement
+    // au moment d'un succès réel, voir plus bas.
+    if (
+      context !== 'exam' &&
+      normalizeTier(rateLimitProfile?.subscription_tier) === 'gratuit' &&
+      rateLimitProfile?.free_ee_correction_used
+    ) {
+      return NextResponse.json(
+        { error: "Vous avez déjà utilisé votre correction gratuite. Passez au palier Essentiel pour un accès illimité à la correction IA de l'Expression Écrite." },
         { status: 403 }
       );
     }
@@ -571,6 +590,21 @@ IMPORTANT : Ne fournis PAS d'index de position. Concentre-toi sur le fait que "t
       score: finalData.score_global,
       is_insufficient_length: isInsufficientLength,
     });
+
+    // Item 8 : consomme le jeton "1 correction gratuite à vie" seulement ici,
+    // au moment d'un succès réel -- jamais sur les branches de repli
+    // ci-dessus (JSON invalide, erreur OpenAI dans le catch) : un incident
+    // technique ne doit pas coûter son unique essai gratuit à l'utilisateur.
+    // Best-effort (try isolé) : un échec de cette écriture ne doit jamais
+    // priver le candidat de la correction déjà générée avec succès.
+    if (context !== 'exam' && normalizeTier(rateLimitProfile?.subscription_tier) === 'gratuit') {
+      try {
+        const admin = createAdminClient();
+        await admin.from('profiles').update({ free_ee_correction_used: true }).eq('id', user.id);
+      } catch (flagError) {
+        console.error("Échec de l'enregistrement free_ee_correction_used (non bloquant):", flagError);
+      }
+    }
 
     return NextResponse.json(finalData);
   } catch (error: any) {

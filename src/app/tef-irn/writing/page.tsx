@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  AlertTriangle
 } from "lucide-react";
 import { WritingFeedback, WritingExercise } from "@/types/writing";
 import { ZoneRedaction } from "./components/ZoneRedaction";
@@ -32,6 +33,7 @@ export function WritingCoachContent() {
   const [text, setText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<WritingFeedback | null>(null);
+  const [correctionError, setCorrectionError] = useState<string | null>(null);
   const [activeErrorIndex, setActiveErrorIndex] = useState<number | null>(null);
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
@@ -214,6 +216,7 @@ export function WritingCoachContent() {
   const handleCorrection = useCallback(async () => {
     if (!text.trim()) return;
     setIsAnalyzing(true);
+    setCorrectionError(null);
     try {
       const response = await fetch("/api/writing/correct", {
         method: "POST",
@@ -227,6 +230,12 @@ export function WritingCoachContent() {
         }),
       });
       const data = await response.json();
+      if (!response.ok) {
+        // Item 8 : le 403 "1 correction gratuite à vie" épuisée arrive ici
+        // -- data.error contient déjà un message prêt à afficher.
+        setCorrectionError(data.error || "Erreur lors de la correction.");
+        return;
+      }
       setFeedback(data);
 
       // Save to database
@@ -273,6 +282,7 @@ export function WritingCoachContent() {
       }
     } catch (error) {
       console.error("Correction error:", error);
+      setCorrectionError("Erreur lors de la correction. Vérifiez votre connexion, puis réessayez.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -403,6 +413,12 @@ export function WritingCoachContent() {
 
           <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">
             <div className="max-w-3xl mx-auto h-full flex flex-col gap-6">
+              {correctionError && (
+                <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
+                  <AlertTriangle className="text-red-400 shrink-0" size={24} />
+                  <p className="text-sm font-bold text-zinc-600">{correctionError}</p>
+                </Card>
+              )}
               <Card className="p-5 border-indigo-100 shadow-sm bg-white shrink-0">
                 <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Sujet à traiter</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
@@ -414,7 +430,7 @@ export function WritingCoachContent() {
                 text={text}
                 setText={setText}
                 onAnalyze={handleCorrection}
-                onReset={() => { setText(""); setFeedback(null); }}
+                onReset={() => { setText(""); setFeedback(null); setCorrectionError(null); }}
                 onSelectError={(idx) => setActiveErrorIndex(idx)}
                 isAnalyzing={isAnalyzing}
                 feedback={feedback}
