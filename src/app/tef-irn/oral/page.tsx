@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Sparkles, ListChecks, AlertTriangle } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, ListChecks, AlertTriangle, Lock } from "lucide-react";
 import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
 import { OralAnalysisView } from "./components/OralAnalysisView";
 import { OralAnalysis, OralTurn } from "@/lib/oral-criteria";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { createClient } from "@/lib/supabase";
+import { getEntitlements } from "@/lib/entitlements";
 
 type Status = "catalogue" | "connecting" | "active" | "analyzing" | "done";
 
@@ -33,6 +37,30 @@ function OralCoachContent() {
   const { setPageContext } = useCoachContext();
   const scenarioRef = useRef<ScenarioInfo | null>(null);
   const [analysis, setAnalysis] = useState<OralAnalysis | null>(null);
+
+  // Chantier abonnements (2026-09), item 6 : le Coach Oral n'est inclus qu'à
+  // partir du palier Premium (verrou dur déjà en place côté serveur sur
+  // /api/oral/session, voir entitlements.ts). Même pattern que
+  // coach/page.tsx pour l'écran verrouillé -- ici on utilise
+  // getEntitlements().hasOralCoach plutôt qu'une comparaison directe à
+  // 'gratuit' : contrairement au Coach EE (inclus dès Essentiel), le Coach
+  // Oral exclut aussi Essentiel, donc la simple comparaison !== 'gratuit'
+  // utilisée par coach/page.tsx serait fausse ici.
+  const { user } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
+  const [subscriptionTier, setSubscriptionTier] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!user) { setSubscriptionTier(null); return; }
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
+  }, [supabase, user]);
+
+  const hasOralCoach = getEntitlements(subscriptionTier).hasOralCoach;
 
   const [allScenarios, setAllScenarios] = useState<ScenarioListItem[]>([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -277,6 +305,31 @@ function OralCoachContent() {
     ...turnsRef.current,
     ...(currentCoachTurn.current ? [{ role: "coach" as const, text: currentCoachTurn.current }] : []),
   ];
+
+  // undefined = palier pas encore chargé -- ne rien afficher pour éviter un
+  // flash du catalogue avant de le remplacer par l'écran verrouillé.
+  if (subscriptionTier === undefined) {
+    return <div className="flex justify-center h-screen items-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
+  }
+
+  if (!hasOralCoach) {
+    return (
+      <div className="max-w-2xl mx-auto p-8 py-24 text-center space-y-6">
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">
+          <Lock className="w-7 h-7 text-indigo-600" />
+        </div>
+        <h1 className="text-2xl font-black text-zinc-900">Le Coach Oral n'est pas inclus dans votre abonnement actuel</h1>
+        <p className="text-zinc-500 font-medium">
+          Passez au palier Premium pour débloquer les mises en situation orales avec le Coach IA : session vocale en temps réel, transcription en direct et correction détaillée selon la grille officielle TEF IRN.
+        </p>
+        <Link href="/tef-irn/pricing">
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 rounded-xl shadow-lg shadow-indigo-100">
+            Voir les abonnements
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
