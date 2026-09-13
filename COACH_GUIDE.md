@@ -12,7 +12,7 @@ Le Coach IA est un chatbot pédagogique conçu pour aider les élèves à prépa
 - **Runtime** : Next.js Edge Function (`export const runtime = 'edge'`), pas une Edge Function Supabase.
 - **SDK** : Vercel AI SDK (`streamText`, `@ai-sdk/openai`), modèle `gpt-4o-mini`.
 - **Auth** : session Supabase lue via cookies (`@supabase/ssr`) ; requête rejetée (401) sans utilisateur connecté.
-- **Rate limiting** : `checkAiRateLimit(userId, 'coach_chat', tier)` — voir `docs/architecture/ai-systems.md` §5 pour les quotas (15/jour en Free, 300/jour en Premium). Utilise la table `ai_usage_daily`, **pas** `ai_credits`/`decrement_ai_credits`.
+- **Rate limiting** : `checkAiRateLimit(userId, 'coach_chat', tier)` — voir `docs/architecture/ai-systems.md` §5 pour les quotas (0/jour en Gratuit — 403 direct, non inclus dans ce palier —, 300/jour pour les 3 paliers payants). Utilise la table `ai_usage_daily`, **pas** `ai_credits`/`decrement_ai_credits`.
 - **Contexte de page** : le client envoie un `pageContext` typé (leçon, parcours, écriture, oral, guide, navigation libre) que la route traduit en une phrase de contexte injectée dans le prompt système.
 
 ### Tools exposés au modèle
