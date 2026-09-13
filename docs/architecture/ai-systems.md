@@ -70,7 +70,6 @@ Les 4 paliers réels (`gratuit`, `essentiel`, `premium`, `super_premium`, colonn
 - **Admin** : `/tef-irn/admin/profiles`, sélecteur de palier par compte (route `api/admin/profiles/set-subscription-tier`, loggé dans `admin_actions_log`) — c'est aujourd'hui le seul moyen de changer un palier, aucune intégration Stripe n'existe encore.
 
 ### Écarts connus, non corrigés à ce jour
-- La pratique libre EE (Gratuit) promet "1 correction" sur la pricing page mais le code applique un quota de 3/jour (`writing_correct.gratuit`) — jamais réconcilié.
 - Aucun test A/B ni donnée d'usage réel n'a servi à fixer les 6 chiffres du tableau ci-dessus (hérités de l'audit sécurité 2026-08, avant même l'existence des 4 paliers) — une recalibration reste à faire.
 
 ---
