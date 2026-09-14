@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { useCivicContext } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
+import { captureEvent } from "@/lib/analytics";
 import { ExerciseLayout } from "@/components/shared/ExerciseLayout";
 import {
   THEMES,
@@ -139,6 +140,13 @@ function CivicExamContent() {
   const questionsRef = useRef<CivicQuestion[]>([]);
   useEffect(() => { answersRef.current = examAnswers; }, [examAnswers]);
   useEffect(() => { questionsRef.current = questions; }, [questions]);
+
+  // Mesure la traction réelle de l'examen blanc Examen Civique (item 2 du plan
+  // MoSCoW "Valorisation & instrumentation Examen Civique").
+  useEffect(() => {
+    captureEvent("civic_page_viewed", { page: "examen_blanc" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Détecte une session interrompue (refresh, crash d'onglet...) au chargement : reprise si le
   // temps n'est pas écoulé, soumission automatique sinon (l'utilisateur voit alors son résultat).
@@ -437,7 +445,11 @@ function CivicExamContent() {
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
               )}
               <div className="flex flex-col gap-3">
-                <Button onClick={startExam} disabled={loading} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm">
+                <Button
+                  onClick={() => { captureEvent("civic_training_started", { page: "examen_blanc" }); startExam(); }}
+                  disabled={loading}
+                  className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
+                >
                   {loading ? <Loader2 className="animate-spin" size={18} /> : <>C'est parti <ArrowRight className="ml-2" size={16} /></>}
                 </Button>
                 <Link href="/examen-civique">
@@ -534,12 +546,19 @@ function CivicExamContent() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Link href="/tef-irn/login?from=examen_civique_result" className="flex-1">
+                <Link
+                  href="/tef-irn/login?from=examen_civique_result"
+                  onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "examen_blanc", cta: "essai_gratuit" })}
+                  className="flex-1"
+                >
                   <Button className="w-full h-11 bg-white text-indigo-700 rounded-2xl font-black text-sm hover:bg-indigo-50">
                     Essayer gratuitement <ArrowRight className="ml-2" size={15} />
                   </Button>
                 </Link>
-                <Link href="/tef-irn/pricing">
+                <Link
+                  href="/tef-irn/pricing"
+                  onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "examen_blanc", cta: "tarifs" })}
+                >
                   <Button variant="secondary" className="h-11 px-4 bg-indigo-500 border-none text-white rounded-2xl font-black text-sm hover:bg-indigo-400">
                     Tarifs
                   </Button>
