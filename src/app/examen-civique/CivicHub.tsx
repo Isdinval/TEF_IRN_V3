@@ -7,6 +7,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
 import { InfoTooltip } from "@/components/features/examen-civique/InfoTooltip";
+import { captureEvent } from "@/lib/analytics";
 import {
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
@@ -101,6 +102,14 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const last5Count = last5.length;
   const last5Average = last5Count > 0 ? Math.round(last5.reduce((sum, a) => sum + a.score, 0) / last5Count) : null;
   const isExamReady = last5Average !== null && last5Average >= EXAM_PASS_THRESHOLD;
+
+  // Mesure la traction réelle du hub Examen Civique (item 2 du plan MoSCoW
+  // "Valorisation & instrumentation Examen Civique") — aucune vue n'était
+  // mesurée avant ce jour sur ce produit.
+  useEffect(() => {
+    captureEvent("civic_page_viewed", { page: "hub" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setPageContext({
@@ -231,7 +240,10 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
             LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 32,90 €/mois.
           </p>
-          <Link href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}>
+          <Link
+            href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}
+            onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "hub", cta: "decouvrir_llamakusi" })}
+          >
             <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
               Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
             </Button>

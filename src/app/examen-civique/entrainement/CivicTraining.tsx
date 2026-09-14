@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
+import { captureEvent } from "@/lib/analytics";
 import { THEMES, MENTIONS, mentionLabel, EXAM_MISTAKES_STORAGE_KEY } from "@/lib/civic-constants";
 import { updateCivicSRS } from "@/lib/civic-srs-engine";
 import { getLocalDueQuestionIds, updateLocalCivicSRS, recordCivicSession } from "@/lib/civic-local-store";
@@ -73,6 +74,13 @@ function CivicTrainingContent() {
   }, [supabase]);
 
   useEffect(() => { fetchDueCount(); }, [fetchDueCount]);
+
+  // Mesure la traction réelle de l'entraînement Examen Civique (item 2 du plan
+  // MoSCoW "Valorisation & instrumentation Examen Civique").
+  useEffect(() => {
+    captureEvent("civic_page_viewed", { page: "entrainement" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Contexte coach : uniquement pendant la session démarrée, pas sur l'écran de sélection.
   useEffect(() => {
@@ -330,7 +338,11 @@ function CivicTrainingContent() {
 
               <div className="flex flex-col gap-3">
                 <Button
-                  onClick={() => { setStarted(true); startTraining(activeMode === "memoriser"); }}
+                  onClick={() => {
+                    captureEvent("civic_training_started", { page: "entrainement", mode: activeMode });
+                    setStarted(true);
+                    startTraining(activeMode === "memoriser");
+                  }}
                   disabled={loading}
                   className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm"
                 >
@@ -402,7 +414,11 @@ function CivicTrainingContent() {
               <p className="text-[11px] text-indigo-500 font-medium">
                 Vous préparez aussi le TEF IRN ? Découvrez LlamaKusi.
               </p>
-              <Link href="/tef-irn/login?from=examen_civique_srs" className="inline-block text-xs font-black text-indigo-600 hover:underline">
+              <Link
+                href="/tef-irn/login?from=examen_civique_srs"
+                onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "entrainement", cta: "creer_compte" })}
+                className="inline-block text-xs font-black text-indigo-600 hover:underline"
+              >
                 Créer mon compte gratuitement →
               </Link>
             </div>
