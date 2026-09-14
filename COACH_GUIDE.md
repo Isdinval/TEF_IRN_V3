@@ -12,7 +12,7 @@ Le Coach IA est un chatbot pédagogique conçu pour aider les élèves à prépa
 - **Runtime** : Next.js Edge Function (`export const runtime = 'edge'`), pas une Edge Function Supabase.
 - **SDK** : Vercel AI SDK (`streamText`, `@ai-sdk/openai`), modèle `gpt-4o-mini`.
 - **Auth** : session Supabase lue via cookies (`@supabase/ssr`) ; requête rejetée (401) sans utilisateur connecté.
-- **Rate limiting** : `checkAiRateLimit(userId, 'coach_chat', tier)` — voir `docs/architecture/ai-systems.md` §5 pour les quotas (15/jour en Free, 300/jour en Premium). Utilise la table `ai_usage_daily`, **pas** `ai_credits`/`decrement_ai_credits`.
+- **Rate limiting** : `checkAiRateLimit(userId, 'coach_chat', tier)` — voir `docs/architecture/ai-systems.md` §5 pour les quotas (0/jour en Gratuit — 403 direct, non inclus dans ce palier —, 300/jour pour les 3 paliers payants). Utilise la table `ai_usage_daily`, **pas** `ai_credits`/`decrement_ai_credits`.
 - **Contexte de page** : le client envoie un `pageContext` typé (leçon, parcours, écriture, oral, guide, navigation libre) que la route traduit en une phrase de contexte injectée dans le prompt système.
 
 ### Tools exposés au modèle
@@ -41,9 +41,9 @@ Le dossier `supabase/functions/coach-chat/` existe toujours et implémente une *
 1. Code mort à supprimer (Edge Function + migrations `20240520000016_coach_chat.sql` / `20240520000017_coach_rag_v2.sql` si rien d'autre n'en dépend).
 2. Prototype d'une v2 (RAG vectoriel + génération d'exercices) en pause, à ne pas supprimer.
 
-## Persistance de l'historique : incomplète en l'état
+## Persistance de l'historique
 
-La route sauvegarde la réponse de l'assistant dans `chat_messages` **si** un `sessionId` est fourni dans le corps de la requête (`onFinish`). Aucun code identifié dans `ChatCoach.tsx` / `CoachContext.tsx` ne génère ou ne transmet ce `sessionId` aujourd'hui, ni ne sauvegarde le message de l'utilisateur — la persistance semble actuellement inatteignable en pratique. À vérifier côté produit si c'est un chantier en cours ou un oubli.
+La route sauvegarde à la fois le message utilisateur (à la réception de la requête) et la réponse de l'assistant (`onFinish`) dans `chat_messages`. `ChatCoach.tsx` génère un `sessionId` (`crypto.randomUUID()`) dès le montage et crée la ligne `chat_sessions` correspondante au premier envoi réel — les deux écritures sont best-effort et ne bloquent jamais la réponse du coach en cas d'échec.
 
 ## Déploiement
 
