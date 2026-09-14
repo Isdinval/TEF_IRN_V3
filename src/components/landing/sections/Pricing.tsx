@@ -106,7 +106,7 @@ export function Pricing() {
           </p>
 
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black">
-            🎓 L&apos;entraînement Examen Civique est 100% gratuit, sans carte bancaire — inclus dans tous les plans.
+            🎓 Ailleurs jusqu&apos;à 25€, l&apos;entraînement Examen Civique est 100% gratuit chez LlamaKusi, sans carte bancaire — inclus dans tous les plans.
           </div>
 
           {/* Billing toggle */}
