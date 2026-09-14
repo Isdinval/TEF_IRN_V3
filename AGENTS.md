@@ -303,6 +303,8 @@ Olivier préfère que les réponses (analyses, résumés, "prochaines étapes") 
 
 Quand un plan (ensemble d'items validés par Olivier) est entièrement livré — dernier patch du lot — toujours fournir automatiquement, sans qu'il ait à le redemander, un titre de PR suggéré + une description Markdown prête à coller (section "Résumé", "Changements" en liste à puces reprenant les vrais commits du plan via `git log <base>..HEAD --oneline --no-merges`, et "Tests effectués" si des vérifications ont été faites : `tsc --noEmit`, `npm run lint`, `npm run build`, requêtes Supabase de contrôle, etc.). Ne pas inventer de contenu : la description reflète les commits réels, pas un résumé approximatif de la conversation.
 
+⚠️ **Ne jamais ajouter de ligne d'attribution IA** (type "🤖 Generated with [Claude Code](...)" ou toute variante, quel que soit l'agent utilisé) dans une description de PR ou un message de commit sur ce projet. Olivier est toujours l'auteur/générateur déclaré du code, quel que soit l'outil utilisé pour le produire.
+
 ---
 
 ## Domaine métier — TEF IRN
