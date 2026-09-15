@@ -130,10 +130,13 @@ export function summarizeGuideLinks(content: string | null | undefined): GuideLi
 // aujourd'hui à la main (guides orphelins, piliers non reliés au hub, etc.).
 
 export interface GuideForGraph {
+  id: string;
   slug: string;
   product: GuideProduct;
   silo_role: GuideSiloRole;
   content: string | null;
+  /** Rattachement voulu, edite dans l'admin (colonne guides.parent_guide_id, migration 20260915000001). */
+  parent_guide_id?: string | null;
 }
 
 export interface ResolvedGuideLink extends GuideLinkRef {
@@ -147,9 +150,12 @@ export interface InboundGuideLink extends GuideLinkRef {
 }
 
 export interface GuideGraphNode {
+  id: string;
   slug: string;
   product: GuideProduct;
   siloRole: GuideSiloRole;
+  /** Rattachement voulu (parent_guide_id) - null pour le hub ou un guide non rattache. */
+  parentGuideId: string | null;
   outboundGuideLinks: ResolvedGuideLink[];
   productLinks: string[];
   externalLinks: GuideExternalLinkRef[];
@@ -162,7 +168,8 @@ export type GuideGraphIssueType =
   | "pilier_without_hub_link"
   | "pilier_without_satellites"
   | "hub_without_piliers"
-  | "broken_internal_link";
+  | "broken_internal_link"
+  | "declared_parent_not_linked";
 
 export interface GuideGraphIssue {
   slug: string;
@@ -184,8 +191,10 @@ function guideKey(product: GuideProduct, slug: string): string {
 /** Construit le graphe de maillage réel + la liste des écarts, à partir de tous les guides (typiquement les publiés). */
 export function buildGuideLinkGraph(guides: GuideForGraph[]): GuideLinkGraph {
   const guideByKey = new Map<string, GuideForGraph>();
+  const guideById = new Map<string, GuideForGraph>();
   for (const guide of guides) {
     guideByKey.set(guideKey(guide.product, guide.slug), guide);
+    guideById.set(guide.id, guide);
   }
 
   // Première passe : liens sortants résolus (guide cible trouvée ou non) par guide.
@@ -220,9 +229,11 @@ export function buildGuideLinkGraph(guides: GuideForGraph[]): GuideLinkGraph {
     const key = guideKey(guide.product, guide.slug);
     const { summary, resolvedGuideLinks } = outboundByKey.get(key)!;
     return {
+      id: guide.id,
       slug: guide.slug,
       product: guide.product,
       siloRole: guide.silo_role,
+      parentGuideId: guide.parent_guide_id ?? null,
       outboundGuideLinks: resolvedGuideLinks,
       productLinks: summary.productLinks,
       externalLinks: summary.externalLinks,
@@ -275,6 +286,27 @@ export function buildGuideLinkGraph(guides: GuideForGraph[]): GuideLinkGraph {
       const hasPilierBelow = node.outboundGuideLinks.some((l) => l.exists && l.siloRole === "pilier");
       if (!hasPilierBelow) {
         issues.push({ slug: node.slug, product: node.product, type: "hub_without_piliers" });
+      }
+    }
+
+    // Rattachement voulu (parent_guide_id) vs liens reels : le cas le plus actionnable, plus
+    // precis que orphan/satellite_without_pilier_link/pilier_without_hub_link qui acceptent
+    // n'importe quel pilier/hub - ici on verifie le lien vers LE parent explicitement declare.
+    if (node.parentGuideId) {
+      const parentGuide = guideById.get(node.parentGuideId);
+      if (parentGuide) {
+        const parentKey = guideKey(parentGuide.product, parentGuide.slug);
+        const linkedToDeclaredParent =
+          node.outboundGuideLinks.some((l) => l.exists && guideKey(l.product, l.slug) === parentKey) ||
+          node.inboundGuideLinks.some((l) => guideKey(l.product, l.slug) === parentKey);
+        if (!linkedToDeclaredParent) {
+          issues.push({
+            slug: node.slug,
+            product: node.product,
+            type: "declared_parent_not_linked",
+            detail: parentKey,
+          });
+        }
       }
     }
   }
