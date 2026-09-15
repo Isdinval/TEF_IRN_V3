@@ -34,11 +34,12 @@ const CATEGORY_LABELS: Record<HealthCategory, string> = {
   maillage: "Maillage (rejoint l'onglet Graphe)",
   complétude: "Complétude éditoriale",
   fraîcheur: "Fraîcheur",
+  "cta à risque": "CTA à risque (fonctionnalité payante dite gratuite)",
 };
 
 function ScoreLegend() {
   const [open, setOpen] = useState(false);
-  const categories: HealthCategory[] = ["maillage", "complétude", "fraîcheur"];
+  const categories: HealthCategory[] = ["maillage", "complétude", "fraîcheur", "cta à risque"];
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm">
       <button

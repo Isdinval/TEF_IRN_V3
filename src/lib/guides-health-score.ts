@@ -1,4 +1,5 @@
 import type { GuideGraphIssue, GuideGraphIssueType } from "@/lib/guides-link-graph";
+import { detectCtaRisk } from "@/lib/guides-cta-risk";
 import type { GuideProduct } from "@/types/guides";
 
 // Score de sante par guide (0-100, part de 100 et deduit des points). Trois familles de
@@ -48,7 +49,9 @@ const FRESHNESS_POINTS = {
   staleSevere: 10,
 } as const;
 
-export type HealthCategory = "maillage" | "complétude" | "fraîcheur";
+const CTA_RISK_POINTS = 25;
+
+export type HealthCategory = "maillage" | "complétude" | "fraîcheur" | "cta à risque";
 
 export interface HealthLegendEntry {
   code: string;
@@ -103,6 +106,12 @@ export const HEALTH_SCORE_LEGEND: HealthLegendEntry[] = [
     label: `Pas mis à jour depuis plus de ${Math.round(STALE_DAYS_SEVERE / 30)} mois (cumulatif avec le seuil 6 mois)`,
     points: FRESHNESS_POINTS.staleSevere,
     category: "fraîcheur",
+  },
+  {
+    code: "cta_risk",
+    label: "Fonctionnalité payante décrite comme gratuite dans un CTA (ex. Coach IA Oral)",
+    points: CTA_RISK_POINTS,
+    category: "cta à risque",
   },
 ];
 
@@ -195,6 +204,14 @@ export function computeGuideHealth(
       code: "stale_warning",
       label: `Pas mis à jour depuis ${Math.floor(staleDays / 30)} mois`,
       points: FRESHNESS_POINTS.staleWarning,
+    });
+  }
+
+  for (const finding of detectCtaRisk(guide.content)) {
+    issues.push({
+      code: "cta_risk",
+      label: `CTA à risque (${finding.featureLabel}) : « ${finding.excerpt} »`,
+      points: CTA_RISK_POINTS,
     });
   }
 
