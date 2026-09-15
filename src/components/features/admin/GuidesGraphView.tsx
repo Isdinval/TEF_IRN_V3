@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   ReactFlow,
   Background,
@@ -10,21 +10,25 @@ import {
   Position,
   type Node,
   type Edge,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import {
   buildGuideLinkGraph,
   type GuideForGraph,
+  type GuideGraphIssue,
 } from "@/lib/guides-link-graph";
-import { computeGuideGraphLayout } from "@/lib/guides-graph-layout";
+import { computeGuideMindmapLayout } from "@/lib/guides-graph-layout";
 import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 
-// Onglet "Graphe" de l'admin des guides : visualise la structure hub -> piliers -> satellites
-// a partir du rattachement voulu (parent_guide_id), et signale les ecarts avec le maillage
-// REEL (liens presents dans `content`), calcules par buildGuideLinkGraph (src/lib/guides-link-graph.ts).
-// Aucune nouvelle table : tout est recalcule a la volee a partir de `guides`.
+// Onglet "Graphe" de l'admin des guides : mindmap radiale (hub au centre, piliers autour,
+// satellites autour de leur pilier), a partir du rattachement voulu (parent_guide_id). Chaque
+// cellule affiche le titre complet, les badges (role/produit/brouillon) et la liste en clair des
+// ecarts detectes par buildGuideLinkGraph (src/lib/guides-link-graph.ts) - pas juste un compteur.
+// Un navigateur Precedent/Suivant fait defiler les guides en ecart et centre/zoome le mindmap
+// dessus. Aucune nouvelle table : tout est recalcule a la volee a partir de `guides`.
 
 interface GuideRowForGraph {
   id: string;
@@ -47,13 +51,20 @@ const ISSUE_LABELS: Record<string, string> = {
   declared_parent_not_linked: "Rattaché en base mais pas linké dans le contenu",
 };
 
+function formatIssue(issue: GuideGraphIssue): string {
+  const base = ISSUE_LABELS[issue.type] || issue.type;
+  return issue.detail ? `${base} → ${issue.detail}` : base;
+}
+
 interface GuideNodeData {
   title: string;
   slug: string;
+  product: GuideProduct;
   siloRole: GuideSiloRole;
   isPublished: boolean;
   externalCount: number;
-  issueTypes: string[];
+  issueLabels: string[];
+  focused: boolean;
   [key: string]: unknown;
 }
 
@@ -64,32 +75,37 @@ function GuideFlowNode({ data }: { data: GuideNodeData }) {
       : data.siloRole === "pilier"
         ? "bg-blue-50 text-blue-900 border-blue-300"
         : "bg-white text-zinc-700 border-zinc-200";
-  const hasIssue = data.issueTypes.length > 0;
+  const sizeClass = data.siloRole === "hub" ? "w-[260px]" : data.siloRole === "pilier" ? "w-[230px]" : "w-[210px]";
+  const hasIssue = data.issueLabels.length > 0;
   return (
     <div
-      className={`relative px-3 py-2 rounded-xl border-2 shadow-sm text-xs w-[170px] ${roleClass} ${
+      className={`relative px-3 py-2.5 rounded-2xl border-2 shadow-sm text-xs transition-all ${sizeClass} ${roleClass} ${
         hasIssue ? "ring-2 ring-red-400" : ""
-      } ${!data.isPublished ? "opacity-60 border-dashed" : ""}`}
-      title={data.issueTypes.map((t) => ISSUE_LABELS[t] || t).join("\n")}
+      } ${!data.isPublished ? "opacity-70 border-dashed" : ""} ${
+        data.focused ? "ring-4 ring-yellow-400 shadow-2xl scale-105 z-10" : ""
+      }`}
     >
       <Handle type="target" position={Position.Top} />
-      <p className="font-black truncate">{data.title}</p>
-      <p className="truncate opacity-70">{data.slug}</p>
-      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-        {data.externalCount > 0 && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-            {data.externalCount} ext.
-          </span>
-        )}
+      <p className="font-black leading-snug">{data.title}</p>
+      <p className="opacity-60 mt-0.5 break-all">{data.slug}</p>
+      <div className="flex gap-1 mt-1.5 flex-wrap">
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/10">{data.product}</span>
         {!data.isPublished && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">brouillon</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-800">brouillon</span>
         )}
-        {hasIssue && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">
-            {data.issueTypes.length} écart{data.issueTypes.length > 1 ? "s" : ""}
-          </span>
+        {data.externalCount > 0 && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/10">{data.externalCount} ext.</span>
         )}
       </div>
+      {hasIssue && (
+        <ul className="mt-1.5 space-y-0.5 border-t border-black/10 pt-1.5">
+          {data.issueLabels.map((label, i) => (
+            <li key={i} className="text-red-600 font-bold text-[10px] leading-snug">
+              ⚠ {label}
+            </li>
+          ))}
+        </ul>
+      )}
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -102,6 +118,9 @@ export default function GuidesGraphView() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<GuideRowForGraph[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [issueNavIndex, setIssueNavIndex] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -132,42 +151,71 @@ export default function GuidesGraphView() {
     return buildGuideLinkGraph(forGraph);
   }, [rows]);
 
-  const positions = useMemo(() => computeGuideGraphLayout(graph.nodes), [graph.nodes]);
-  const positionById = useMemo(() => new Map(positions.map((p) => [p.id, p])), [positions]);
+  const positions = useMemo(() => computeGuideMindmapLayout(graph.nodes), [graph.nodes]);
+  const positionById = useMemo(() => new Map(positions.map((p) => [p.id, { x: p.x, y: p.y }])), [positions]);
   const rowById = useMemo(() => new Map(rows.map((r) => [r.id, r])), [rows]);
 
-  const issuesByGuideKey = useMemo(() => {
+  const issueLabelsByKey = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const issue of graph.issues) {
       const key = `${issue.product}/${issue.slug}`;
       const bucket = map.get(key) ?? [];
-      bucket.push(issue.type);
+      bucket.push(formatIssue(issue));
       map.set(key, bucket);
     }
     return map;
   }, [graph.issues]);
+
+  // Liste ordonnee (pire en premier) des guides en ecart, pour le navigateur Precedent/Suivant.
+  const nodesWithIssues = useMemo(() => {
+    return graph.nodes
+      .map((n) => ({ node: n, labels: issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [] }))
+      .filter((x) => x.labels.length > 0)
+      .sort((a, b) => b.labels.length - a.labels.length);
+  }, [graph.nodes, issueLabelsByKey]);
+
+  useEffect(() => {
+    // Si la liste change (chargement, edition ailleurs) et que l'index pointe hors bornes.
+    if (issueNavIndex >= nodesWithIssues.length) setIssueNavIndex(0);
+  }, [nodesWithIssues.length, issueNavIndex]);
+
+  const goToIssue = useCallback(
+    (index: number) => {
+      if (nodesWithIssues.length === 0) return;
+      const clamped = ((index % nodesWithIssues.length) + nodesWithIssues.length) % nodesWithIssues.length;
+      setIssueNavIndex(clamped);
+      const target = nodesWithIssues[clamped].node;
+      setFocusedId(target.id);
+      const pos = positionById.get(target.id);
+      if (pos && rfInstance) {
+        rfInstance.setCenter(pos.x + 100, pos.y + 40, { zoom: 1.1, duration: 600 });
+      }
+    },
+    [nodesWithIssues, positionById, rfInstance]
+  );
 
   const flowNodes: Node[] = useMemo(
     () =>
       graph.nodes.map((n) => {
         const row = rowById.get(n.id);
         const pos = positionById.get(n.id) ?? { x: 0, y: 0 };
-        const issueTypes = issuesByGuideKey.get(`${n.product}/${n.slug}`) ?? [];
         return {
           id: n.id,
           type: "guideNode",
-          position: { x: pos.x, y: pos.y },
+          position: pos,
           data: {
             title: row?.title ?? n.slug,
             slug: n.slug,
+            product: n.product,
             siloRole: n.siloRole,
             isPublished: row?.is_published ?? true,
             externalCount: n.externalLinks.length,
-            issueTypes,
+            issueLabels: issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [],
+            focused: n.id === focusedId,
           } as GuideNodeData,
         };
       }),
-    [graph.nodes, rowById, positionById, issuesByGuideKey]
+    [graph.nodes, rowById, positionById, issueLabelsByKey, focusedId]
   );
 
   const flowEdges: Edge[] = useMemo(
@@ -175,26 +223,18 @@ export default function GuidesGraphView() {
       graph.nodes
         .filter((n) => n.parentGuideId)
         .map((n) => {
-          const mismatched = (issuesByGuideKey.get(`${n.product}/${n.slug}`) ?? []).includes(
-            "declared_parent_not_linked"
+          const mismatched = (issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? []).some((l) =>
+            l.startsWith(ISSUE_LABELS.declared_parent_not_linked)
           );
           return {
             id: `${n.parentGuideId}->${n.id}`,
             source: n.parentGuideId as string,
             target: n.id,
-            style: mismatched
-              ? { stroke: "#dc2626", strokeDasharray: "4 4" }
-              : { stroke: "#a1a1aa" },
+            style: mismatched ? { stroke: "#dc2626", strokeDasharray: "4 4" } : { stroke: "#a1a1aa" },
           };
         }),
-    [graph.nodes, issuesByGuideKey]
+    [graph.nodes, issueLabelsByKey]
   );
-
-  const issueCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const issue of graph.issues) counts[issue.type] = (counts[issue.type] ?? 0) + 1;
-    return counts;
-  }, [graph.issues]);
 
   if (loading) {
     return (
@@ -207,23 +247,42 @@ export default function GuidesGraphView() {
     return <p className="text-red-600 text-sm p-6">{errorMsg}</p>;
   }
 
+  const current = nodesWithIssues[issueNavIndex];
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {Object.keys(issueCounts).length === 0 ? (
-          <span className="text-xs px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
-            Aucun écart détecté
-          </span>
-        ) : (
-          Object.entries(issueCounts).map(([type, count]) => (
-            <span key={type} className="text-xs px-3 py-1.5 rounded-full bg-red-50 text-red-700 font-bold">
-              {count} · {ISSUE_LABELS[type] || type}
-            </span>
-          ))
-        )}
+      <div className="flex items-center gap-3 bg-white rounded-2xl border border-zinc-200 p-3">
+        <button
+          onClick={() => goToIssue(issueNavIndex - 1)}
+          disabled={nodesWithIssues.length === 0}
+          className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600 disabled:opacity-30"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="flex-1 min-w-0">
+          {nodesWithIssues.length === 0 ? (
+            <p className="text-sm font-black text-emerald-600">Aucun écart détecté 🎉</p>
+          ) : (
+            <>
+              <p className="text-xs text-zinc-400 font-bold">
+                Écart {issueNavIndex + 1}/{nodesWithIssues.length} — {current.labels.length} problème
+                {current.labels.length > 1 ? "s" : ""} sur ce guide
+              </p>
+              <p className="text-sm font-black truncate">{current.node.slug}</p>
+            </>
+          )}
+        </div>
+        <button
+          onClick={() => goToIssue(issueNavIndex + 1)}
+          disabled={nodesWithIssues.length === 0}
+          className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600 disabled:opacity-30"
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
-      <div className="h-[70vh] rounded-2xl border border-zinc-200 overflow-hidden">
-        <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={nodeTypes} fitView>
+
+      <div className="h-[75vh] rounded-2xl border border-zinc-200 overflow-hidden">
+        <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={nodeTypes} onInit={setRfInstance} fitView>
           <Background />
           <Controls />
           <MiniMap />
@@ -231,7 +290,7 @@ export default function GuidesGraphView() {
       </div>
       <p className="text-xs text-zinc-400">
         Trait pointillé rouge = rattaché en base mais aucun lien réel trouvé dans le contenu. Bordure en
-        pointillés = guide non publié. Passer la souris sur un nœud avec écart(s) affiche le détail.
+        pointillés = guide non publié. Les écarts d&apos;un guide sont listés directement dans sa cellule.
       </p>
     </div>
   );
