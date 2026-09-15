@@ -23,6 +23,10 @@ import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 import { GuideType, GuideSiloRole } from "@/types/guides";
 import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
+import GuidesGraphView from "@/components/features/admin/GuidesGraphView";
+import GuidesHealthView from "@/components/features/admin/GuidesHealthView";
+import GuidesCannibalizationView from "@/components/features/admin/GuidesCannibalizationView";
+import GuidesLinkRotView from "@/components/features/admin/GuidesLinkRotView";
 
 // `product` est maintenant une colonne en base (migration 20260729000008) : le select
 // ci-dessous reste contraint pour éviter de mélanger une catégorie civique avec product=tef-irn,
@@ -52,6 +56,7 @@ interface GuideRow {
   type: GuideType;
   product: Product;
   silo_role: GuideSiloRole;
+  parent_guide_id: string | null;
   description: string | null;
   content: string | null;
   reading_time: number | null;
@@ -70,6 +75,20 @@ interface GuideRow {
 interface ParcoursOption {
   id: string;
   nom_parcours: string;
+}
+
+// Options de rattachement (parent_guide_id), dans les deux sens :
+// - vers le haut : un satellite/pilier choisit son parent (pilier/hub) - parentOptionsForForm.
+// - vers le bas : en editant un hub/pilier, on voit/gere ses enfants (piliers/satellites) -
+//   childOptionsForForm. Recupere a part (comme parcoursOptions) plutot que via `guides`, qui
+//   est deja filtre par la recherche/le filtre produit de la liste admin.
+interface GuideRelationOption {
+  id: string;
+  slug: string;
+  title: string;
+  silo_role: GuideSiloRole;
+  product: Product;
+  parent_guide_id: string | null;
 }
 
 // Forme du fichier <slug>.json produit par le skill de création de guide.
@@ -110,6 +129,7 @@ const EMPTY_FORM = {
   level: "",
   type: "thematique" as GuideType,
   siloRole: "satellite" as GuideSiloRole,
+  parentGuideId: "",
   description: "",
   content: "",
   readingTime: "",
@@ -130,12 +150,17 @@ export default function GuidesAdmin() {
   const authState = useAdminGuard();
   const [guides, setGuides] = useState<GuideRow[]>([]);
   const [parcoursOptions, setParcoursOptions] = useState<ParcoursOption[]>([]);
+  const [guideRelationOptions, setGuideRelationOptions] = useState<GuideRelationOption[]>([]);
+  const [originalChildIds, setOriginalChildIds] = useState<Set<string>>(new Set());
+  const [selectedChildIds, setSelectedChildIds] = useState<Set<string>>(new Set());
+  const [childFilterText, setChildFilterText] = useState("");
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [productFilter, setProductFilter] = useState<"Tous" | Product>("Tous");
   const [publishedFilter, setPublishedFilter] = useState<"Tous" | "true" | "false">("Tous");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"liste" | "graphe" | "sante" | "cannibalisation" | "liens-externes">("liste");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
@@ -182,9 +207,61 @@ export default function GuidesAdmin() {
       .then(({ data }: { data: ParcoursOption[] | null }) => setParcoursOptions(data || []));
   }, [authState, supabase]);
 
+  const refetchGuideRelationOptions = useCallback(async () => {
+    const { data } = await supabase
+      .from("guides")
+      .select("id, slug, title, silo_role, product, parent_guide_id")
+      .order("title");
+    setGuideRelationOptions((data as GuideRelationOption[]) || []);
+  }, [supabase]);
+
+  useEffect(() => {
+    if (authState === "granted") refetchGuideRelationOptions();
+  }, [authState, refetchGuideRelationOptions]);
+
+  // Un satellite ne peut se rattacher qu'a un pilier du meme produit ; un pilier, qu'au hub
+  // (tous produits, il n'en existe qu'un aujourd'hui) ; un hub n'a pas de parent.
+  const parentOptionsForForm = useMemo(() => {
+    const candidates = guideRelationOptions.filter((o) => o.id !== editingId && o.silo_role !== "satellite");
+    if (form.siloRole === "pilier") return candidates.filter((o) => o.silo_role === "hub");
+    if (form.siloRole === "satellite")
+      return candidates.filter((o) => o.silo_role === "pilier" && o.product === form.product);
+    return [];
+  }, [guideRelationOptions, form.siloRole, form.product, editingId]);
+
+  // Sens descendant : en editant un hub, on gere ses piliers ; en editant un pilier, ses
+  // satellites (meme produit). Uniquement disponible en edition (un guide tout juste cree n'a
+  // pas encore d'enfants a rattacher).
+  const childOptionsForForm = useMemo(() => {
+    if (!editingId) return [];
+    if (form.siloRole === "hub") return guideRelationOptions.filter((o) => o.silo_role === "pilier");
+    if (form.siloRole === "pilier")
+      return guideRelationOptions.filter((o) => o.silo_role === "satellite" && o.product === form.product);
+    return [];
+  }, [guideRelationOptions, form.siloRole, form.product, editingId]);
+
+  const filteredChildOptions = useMemo(() => {
+    const term = childFilterText.trim().toLowerCase();
+    if (!term) return childOptionsForForm;
+    return childOptionsForForm.filter(
+      (o) => o.title.toLowerCase().includes(term) || o.slug.toLowerCase().includes(term)
+    );
+  }, [childOptionsForForm, childFilterText]);
+
+  const toggleChild = (id: string) => {
+    setSelectedChildIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const openCreateDialog = () => {
     setEditingId(null);
     setForm({ ...EMPTY_FORM });
+    setOriginalChildIds(new Set());
+    setSelectedChildIds(new Set());
+    setChildFilterText("");
     setErrorMsg(null);
     setJsonImportStatus(null);
     setMdImportStatus(null);
@@ -193,6 +270,12 @@ export default function GuidesAdmin() {
 
   const openEditDialog = (g: GuideRow) => {
     setEditingId(g.id);
+    const currentChildIds = new Set(
+      guideRelationOptions.filter((o) => o.parent_guide_id === g.id).map((o) => o.id)
+    );
+    setOriginalChildIds(currentChildIds);
+    setSelectedChildIds(new Set(currentChildIds));
+    setChildFilterText("");
     setForm({
       product: g.product,
       title: g.title,
@@ -202,6 +285,7 @@ export default function GuidesAdmin() {
       level: g.level || "",
       type: g.type || "thematique",
       siloRole: g.silo_role || "satellite",
+      parentGuideId: g.parent_guide_id || "",
       description: g.description || "",
       content: g.content || "",
       readingTime: g.reading_time ? String(g.reading_time) : "",
@@ -336,6 +420,7 @@ export default function GuidesAdmin() {
         level: form.level.trim() || null,
         type: form.type,
         silo_role: form.siloRole,
+        parent_guide_id: form.siloRole === "hub" ? null : form.parentGuideId || null,
         description: form.description.trim() || null,
         content: form.content,
         reading_time: form.readingTime ? Number(form.readingTime) : null,
@@ -354,8 +439,31 @@ export default function GuidesAdmin() {
         ? await supabase.from("guides").update(payload).eq("id", editingId)
         : await supabase.from("guides").insert(payload);
       if (error) throw error;
+
+      // Sens descendant : applique le diff enfants attaches/detaches (uniquement en edition,
+      // hub/pilier - un satellite n'a pas d'enfants).
+      if (editingId && form.siloRole !== "satellite") {
+        const toAttach = [...selectedChildIds].filter((id) => !originalChildIds.has(id));
+        const toDetach = [...originalChildIds].filter((id) => !selectedChildIds.has(id));
+        if (toAttach.length > 0) {
+          const { error: attachError } = await supabase
+            .from("guides")
+            .update({ parent_guide_id: editingId })
+            .in("id", toAttach);
+          if (attachError) throw attachError;
+        }
+        if (toDetach.length > 0) {
+          const { error: detachError } = await supabase
+            .from("guides")
+            .update({ parent_guide_id: null })
+            .in("id", toDetach);
+          if (detachError) throw detachError;
+        }
+      }
+
       setDialogOpen(false);
       fetchGuides();
+      refetchGuideRelationOptions();
     } catch (err: any) {
       console.error("Error saving guide:", err);
       setErrorMsg(err?.message || "Erreur lors de l'enregistrement.");
@@ -396,6 +504,46 @@ export default function GuidesAdmin() {
         </Button>
       </header>
 
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab("liste")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "liste" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Liste
+        </button>
+        <button
+          onClick={() => setActiveTab("graphe")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "graphe" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Graphe
+        </button>
+        <button
+          onClick={() => setActiveTab("sante")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "sante" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Santé
+        </button>
+        <button
+          onClick={() => setActiveTab("cannibalisation")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "cannibalisation" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Cannibalisation
+        </button>
+        <button
+          onClick={() => setActiveTab("liens-externes")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "liens-externes" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Liens externes
+        </button>
+      </div>
+
+      {activeTab === "graphe" && <GuidesGraphView />}
+      {activeTab === "sante" && <GuidesHealthView />}
+      {activeTab === "cannibalisation" && <GuidesCannibalizationView />}
+      {activeTab === "liens-externes" && <GuidesLinkRotView />}
+
+      {activeTab === "liste" && (
+        <>
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={productFilter} onChange={(e) => setProductFilter(e.target.value as any)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les produits</option>
@@ -464,6 +612,8 @@ export default function GuidesAdmin() {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -592,11 +742,57 @@ export default function GuidesAdmin() {
               </div>
               <div>
                 <Label className="text-xs font-black uppercase text-zinc-400">Rôle silo</Label>
-                <select value={form.siloRole} onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <select
+                  value={form.siloRole}
+                  onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole, parentGuideId: "" }))}
+                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                >
                   {SILO_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
             </div>
+
+            {form.siloRole !== "hub" && (
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">
+                  Rattaché à ({form.siloRole === "pilier" ? "le hub" : "quel pilier ?"})
+                </Label>
+                <select
+                  value={form.parentGuideId}
+                  onChange={(e) => setForm((f) => ({ ...f, parentGuideId: e.target.value }))}
+                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                >
+                  <option value="">— Aucun (orphelin) —</option>
+                  {parentOptionsForForm.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
+                </select>
+              </div>
+            )}
+
+            {editingId && form.siloRole !== "satellite" && (
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">
+                  {form.siloRole === "hub" ? "Piliers rattachés" : "Satellites rattachés"} ({selectedChildIds.size})
+                </Label>
+                <Input
+                  value={childFilterText}
+                  onChange={(e) => setChildFilterText(e.target.value)}
+                  className="mt-1"
+                  placeholder="Filtrer par titre ou slug..."
+                />
+                <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-zinc-200 divide-y divide-zinc-100">
+                  {filteredChildOptions.length === 0 && (
+                    <p className="p-3 text-xs text-zinc-400">Aucun {form.siloRole === "hub" ? "pilier" : "satellite (de ce produit)"} ne correspond.</p>
+                  )}
+                  {filteredChildOptions.map((o) => (
+                    <label key={o.id} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50 cursor-pointer">
+                      <input type="checkbox" checked={selectedChildIds.has(o.id)} onChange={() => toggleChild(o.id)} />
+                      <span className="font-bold truncate">{o.title}</span>
+                      <span className="text-xs text-zinc-400 truncate">{o.slug}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label className="text-xs font-black uppercase text-zinc-400">Description (résumé court)</Label>
