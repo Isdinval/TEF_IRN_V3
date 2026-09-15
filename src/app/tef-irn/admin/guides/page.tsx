@@ -52,6 +52,7 @@ interface GuideRow {
   type: GuideType;
   product: Product;
   silo_role: GuideSiloRole;
+  parent_guide_id: string | null;
   description: string | null;
   content: string | null;
   reading_time: number | null;
@@ -70,6 +71,17 @@ interface GuideRow {
 interface ParcoursOption {
   id: string;
   nom_parcours: string;
+}
+
+// Options de rattachement (parent_guide_id) : seuls les hub/pilier peuvent etre parent d'un
+// guide. Recupere a part (comme parcoursOptions) plutot que via `guides`, qui est deja filtre
+// par la recherche/le filtre produit de la liste admin et ne doit pas servir de source pour ca.
+interface ParentGuideOption {
+  id: string;
+  slug: string;
+  title: string;
+  silo_role: GuideSiloRole;
+  product: Product;
 }
 
 // Forme du fichier <slug>.json produit par le skill de création de guide.
@@ -110,6 +122,7 @@ const EMPTY_FORM = {
   level: "",
   type: "thematique" as GuideType,
   siloRole: "satellite" as GuideSiloRole,
+  parentGuideId: "",
   description: "",
   content: "",
   readingTime: "",
@@ -130,6 +143,7 @@ export default function GuidesAdmin() {
   const authState = useAdminGuard();
   const [guides, setGuides] = useState<GuideRow[]>([]);
   const [parcoursOptions, setParcoursOptions] = useState<ParcoursOption[]>([]);
+  const [parentGuideOptions, setParentGuideOptions] = useState<ParentGuideOption[]>([]);
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [productFilter, setProductFilter] = useState<"Tous" | Product>("Tous");
@@ -182,6 +196,26 @@ export default function GuidesAdmin() {
       .then(({ data }: { data: ParcoursOption[] | null }) => setParcoursOptions(data || []));
   }, [authState, supabase]);
 
+  useEffect(() => {
+    if (authState !== "granted") return;
+    supabase
+      .from("guides")
+      .select("id, slug, title, silo_role, product")
+      .in("silo_role", ["hub", "pilier"])
+      .order("title")
+      .then(({ data }: { data: ParentGuideOption[] | null }) => setParentGuideOptions(data || []));
+  }, [authState, supabase]);
+
+  // Un satellite ne peut se rattacher qu'a un pilier du meme produit ; un pilier, qu'au hub
+  // (tous produits, il n'en existe qu'un aujourd'hui) ; un hub n'a pas de parent.
+  const parentOptionsForForm = useMemo(() => {
+    const candidates = parentGuideOptions.filter((o) => o.id !== editingId);
+    if (form.siloRole === "pilier") return candidates.filter((o) => o.silo_role === "hub");
+    if (form.siloRole === "satellite")
+      return candidates.filter((o) => o.silo_role === "pilier" && o.product === form.product);
+    return [];
+  }, [parentGuideOptions, form.siloRole, form.product, editingId]);
+
   const openCreateDialog = () => {
     setEditingId(null);
     setForm({ ...EMPTY_FORM });
@@ -202,6 +236,7 @@ export default function GuidesAdmin() {
       level: g.level || "",
       type: g.type || "thematique",
       siloRole: g.silo_role || "satellite",
+      parentGuideId: g.parent_guide_id || "",
       description: g.description || "",
       content: g.content || "",
       readingTime: g.reading_time ? String(g.reading_time) : "",
@@ -336,6 +371,7 @@ export default function GuidesAdmin() {
         level: form.level.trim() || null,
         type: form.type,
         silo_role: form.siloRole,
+        parent_guide_id: form.siloRole === "hub" ? null : form.parentGuideId || null,
         description: form.description.trim() || null,
         content: form.content,
         reading_time: form.readingTime ? Number(form.readingTime) : null,
@@ -592,11 +628,31 @@ export default function GuidesAdmin() {
               </div>
               <div>
                 <Label className="text-xs font-black uppercase text-zinc-400">Rôle silo</Label>
-                <select value={form.siloRole} onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <select
+                  value={form.siloRole}
+                  onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole, parentGuideId: "" }))}
+                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                >
                   {SILO_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
             </div>
+
+            {form.siloRole !== "hub" && (
+              <div>
+                <Label className="text-xs font-black uppercase text-zinc-400">
+                  Rattaché à ({form.siloRole === "pilier" ? "le hub" : "quel pilier ?"})
+                </Label>
+                <select
+                  value={form.parentGuideId}
+                  onChange={(e) => setForm((f) => ({ ...f, parentGuideId: e.target.value }))}
+                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                >
+                  <option value="">— Aucun (orphelin) —</option>
+                  {parentOptionsForForm.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
+                </select>
+              </div>
+            )}
 
             <div>
               <Label className="text-xs font-black uppercase text-zinc-400">Description (résumé court)</Label>
