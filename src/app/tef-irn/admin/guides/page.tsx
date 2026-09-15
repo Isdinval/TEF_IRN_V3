@@ -24,6 +24,7 @@ import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 import { GuideType, GuideSiloRole } from "@/types/guides";
 import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
 import GuidesGraphView from "@/components/features/admin/GuidesGraphView";
+import GuidesHealthView from "@/components/features/admin/GuidesHealthView";
 
 // `product` est maintenant une colonne en base (migration 20260729000008) : le select
 // ci-dessous reste contraint pour éviter de mélanger une catégorie civique avec product=tef-irn,
@@ -157,7 +158,7 @@ export default function GuidesAdmin() {
   const [publishedFilter, setPublishedFilter] = useState<"Tous" | "true" | "false">("Tous");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"liste" | "graphe">("liste");
+  const [activeTab, setActiveTab] = useState<"liste" | "graphe" | "sante">("liste");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
@@ -514,9 +515,16 @@ export default function GuidesAdmin() {
         >
           Graphe
         </button>
+        <button
+          onClick={() => setActiveTab("sante")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "sante" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Santé
+        </button>
       </div>
 
       {activeTab === "graphe" && <GuidesGraphView />}
+      {activeTab === "sante" && <GuidesHealthView />}
 
       {activeTab === "liste" && (
         <>
