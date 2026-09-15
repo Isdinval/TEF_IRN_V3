@@ -252,29 +252,35 @@ export default function GuidesHealthView() {
       <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
         {filtered.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun guide ne correspond.</p>}
         {filtered.map((r) => (
-          <div key={r.id} className="p-4 flex items-center gap-4">
-            <span className={`shrink-0 w-14 h-10 rounded-xl flex items-center justify-center font-black text-sm ${scoreColor(r.score)}`}>
-              {r.score}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-black text-sm truncate">
-                {r.title} {!r.isPublished && <span className="text-amber-600 text-xs font-bold">(brouillon)</span>}
-              </p>
-              <p className="text-xs text-zinc-400 truncate">
-                {r.product} · {r.siloRole} · {r.slug}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-1.5 max-w-md justify-end">
-              {r.issues.length === 0 ? (
-                <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700">Aucun écart</span>
-              ) : (
-                r.issues.map((issue, i) => (
-                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-zinc-100 text-zinc-500" title={issue.label}>
-                    -{issue.points}
-                  </span>
-                ))
+          <div key={r.id} className="p-4">
+            <div className="flex items-center gap-4">
+              <span className={`shrink-0 w-14 h-10 rounded-xl flex items-center justify-center font-black text-sm ${scoreColor(r.score)}`}>
+                {r.score}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-sm truncate">
+                  {r.title} {!r.isPublished && <span className="text-amber-600 text-xs font-bold">(brouillon)</span>}
+                </p>
+                <p className="text-xs text-zinc-400 truncate">
+                  {r.product} · {r.siloRole} · {r.slug}
+                </p>
+              </div>
+              {r.issues.length === 0 && (
+                <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 shrink-0">
+                  Aucun écart
+                </span>
               )}
             </div>
+            {r.issues.length > 0 && (
+              <ul className="mt-2 ml-[4.5rem] space-y-1">
+                {r.issues.map((issue, i) => (
+                  <li key={i} className="text-xs text-red-600 flex items-start gap-2">
+                    <span className="font-black shrink-0">-{issue.points}</span>
+                    <span>{issue.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </div>
