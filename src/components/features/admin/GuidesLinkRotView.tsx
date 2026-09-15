@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, ExternalLink, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { Input } from "@/components/ui/input";
 import { buildGuideLinkGraph, type GuideForGraph } from "@/lib/guides-link-graph";
 import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 
@@ -45,6 +46,9 @@ export default function GuidesLinkRotView() {
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(0);
   const [results, setResults] = useState<Record<string, CheckResult>>({});
+  const [productFilter, setProductFilter] = useState<"Tous" | GuideProduct>("Tous");
+  const [search, setSearch] = useState("");
+  const [onlyErrors, setOnlyErrors] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -85,6 +89,14 @@ export default function GuidesLinkRotView() {
     }
     return [...byUrl.values()].sort((a, b) => a.domain.localeCompare(b.domain));
   }, [rows]);
+
+  const filteredLinks = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return externalLinks
+      .filter((e) => productFilter === "Tous" || e.referencedBy.some((g) => g.product === productFilter))
+      .filter((e) => !term || e.url.toLowerCase().includes(term) || e.domain.toLowerCase().includes(term))
+      .filter((e) => !onlyErrors || (results[e.url] && !results[e.url].ok));
+  }, [externalLinks, productFilter, search, onlyErrors, results]);
 
   const runCheck = async () => {
     setChecking(true);
@@ -151,9 +163,37 @@ export default function GuidesLinkRotView() {
         </p>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <select
+          value={productFilter}
+          onChange={(e) => setProductFilter(e.target.value as "Tous" | GuideProduct)}
+          className="h-9 px-3 rounded-xl border border-zinc-200 text-xs font-bold"
+        >
+          <option value="Tous">Tous les produits</option>
+          <option value="tef-irn">TEF IRN</option>
+          <option value="examen-civique">Examen civique</option>
+        </select>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Filtrer par domaine ou URL..."
+          className="h-9 max-w-xs text-xs"
+        />
+        <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
+          <input type="checkbox" checked={onlyErrors} onChange={(e) => setOnlyErrors(e.target.checked)} />
+          Afficher seulement les erreurs
+        </label>
+      </div>
+
+      <p className="text-xs text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
+        ⚠️ 403 et « fetch failed » ne sont pas des preuves fiables de lien mort — beaucoup de sites bloquent les
+        requêtes automatisées sans navigateur alors qu&apos;un humain voit la page normalement. Vérifie
+        manuellement avant de remplacer un lien sur ce seul signal. 404 et 500+ persistants sont plus fiables.
+      </p>
+
       <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-        {externalLinks.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun lien externe trouvé.</p>}
-        {externalLinks.map((entry) => {
+        {filteredLinks.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun lien externe ne correspond.</p>}
+        {filteredLinks.map((entry) => {
           const result = results[entry.url];
           return (
             <div key={entry.url} className="p-4 flex items-center gap-4">
