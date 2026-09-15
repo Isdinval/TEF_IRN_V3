@@ -13,7 +13,7 @@ import {
   type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Loader2, ChevronLeft, ChevronRight, Waypoints, Share2, Search } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Waypoints, Share2, Search, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import {
@@ -113,6 +113,53 @@ function GuideFlowNode({ data }: { data: GuideNodeData }) {
 }
 
 const nodeTypes = { guideNode: GuideFlowNode };
+
+function LayoutExplainer() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-200">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between p-3 text-xs font-black text-zinc-600"
+      >
+        <span>Mindmap ou Force-directed : lequel utiliser, comment le lire ?</span>
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-3 text-xs text-zinc-600">
+          <div>
+            <p className="font-black text-zinc-800 mb-1">🗺️ Mindmap</p>
+            <p>
+              Place chaque guide là où il est <strong>déclaré</strong> en base (le rattachement choisi dans
+              l&apos;admin). Sert à vérifier que la structure voulue est correcte : ce satellite est-il bien sous
+              le bon pilier ? Ce pilier est-il bien relié au hub ? Les traits ne montrent que la hiérarchie
+              déclarée — un trait pointillé rouge signale un rattachement déclaré mais jamais réellement linké
+              dans le contenu.
+            </p>
+          </div>
+          <div>
+            <p className="font-black text-zinc-800 mb-1">🧲 Force-directed</p>
+            <p>
+              Ignore complètement le rattachement déclaré. Chaque lien <strong>réellement présent</strong> dans
+              le contenu agit comme un ressort qui rapproche deux guides ; tous les guides se repoussent entre
+              eux pour ne pas se chevaucher. Résultat : les guides qui se linkent beaucoup se retrouvent
+              physiquement proches, les guides isolés dérivent vers les bords. Il n&apos;y a pas de « haut » ou
+              de « bas » à lire — c&apos;est fait pour être exploré (zoom/déplacement) afin de repérer des
+              regroupements naturels que la structure déclarée ne prévoit pas. Le trait <strong>bleu</strong>{" "}
+              est le signal à chercher : un lien réel qui ne correspond à aucun rattachement déclaré (ex. un
+              satellite qui linke un satellite d&apos;un autre pilier).
+            </p>
+          </div>
+          <p className="text-zinc-400 pt-1 border-t border-zinc-100">
+            En pratique : commence par la Mindmap pour corriger les rattachements manquants ou faux, puis passe
+            en Force-directed de temps en temps pour découvrir des liens transversaux que tu n&apos;avais pas
+            prévus.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GuidesGraphView() {
   const supabase = useMemo(() => createClient(), []);
@@ -333,6 +380,8 @@ export default function GuidesGraphView() {
 
   return (
     <div className="space-y-4">
+      <LayoutExplainer />
+
       <div className="flex flex-wrap items-center gap-2 bg-white rounded-2xl border border-zinc-200 p-3">
         <select
           value={productFilter}
