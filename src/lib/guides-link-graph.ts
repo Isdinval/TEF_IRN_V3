@@ -1,5 +1,5 @@
 import { siteUrl } from "@/lib/site";
-import type { GuideProduct } from "@/types/guides";
+import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 
 // Parse le champ `content` (markdown) d'un guide pour en extraire les liens sortants,
 // classés en 3 catégories :
@@ -120,4 +120,164 @@ export function summarizeGuideLinks(content: string | null | undefined): GuideLi
   }
 
   return summary;
+}
+
+// --- Item 2 : graphe complet + écarts structure voulue (silo_role) vs structure réelle (liens parsés) ---
+//
+// `silo_role` (hub/pilier/satellite, colonne guides) encode l'intention éditoriale, mais rien en base
+// ne dit QUEL pilier est le parent d'un satellite : ça ne peut se déduire que des liens réellement
+// présents dans `content`. Ce bloc croise les deux pour retrouver ce que `content-moscow-plan` liste
+// aujourd'hui à la main (guides orphelins, piliers non reliés au hub, etc.).
+
+export interface GuideForGraph {
+  slug: string;
+  product: GuideProduct;
+  silo_role: GuideSiloRole;
+  content: string | null;
+}
+
+export interface ResolvedGuideLink extends GuideLinkRef {
+  /** false si aucun guide de la liste fournie ne correspond à ce slug/produit (lien mort ou guide non publiée/dépubliée). */
+  exists: boolean;
+  siloRole?: GuideSiloRole;
+}
+
+export interface InboundGuideLink extends GuideLinkRef {
+  siloRole: GuideSiloRole;
+}
+
+export interface GuideGraphNode {
+  slug: string;
+  product: GuideProduct;
+  siloRole: GuideSiloRole;
+  outboundGuideLinks: ResolvedGuideLink[];
+  productLinks: string[];
+  externalLinks: GuideExternalLinkRef[];
+  inboundGuideLinks: InboundGuideLink[];
+}
+
+export type GuideGraphIssueType =
+  | "orphan"
+  | "satellite_without_pilier_link"
+  | "pilier_without_hub_link"
+  | "pilier_without_satellites"
+  | "hub_without_piliers"
+  | "broken_internal_link";
+
+export interface GuideGraphIssue {
+  slug: string;
+  product: GuideProduct;
+  type: GuideGraphIssueType;
+  /** Pour `broken_internal_link` : la cible `<product>/<slug>` visée par le lien mort. */
+  detail?: string;
+}
+
+export interface GuideLinkGraph {
+  nodes: GuideGraphNode[];
+  issues: GuideGraphIssue[];
+}
+
+function guideKey(product: GuideProduct, slug: string): string {
+  return `${product}/${slug}`;
+}
+
+/** Construit le graphe de maillage réel + la liste des écarts, à partir de tous les guides (typiquement les publiés). */
+export function buildGuideLinkGraph(guides: GuideForGraph[]): GuideLinkGraph {
+  const guideByKey = new Map<string, GuideForGraph>();
+  for (const guide of guides) {
+    guideByKey.set(guideKey(guide.product, guide.slug), guide);
+  }
+
+  // Première passe : liens sortants résolus (guide cible trouvée ou non) par guide.
+  const outboundByKey = new Map<
+    string,
+    { summary: GuideLinkSummary; resolvedGuideLinks: ResolvedGuideLink[] }
+  >();
+  for (const guide of guides) {
+    const summary = summarizeGuideLinks(guide.content);
+    const resolvedGuideLinks: ResolvedGuideLink[] = summary.guideLinks.map((ref) => {
+      const target = guideByKey.get(guideKey(ref.product, ref.slug));
+      return { ...ref, exists: !!target, siloRole: target?.silo_role };
+    });
+    outboundByKey.set(guideKey(guide.product, guide.slug), { summary, resolvedGuideLinks });
+  }
+
+  // Deuxième passe : liens entrants, déduits des liens sortants résolus qui existent réellement.
+  const inboundByKey = new Map<string, InboundGuideLink[]>();
+  for (const guide of guides) {
+    const key = guideKey(guide.product, guide.slug);
+    const { resolvedGuideLinks } = outboundByKey.get(key)!;
+    for (const link of resolvedGuideLinks) {
+      if (!link.exists) continue;
+      const targetKey = guideKey(link.product, link.slug);
+      const bucket = inboundByKey.get(targetKey) ?? [];
+      bucket.push({ product: guide.product, slug: guide.slug, siloRole: guide.silo_role });
+      inboundByKey.set(targetKey, bucket);
+    }
+  }
+
+  const nodes: GuideGraphNode[] = guides.map((guide) => {
+    const key = guideKey(guide.product, guide.slug);
+    const { summary, resolvedGuideLinks } = outboundByKey.get(key)!;
+    return {
+      slug: guide.slug,
+      product: guide.product,
+      siloRole: guide.silo_role,
+      outboundGuideLinks: resolvedGuideLinks,
+      productLinks: summary.productLinks,
+      externalLinks: summary.externalLinks,
+      inboundGuideLinks: inboundByKey.get(key) ?? [],
+    };
+  });
+
+  const issues: GuideGraphIssue[] = [];
+  for (const node of nodes) {
+    // Lien(s) mort(s) : cible absente de la liste fournie (typo, guide dépubliée/supprimée).
+    for (const link of node.outboundGuideLinks) {
+      if (!link.exists) {
+        issues.push({
+          slug: node.slug,
+          product: node.product,
+          type: "broken_internal_link",
+          detail: guideKey(link.product, link.slug),
+        });
+      }
+    }
+
+    if (node.siloRole !== "hub" && node.inboundGuideLinks.length === 0) {
+      issues.push({ slug: node.slug, product: node.product, type: "orphan" });
+    }
+
+    if (node.siloRole === "satellite") {
+      const linkedFromAbove = node.inboundGuideLinks.some(
+        (l) => l.siloRole === "pilier" || l.siloRole === "hub"
+      );
+      if (!linkedFromAbove) {
+        issues.push({ slug: node.slug, product: node.product, type: "satellite_without_pilier_link" });
+      }
+    }
+
+    if (node.siloRole === "pilier") {
+      const connectedToHub =
+        node.outboundGuideLinks.some((l) => l.exists && l.siloRole === "hub") ||
+        node.inboundGuideLinks.some((l) => l.siloRole === "hub");
+      if (!connectedToHub) {
+        issues.push({ slug: node.slug, product: node.product, type: "pilier_without_hub_link" });
+      }
+
+      const hasSatelliteBelow = node.outboundGuideLinks.some((l) => l.exists && l.siloRole === "satellite");
+      if (!hasSatelliteBelow) {
+        issues.push({ slug: node.slug, product: node.product, type: "pilier_without_satellites" });
+      }
+    }
+
+    if (node.siloRole === "hub") {
+      const hasPilierBelow = node.outboundGuideLinks.some((l) => l.exists && l.siloRole === "pilier");
+      if (!hasPilierBelow) {
+        issues.push({ slug: node.slug, product: node.product, type: "hub_without_piliers" });
+      }
+    }
+  }
+
+  return { nodes, issues };
 }
