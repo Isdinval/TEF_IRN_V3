@@ -26,6 +26,7 @@ import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
 import GuidesGraphView from "@/components/features/admin/GuidesGraphView";
 import GuidesHealthView from "@/components/features/admin/GuidesHealthView";
 import GuidesCannibalizationView from "@/components/features/admin/GuidesCannibalizationView";
+import GuidesLinkRotView from "@/components/features/admin/GuidesLinkRotView";
 
 // `product` est maintenant une colonne en base (migration 20260729000008) : le select
 // ci-dessous reste contraint pour éviter de mélanger une catégorie civique avec product=tef-irn,
@@ -159,7 +160,7 @@ export default function GuidesAdmin() {
   const [publishedFilter, setPublishedFilter] = useState<"Tous" | "true" | "false">("Tous");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"liste" | "graphe" | "sante" | "cannibalisation">("liste");
+  const [activeTab, setActiveTab] = useState<"liste" | "graphe" | "sante" | "cannibalisation" | "liens-externes">("liste");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
@@ -528,11 +529,18 @@ export default function GuidesAdmin() {
         >
           Cannibalisation
         </button>
+        <button
+          onClick={() => setActiveTab("liens-externes")}
+          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "liens-externes" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Liens externes
+        </button>
       </div>
 
       {activeTab === "graphe" && <GuidesGraphView />}
       {activeTab === "sante" && <GuidesHealthView />}
       {activeTab === "cannibalisation" && <GuidesCannibalizationView />}
+      {activeTab === "liens-externes" && <GuidesLinkRotView />}
 
       {activeTab === "liste" && (
         <>
