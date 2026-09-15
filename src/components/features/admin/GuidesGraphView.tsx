@@ -13,14 +13,14 @@ import {
   type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Waypoints, Share2 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import {
   buildGuideLinkGraph,
   type GuideForGraph,
   type GuideGraphIssue,
 } from "@/lib/guides-link-graph";
-import { computeGuideMindmapLayout } from "@/lib/guides-graph-layout";
+import { computeGuideMindmapLayout, computeGuideForceLayout } from "@/lib/guides-graph-layout";
 import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 
 // Onglet "Graphe" de l'admin des guides : mindmap radiale (hub au centre, piliers autour,
@@ -121,6 +121,7 @@ export default function GuidesGraphView() {
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [issueNavIndex, setIssueNavIndex] = useState(0);
+  const [layoutMode, setLayoutMode] = useState<"mindmap" | "force">("mindmap");
 
   useEffect(() => {
     let active = true;
@@ -151,7 +152,28 @@ export default function GuidesGraphView() {
     return buildGuideLinkGraph(forGraph);
   }, [rows]);
 
-  const positions = useMemo(() => computeGuideMindmapLayout(graph.nodes), [graph.nodes]);
+  // Tous les liens reels (pas seulement le rattachement voulu) - source pour le layout et les
+  // aretes en mode force-directed, pour reperer les liens transverses inattendus.
+  const realLinkEdges = useMemo(() => {
+    const idByKey = new Map(graph.nodes.map((n) => [`${n.product}/${n.slug}`, n.id]));
+    const edges: { source: string; target: string }[] = [];
+    for (const n of graph.nodes) {
+      for (const link of n.outboundGuideLinks) {
+        if (!link.exists) continue;
+        const targetId = idByKey.get(`${link.product}/${link.slug}`);
+        if (targetId) edges.push({ source: n.id, target: targetId });
+      }
+    }
+    return edges;
+  }, [graph.nodes]);
+
+  const positions = useMemo(
+    () =>
+      layoutMode === "mindmap"
+        ? computeGuideMindmapLayout(graph.nodes)
+        : computeGuideForceLayout(graph.nodes, realLinkEdges),
+    [layoutMode, graph.nodes, realLinkEdges]
+  );
   const positionById = useMemo(() => new Map(positions.map((p) => [p.id, { x: p.x, y: p.y }])), [positions]);
   const rowById = useMemo(() => new Map(rows.map((r) => [r.id, r])), [rows]);
 
@@ -218,9 +240,9 @@ export default function GuidesGraphView() {
     [graph.nodes, rowById, positionById, issueLabelsByKey, focusedId]
   );
 
-  const flowEdges: Edge[] = useMemo(
-    () =>
-      graph.nodes
+  const flowEdges: Edge[] = useMemo(() => {
+    if (layoutMode === "mindmap") {
+      return graph.nodes
         .filter((n) => n.parentGuideId)
         .map((n) => {
           const mismatched = (issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? []).some((l) =>
@@ -232,9 +254,23 @@ export default function GuidesGraphView() {
             target: n.id,
             style: mismatched ? { stroke: "#dc2626", strokeDasharray: "4 4" } : { stroke: "#a1a1aa" },
           };
-        }),
-    [graph.nodes, issueLabelsByKey]
-  );
+        });
+    }
+    // Mode force-directed : TOUS les liens reels, colores selon qu'ils correspondent ou non au
+    // rattachement voulu - c'est le point de ce mode, reperer les liens transverses inattendus.
+    const byId = new Map(graph.nodes.map((n) => [n.id, n]));
+    return realLinkEdges.map((e, i) => {
+      const source = byId.get(e.source);
+      const target = byId.get(e.target);
+      const matchesHierarchy = target?.parentGuideId === e.source || source?.parentGuideId === e.target;
+      return {
+        id: `force-${e.source}->${e.target}-${i}`,
+        source: e.source,
+        target: e.target,
+        style: matchesHierarchy ? { stroke: "#a1a1aa" } : { stroke: "#2563eb", strokeWidth: 1.5 },
+      };
+    });
+  }, [layoutMode, graph.nodes, issueLabelsByKey, realLinkEdges]);
 
   if (loading) {
     return (
@@ -279,6 +315,23 @@ export default function GuidesGraphView() {
         >
           <ChevronRight size={18} />
         </button>
+        <div className="w-px h-8 bg-zinc-100" />
+        <button
+          onClick={() => setLayoutMode("mindmap")}
+          className={`h-9 px-3 rounded-xl text-xs font-black flex items-center gap-1.5 ${
+            layoutMode === "mindmap" ? "bg-indigo-600 text-white" : "bg-zinc-50 text-zinc-500"
+          }`}
+        >
+          <Share2 size={14} /> Mindmap
+        </button>
+        <button
+          onClick={() => setLayoutMode("force")}
+          className={`h-9 px-3 rounded-xl text-xs font-black flex items-center gap-1.5 ${
+            layoutMode === "force" ? "bg-indigo-600 text-white" : "bg-zinc-50 text-zinc-500"
+          }`}
+        >
+          <Waypoints size={14} /> Force-directed
+        </button>
       </div>
 
       <div className="h-[75vh] rounded-2xl border border-zinc-200 overflow-hidden">
@@ -289,8 +342,18 @@ export default function GuidesGraphView() {
         </ReactFlow>
       </div>
       <p className="text-xs text-zinc-400">
-        Trait pointillé rouge = rattaché en base mais aucun lien réel trouvé dans le contenu. Bordure en
-        pointillés = guide non publié. Les écarts d&apos;un guide sont listés directement dans sa cellule.
+        {layoutMode === "mindmap" ? (
+          <>
+            Trait pointillé rouge = rattaché en base mais aucun lien réel trouvé dans le contenu. Bordure en
+            pointillés = guide non publié. Passez en mode Force-directed pour voir tous les liens réels, y
+            compris les liens transversaux inattendus (traits bleus).
+          </>
+        ) : (
+          <>
+            Tous les liens réels entre guides. Trait gris = correspond au rattachement déclaré en base. Trait
+            bleu = lien réel qui ne correspond à aucun rattachement déclaré (transversal ou inattendu).
+          </>
+        )}
       </p>
     </div>
   );

@@ -3,7 +3,20 @@
 // voulu (parent_guide_id / GuideGraphNode.parentGuideId), pas des liens reels. Fait main (pas
 // de dependance de layout de graphe type dagre/elk) : c'est un arbre a 3 niveaux fixes avec une
 // disposition radiale simple, un algorithme generique serait une abstraction non necessaire.
+//
+// computeGuideForceLayout (plus bas) est le layout alternatif "force-directed", lui base sur
+// TOUS les liens reels (pas seulement parent_guide_id) via d3-force : utile pour reperer les
+// liens transverses inattendus (un satellite qui linke un satellite d'un autre pilier) que la
+// hierarchie stricte de la mindmap masque puisqu'elle ne dessine que les aretes parent->enfant.
 
+import {
+  forceSimulation,
+  forceManyBody,
+  forceLink,
+  forceCenter,
+  forceCollide,
+  type SimulationNodeDatum,
+} from "d3-force";
 import type { GuideGraphNode } from "@/lib/guides-link-graph";
 
 export interface MindmapPosition {
@@ -96,4 +109,43 @@ export function computeGuideMindmapLayout(nodes: GuideGraphNode[]): MindmapPosit
   });
 
   return positions;
+}
+
+const FORCE_TICKS = 300;
+const FORCE_LINK_DISTANCE = 220;
+const FORCE_CHARGE_STRENGTH = -350;
+const FORCE_COLLIDE_RADIUS = 130;
+
+/**
+ * Layout force-directed a partir de TOUS les liens reels (pas seulement le rattachement voulu) :
+ * chaque paire {source, target} d'ids de noeuds tire les deux noeuds l'un vers l'autre, une
+ * repulsion generale les ecarte, une collision empeche le chevauchement. La simulation est
+ * executee de facon synchrone (pas d'animation continue en React) pendant un nombre fixe de
+ * ticks, suffisant pour converger sur les tailles de graphe actuelles (~150 noeuds) sans avoir a
+ * gerer une boucle de rendu.
+ */
+interface ForceSimNode extends SimulationNodeDatum {
+  id: string;
+}
+
+export function computeGuideForceLayout(
+  nodes: GuideGraphNode[],
+  edges: { source: string; target: string }[]
+): MindmapPosition[] {
+  const simNodes: ForceSimNode[] = nodes.map((n) => ({ id: n.id, x: 0, y: 0 }));
+
+  forceSimulation(simNodes)
+    .force("charge", forceManyBody().strength(FORCE_CHARGE_STRENGTH))
+    .force(
+      "link",
+      forceLink<ForceSimNode, { source: string; target: string }>(edges)
+        .id((d) => d.id)
+        .distance(FORCE_LINK_DISTANCE)
+    )
+    .force("center", forceCenter(0, 0))
+    .force("collide", forceCollide(FORCE_COLLIDE_RADIUS))
+    .stop()
+    .tick(FORCE_TICKS);
+
+  return simNodes.map((n) => ({ id: n.id, x: n.x ?? 0, y: n.y ?? 0 }));
 }
