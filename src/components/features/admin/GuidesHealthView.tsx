@@ -80,6 +80,8 @@ export default function GuidesHealthView() {
   const [rows, setRows] = useState<GuideRowForHealth[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState<"Tous" | GuideProduct>("Tous");
+  const [roleFilter, setRoleFilter] = useState<"Tous" | GuideSiloRole>("Tous");
+  const [scoreBand, setScoreBand] = useState<"tous" | "difficulte" | "surveiller" | "sains">("tous");
   const [search, setSearch] = useState("");
   const [showUnpublished, setShowUnpublished] = useState(true);
 
@@ -135,10 +137,35 @@ export default function GuidesHealthView() {
     const term = search.trim().toLowerCase();
     return results
       .filter((r) => productFilter === "Tous" || r.product === productFilter)
+      .filter((r) => roleFilter === "Tous" || r.siloRole === roleFilter)
       .filter((r) => showUnpublished || r.isPublished)
       .filter((r) => !term || r.title.toLowerCase().includes(term) || r.slug.toLowerCase().includes(term))
+      .filter((r) => {
+        if (scoreBand === "difficulte") return r.score < 50;
+        if (scoreBand === "surveiller") return r.score >= 50 && r.score < 80;
+        if (scoreBand === "sains") return r.score >= 80;
+        return true;
+      })
       .sort((a, b) => a.score - b.score);
-  }, [results, productFilter, search, showUnpublished]);
+  }, [results, productFilter, roleFilter, search, showUnpublished, scoreBand]);
+
+  const preScoreBandFiltered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return results
+      .filter((r) => productFilter === "Tous" || r.product === productFilter)
+      .filter((r) => roleFilter === "Tous" || r.siloRole === roleFilter)
+      .filter((r) => showUnpublished || r.isPublished)
+      .filter((r) => !term || r.title.toLowerCase().includes(term) || r.slug.toLowerCase().includes(term));
+  }, [results, productFilter, roleFilter, search, showUnpublished]);
+
+  const bandCounts = useMemo(
+    () => ({
+      difficulte: preScoreBandFiltered.filter((r) => r.score < 50).length,
+      surveiller: preScoreBandFiltered.filter((r) => r.score >= 50 && r.score < 80).length,
+      sains: preScoreBandFiltered.filter((r) => r.score >= 80).length,
+    }),
+    [preScoreBandFiltered]
+  );
 
   const avgScore = useMemo(
     () => (filtered.length === 0 ? 0 : Math.round(filtered.reduce((s, r) => s + r.score, 0) / filtered.length)),
@@ -168,6 +195,16 @@ export default function GuidesHealthView() {
           <option value="tef-irn">TEF IRN</option>
           <option value="examen-civique">Examen civique</option>
         </select>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value as "Tous" | GuideSiloRole)}
+          className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+        >
+          <option value="Tous">Tous les rôles</option>
+          <option value="hub">Hub</option>
+          <option value="pilier">Pilier</option>
+          <option value="satellite">Satellite</option>
+        </select>
         <Input
           placeholder="Rechercher un titre ou un slug..."
           value={search}
@@ -181,6 +218,33 @@ export default function GuidesHealthView() {
         <span className={`ml-auto text-xs px-3 py-1.5 rounded-full font-black ${scoreColor(avgScore)}`}>
           Score moyen : {avgScore}/100 sur {filtered.length} guide{filtered.length > 1 ? "s" : ""}
         </span>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setScoreBand("tous")}
+          className={`h-8 px-3 rounded-full text-xs font-black ${scoreBand === "tous" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+        >
+          Tous ({preScoreBandFiltered.length})
+        </button>
+        <button
+          onClick={() => setScoreBand("difficulte")}
+          className={`h-8 px-3 rounded-full text-xs font-black ${scoreBand === "difficulte" ? "bg-red-600 text-white" : "bg-red-50 text-red-700"}`}
+        >
+          En difficulté &lt;50 ({bandCounts.difficulte})
+        </button>
+        <button
+          onClick={() => setScoreBand("surveiller")}
+          className={`h-8 px-3 rounded-full text-xs font-black ${scoreBand === "surveiller" ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-700"}`}
+        >
+          À surveiller 50-79 ({bandCounts.surveiller})
+        </button>
+        <button
+          onClick={() => setScoreBand("sains")}
+          className={`h-8 px-3 rounded-full text-xs font-black ${scoreBand === "sains" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700"}`}
+        >
+          Sains ≥80 ({bandCounts.sains})
+        </button>
       </div>
 
       <ScoreLegend />
