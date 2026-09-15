@@ -13,8 +13,9 @@ import {
   type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Loader2, ChevronLeft, ChevronRight, Waypoints, Share2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Waypoints, Share2, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase";
+import { Input } from "@/components/ui/input";
 import {
   buildGuideLinkGraph,
   type GuideForGraph,
@@ -122,6 +123,10 @@ export default function GuidesGraphView() {
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [issueNavIndex, setIssueNavIndex] = useState(0);
   const [layoutMode, setLayoutMode] = useState<"mindmap" | "force">("mindmap");
+  const [productFilter, setProductFilter] = useState<"tous" | GuideProduct>("tous");
+  const [hideHealthy, setHideHealthy] = useState(false);
+  const [hideDrafts, setHideDrafts] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -188,62 +193,101 @@ export default function GuidesGraphView() {
     return map;
   }, [graph.issues]);
 
-  // Liste ordonnee (pire en premier) des guides en ecart, pour le navigateur Precedent/Suivant.
+  // Visibilite des noeuds selon les filtres (produit, brouillons, "sans ecart") - le graphe et
+  // les positions restent calcules sur TOUS les guides (coherence des calculs), seul l'affichage
+  // est filtre, pour que les positions ne bougent pas quand on change un filtre.
+  const visibleIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const n of graph.nodes) {
+      if (n.siloRole !== "hub" && productFilter !== "tous" && n.product !== productFilter) continue;
+      const row = rowById.get(n.id);
+      if (hideDrafts && row && !row.is_published) continue;
+      const labels = issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [];
+      if (hideHealthy && labels.length === 0) continue;
+      ids.add(n.id);
+    }
+    return ids;
+  }, [graph.nodes, productFilter, hideDrafts, hideHealthy, rowById, issueLabelsByKey]);
+
+  // Liste ordonnee (pire en premier) des guides en ecart VISIBLES, pour le navigateur Precedent/Suivant.
   const nodesWithIssues = useMemo(() => {
     return graph.nodes
+      .filter((n) => visibleIds.has(n.id))
       .map((n) => ({ node: n, labels: issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [] }))
       .filter((x) => x.labels.length > 0)
       .sort((a, b) => b.labels.length - a.labels.length);
-  }, [graph.nodes, issueLabelsByKey]);
+  }, [graph.nodes, issueLabelsByKey, visibleIds]);
 
   useEffect(() => {
-    // Si la liste change (chargement, edition ailleurs) et que l'index pointe hors bornes.
+    // Si la liste change (chargement, edition ailleurs, filtre) et que l'index pointe hors bornes.
     if (issueNavIndex >= nodesWithIssues.length) setIssueNavIndex(0);
   }, [nodesWithIssues.length, issueNavIndex]);
+
+  const focusOnNode = useCallback(
+    (id: string) => {
+      setFocusedId(id);
+      const pos = positionById.get(id);
+      if (pos && rfInstance) {
+        rfInstance.setCenter(pos.x + 100, pos.y + 40, { zoom: 1.1, duration: 600 });
+      }
+    },
+    [positionById, rfInstance]
+  );
 
   const goToIssue = useCallback(
     (index: number) => {
       if (nodesWithIssues.length === 0) return;
       const clamped = ((index % nodesWithIssues.length) + nodesWithIssues.length) % nodesWithIssues.length;
       setIssueNavIndex(clamped);
-      const target = nodesWithIssues[clamped].node;
-      setFocusedId(target.id);
-      const pos = positionById.get(target.id);
-      if (pos && rfInstance) {
-        rfInstance.setCenter(pos.x + 100, pos.y + 40, { zoom: 1.1, duration: 600 });
-      }
+      focusOnNode(nodesWithIssues[clamped].node.id);
     },
-    [nodesWithIssues, positionById, rfInstance]
+    [nodesWithIssues, focusOnNode]
   );
+
+  const searchMatches = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return [];
+    return graph.nodes.filter(
+      (n) =>
+        visibleIds.has(n.id) &&
+        ((rowById.get(n.id)?.title ?? "").toLowerCase().includes(term) || n.slug.toLowerCase().includes(term))
+    );
+  }, [searchTerm, graph.nodes, visibleIds, rowById]);
+
+  const handleSearchSubmit = () => {
+    if (searchMatches.length > 0) focusOnNode(searchMatches[0].id);
+  };
 
   const flowNodes: Node[] = useMemo(
     () =>
-      graph.nodes.map((n) => {
-        const row = rowById.get(n.id);
-        const pos = positionById.get(n.id) ?? { x: 0, y: 0 };
-        return {
-          id: n.id,
-          type: "guideNode",
-          position: pos,
-          data: {
-            title: row?.title ?? n.slug,
-            slug: n.slug,
-            product: n.product,
-            siloRole: n.siloRole,
-            isPublished: row?.is_published ?? true,
-            externalCount: n.externalLinks.length,
-            issueLabels: issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [],
-            focused: n.id === focusedId,
-          } as GuideNodeData,
-        };
-      }),
-    [graph.nodes, rowById, positionById, issueLabelsByKey, focusedId]
+      graph.nodes
+        .filter((n) => visibleIds.has(n.id))
+        .map((n) => {
+          const row = rowById.get(n.id);
+          const pos = positionById.get(n.id) ?? { x: 0, y: 0 };
+          return {
+            id: n.id,
+            type: "guideNode",
+            position: pos,
+            data: {
+              title: row?.title ?? n.slug,
+              slug: n.slug,
+              product: n.product,
+              siloRole: n.siloRole,
+              isPublished: row?.is_published ?? true,
+              externalCount: n.externalLinks.length,
+              issueLabels: issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? [],
+              focused: n.id === focusedId,
+            } as GuideNodeData,
+          };
+        }),
+    [graph.nodes, rowById, positionById, issueLabelsByKey, focusedId, visibleIds]
   );
 
   const flowEdges: Edge[] = useMemo(() => {
     if (layoutMode === "mindmap") {
       return graph.nodes
-        .filter((n) => n.parentGuideId)
+        .filter((n) => n.parentGuideId && visibleIds.has(n.id) && visibleIds.has(n.parentGuideId))
         .map((n) => {
           const mismatched = (issueLabelsByKey.get(`${n.product}/${n.slug}`) ?? []).some((l) =>
             l.startsWith(ISSUE_LABELS.declared_parent_not_linked)
@@ -259,18 +303,20 @@ export default function GuidesGraphView() {
     // Mode force-directed : TOUS les liens reels, colores selon qu'ils correspondent ou non au
     // rattachement voulu - c'est le point de ce mode, reperer les liens transverses inattendus.
     const byId = new Map(graph.nodes.map((n) => [n.id, n]));
-    return realLinkEdges.map((e, i) => {
-      const source = byId.get(e.source);
-      const target = byId.get(e.target);
-      const matchesHierarchy = target?.parentGuideId === e.source || source?.parentGuideId === e.target;
-      return {
-        id: `force-${e.source}->${e.target}-${i}`,
-        source: e.source,
-        target: e.target,
-        style: matchesHierarchy ? { stroke: "#a1a1aa" } : { stroke: "#2563eb", strokeWidth: 1.5 },
-      };
+    return realLinkEdges
+      .filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target))
+      .map((e, i) => {
+        const source = byId.get(e.source);
+        const target = byId.get(e.target);
+        const matchesHierarchy = target?.parentGuideId === e.source || source?.parentGuideId === e.target;
+        return {
+          id: `force-${e.source}->${e.target}-${i}`,
+          source: e.source,
+          target: e.target,
+          style: matchesHierarchy ? { stroke: "#a1a1aa" } : { stroke: "#2563eb", strokeWidth: 1.5 },
+        };
     });
-  }, [layoutMode, graph.nodes, issueLabelsByKey, realLinkEdges]);
+  }, [layoutMode, graph.nodes, issueLabelsByKey, realLinkEdges, visibleIds]);
 
   if (loading) {
     return (
@@ -287,6 +333,42 @@ export default function GuidesGraphView() {
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2 bg-white rounded-2xl border border-zinc-200 p-3">
+        <select
+          value={productFilter}
+          onChange={(e) => setProductFilter(e.target.value as "tous" | GuideProduct)}
+          className="h-9 px-3 rounded-xl border border-zinc-200 text-xs font-bold"
+        >
+          <option value="tous">Tous les produits</option>
+          <option value="tef-irn">TEF IRN</option>
+          <option value="examen-civique">Examen civique</option>
+        </select>
+        <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
+          <input type="checkbox" checked={hideHealthy} onChange={(e) => setHideHealthy(e.target.checked)} />
+          Masquer les guides sans écart
+        </label>
+        <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
+          <input type="checkbox" checked={hideDrafts} onChange={(e) => setHideDrafts(e.target.checked)} />
+          Masquer les brouillons
+        </label>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+            placeholder="Chercher un guide (titre ou slug)..."
+            className="h-9 w-64 text-xs"
+          />
+          <button
+            onClick={handleSearchSubmit}
+            disabled={searchMatches.length === 0}
+            className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600 disabled:opacity-30"
+          >
+            <Search size={15} />
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-3 bg-white rounded-2xl border border-zinc-200 p-3">
         <button
           onClick={() => goToIssue(issueNavIndex - 1)}
