@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { buildGuideLinkGraph, type GuideForGraph, type GuideGraphIssue } from "@/lib/guides-link-graph";
-import { computeGuideHealth, type GuideHealthInput, type GuideHealthResult } from "@/lib/guides-health-score";
+import {
+  computeGuideHealth,
+  HEALTH_SCORE_LEGEND,
+  type GuideHealthInput,
+  type GuideHealthResult,
+  type HealthCategory,
+} from "@/lib/guides-health-score";
 import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 
 // Onglet "Santé" de l'admin des guides : un score 0-100 par guide (complétude editoriale +
@@ -22,6 +28,49 @@ function scoreColor(score: number): string {
   if (score >= 80) return "bg-emerald-50 text-emerald-700";
   if (score >= 50) return "bg-amber-50 text-amber-700";
   return "bg-red-50 text-red-700";
+}
+
+const CATEGORY_LABELS: Record<HealthCategory, string> = {
+  maillage: "Maillage (rejoint l'onglet Graphe)",
+  complétude: "Complétude éditoriale",
+  fraîcheur: "Fraîcheur",
+};
+
+function ScoreLegend() {
+  const [open, setOpen] = useState(false);
+  const categories: HealthCategory[] = ["maillage", "complétude", "fraîcheur"];
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between p-4 text-sm font-black text-zinc-600"
+      >
+        <span>Comment le score est calculé (part de 100, points déduits)</span>
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 space-y-4">
+          {categories.map((cat) => (
+            <div key={cat}>
+              <p className="text-xs font-black uppercase text-zinc-400 mb-1.5">{CATEGORY_LABELS[cat]}</p>
+              <div className="space-y-1">
+                {HEALTH_SCORE_LEGEND.filter((e) => e.category === cat).map((entry) => (
+                  <div key={entry.code} className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-600">{entry.label}</span>
+                    <span className="font-bold text-red-600 shrink-0 ml-3">-{entry.points}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-zinc-400 pt-1 border-t border-zinc-100">
+            Les points cumulés sont plafonnés à 100 (score minimum : 0). Ces poids sont des choix qualitatifs,
+            pas mesurés — à ajuster si un signal compte trop ou pas assez à l&apos;usage.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function GuidesHealthView() {
@@ -132,6 +181,8 @@ export default function GuidesHealthView() {
           Score moyen : {avgScore}/100 sur {filtered.length} guide{filtered.length > 1 ? "s" : ""}
         </span>
       </div>
+
+      <ScoreLegend />
 
       <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
         {filtered.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun guide ne correspond.</p>}

@@ -35,6 +35,77 @@ const MIN_WORD_COUNT = 150;
 const STALE_DAYS_WARNING = 180;
 const STALE_DAYS_SEVERE = 365;
 
+const COMPLETENESS_POINTS = {
+  missingImage: 5,
+  missingKeyPoints: 5,
+  missingMotCle: 5,
+  missingReadingTime: 3,
+  contentTooShort: 15,
+} as const;
+
+const FRESHNESS_POINTS = {
+  staleWarning: 5,
+  staleSevere: 10,
+} as const;
+
+export type HealthCategory = "maillage" | "complétude" | "fraîcheur";
+
+export interface HealthLegendEntry {
+  code: string;
+  label: string;
+  points: number;
+  category: HealthCategory;
+}
+
+// Source unique pour le barème (utilisée par computeGuideHealth ci-dessous ET par la légende
+// affichée dans l'onglet Santé) : si les poids changent un jour, la légende reste juste sans
+// édition manuelle a faire a deux endroits.
+export const HEALTH_SCORE_LEGEND: HealthLegendEntry[] = [
+  ...(Object.keys(LINK_ISSUE_POINTS) as GuideGraphIssueType[]).map((type) => ({
+    code: type,
+    label: LINK_ISSUE_LABELS[type],
+    points: LINK_ISSUE_POINTS[type],
+    category: "maillage" as const,
+  })),
+  { code: "missing_image", label: "Pas d'image", points: COMPLETENESS_POINTS.missingImage, category: "complétude" },
+  {
+    code: "missing_key_points",
+    label: "Pas de points clés",
+    points: COMPLETENESS_POINTS.missingKeyPoints,
+    category: "complétude",
+  },
+  {
+    code: "missing_mot_cle",
+    label: "Pas de mot-clé principal (anti-cannibalisation)",
+    points: COMPLETENESS_POINTS.missingMotCle,
+    category: "complétude",
+  },
+  {
+    code: "missing_reading_time",
+    label: "Pas de temps de lecture",
+    points: COMPLETENESS_POINTS.missingReadingTime,
+    category: "complétude",
+  },
+  {
+    code: "content_too_short",
+    label: `Contenu très court (< ${MIN_WORD_COUNT} mots)`,
+    points: COMPLETENESS_POINTS.contentTooShort,
+    category: "complétude",
+  },
+  {
+    code: "stale_warning",
+    label: `Pas mis à jour depuis plus de ${Math.round(STALE_DAYS_WARNING / 30)} mois`,
+    points: FRESHNESS_POINTS.staleWarning,
+    category: "fraîcheur",
+  },
+  {
+    code: "stale_severe",
+    label: `Pas mis à jour depuis plus de ${Math.round(STALE_DAYS_SEVERE / 30)} mois (cumulatif avec le seuil 6 mois)`,
+    points: FRESHNESS_POINTS.staleSevere,
+    category: "fraîcheur",
+  },
+];
+
 export interface GuideHealthInput {
   id: string;
   slug: string;
@@ -91,23 +162,40 @@ export function computeGuideHealth(
     });
   }
 
-  if (!guide.image_url) issues.push({ code: "missing_image", label: "Pas d'image", points: 5 });
+  if (!guide.image_url) issues.push({ code: "missing_image", label: "Pas d'image", points: COMPLETENESS_POINTS.missingImage });
   if (!guide.key_points || guide.key_points.length === 0)
-    issues.push({ code: "missing_key_points", label: "Pas de points clés", points: 5 });
+    issues.push({ code: "missing_key_points", label: "Pas de points clés", points: COMPLETENESS_POINTS.missingKeyPoints });
   if (!guide.mot_cle_principal)
-    issues.push({ code: "missing_mot_cle", label: "Pas de mot-clé principal (anti-cannibalisation)", points: 5 });
-  if (!guide.reading_time) issues.push({ code: "missing_reading_time", label: "Pas de temps de lecture", points: 3 });
+    issues.push({
+      code: "missing_mot_cle",
+      label: "Pas de mot-clé principal (anti-cannibalisation)",
+      points: COMPLETENESS_POINTS.missingMotCle,
+    });
+  if (!guide.reading_time)
+    issues.push({ code: "missing_reading_time", label: "Pas de temps de lecture", points: COMPLETENESS_POINTS.missingReadingTime });
 
   const words = wordCount(guide.content);
   if (words < MIN_WORD_COUNT) {
-    issues.push({ code: "content_too_short", label: `Contenu très court (${words} mots)`, points: 15 });
+    issues.push({
+      code: "content_too_short",
+      label: `Contenu très court (${words} mots)`,
+      points: COMPLETENESS_POINTS.contentTooShort,
+    });
   }
 
   const staleDays = daysSince(guide.updated_at, now);
   if (staleDays > STALE_DAYS_SEVERE) {
-    issues.push({ code: "stale_severe", label: `Pas mis à jour depuis ${Math.floor(staleDays / 30)} mois`, points: 10 });
+    issues.push({
+      code: "stale_severe",
+      label: `Pas mis à jour depuis ${Math.floor(staleDays / 30)} mois`,
+      points: FRESHNESS_POINTS.staleSevere,
+    });
   } else if (staleDays > STALE_DAYS_WARNING) {
-    issues.push({ code: "stale_warning", label: `Pas mis à jour depuis ${Math.floor(staleDays / 30)} mois`, points: 5 });
+    issues.push({
+      code: "stale_warning",
+      label: `Pas mis à jour depuis ${Math.floor(staleDays / 30)} mois`,
+      points: FRESHNESS_POINTS.staleWarning,
+    });
   }
 
   const score = Math.max(0, 100 - issues.reduce((sum, i) => sum + i.points, 0));
