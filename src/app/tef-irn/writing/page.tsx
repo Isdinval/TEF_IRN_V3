@@ -462,8 +462,14 @@ export function WritingCoachContent() {
             <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
           </header>
 
-          <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">
-            <div className="max-w-3xl mx-auto h-full flex flex-col gap-6">
+          {/* Tant que l'utilisateur rédige (pas encore de feedback), la zone
+              de texte doit pouvoir grandir avec ce qu'il écrit plutôt que
+              rester coincée dans la hauteur d'écran mobile disponible : on
+              autorise le scroll de la page sur mobile dans ce cas précis.
+              Une fois le feedback affiché, on retrouve le comportement
+              d'origine (hauteur fixe, scroll interne du panneau). */}
+          <main className={`flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA] ${!feedback ? "max-md:overflow-y-auto" : ""}`}>
+            <div className={`max-w-3xl mx-auto h-full flex flex-col gap-6 ${!feedback ? "max-md:h-auto" : ""}`}>
               {correctionError ? (
                 <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
                   <AlertTriangle className="text-red-400 shrink-0" size={24} />
