@@ -72,7 +72,10 @@ export function ResultsScreen() {
             )}
           </CardHeader>
 
-          <CardContent className="p-10 space-y-10">
+          {/* p-10 d'origine ne laissait presque plus de largeur pour la correction
+              détaillée sur mobile (page déjà réduite à ~375px) : padding réduit sur
+              mobile pour maximiser l'espace disponible, restauré à partir de md. */}
+          <CardContent className="p-4 sm:p-6 md:p-10 space-y-8 md:space-y-10">
             {sessionResults.map((result: ExamResult) => {
               const skillLevel = skillLevels.find((s) => s.section === result.section);
               return (
@@ -103,7 +106,7 @@ export function ResultsScreen() {
                 {(result.section === 'CO' || result.section === 'CE') && (
                   <Accordion className="w-full">
                     <AccordionItem value="details" className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-zinc-50 rounded-2xl flex justify-between items-center w-full">
+                      <AccordionTrigger className="hover:no-underline py-4 px-4 sm:px-6 bg-zinc-50 rounded-2xl flex justify-between items-center w-full">
                         <span className="font-black text-zinc-600">Détail des réponses</span>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-2">
@@ -118,7 +121,7 @@ export function ResultsScreen() {
                     {Object.entries(result.writingProductions).map(([qId, text]: [string, string], idx: number) => {
                       const feedback: WritingFeedback | undefined = result.writingFeedbacks?.[qId];
                       return (
-                        <div key={qId} className="p-6 bg-white border border-zinc-100 rounded-2xl shadow-sm space-y-5">
+                        <div key={qId} className="p-4 sm:p-6 bg-white border border-zinc-100 rounded-2xl shadow-sm space-y-5">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-indigo-600">
                               <FileText size={20} />
