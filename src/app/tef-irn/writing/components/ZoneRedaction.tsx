@@ -188,7 +188,7 @@ export const ZoneRedaction = ({
         )}
       </CardHeader>
 
-      <CardContent className="relative flex-1 min-h-0 p-0">
+      <CardContent className="relative flex flex-1 min-h-0 flex-col p-0">
         <AnimatePresence mode="wait">
           {!feedback ? (
             <motion.div
@@ -196,7 +196,7 @@ export const ZoneRedaction = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-full"
+              className="min-h-0 flex-1"
             >
               <Textarea
                 placeholder="Rédigez votre réponse ici. L'IA analysera votre texte pour vous donner un feedback détaillé."
@@ -211,7 +211,7 @@ export const ZoneRedaction = ({
               key="preview"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="h-full"
+              className="min-h-0 flex-1"
             >
               <ScrollArea className="h-full">
                 <div className="p-10 text-xl font-medium leading-relaxed text-zinc-800 whitespace-pre-wrap">
@@ -222,7 +222,11 @@ export const ZoneRedaction = ({
           )}
         </AnimatePresence>
 
-        <div className="absolute bottom-8 left-1/2 w-full max-w-sm -translate-x-1/2 px-6">
+        {/* Sur mobile (onglet "Rédaction" plein écran, panneau moins haut que sur
+            desktop) : bouton en flux normal sous la zone de texte, au lieu de
+            flotter par-dessus le texte en cours de rédaction. À partir de md
+            (panneau desktop, plus haut), on retrouve le bouton flottant d'origine. */}
+        <div className="relative mx-auto w-full max-w-sm shrink-0 px-6 max-md:border-t max-md:border-zinc-100 max-md:bg-white max-md:py-4 md:absolute md:bottom-8 md:left-1/2 md:-translate-x-1/2 md:py-0">
           {!feedback ? (
             <Button
               onClick={onAnalyze}
