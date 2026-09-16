@@ -99,7 +99,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen relative">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative">
         <ParcoursTopBar />
         {/* pb-16 sous md : laisse la place à MobileBottomNav (fixed, h-16) pour
             que le contenu de fin de page ne soit pas masqué derrière. */}
