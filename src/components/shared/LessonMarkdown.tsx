@@ -160,7 +160,7 @@ export default function LessonMarkdown({ content }: { content: string }) {
       }
       return <strong className="font-black text-indigo-900">{children}</strong>;
     },
-    table: ({ children }) => <div className="my-6 rounded-2xl overflow-hidden border border-zinc-100 shadow-sm"><table className="w-full text-sm">{children}</table></div>,
+    table: ({ children }) => <div className="my-6 rounded-2xl overflow-x-auto border border-zinc-100 shadow-sm"><table className="w-full text-sm">{children}</table></div>,
     thead: ({ children }) => <thead className="bg-indigo-50 text-indigo-700">{children}</thead>,
     tbody: ({ children }) => <tbody className="divide-y divide-zinc-50 bg-white">{children}</tbody>,
     tr: ({ children }) => { currentColumnIndex = 0; return <tr className="hover:bg-zinc-50/60 transition-colors">{children}</tr>; },
