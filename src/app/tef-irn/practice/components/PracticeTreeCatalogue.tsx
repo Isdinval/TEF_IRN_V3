@@ -175,7 +175,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                         <Link
                           key={ex.id}
                           href={`${basePath}/${ex.id}`}
-                          className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors group rounded-2xl border border-zinc-50"
+                          className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-5 py-3 hover:bg-zinc-50 transition-colors group rounded-2xl border border-zinc-50"
                         >
                           {ex.category && (
                             <Badge
@@ -184,7 +184,11 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                               {ex.category}
                             </Badge>
                           )}
-                          <p className="flex-1 min-w-0 text-sm font-bold text-zinc-800 line-clamp-2 group-hover:text-purple-600 transition-colors">
+                          {/* order-3 + w-full : sur mobile, badges et chevron restent groupés sur
+                              une première ligne, l'énoncé passe seul en dessous sur toute la
+                              largeur (2 lignes grâce à line-clamp-2) au lieu d'être écrasé entre
+                              les badges. sm: restaure l'ordre et la largeur flexible d'origine. */}
+                          <p className="order-3 w-full sm:order-none sm:w-auto sm:flex-1 sm:min-w-0 text-sm font-bold text-zinc-800 line-clamp-2 group-hover:text-purple-600 transition-colors">
                             {ex.instructions || "Exercice"}
                           </p>
                           {st === "completed" ? (

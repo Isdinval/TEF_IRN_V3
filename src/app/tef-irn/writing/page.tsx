@@ -41,6 +41,12 @@ export function WritingCoachContent() {
   const [exercise, setExercise] = useState<WritingExercise>(fallbackExercise);
   const [loading, setLoading] = useState(true);
   const [leftWidth, setLeftWidth] = useState(58);
+  // Bascule mobile (< md) : les deux panneaux (Rédaction / Feedback) sont
+  // pensés pour un affichage côte à côte redimensionnable (desktop) --
+  // aucune adaptation ne peut les faire coexister proprement sur un écran
+  // de téléphone. Sous md, un seul des deux est affiché à la fois, choisi
+  // par cet onglet ; leur contenu/état reste strictement inchangé.
+  const [mobileTab, setMobileTab] = useState<"redaction" | "feedback">("redaction");
   const [status, setStatus] = useState<Status>("catalogue");
   const [durationSeconds, setDurationSeconds] = useState<number | undefined>(undefined);
   const sessionStartRef = useRef<number | null>(null);
@@ -250,6 +256,10 @@ export function WritingCoachContent() {
         return;
       }
       setFeedback(data);
+      // Sur mobile, bascule automatiquement vers l'onglet Feedback une fois
+      // la correction reçue -- sinon rien n'indique qu'il faut changer
+      // d'onglet pour voir le résultat.
+      setMobileTab("feedback");
       // Item 8 : mise à jour optimiste -- le backend vient de marquer
       // free_ee_correction_used=true pour ce palier, pas besoin de refetch.
       if (freeCorrectionStatus === 'available') setFreeCorrectionStatus('used');
@@ -386,14 +396,43 @@ export function WritingCoachContent() {
   }
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      <div className="flex h-full relative">
+    <div className="h-[100dvh] overflow-hidden bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+      {/* Bascule mobile : mêmes panneaux, mêmes props/état -- seule leur
+          visibilité change sous md, aucune logique dupliquée. */}
+      <div className="md:hidden flex shrink-0 border-b border-zinc-200 bg-white">
+        <button
+          type="button"
+          onClick={() => setMobileTab("redaction")}
+          className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
+            mobileTab === "redaction" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-400"
+          }`}
+        >
+          Rédaction
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("feedback")}
+          className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
+            mobileTab === "feedback" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-400"
+          }`}
+        >
+          Feedback / Coach
+        </button>
+      </div>
+
+      <div className="flex flex-1 min-h-0 relative">
         {/* Left Side: Writing Zone */}
         <div
-          className="h-full flex flex-col overflow-hidden transition-[width] duration-75 ease-out"
+          className={`flex-col overflow-hidden transition-[width] duration-75 ease-out h-full max-md:!w-full ${
+            mobileTab === "redaction" ? "flex" : "hidden"
+          } md:flex`}
           style={{ width: `${leftWidth}%` }}
         >
-          <header className="p-4 border-b bg-white flex items-center justify-between shrink-0">
+          {/* Sur mobile, le chronomètre n'a pas la place de tenir à côté du titre
+              sur une seule ligne (il se retrouvait coupé) : l'en-tête passe en
+              colonne, chronomètre en pleine largeur sous le titre. À partir de
+              md, on retrouve la disposition d'origine sur une seule ligne. */}
+          <header className="p-4 border-b bg-white flex flex-col gap-3 md:flex-row md:items-center md:justify-between shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={handleBack}
@@ -424,11 +463,19 @@ export function WritingCoachContent() {
               </div>
             </div>
 
-            <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
+            <div className="w-full md:w-auto">
+              <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
+            </div>
           </header>
 
-          <main className="flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA]">
-            <div className="max-w-3xl mx-auto h-full flex flex-col gap-6">
+          {/* Tant que l'utilisateur rédige (pas encore de feedback), la zone
+              de texte doit pouvoir grandir avec ce qu'il écrit plutôt que
+              rester coincée dans la hauteur d'écran mobile disponible : on
+              autorise le scroll de la page sur mobile dans ce cas précis.
+              Une fois le feedback affiché, on retrouve le comportement
+              d'origine (hauteur fixe, scroll interne du panneau). */}
+          <main className={`flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA] ${!feedback ? "max-md:overflow-y-auto" : ""}`}>
+            <div className={`max-w-3xl mx-auto h-full flex flex-col gap-6 ${!feedback ? "max-md:h-auto" : ""}`}>
               {correctionError ? (
                 <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
                   <AlertTriangle className="text-red-400 shrink-0" size={24} />
@@ -479,9 +526,9 @@ export function WritingCoachContent() {
           </main>
         </div>
 
-        {/* Resizer */}
+        {/* Resizer -- inutile sur mobile (un seul panneau visible à la fois) */}
         <div
-          className="w-1 bg-slate-200 hover:bg-indigo-400 cursor-col-resize transition-colors relative z-20"
+          className="hidden md:block w-1 bg-slate-200 hover:bg-indigo-400 cursor-col-resize transition-colors relative z-20"
           onMouseDown={startResize}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 bg-white border rounded-full flex items-center justify-center shadow-sm pointer-events-none">
@@ -492,7 +539,9 @@ export function WritingCoachContent() {
 
         {/* Right Side: Feedback Zone */}
         <div
-          className="h-full bg-[#111827] relative"
+          className={`h-full bg-[#111827] relative max-md:!w-full ${
+            mobileTab === "feedback" ? "block" : "hidden"
+          } md:block`}
           style={{ width: `${100 - leftWidth}%` }}
         >
           <FeedbackIA

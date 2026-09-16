@@ -10,8 +10,12 @@ export function QuestionNavigator() {
   const { state, questions, setQuestionIndex, nextQuestion, prevQuestion } = useExam();
   const isBackNavLocked = state.section === 'EO';
 
+  // Sur mobile, ce panneau (avec sa grille de questions) prenait jusqu'à 40% de
+  // l'écran sous la question en cours pour un bénéfice limité : on le masque en
+  // dessous de md et on garde la navigation prev/next déjà présente sur QuestionCard.
+  // Inchangé à partir de md (barre latérale desktop).
   return (
-    <div className="bg-white border-t md:border-t-0 md:border-l border-zinc-100 p-6 w-full md:w-80 flex flex-col gap-6 overflow-y-auto max-h-[40vh] md:max-h-none">
+    <div className="hidden md:flex bg-white md:border-l border-zinc-100 p-6 md:w-80 flex-col gap-6">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-zinc-900">Navigation</h3>
         <div className="flex gap-1">

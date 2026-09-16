@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Sidebar } from "./Sidebar";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { MobileDrawer } from "./MobileDrawer";
 import { ParcoursTopBar } from "./ParcoursTopBar";
 import { StudyHeartbeat } from "./StudyHeartbeat";
 import React, { Suspense, useEffect, useState } from "react";
@@ -20,6 +22,7 @@ const ChatCoach = dynamic(() => import("@/components/features/coach/ChatCoach").
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   // Le Coach IA n'est pas inclus dans le plan Gratuit -- même pattern de fetch
   // que Sidebar.tsx (pas de contexte profil partagé dans ce projet). Le vrai
@@ -31,6 +34,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Referme le tiroir mobile après un changement de page (clic sur un lien
+  // de SidebarContent à l'intérieur de MobileDrawer).
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!user) { setSubscriptionTier(null); return; }
@@ -90,11 +99,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen relative">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative">
         <ParcoursTopBar />
-        <main className="flex-1 overflow-auto">
+        {/* pb-16 sous md : laisse la place à MobileBottomNav (fixed, h-16) pour
+            que le contenu de fin de page ne soit pas masqué derrière. */}
+        <main className="flex-1 overflow-auto pb-16 md:pb-0">
           {children}
         </main>
+        <MobileBottomNav onOpenMenu={() => setMobileMenuOpen(true)} />
+        <MobileDrawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
         {/* Only mount Coach on client side, if not on /coach page, logged in, ET plan payant */}
         {mounted && user && canUseCoach && pathname !== "/tef-irn/coach" && (
            <div className="hidden md:block">

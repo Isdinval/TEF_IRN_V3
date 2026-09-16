@@ -195,6 +195,15 @@
   html {
     @apply font-sans;
   }
+  /* Garde-fou mobile : un élément qui déborde de la largeur de l'écran
+     (même de quelques px) fait "zoomer" le viewport layout sur Chrome/MIUI
+     et pousse tout le contenu (dont la barre de nav fixe) hors champ tant
+     que l'utilisateur ne dézoome pas manuellement. Ne remplace pas la
+     correction des éléments fautifs (item 2 du chantier responsive), mais
+     évite que le symptôme casse la navigation en attendant. */
+  html, body {
+    @apply overflow-x-hidden;
+  }
 }
 @keyframes accordion-down {
   from { height: 0; }

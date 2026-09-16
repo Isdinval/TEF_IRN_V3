@@ -145,7 +145,14 @@ export const ZoneRedaction = ({
   }, [feedback, text, normalizedText, activeErrorIndex, onSelectError]);
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border-2 border-indigo-50 bg-[#FAFAFA] shadow-2xl shadow-indigo-100/30">
+    <Card
+      className={`flex flex-col overflow-hidden rounded-[2.5rem] border-2 border-indigo-50 bg-[#FAFAFA] shadow-2xl shadow-indigo-100/30 md:h-full ${
+        // Le même assouplissement de hauteur que main/page.tsx pour mobile :
+        // hauteur libre pendant la rédaction (grandit avec le texte), hauteur
+        // fixe + scroll interne d'origine une fois le feedback affiché.
+        feedback ? "h-full" : "max-md:h-auto"
+      }`}
+    >
       <CardHeader className="flex shrink-0 flex-row items-center justify-between border-b border-zinc-100 bg-white px-8 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
@@ -188,7 +195,7 @@ export const ZoneRedaction = ({
         )}
       </CardHeader>
 
-      <CardContent className="relative flex-1 min-h-0 p-0">
+      <CardContent className="relative flex flex-1 min-h-0 flex-col p-0">
         <AnimatePresence mode="wait">
           {!feedback ? (
             <motion.div
@@ -196,11 +203,11 @@ export const ZoneRedaction = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-full"
+              className="min-h-0 flex-1"
             >
               <Textarea
                 placeholder="Rédigez votre réponse ici. L'IA analysera votre texte pour vous donner un feedback détaillé."
-                className="h-full w-full resize-none border-0 bg-transparent p-10 text-xl font-medium leading-relaxed text-zinc-800 focus-visible:ring-0 placeholder:text-zinc-300 placeholder:italic"
+                className="min-h-[220px] w-full resize-none border-0 bg-transparent p-6 text-sm font-medium leading-relaxed text-zinc-800 focus-visible:ring-0 placeholder:text-zinc-300 placeholder:italic md:h-full md:min-h-0 md:p-10 md:text-xl"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={isAnalyzing}
@@ -211,7 +218,7 @@ export const ZoneRedaction = ({
               key="preview"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="h-full"
+              className="min-h-0 flex-1"
             >
               <ScrollArea className="h-full">
                 <div className="p-10 text-xl font-medium leading-relaxed text-zinc-800 whitespace-pre-wrap">
@@ -222,20 +229,24 @@ export const ZoneRedaction = ({
           )}
         </AnimatePresence>
 
-        <div className="absolute bottom-8 left-1/2 w-full max-w-sm -translate-x-1/2 px-6">
+        {/* Sur mobile (onglet "Rédaction" plein écran, panneau moins haut que sur
+            desktop) : bouton en flux normal sous la zone de texte, au lieu de
+            flotter par-dessus le texte en cours de rédaction. À partir de md
+            (panneau desktop, plus haut), on retrouve le bouton flottant d'origine. */}
+        <div className="relative mx-auto w-full max-w-sm shrink-0 px-6 max-md:border-t max-md:border-zinc-100 max-md:bg-white max-md:py-4 md:absolute md:bottom-8 md:left-1/2 md:-translate-x-1/2 md:py-0">
           {!feedback ? (
             <Button
               onClick={onAnalyze}
               disabled={isAnalyzing || wordCount < 5}
-              className="h-16 w-full rounded-2xl bg-zinc-900 text-lg font-black text-white shadow-2xl shadow-zinc-300 transition-all hover:bg-indigo-600 active:scale-95 border-none"
+              className="h-12 md:h-16 w-full rounded-2xl bg-zinc-900 text-sm md:text-lg font-black text-white shadow-2xl shadow-zinc-300 transition-all hover:bg-indigo-600 active:scale-95 border-none"
             >
               {isAnalyzing ? (
                 <>
-                  <Loader2 className="mr-2 animate-spin" size={24} /> ANALYSE...
+                  <Loader2 className="mr-2 size-5 md:size-6 animate-spin" /> ANALYSE...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2" size={24} /> LANCER L'ANALYSE
+                  <Sparkles className="mr-2 size-5 md:size-6" /> LANCER L'ANALYSE
                 </>
               )}
             </Button>

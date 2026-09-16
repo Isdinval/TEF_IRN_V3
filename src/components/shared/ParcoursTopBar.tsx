@@ -69,7 +69,12 @@ export function ParcoursTopBar() {
             <ParcoursProgressBar percent={progress?.percent || 0} />
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          {/* min-w-0 + overflow-x-auto : filet de sécurité si ce groupe de
+              boutons reste malgré tout plus large que l'espace disponible
+              (ex. petit écran + plusieurs boutons simultanés) -- il défile
+              alors lui-même au lieu de pousser toute la topbar/la page en
+              débordement horizontal, même bug que DashboardSectionNav. */}
+          <div className="flex items-center gap-2 min-w-0 overflow-x-auto">
             {activeParcours.category === "vocabulaire" && (
               <Button
                 onClick={() => handleNext(nextVocabulary)}
@@ -144,7 +149,8 @@ export function ParcoursTopBar() {
                 size="sm"
                 className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
               >
-                Leçon suivante <ChevronRight size={14} className="ml-1" />
+                <span className="hidden sm:inline">Leçon suivante</span>
+                <ChevronRight size={14} className="sm:ml-1" />
               </Button>
             )}
           </div>
