@@ -60,7 +60,15 @@ const SECTION_META: Record<string, { label: string; icon: React.ElementType }> =
   "civic-ressources": { label: "Suivi & Ressources", icon: Library },
 };
 
-export function SidebarContent() {
+interface SidebarContentProps {
+  /** "desktop" (colonne fixe w-64, comportement inchangé) ou "mobile" (remplit
+   * son conteneur — utilisé par MobileDrawer, qui gère lui-même la largeur du
+   * panneau). Ne change aucun lien/logique, uniquement les classes du conteneur
+   * racine. */
+  variant?: "desktop" | "mobile";
+}
+
+export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}) {
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -179,7 +187,13 @@ export function SidebarContent() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <div className="w-64 border-r border-zinc-100 bg-white h-screen sticky top-0 flex flex-col selection:bg-indigo-100 shrink-0">
+    <div
+      className={
+        variant === "mobile"
+          ? "w-full h-full flex flex-col bg-white selection:bg-indigo-100"
+          : "w-64 border-r border-zinc-100 bg-white h-screen sticky top-0 flex flex-col selection:bg-indigo-100 shrink-0"
+      }
+    >
       <div className="p-8">
         <Link href={getHrefWithContext("/tef-irn/dashboard")} className="flex items-center gap-3 font-black text-2xl tracking-tighter text-zinc-900 group">
           <div className="relative w-9 h-9 overflow-hidden rounded-xl shadow-xl">
