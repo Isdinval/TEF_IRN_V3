@@ -15,14 +15,18 @@ interface DashboardSectionNavProps {
 
 // Onglets contrôlés : une seule section est montée à la fois côté page.tsx,
 // ce composant est un pur sélecteur (pas de scroll, pas d'observer).
+// Sur mobile, les 3 labels (uppercase + tracking-widest) dépassent souvent la
+// largeur de l'écran : au lieu de laisser le conteneur "w-fit" pousser toute
+// la page dans le débordement horizontal (bug trouvé en test réel), il
+// défile lui-même horizontalement, contenu à l'intérieur de son propre cadre.
 export function DashboardSectionNav({ activeSection, onChange }: DashboardSectionNavProps) {
   return (
-    <div className="sticky top-4 z-20 mt-6 flex w-fit gap-2 rounded-full border border-zinc-100 bg-white/90 p-1.5 shadow-sm backdrop-blur">
+    <div className="sticky top-4 z-20 mt-6 flex max-w-full gap-2 overflow-x-auto rounded-full border border-zinc-100 bg-white/90 p-1.5 shadow-sm backdrop-blur">
       {DASHBOARD_SECTIONS.map((s) => (
         <button
           key={s.id}
           onClick={() => onChange(s.id)}
-          className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
+          className={`shrink-0 rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
             activeSection === s.id ? s.activeClass : "text-zinc-400 hover:text-zinc-700"
           }`}
         >
