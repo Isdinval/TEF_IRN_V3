@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { Guide } from '@/types/guides';
 import { SpecialGuideSection } from '@/components/shared/SpecialGuideSection';
+import { withGuideUtm } from '@/lib/analytics';
 
 interface GuideContentProps {
   guide: Guide;
@@ -104,6 +105,9 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
     li: ({ children }: any) => <li className="text-lg leading-relaxed">{children}</li>,
     p: ({ children }: any) => <p className="text-lg leading-relaxed text-slate-600 my-4 dark:text-slate-400">{children}</p>,
     strong: ({ children }: any) => <strong className="font-bold text-zinc-900 dark:text-zinc-100">{children}</strong>,
+    a: ({ href, children }: any) => (
+      <a href={href ? withGuideUtm(href, guide.slug) : href}>{children}</a>
+    ),
   };
 
   return (
@@ -146,6 +150,7 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
                   title={section.title!}
                   content={section.content}
                   type={section.specialType!}
+                  guideSlug={guide.slug}
                 />
               );
             }

@@ -8,17 +8,19 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
+import { withGuideUtm } from '@/lib/analytics';
 
 interface SpecialGuideSectionProps {
   title: string;
   content: string;
   type: 'llamakusi-help' | 'faq';
+  guideSlug: string;
 }
 
 const slugify = (text: string) =>
   text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 
-export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title, content, type }) => {
+export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title, content, type, guideSlug }) => {
   const id = useMemo(() => slugify(title), [title]);
 
   const faqItems = useMemo(() => {
@@ -50,9 +52,10 @@ export const SpecialGuideSection: React.FC<SpecialGuideSectionProps> = ({ title,
               a: ({ href, children }) => {
                 const isInternal = href?.startsWith('/') || href?.startsWith('https://llamakusi.com') || href?.startsWith('/tef-irn');
                 const Component = isInternal ? Link : 'a';
+                const taggedHref = href ? withGuideUtm(href, guideSlug) : '#';
                 return (
                   <Component
-                    href={href || '#'}
+                    href={taggedHref}
                     className="font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-4 decoration-2 decoration-emerald-100 hover:decoration-emerald-400 transition-all dark:text-emerald-400 dark:hover:text-emerald-300 no-underline"
                   >
                     {children}
