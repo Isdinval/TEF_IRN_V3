@@ -60,7 +60,7 @@ const SECTION_META: Record<string, { label: string; icon: React.ElementType }> =
   "civic-ressources": { label: "Suivi & Ressources", icon: Library },
 };
 
-function SidebarContent() {
+export function SidebarContent() {
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -292,9 +292,15 @@ function SidebarContent() {
 }
 
 export function Sidebar() {
+  // Sidebar colonne fixe = desktop uniquement. Sur mobile/tablette (< md),
+  // ce wrapper disparaît entièrement (display: none) ; la même navigation
+  // (SidebarContent) redevient accessible via MobileDrawer, affichée en
+  // panneau glissant depuis MobileBottomNav.
   return (
-    <Suspense fallback={<div className="w-64 border-r border-zinc-100 bg-white h-screen" />}>
-      <SidebarContent />
-    </Suspense>
+    <div className="hidden md:contents">
+      <Suspense fallback={<div className="w-64 border-r border-zinc-100 bg-white h-screen" />}>
+        <SidebarContent />
+      </Suspense>
+    </div>
   );
 }
