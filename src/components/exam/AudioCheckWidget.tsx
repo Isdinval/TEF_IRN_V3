@@ -43,7 +43,7 @@ export function AudioCheckWidget() {
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 p-5 bg-amber-50/60 rounded-2xl border border-amber-100">
+    <div className="flex flex-col gap-3 p-5 bg-amber-50/60 rounded-2xl border border-amber-100 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <audio ref={audioRef} src={TEST_AUDIO_URL} onEnded={handleEnded} />
 
       <div className="flex items-center gap-3 min-w-0">
@@ -72,7 +72,7 @@ export function AudioCheckWidget() {
         type="button"
         onClick={togglePlay}
         variant="outline"
-        className="h-10 rounded-full shrink-0 border-amber-200 bg-white hover:bg-amber-100 font-bold text-xs px-4"
+        className="h-10 w-full rounded-full shrink-0 border-amber-200 bg-white hover:bg-amber-100 font-bold text-xs px-4 sm:w-auto"
       >
         {isPlaying ? (
           <>
