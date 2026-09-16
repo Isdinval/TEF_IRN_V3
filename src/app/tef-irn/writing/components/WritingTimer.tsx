@@ -104,17 +104,19 @@ export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: Writ
 
   if (!isStarted) {
     return (
-      <div className="flex items-center gap-4 rounded-2xl bg-indigo-50/50 p-4 border border-indigo-100 shadow-sm">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
-          <TimerIcon size={20} />
-        </div>
-        <div className="flex-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Chronomètre TEF</p>
-          <p className="text-sm font-bold text-indigo-900">{duration / 60}:00 min disponibles</p>
+      <div className="flex flex-col gap-3 rounded-2xl bg-indigo-50/50 p-4 border border-indigo-100 shadow-sm md:flex-row md:items-center md:gap-4">
+        <div className="flex items-center gap-4 md:flex-1">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
+            <TimerIcon size={20} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Chronomètre TEF</p>
+            <p className="text-sm font-bold text-indigo-900">{duration / 60}:00 min disponibles</p>
+          </div>
         </div>
         <Button
           onClick={handleStart}
-          className="rounded-xl bg-indigo-600 font-black uppercase tracking-tighter text-white hover:bg-indigo-700"
+          className="w-full rounded-xl bg-indigo-600 font-black uppercase tracking-tighter text-white hover:bg-indigo-700 md:w-auto"
         >
           <Play size={16} className="mr-2" /> Démarrer le chrono
         </Button>

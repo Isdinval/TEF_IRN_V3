@@ -428,7 +428,11 @@ export function WritingCoachContent() {
           } md:flex`}
           style={{ width: `${leftWidth}%` }}
         >
-          <header className="p-4 border-b bg-white flex items-center justify-between shrink-0">
+          {/* Sur mobile, le chronomètre n'a pas la place de tenir à côté du titre
+              sur une seule ligne (il se retrouvait coupé) : l'en-tête passe en
+              colonne, chronomètre en pleine largeur sous le titre. À partir de
+              md, on retrouve la disposition d'origine sur une seule ligne. */}
+          <header className="p-4 border-b bg-white flex flex-col gap-3 md:flex-row md:items-center md:justify-between shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={handleBack}
@@ -459,7 +463,9 @@ export function WritingCoachContent() {
               </div>
             </div>
 
-            <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
+            <div className="w-full md:w-auto">
+              <WritingTimer instructions={exercise.instructions} durationSeconds={durationSeconds} />
+            </div>
           </header>
 
           {/* Tant que l'utilisateur rédige (pas encore de feedback), la zone
