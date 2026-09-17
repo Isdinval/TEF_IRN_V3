@@ -14,9 +14,11 @@
  * - hasExamWritingCorrection : verrou dur, mais UNIQUEMENT dans le contexte
  *   "examen blanc" de /api/writing/correct (paramètre `context: 'exam'`
  *   envoyé par ExamContext.tsx). La pratique libre EE (page /writing,
- *   même endpoint sans ce paramètre) n'est PAS concernée par ce chantier :
- *   elle reste sur son quota existant (voir ai-rate-limit.ts, écart connu
- *   avec la pricing page déjà documenté séparément, hors scope ici).
+ *   même endpoint sans ce paramètre) est plafonnée séparément à 1 essai
+ *   À VIE pour Gratuit via profiles.free_ee_correction_used (validé avec
+ *   Olivier, voir migration 20260909000002) -- le quota quotidien de
+ *   ai-rate-limit.ts (writing_correct) ne s'applique donc jamais en
+ *   pratique à ce palier, le verrou à vie intervient avant.
  * - oralDailyMinutes : quota réel en minutes (item 10, 2026-09), vérifié par
  *   /api/oral/session (refuse un nouveau token si le quota du jour est déjà
  *   atteint) et alimenté par /api/oral/analyze (durée déclarée par le

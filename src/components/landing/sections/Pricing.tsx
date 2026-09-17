@@ -32,9 +32,9 @@ const plans: Plan[] = [
     desc: "Pour découvrir la plateforme et tester votre niveau réel.",
     features: [
       "Test de positionnement A1 → B2",
-      "1 correction d'Expression Écrite",
-      "Accès limité aux fiches de vocabulaire",
-      "3 séries d'exercices / jour",
+      "1 correction d'Expression Écrite (à vie)",
+      "Accès libre aux fiches de vocabulaire",
+      "3 exercices par jour (vocabulaire, QCM, chasse aux erreurs)",
       "Entraînement Examen Civique illimité"
     ],
     cta: "Commencer gratuitement",
