@@ -40,6 +40,47 @@ export const TIER_LABELS: Record<SubscriptionTier, string> = {
   super_premium: "Super Premium",
 };
 
+/**
+ * Liste complète (pas en delta) des droits de chaque palier, reprise des
+ * bullets de la pricing page (Pricing.tsx) -- utilisée par
+ * Settings > Abonnement pour afficher les VRAIS droits du palier de
+ * l'utilisateur, au lieu d'une liste binaire "Gratuit vs Premium" inventée
+ * qui promettait par exemple le coach oral à un abonné Essentiel qui n'y a
+ * pas accès (chantier abonnements, item 4, 2026-09).
+ */
+export const TIER_FEATURES: Record<SubscriptionTier, string[]> = {
+  gratuit: [
+    "Test de positionnement A1 → B2",
+    "1 correction d'Expression Écrite (à vie)",
+    "Accès libre aux fiches de vocabulaire",
+    "3 exercices par jour (vocabulaire, QCM, chasse aux erreurs)",
+    "Entraînement Examen Civique illimité",
+  ],
+  essentiel: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Entraînement Examen Civique illimité",
+  ],
+  premium: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Coach Expression Orale : 40 min / jour",
+    "Entraînement Examen Civique illimité",
+  ],
+  super_premium: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Coach Expression Orale : 75 min / jour",
+    "Entraînement Examen Civique illimité",
+  ],
+};
+
 export interface Entitlements {
   hasOralCoach: boolean;
   hasExamWritingCorrection: boolean;
