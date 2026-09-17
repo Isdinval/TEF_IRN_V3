@@ -27,6 +27,19 @@
 
 export type SubscriptionTier = "gratuit" | "essentiel" | "premium" | "super_premium";
 
+/**
+ * Libellé affichable de chaque palier, à utiliser partout où l'UI montre le
+ * nom du palier (Sidebar, Settings...) -- évite que chaque composant décide
+ * lui-même comment nommer un palier (source du bug "Pro"/"Free" qui écrasait
+ * les 4 vrais paliers en 2 mots génériques).
+ */
+export const TIER_LABELS: Record<SubscriptionTier, string> = {
+  gratuit: "Gratuit",
+  essentiel: "Essentiel",
+  premium: "Premium",
+  super_premium: "Super Premium",
+};
+
 export interface Entitlements {
   hasOralCoach: boolean;
   hasExamWritingCorrection: boolean;

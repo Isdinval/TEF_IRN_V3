@@ -16,6 +16,7 @@ import { Profile, UserPreferences } from "@/types/database";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParcours } from "@/contexts/ParcoursContext";
+import { TIER_LABELS, normalizeTier } from "@/lib/entitlements";
 
 type SettingsSection = "profile" | "subscription" | "notifications" | "security";
 
@@ -375,7 +376,7 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                 "border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full",
                 profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-500'
               )}>
-                {profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'Membre Premium' : 'Compte Gratuit'}
+                {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}
               </Badge>
               {profile?.current_level && (
                 <Badge className="bg-emerald-50 text-emerald-600 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
