@@ -708,12 +708,25 @@ function SecuritySection({ supabase, showToast }: any) {
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
-    // Simulation
-    setTimeout(() => {
-      alert("Pour des raisons de sécurité, veuillez contacter contact@isdinval.fr pour confirmer la suppression définitive de votre compte.");
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "La suppression a échoué. Réessayez ou contactez le support.");
+        setDeleteLoading(false);
+        setDeleteConfirmOpen(false);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      window.location.assign('/');
+    } catch (err) {
+      console.error("Erreur lors de la suppression du compte:", err);
+      alert("La suppression a échoué. Réessayez ou contactez le support.");
       setDeleteLoading(false);
       setDeleteConfirmOpen(false);
-    }, 1500);
+    }
   };
 
   return (
