@@ -38,6 +38,7 @@ import { splitTitle } from "@/lib/lessons";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResizableSplit } from "@/hooks/useResizableSplit";
+import { checkExercisePracticeQuota } from "@/lib/exercise-practice-client";
 import { VICTORY_MASCOT_URLS, pickRandomImage } from "@/data/grammar-check-images";
 import { resolveNextExercises } from "@/lib/recommendation-resolver";
 import { captureEvent } from "@/lib/analytics";
@@ -129,6 +130,10 @@ export function PracticeContent() {
   // les autres exercices réellement pratiqués n'étaient jamais trackés (ni pour
   // l'anti-répétition item 13, ni pour le SRS, ni pour user_errors).
   const [answersLog, setAnswersLog] = useState<{ exerciseId: string; correct: boolean }[]>([]);
+  // Chantier abonnements, item 2 : message affiché quand le quota
+  // quotidien de QCM (Gratuit) est atteint en plein milieu d'un lot --
+  // null = pas bloqué.
+  const [quotaBlocked, setQuotaBlocked] = useState<string | null>(null);
   // Quota d'exercices de la leçon de rattachement, affiché sur l'écran de
   // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
   // mais pour un exercice lancé depuis la TopBar (bouton QCM), qui n'affichait
@@ -590,10 +595,27 @@ export function PracticeContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, currentIdx, questions]);
 
+  // Chantier abonnements, item 2 : vérifie le quota à CHAQUE question
+  // affichée (pas une fois au lancement du lot) -- un lot peut contenir
+  // jusqu'à 10 questions, mais un compte Gratuit qui a déjà consommé son
+  // quota du jour est arrêté en plein milieu, pas seulement empêché de
+  // démarrer un nouveau lot.
+  useEffect(() => {
+    if (mode !== "practice") return;
+    if (!questions[currentIdx]) return;
+    let cancelled = false;
+    checkExercisePracticeQuota("qcm").then((result) => {
+      if (cancelled) return;
+      if (!result.allowed) setQuotaBlocked(result.error || "Limite quotidienne atteinte.");
+    });
+    return () => { cancelled = true; };
+  }, [mode, currentIdx, questions]);
+
   // Item 3ter : nouvelle session (nouvelle référence de tableau `questions`,
   // posée par chaque fetch* / autoStart) -> journal de réponses réinitialisé.
   useEffect(() => {
     setAnswersLog([]);
+    setQuotaBlocked(null);
   }, [questions]);
 
   useEffect(() => {
@@ -1038,6 +1060,27 @@ export function PracticeContent() {
             </section>
           </ExerciseLayout>
         </div>
+      </div>
+    );
+  }
+
+  // SCREEN: QUOTA BLOQUÉ (item 2, chantier abonnements)
+  if (mode === "practice" && quotaBlocked) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6 max-w-md w-full">
+          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto">
+            <Sparkles size={28} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Limite quotidienne atteinte</h2>
+            <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
+          </div>
+        </motion.div>
       </div>
     );
   }
