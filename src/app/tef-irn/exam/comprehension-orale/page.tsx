@@ -155,17 +155,18 @@ export default function ComprehensionOralePage() {
                             Niveau {exam.level}
                           </Badge>
                           <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                            <Clock size={11} className="mr-1" /> {exam.duration_co} min
+                            {exam.label}
                           </Badge>
                         </div>
                         <h3 className="text-lg font-black leading-tight tracking-tight text-zinc-900">
-                          {exam.label}
+                          {exam.description}
                         </h3>
-                        <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
-                          20 questions · Compréhension Orale seule
+                        <p className="text-xs font-bold uppercase tracking-wide text-zinc-400 flex items-center gap-1">
+                          <Clock size={11} /> {FORMATS.length} formats · {exam.duration_co} min
                         </p>
                         <p className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-500">
-                          {exam.description}
+                          Annonces, répondeurs, chroniques et micro-trottoirs — 20 questions
+                          en conditions réelles.
                         </p>
                         <Button
                           size="sm"
