@@ -61,27 +61,33 @@ export function ParcoursTopBar() {
         exit={{ y: -100 }}
         className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-zinc-100 shadow-sm"
       >
-        <div className="max-w-7xl mx-auto px-4 py-3 md:h-16 md:py-0 flex flex-wrap md:flex-nowrap items-center justify-between gap-3">
-          {/* Bouton "Retour" retiré (redondant) : le titre fait maintenant
-              lui-même office de retour vers la page du parcours -- même
-              destination que l'ancien bouton, un seul point d'action au
-              lieu de deux. Légende "Parcours en cours" gardée à partir de
-              sm: uniquement (texte d'appoint, pas l'info essentielle). */}
-          <Link href={`/tef-irn/parcours/${activeParcours.slug}`} className="shrink-0 min-w-0 group" onClick={dismissHint}>
-            <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 group-hover:text-indigo-500 transition-colors">
-              Parcours en cours
-            </span>
-            <h4 className="text-xs sm:text-sm font-black text-slate-900 capitalize truncate max-w-[140px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
-              {activeParcours.category} {activeParcours.level}
-            </h4>
+        <div className="max-w-7xl mx-auto px-4 py-3 md:h-16 md:py-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          {/* Ligne titre : pleine largeur sur mobile, avec chevron en bout
+              (affordance "c'est cliquable, ça mène ailleurs") -- au lieu de
+              rivaliser pour l'espace horizontal avec les boutons, elle a
+              maintenant sa propre ligne. Le titre fait office de "Retour"
+              (bouton dédié retiré, redondant). Légende "Parcours en cours"
+              maintenant toujours visible (plus de place disponible qu'avant
+              sur sa propre ligne). */}
+          <Link
+            href={`/tef-irn/parcours/${activeParcours.slug}`}
+            className="flex items-center justify-between gap-2 min-w-0 group md:justify-start md:shrink-0"
+            onClick={dismissHint}
+          >
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 block group-hover:text-indigo-500 transition-colors">
+                Parcours en cours
+              </span>
+              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[220px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
+                {activeParcours.category} {activeParcours.level}
+              </h4>
+            </div>
+            <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-500 transition-colors md:hidden" />
           </Link>
 
           {/* Barre de progression détaillée : uniquement à partir de md:,
-              comme avant. Le badge "%" compact ajouté pour mobile (item A3)
-              est retiré ici -- avec le nom du parcours et tous les boutons
-              d'action déjà présents sur un écran étroit, un chiffre de
-              progression en plus ajoutait de la charge sans info
-              actionnable. */}
+              comme avant. Le badge "%" compact ajouté puis retiré (item A3
+              puis retour terrain) n'est pas réintroduit ici. */}
           <div className="hidden md:block md:flex-1 md:max-w-md">
             <div className="flex justify-between items-center mb-1">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
@@ -94,21 +100,23 @@ export function ParcoursTopBar() {
             <ParcoursProgressBar percent={progress?.percent || 0} />
           </div>
 
-          {/* flex-wrap (plutôt que l'ancien overflow-x-auto) : sur un écran
-              étroit, les boutons qui ne rentrent pas sur la 1re ligne
-              passent à la ligne suivante plutôt que de défiler
-              horizontalement. La hauteur de la barre n'est plus fixée en
-              dur sur mobile (py-3, contre h-16 avant) pour pouvoir
-              accueillir 2 lignes de boutons sans rien couper -- inchangé à
-              partir de md: (md:h-16 md:py-0, une seule ligne comme avant). */}
-          <div className="flex flex-wrap items-center gap-2 min-w-0">
+          {/* Retour terrain (mobile) : le flex-wrap précédent laissait les
+              boutons s'entasser à gauche, largeurs inégales, "Leçon
+              suivante" se réduisant à une icône seule sans texte (label
+              hidden sm:inline) -- peu engageant. Grille 2 colonnes sur
+              mobile (chaque bouton pleine largeur de sa cellule, tailles
+              homogènes) ; "Leçon suivante" (CTA principal) occupe toute la
+              largeur sur sa propre ligne, avec son libellé toujours visible.
+              À partir de sm:, on repasse en ligne classique (assez de place
+              pour tout tenir, comme avant ces retouches mobile). */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:w-auto">
             {activeParcours.category === "vocabulaire" && (
               <Button
                 onClick={() => handleNext(nextVocabulary)}
                 disabled={isResolving || vocabFullyMastered}
                 variant="outline"
                 size="sm"
-                className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                   vocabFullyMastered
                     ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                     : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -137,7 +145,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.qcm === 0}
               variant="outline"
               size="sm"
-              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                 exerciseCounts?.qcm === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -156,7 +164,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.trous === 0}
               variant="outline"
               size="sm"
-              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                 exerciseCounts?.trous === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -178,10 +186,10 @@ export function ParcoursTopBar() {
                 onClick={() => handleNext(nextLesson)}
                 disabled={isResolving}
                 size="sm"
-                className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
+                className="w-full sm:w-auto col-span-2 sm:col-span-1 h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
               >
-                <span className="hidden sm:inline">Leçon suivante</span>
-                <ChevronRight size={14} className="sm:ml-1" />
+                <span>Leçon suivante</span>
+                <ChevronRight size={14} className="ml-1" />
               </Button>
             )}
           </div>
