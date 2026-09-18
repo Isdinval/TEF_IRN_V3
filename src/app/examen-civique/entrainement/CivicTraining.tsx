@@ -533,8 +533,12 @@ function CivicTrainingContent() {
       </main>
 
       {/* Barre d'action fixe : Vérifier / Continuer / Je suis prêt(e) apparaissent toujours au même
-          endroit, pour que l'utilisateur puisse enchaîner en cliquant sans déplacer la souris. */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-zinc-100 p-4 z-40">
+          endroit, pour que l'utilisateur puisse enchaîner en cliquant sans déplacer la souris.
+          Sous md, MobileBottomNav (AppLayout) est elle aussi fixed bottom-0 avec un z-index plus
+          élevé (z-[100]) -- décalée ici de sa hauteur (h-16) + la safe-area, sinon cette barre est
+          masquée derrière la nav globale et les boutons Vérifier/Continuer deviennent inaccessibles.
+          Dès md, MobileBottomNav n'existe plus (md:hidden) donc bottom-0 redevient correct. */}
+      <div className="fixed bottom-[calc(4rem_+_env(safe-area-inset-bottom))] md:bottom-0 inset-x-0 bg-white border-t border-zinc-100 p-4 z-40">
         <div className="max-w-xl mx-auto">
           {step === "learn" && (
             <div className="flex gap-4">

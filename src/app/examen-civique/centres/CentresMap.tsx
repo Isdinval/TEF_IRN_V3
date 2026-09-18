@@ -103,7 +103,12 @@ export function CentresMap({
   const markers = centres.filter((c) => c.latitude !== null && c.longitude !== null);
 
   return (
-    <div className="h-[65vh] min-h-[420px] w-full overflow-hidden rounded-[2rem] border border-zinc-100 shadow-sm">
+    /* isolate : Leaflet place nativement ses contrôles (.leaflet-top/.leaflet-bottom,
+       zoom + attribution) à z-index 1000 dans son propre CSS. Sans contexte
+       d'empilement dédié, ce 1000 rivalise directement avec les éléments applicatifs
+       (ex. MobileDrawer à z-[110]/[120]) et passe au-dessus. `isolate` crée ce contexte
+       ici : le 1000 interne à Leaflet reste plafonné à l'intérieur de ce conteneur. */
+    <div className="isolate h-[65vh] min-h-[420px] w-full overflow-hidden rounded-[2rem] border border-zinc-100 shadow-sm">
       <MapContainer center={FRANCE_CENTER} zoom={FRANCE_DEFAULT_ZOOM} scrollWheelZoom className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

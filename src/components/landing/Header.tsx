@@ -29,8 +29,11 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/80 dark:bg-brand-dark/80 backdrop-blur-xl shadow-sm py-4" : "bg-transparent py-6"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 dark:bg-brand-dark/80 backdrop-blur-xl shadow-sm py-4 ${
+        // Sous md : toujours opaque, dès le 1er paint (pas de marge de contraste
+        // suffisante sur petit viewport pour se fier au scroll). Le fondu au
+        // scroll reste un effet desktop, où l'espace autour du header le tolère.
+        isScrolled ? "" : "md:bg-transparent md:shadow-none md:py-6"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">

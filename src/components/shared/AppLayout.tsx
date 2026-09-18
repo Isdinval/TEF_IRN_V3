@@ -60,6 +60,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isExam = pathname === "/tef-irn/exam/session" || pathname === "/examen-civique/examen-blanc";
   // /tef-irn/guides reste public (SEO), mais un utilisateur connecté doit voir la sidebar.
   const isAuthedOnGuides = !!user && (pathname === "/tef-irn/guides" || pathname?.startsWith("/tef-irn/guides/"));
+  // Même détection que MobileBottomNav.tsx (isCivic) : la ParcoursTopBar est un
+  // chrome spécifique au parcours TEF IRN, elle ne doit jamais apparaître sur
+  // les pages Examen Civique même si un parcours TEF IRN est actif en tâche de fond.
+  const isCivic = pathname?.startsWith("/examen-civique") ?? false;
 
   // Case 1: Pure public landing/auth routes or Exam
   if ((isPublic || isExam) && !isAuthedOnGuides) {
@@ -100,7 +104,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-full">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 min-h-screen relative">
-        <ParcoursTopBar />
+        {!isCivic && <ParcoursTopBar />}
         {/* pb-16 sous md : laisse la place à MobileBottomNav (fixed, h-16) pour
             que le contenu de fin de page ne soit pas masqué derrière. */}
         <main className="flex-1 overflow-auto pb-16 md:pb-0">
