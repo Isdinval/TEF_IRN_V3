@@ -40,12 +40,19 @@ export function ParcoursTopBar() {
         className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-zinc-100 shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4 shrink-0">
-            <Link href="/tef-irn/progression" className="hidden sm:block group">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-0.5 group-hover:text-indigo-500 transition-colors">
+          <div className="flex items-center gap-4 shrink-0 min-w-0">
+            {/* Le libellé de catégorie/niveau reste visible sur mobile (juste
+                plus étroit, tronqué) -- avant ce correctif, tout le bloc était
+                hidden sm:block : un utilisateur arrivant sur cette barre sans
+                être passé par /progression n'avait aucun moyen de savoir à
+                quel parcours elle correspondait. Seule la légende "Parcours
+                en cours" reste réservée à sm: et plus (texte d'appoint, pas
+                l'info essentielle). */}
+            <Link href="/tef-irn/progression" className="min-w-0 group">
+              <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 group-hover:text-indigo-500 transition-colors">
                 Parcours en cours
               </span>
-              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[200px] group-hover:text-indigo-600 transition-colors">
+              <h4 className="text-xs sm:text-sm font-black text-slate-900 capitalize truncate max-w-[110px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
                 {activeParcours.category} {activeParcours.level}
               </h4>
             </Link>
