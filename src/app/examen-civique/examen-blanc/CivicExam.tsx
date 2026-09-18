@@ -625,7 +625,7 @@ function CivicExamContent() {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 lg:p-8 space-y-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="hidden md:flex flex-wrap gap-2">
           {questions.map((_, i) => (
             <button
               key={i}
