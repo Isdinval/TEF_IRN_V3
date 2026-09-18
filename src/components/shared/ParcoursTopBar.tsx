@@ -89,7 +89,8 @@ export function ParcoursTopBar() {
                 aria-label={vocabFullyMastered ? "Vocabulaire de ce niveau déjà maîtrisé" : "Vocabulaire suivant"}
                 title={vocabFullyMastered ? "Tout le vocabulaire de ce niveau est maîtrisé — bravo !" : undefined}
               >
-                {vocabFullyMastered ? <CheckCircle2 size={14} className="sm:mr-1" /> : <BookOpen size={14} className="sm:mr-1" />}
+                {vocabFullyMastered ? <CheckCircle2 size={14} className="mr-1" /> : <BookOpen size={14} className="mr-1" />}
+                <span className="sm:hidden">{vocabFullyMastered ? "Maîtrisé" : "Vocabulaire"}</span>
                 <span className="hidden sm:inline">{vocabFullyMastered ? "Niveau maîtrisé" : "Vocabulaire"}</span>
               </Button>
             )}
@@ -117,8 +118,8 @@ export function ParcoursTopBar() {
               aria-label={exerciseCounts?.qcm === 0 ? "QCM de la leçon en cours terminés" : "QCM suivant"}
               title={exerciseCounts?.qcm === 0 ? "Tous les QCM débloqués sont terminés — bravo !" : undefined}
             >
-              {exerciseCounts?.qcm === 0 ? <CheckCircle2 size={14} className="sm:mr-1" /> : <HelpCircle size={14} className="sm:mr-1" />}
-              <span className="hidden sm:inline">
+              {exerciseCounts?.qcm === 0 ? <CheckCircle2 size={14} className="mr-1" /> : <HelpCircle size={14} className="mr-1" />}
+              <span>
                 QCM{exerciseCounts && exerciseCounts.qcm > 0 ? ` (${exerciseCounts.qcm})` : ""}
               </span>
             </Button>
@@ -136,7 +137,10 @@ export function ParcoursTopBar() {
               aria-label={exerciseCounts?.trous === 0 ? "Chasse aux erreurs de la leçon en cours terminée" : "Chasse aux erreurs suivante"}
               title={exerciseCounts?.trous === 0 ? "Toute la chasse aux erreurs débloquée est terminée — bravo !" : undefined}
             >
-              {exerciseCounts?.trous === 0 ? <CheckCircle2 size={14} className="sm:mr-1" /> : <Type size={14} className="sm:mr-1" />}
+              {exerciseCounts?.trous === 0 ? <CheckCircle2 size={14} className="mr-1" /> : <Type size={14} className="mr-1" />}
+              <span className="sm:hidden">
+                Trous{exerciseCounts && exerciseCounts.trous > 0 ? ` (${exerciseCounts.trous})` : ""}
+              </span>
               <span className="hidden sm:inline">
                 Chasse aux erreurs{exerciseCounts && exerciseCounts.trous > 0 ? ` (${exerciseCounts.trous})` : ""}
               </span>
