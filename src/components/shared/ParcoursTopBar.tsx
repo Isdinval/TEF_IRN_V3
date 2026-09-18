@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,12 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
+// A2 (plan "ParcoursTopBar mobile") : même convention que
+// vocab/page.tsx (LEVEL_SWITCHER_HINT_KEY) -- un indice ponctuel, affiché
+// une seule fois par utilisateur, qui disparaît dès la 1re interaction avec
+// la barre plutôt que via un bouton de fermeture dédié.
+const PARCOURS_TOPBAR_HINT_KEY = "parcours_topbar_hint_seen";
+
 export function ParcoursTopBar() {
   const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, academicQuotaMet, isLoading, learningMode } = useParcours();
   const pathname = usePathname();
@@ -16,9 +22,25 @@ export function ParcoursTopBar() {
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
   // qui ouvrirait 2 onglets ou lancerait 2 navigations concurrentes.
   const [isResolving, setIsResolving] = useState(false);
+  const [showTopbarHint, setShowTopbarHint] = useState(false);
+
+  useEffect(() => {
+    if (!activeParcours) return;
+    try {
+      if (!localStorage.getItem(PARCOURS_TOPBAR_HINT_KEY)) setShowTopbarHint(true);
+    } catch { /* localStorage indisponible, pas d'indice affiché -- pas bloquant */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Boolean(activeParcours)]);
+
+  const dismissHint = () => {
+    if (!showTopbarHint) return;
+    setShowTopbarHint(false);
+    try { localStorage.setItem(PARCOURS_TOPBAR_HINT_KEY, "1"); } catch { /* localStorage indisponible, tant pis */ }
+  };
 
   const handleNext = async (action: () => Promise<void>) => {
     if (isResolving) return;
+    dismissHint();
     setIsResolving(true);
     try {
       await action();
@@ -48,7 +70,7 @@ export function ParcoursTopBar() {
                 quel parcours elle correspondait. Seule la légende "Parcours
                 en cours" reste réservée à sm: et plus (texte d'appoint, pas
                 l'info essentielle). */}
-            <Link href="/tef-irn/progression" className="min-w-0 group">
+            <Link href="/tef-irn/progression" className="min-w-0 group" onClick={dismissHint}>
               <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 group-hover:text-indigo-500 transition-colors">
                 Parcours en cours
               </span>
@@ -57,7 +79,7 @@ export function ParcoursTopBar() {
               </h4>
             </Link>
 
-            <Link href={`/tef-irn/parcours/${activeParcours.slug}`}>
+            <Link href={`/tef-irn/parcours/${activeParcours.slug}`} onClick={dismissHint}>
               <Button variant="ghost" size="sm" className="h-8 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                 <ArrowLeft size={14} className="mr-1" /> Retour
               </Button>
@@ -166,6 +188,23 @@ export function ParcoursTopBar() {
             )}
           </div>
         </div>
+
+        {/* A2 (plan "ParcoursTopBar mobile") : indice ponctuel expliquant le
+            rôle de la barre, 1re visite mobile uniquement -- disparaît dès
+            la 1re interaction avec la barre (voir dismissHint). Pas de
+            bouton de fermeture dédié, ni d'animation de sortie : même
+            convention que l'indice du level switcher sur /tef-irn/vocab. */}
+        {showTopbarHint && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="sm:hidden overflow-hidden bg-indigo-50/80 border-t border-indigo-100"
+          >
+            <p className="max-w-7xl mx-auto px-4 py-1.5 text-[10px] font-bold text-indigo-600">
+              💡 Cette barre suit votre parcours guidé en cours — touchez le titre pour le retrouver.
+            </p>
+          </motion.div>
+        )}
 
         <div className="md:hidden h-1 w-full bg-zinc-50">
           <motion.div
