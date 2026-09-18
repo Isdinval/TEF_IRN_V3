@@ -86,16 +86,29 @@ export function ParcoursTopBar() {
             </Link>
           </div>
 
-          <div className="flex-1 max-w-md hidden md:block">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {progress?.completed} / {progress?.total} leçons
-              </span>
-              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
-                {progress?.percent}%
-              </span>
+          {/* A3 (plan "ParcoursTopBar mobile") : sur mobile, seule une fine
+              ligne colorée (tout en bas de la barre, cf. plus loin) donnait
+              une idée très approximative de la progression, sans aucun
+              chiffre. shrink-0 (et non flex-1) sur mobile pour ne pas
+              grandir au détriment du groupe de boutons (qui compte déjà sur
+              son propre overflow-x-auto comme filet de sécurité) -- le
+              comportement flex-1/max-w-md d'origine reste inchangé à partir
+              de md:. */}
+          <div className="shrink-0 md:flex-1 md:max-w-md md:shrink">
+            <span className="md:hidden inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-600 whitespace-nowrap">
+              {progress?.percent}%
+            </span>
+            <div className="hidden md:block">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                  {progress?.completed} / {progress?.total} leçons
+                </span>
+                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                  {progress?.percent}%
+                </span>
+              </div>
+              <ParcoursProgressBar percent={progress?.percent || 0} />
             </div>
-            <ParcoursProgressBar percent={progress?.percent || 0} />
           </div>
 
           {/* min-w-0 + overflow-x-auto : filet de sécurité si ce groupe de
