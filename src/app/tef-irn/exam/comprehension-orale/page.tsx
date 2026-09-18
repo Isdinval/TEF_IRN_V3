@@ -18,6 +18,11 @@ import { Headset, ArrowRight, Loader2, AlertTriangle, Clock } from 'lucide-react
 
 const ALL_LEVELS = 'Tous';
 
+// B5 (plan "pratique CE/CO") : les 4 libellés de format ci-dessous
+// reprennent la répartition officielle du skill llamakusi-co-content
+// (annonces, repondeurs, chroniques, micro_trottoirs) -- à garder en
+// phase si cette répartition venait à changer côté génération de contenu.
+
 export default function ComprehensionOralePage() {
   const router = useRouter();
   const { exams, isLoadingExams, examsError, refetchExams, startExam } = useExam();
@@ -48,10 +53,17 @@ export default function ComprehensionOralePage() {
             Entraînez-vous à la Compréhension Orale
           </h1>
           <p className="mt-2 text-zinc-500 font-medium max-w-2xl">
-            Enregistrements audio et questions conformes au format officiel du TEF IRN.
-            Choisissez un niveau ci-dessous pour vous entraîner librement, sans passer par un
-            examen blanc complet.
+            Enregistrements audio et questions conformes au format officiel du TEF IRN,
+            répartis sur 4 formats. Choisissez un niveau ci-dessous pour vous entraîner
+            librement, sans passer par un examen blanc complet.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {['Annonces', 'Répondeurs', 'Chroniques', 'Micro-trottoirs'].map((format) => (
+              <span key={format} className="rounded-full bg-white border border-zinc-200 px-3 py-1 text-[11px] font-bold text-zinc-500">
+                {format}
+              </span>
+            ))}
+          </div>
         </div>
 
         {isLoadingExams ? (

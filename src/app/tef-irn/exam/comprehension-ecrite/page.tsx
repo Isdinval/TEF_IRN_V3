@@ -20,6 +20,11 @@ import { BookOpen, ArrowRight, Loader2, AlertTriangle, Clock } from 'lucide-reac
 
 const ALL_LEVELS = 'Tous';
 
+// B5 (plan "pratique CE/CO") : les 5 libellés de format ci-dessous
+// reprennent la répartition officielle du skill llamakusi-ce-content
+// (court, trous, multi_texte, long_admin, article_presse) -- à garder en
+// phase si cette répartition venait à changer côté génération de contenu.
+
 export default function ComprehensionEcritePage() {
   const router = useRouter();
   const { exams, isLoadingExams, examsError, refetchExams, startExam } = useExam();
@@ -50,9 +55,17 @@ export default function ComprehensionEcritePage() {
             Entraînez-vous à la Compréhension Écrite
           </h1>
           <p className="mt-2 text-zinc-500 font-medium max-w-2xl">
-            Textes et questions conformes au format officiel du TEF IRN. Choisissez un niveau
-            ci-dessous pour vous entraîner librement, sans passer par un examen blanc complet.
+            Textes et questions conformes au format officiel du TEF IRN, répartis sur
+            5 formats. Choisissez un niveau ci-dessous pour vous entraîner librement,
+            sans passer par un examen blanc complet.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {['Textes courts', 'Textes à trous', 'Textes multiples', 'Documents administratifs', 'Articles de presse'].map((format) => (
+              <span key={format} className="rounded-full bg-white border border-zinc-200 px-3 py-1 text-[11px] font-bold text-zinc-500">
+                {format}
+              </span>
+            ))}
+          </div>
         </div>
 
         {isLoadingExams ? (
