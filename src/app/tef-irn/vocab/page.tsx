@@ -34,6 +34,7 @@ import { LlamaMountainDecoration } from "@/components/decorative/LlamaMountainDe
 import { DestinationLandmarkDecoration } from "@/components/decorative/DestinationLandmarkDecoration";
 import { useExerciseFilters } from "@/hooks/useExerciseFilters";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { checkExercisePracticeQuota } from "@/lib/exercise-practice-client";
 
 interface Flashcard {
   id: string;
@@ -73,6 +74,10 @@ export function VocabCoachContent() {
   const [mode, setMode] = useState<"selection" | "training">("selection");
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
+  // Chantier abonnements, item 2 : message affiché quand le quota
+  // quotidien d'exercices de vocabulaire (Gratuit) est atteint en plein
+  // milieu d'une session -- null = pas bloqué.
+  const [quotaBlocked, setQuotaBlocked] = useState<string | null>(null);
   // Nombre réel de mots dus à révision aujourd'hui, tous niveaux/thématiques
   // confondus (reflète le comportement effectif de startTraining(true), qui
   // ignore les filtres level/category sur son chemin principal — cf. analyse).
@@ -229,8 +234,24 @@ export function VocabCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, index, cards, isReviewMode]);
 
+  // Chantier abonnements, item 2 : vérifie le quota à CHAQUE carte affichée
+  // (pas une fois au lancement du lot) -- un lot peut contenir jusqu'à 10
+  // mots, mais un compte Gratuit qui a déjà consommé son quota du jour est
+  // arrêté en plein milieu, pas seulement empêché de démarrer un nouveau lot.
+  useEffect(() => {
+    if (mode !== "training") return;
+    if (!cards[index]) return;
+    let cancelled = false;
+    checkExercisePracticeQuota("vocab").then((result) => {
+      if (cancelled) return;
+      if (!result.allowed) setQuotaBlocked(result.error || "Limite quotidienne atteinte.");
+    });
+    return () => { cancelled = true; };
+  }, [mode, index, cards]);
+
   const startSpecificCard = useCallback(async (id: string) => {
     setLoading(true);
+    setQuotaBlocked(null);
     try {
         const { data, error } = await supabase
             .from("vocabulary")
@@ -258,6 +279,7 @@ export function VocabCoachContent() {
 
   const startTraining = useCallback(async (review: boolean = false, lvl?: string, cat?: string) => {
     setLoading(true);
+    setQuotaBlocked(null);
     try {
         const { data: authData } = await supabase.auth.getUser();
         const user = authData?.user;
@@ -544,6 +566,26 @@ export function VocabCoachContent() {
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer la session
               </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (mode === "training" && quotaBlocked) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6 max-w-md w-full">
+          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto">
+            <Sparkles size={28} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Limite quotidienne atteinte</h2>
+            <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>

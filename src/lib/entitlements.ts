@@ -14,9 +14,11 @@
  * - hasExamWritingCorrection : verrou dur, mais UNIQUEMENT dans le contexte
  *   "examen blanc" de /api/writing/correct (paramètre `context: 'exam'`
  *   envoyé par ExamContext.tsx). La pratique libre EE (page /writing,
- *   même endpoint sans ce paramètre) n'est PAS concernée par ce chantier :
- *   elle reste sur son quota existant (voir ai-rate-limit.ts, écart connu
- *   avec la pricing page déjà documenté séparément, hors scope ici).
+ *   même endpoint sans ce paramètre) est plafonnée séparément à 1 essai
+ *   À VIE pour Gratuit via profiles.free_ee_correction_used (validé avec
+ *   Olivier, voir migration 20260909000002) -- le quota quotidien de
+ *   ai-rate-limit.ts (writing_correct) ne s'applique donc jamais en
+ *   pratique à ce palier, le verrou à vie intervient avant.
  * - oralDailyMinutes : quota réel en minutes (item 10, 2026-09), vérifié par
  *   /api/oral/session (refuse un nouveau token si le quota du jour est déjà
  *   atteint) et alimenté par /api/oral/analyze (durée déclarée par le
@@ -26,6 +28,60 @@
  */
 
 export type SubscriptionTier = "gratuit" | "essentiel" | "premium" | "super_premium";
+
+/**
+ * Libellé affichable de chaque palier, à utiliser partout où l'UI montre le
+ * nom du palier (Sidebar, Settings...) -- évite que chaque composant décide
+ * lui-même comment nommer un palier (source du bug "Pro"/"Free" qui écrasait
+ * les 4 vrais paliers en 2 mots génériques).
+ */
+export const TIER_LABELS: Record<SubscriptionTier, string> = {
+  gratuit: "Gratuit",
+  essentiel: "Essentiel",
+  premium: "Premium",
+  super_premium: "Super Premium",
+};
+
+/**
+ * Liste complète (pas en delta) des droits de chaque palier, reprise des
+ * bullets de la pricing page (Pricing.tsx) -- utilisée par
+ * Settings > Abonnement pour afficher les VRAIS droits du palier de
+ * l'utilisateur, au lieu d'une liste binaire "Gratuit vs Premium" inventée
+ * qui promettait par exemple le coach oral à un abonné Essentiel qui n'y a
+ * pas accès (chantier abonnements, item 4, 2026-09).
+ */
+export const TIER_FEATURES: Record<SubscriptionTier, string[]> = {
+  gratuit: [
+    "Test de positionnement A1 → B2",
+    "1 correction d'Expression Écrite (à vie)",
+    "Accès libre aux fiches de vocabulaire",
+    "3 exercices par jour (vocabulaire, QCM, chasse aux erreurs)",
+    "Entraînement Examen Civique illimité",
+  ],
+  essentiel: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Entraînement Examen Civique illimité",
+  ],
+  premium: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Coach Expression Orale : 40 min / jour",
+    "Entraînement Examen Civique illimité",
+  ],
+  super_premium: [
+    "Coach Expression Écrite illimité",
+    "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+    "Tableau de bord de progression complet",
+    "Simulateur d'examen complet",
+    "Coach Expression Orale : 75 min / jour",
+    "Entraînement Examen Civique illimité",
+  ],
+};
 
 export interface Entitlements {
   hasOralCoach: boolean;

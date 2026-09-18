@@ -30,6 +30,7 @@ import {
   pickRandomImage,
 } from "@/data/grammar-check-images";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { checkExercisePracticeQuota } from "@/lib/exercise-practice-client";
 
 interface GrammarQuestion {
   difficulty?: string;
@@ -135,6 +136,11 @@ export function GrammarCheckContent() {
   // résultat en académique -- même besoin que sur /lessons/[slug]/complete,
   // mais pour un exercice lancé depuis la TopBar (bouton Chasse aux erreurs).
   const [lessonQuota, setLessonQuota] = useState<{ done: number; required: number } | null>(null);
+  // Chantier abonnements, item 2 : message affiché quand le quota
+  // quotidien de chasse aux erreurs (Gratuit) est atteint -- null = pas
+  // bloqué. Ici 1 exercice = 1 unité de quota (contrairement à vocab/QCM
+  // qui chargent un lot), vérifié une fois par exercice ouvert.
+  const [quotaBlocked, setQuotaBlocked] = useState<string | null>(null);
   const [catalogue, setCatalogue] = useState<Exercise[]>([]);
   const [loadingCatalogue, setLoadingCatalogue] = useState(false);
   const [catalogueError, setCatalogueError] = useState(false);
@@ -338,6 +344,15 @@ export function GrammarCheckContent() {
   const startTraining = useCallback(async (id: string) => {
     if (!id) return;
     setLoading(true);
+    setQuotaBlocked(null);
+
+    const quota = await checkExercisePracticeQuota("trous");
+    if (!quota.allowed) {
+      setQuotaBlocked(quota.error || "Limite quotidienne atteinte.");
+      setMode("training");
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -677,6 +692,26 @@ export function GrammarCheckContent() {
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
               </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (mode === "training" && quotaBlocked) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6 max-w-md w-full">
+          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto">
+            <Sparkles size={28} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Limite quotidienne atteinte</h2>
+            <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>

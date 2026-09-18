@@ -2,7 +2,14 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { normalizeTier, type SubscriptionTier } from "@/lib/entitlements";
 import { captureServerEvent } from "@/lib/posthog-server";
 
-export type AiRoute = "coach_chat" | "writing_correct" | "oral_analyze" | "oral_session";
+export type AiRoute =
+  | "coach_chat"
+  | "writing_correct"
+  | "oral_analyze"
+  | "oral_session"
+  | "vocab_exercise"
+  | "qcm_exercise"
+  | "grammar_trous_exercise";
 
 // Audit sécurité item 7 (2026-08) : seul endroit à modifier pour ajuster les
 // quotas. Chiffres de départ volontairement conservateurs pour le plan
@@ -42,6 +49,18 @@ const DAILY_LIMITS: Record<AiRoute, Record<SubscriptionTier, number>> = {
   writing_correct: { gratuit: 3, essentiel: 100, premium: 100, super_premium: 100 },
   oral_analyze: { gratuit: 3, essentiel: 3, premium: 100, super_premium: 100 },
   oral_session: { gratuit: 2, essentiel: 2, premium: 50, super_premium: 50 },
+
+  // Chantier abonnements, item 2 (2026-09) : le palier Gratuit sert à faire
+  // TESTER la plateforme, pas à donner un accès illimité au contenu -- 3
+  // exercices INDIVIDUELS par jour et par type (pas 3 lots de 10). Coïncide
+  // volontairement avec REQUIRED_QCM/REQUIRED_TROUS = 3 dans
+  // lessons/[slug]/complete/page.tsx : un compte Gratuit peut ainsi finir
+  // exactement une leçon par jour en Parcours guidé, ni plus. S'applique de
+  // la même façon en Entraînement libre. Vérifié à chaque exercice affiché
+  // (pas au chargement du lot), voir exercise-practice-client.ts.
+  vocab_exercise: { gratuit: 3, essentiel: 300, premium: 300, super_premium: 300 },
+  qcm_exercise: { gratuit: 3, essentiel: 300, premium: 300, super_premium: 300 },
+  grammar_trous_exercise: { gratuit: 3, essentiel: 300, premium: 300, super_premium: 300 },
 };
 
 export interface AiRateLimitResult {

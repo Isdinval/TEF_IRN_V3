@@ -16,6 +16,7 @@ import { Profile, UserPreferences } from "@/types/database";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParcours } from "@/contexts/ParcoursContext";
+import { TIER_LABELS, TIER_FEATURES, normalizeTier } from "@/lib/entitlements";
 
 type SettingsSection = "profile" | "subscription" | "notifications" | "security";
 
@@ -375,7 +376,7 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                 "border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full",
                 profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-500'
               )}>
-                {profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'Membre Premium' : 'Compte Gratuit'}
+                {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}
               </Badge>
               {profile?.current_level && (
                 <Badge className="bg-emerald-50 text-emerald-600 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
@@ -485,9 +486,37 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
 
 function SubscriptionSection({ profile, openPortal, saving }: any) {
   const router = useRouter();
-  const features = profile?.subscription_tier && profile.subscription_tier !== 'gratuit'
-    ? ["Accès illimité à l&apos;IA", "Tous les examens blancs", "Correction détaillée 24/7", "Coaching oral illimité", "Support prioritaire"]
-    : ["Accès limité à l&apos;IA", "2 examens blancs", "Corrections simples", "Accès partiel aux leçons"];
+  const tier = normalizeTier(profile?.subscription_tier);
+  const isGratuit = tier === 'gratuit';
+  const isTopTier = tier === 'super_premium';
+  const features = TIER_FEATURES[tier];
+
+  const TIER_COPY: Record<string, { title: string; description: string }> = {
+    gratuit: {
+      title: "Débloquez tout le potentiel de LlamaKusi",
+      description: "Rejoignez les candidats qui préparent sérieusement leur TEF IRN grâce à nos outils IA avancés.",
+    },
+    essentiel: {
+      title: "Vous progressez avec Essentiel",
+      description: "Passez à Premium pour ajouter l'entraînement à l'Expression Orale avec notre coach IA.",
+    },
+    premium: {
+      title: "Vous êtes sur notre plan le plus choisi",
+      description: "Passez à Super Premium pour plus de temps de coaching oral chaque jour.",
+    },
+    super_premium: {
+      title: "Vous avez le meilleur plan",
+      description: "Profitez de l'intégralité des fonctionnalités pour une préparation sans compromis.",
+    },
+  };
+  const copy = TIER_COPY[tier];
+
+  const CTA_LABEL: Record<string, string> = {
+    gratuit: "Découvrir les abonnements",
+    essentiel: "Passer à Premium",
+    premium: "Passer à Super Premium",
+    super_premium: "",
+  };
 
   return (
     <div className="space-y-8">
@@ -500,17 +529,15 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
             <div>
               <Badge className={cn(
                 "px-5 py-2 font-black uppercase tracking-[0.3em] text-[10px] rounded-full mb-6",
-                profile?.subscription_tier === 'gratuit' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
+                isGratuit ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
               )}>
-                {profile?.subscription_tier === 'gratuit' ? 'Plan Gratuit' : 'Plan Premium'}
+                {TIER_LABELS[tier]}
               </Badge>
               <CardTitle className="text-4xl md:text-5xl font-black text-zinc-900 leading-tight">
-                {profile?.subscription_tier === 'gratuit' ? "Explosez vos scores avec le Premium" : "Vous avez le meilleur plan"}
+                {copy.title}
               </CardTitle>
               <CardDescription className="text-indigo-900/60 font-bold mt-4 text-xl leading-relaxed max-w-xl">
-                {profile?.subscription_tier === 'gratuit'
-                  ? "Rejoignez les milliers de candidats qui ont réussi leur TEF IRN grâce à nos outils IA avancés."
-                  : "Profitez de l&apos;intégralité des fonctionnalités pour une réussite garantie."}
+                {copy.description}
               </CardDescription>
             </div>
           </div>
@@ -530,13 +557,14 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
         <CardFooter className="bg-white/80 backdrop-blur-md border-t border-indigo-100 p-10 md:p-12 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="text-center md:text-left">
             <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="h-3 w-3 bg-emerald-500 rounded-full animate-pulse" />
-              <p className="text-lg font-black text-zinc-900 uppercase tracking-widest">Statut: <span className="text-emerald-600">ACTIF</span></p>
+              <div className={cn("h-3 w-3 rounded-full", isGratuit ? "bg-slate-300" : "bg-emerald-500 animate-pulse")} />
+              <p className="text-lg font-black text-zinc-900 uppercase tracking-widest">
+                {isGratuit ? "Palier : Gratuit" : <>Statut: <span className="text-emerald-600">ACTIF</span></>}
+              </p>
             </div>
-            <p className="text-sm text-slate-400 font-bold italic mt-1">Prochain renouvellement automatique : --/--/----</p>
           </div>
           <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
-            {profile?.subscription_tier !== 'gratuit' && (
+            {!isGratuit && (
               <Button
                 variant="outline"
                 className="h-16 px-10 rounded-[1.5rem] font-black border-slate-200 hover:bg-slate-50 transition-all text-lg shadow-sm"
@@ -547,12 +575,14 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
                 Gérer mes factures
               </Button>
             )}
-            <Button
-              className="h-16 px-10 rounded-[1.5rem] font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 text-lg"
-              onClick={() => router.push('/pricing?ref=settings')}
-            >
-              {profile?.subscription_tier === 'gratuit' ? "Passer au Premium" : "Comparer les offres"}
-            </Button>
+            {!isTopTier && (
+              <Button
+                className="h-16 px-10 rounded-[1.5rem] font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 text-lg"
+                onClick={() => router.push('/tef-irn/pricing')}
+              >
+                {CTA_LABEL[tier]}
+              </Button>
+            )}
           </div>
         </CardFooter>
       </Card>
@@ -678,12 +708,25 @@ function SecuritySection({ supabase, showToast }: any) {
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
-    // Simulation
-    setTimeout(() => {
-      alert("Pour des raisons de sécurité, veuillez contacter contact@isdinval.fr pour confirmer la suppression définitive de votre compte.");
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "La suppression a échoué. Réessayez ou contactez le support.");
+        setDeleteLoading(false);
+        setDeleteConfirmOpen(false);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      window.location.assign('/');
+    } catch (err) {
+      console.error("Erreur lors de la suppression du compte:", err);
+      alert("La suppression a échoué. Réessayez ou contactez le support.");
       setDeleteLoading(false);
       setDeleteConfirmOpen(false);
-    }, 1500);
+    }
   };
 
   return (
