@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight, HelpCircle, Type, BookOpen, CheckCircle2 } from "lucide-react";
+import { ChevronRight, HelpCircle, Type, BookOpen, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -61,62 +61,47 @@ export function ParcoursTopBar() {
         exit={{ y: -100 }}
         className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-zinc-100 shadow-sm"
       >
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4 shrink-0 min-w-0">
-            {/* Le libellé de catégorie/niveau reste visible sur mobile (juste
-                plus étroit, tronqué) -- avant ce correctif, tout le bloc était
-                hidden sm:block : un utilisateur arrivant sur cette barre sans
-                être passé par /progression n'avait aucun moyen de savoir à
-                quel parcours elle correspondait. Seule la légende "Parcours
-                en cours" reste réservée à sm: et plus (texte d'appoint, pas
-                l'info essentielle). */}
-            <Link href="/tef-irn/progression" className="min-w-0 group" onClick={dismissHint}>
-              <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 group-hover:text-indigo-500 transition-colors">
-                Parcours en cours
-              </span>
-              <h4 className="text-xs sm:text-sm font-black text-slate-900 capitalize truncate max-w-[110px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
-                {activeParcours.category} {activeParcours.level}
-              </h4>
-            </Link>
-
-            <Link href={`/tef-irn/parcours/${activeParcours.slug}`} onClick={dismissHint}>
-              <Button variant="ghost" size="sm" className="h-8 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                <ArrowLeft size={14} className="mr-1" /> Retour
-              </Button>
-            </Link>
-          </div>
-
-          {/* A3 (plan "ParcoursTopBar mobile") : sur mobile, seule une fine
-              ligne colorée (tout en bas de la barre, cf. plus loin) donnait
-              une idée très approximative de la progression, sans aucun
-              chiffre. shrink-0 (et non flex-1) sur mobile pour ne pas
-              grandir au détriment du groupe de boutons (qui compte déjà sur
-              son propre overflow-x-auto comme filet de sécurité) -- le
-              comportement flex-1/max-w-md d'origine reste inchangé à partir
-              de md:. */}
-          <div className="shrink-0 md:flex-1 md:max-w-md md:shrink">
-            <span className="md:hidden inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-600 whitespace-nowrap">
-              {progress?.percent}%
+        <div className="max-w-7xl mx-auto px-4 py-3 md:h-16 md:py-0 flex flex-wrap md:flex-nowrap items-center justify-between gap-3">
+          {/* Bouton "Retour" retiré (redondant) : le titre fait maintenant
+              lui-même office de retour vers la page du parcours -- même
+              destination que l'ancien bouton, un seul point d'action au
+              lieu de deux. Légende "Parcours en cours" gardée à partir de
+              sm: uniquement (texte d'appoint, pas l'info essentielle). */}
+          <Link href={`/tef-irn/parcours/${activeParcours.slug}`} className="shrink-0 min-w-0 group" onClick={dismissHint}>
+            <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 group-hover:text-indigo-500 transition-colors">
+              Parcours en cours
             </span>
-            <div className="hidden md:block">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  {progress?.completed} / {progress?.total} leçons
-                </span>
-                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
-                  {progress?.percent}%
-                </span>
-              </div>
-              <ParcoursProgressBar percent={progress?.percent || 0} />
+            <h4 className="text-xs sm:text-sm font-black text-slate-900 capitalize truncate max-w-[140px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
+              {activeParcours.category} {activeParcours.level}
+            </h4>
+          </Link>
+
+          {/* Barre de progression détaillée : uniquement à partir de md:,
+              comme avant. Le badge "%" compact ajouté pour mobile (item A3)
+              est retiré ici -- avec le nom du parcours et tous les boutons
+              d'action déjà présents sur un écran étroit, un chiffre de
+              progression en plus ajoutait de la charge sans info
+              actionnable. */}
+          <div className="hidden md:block md:flex-1 md:max-w-md">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {progress?.completed} / {progress?.total} leçons
+              </span>
+              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                {progress?.percent}%
+              </span>
             </div>
+            <ParcoursProgressBar percent={progress?.percent || 0} />
           </div>
 
-          {/* min-w-0 + overflow-x-auto : filet de sécurité si ce groupe de
-              boutons reste malgré tout plus large que l'espace disponible
-              (ex. petit écran + plusieurs boutons simultanés) -- il défile
-              alors lui-même au lieu de pousser toute la topbar/la page en
-              débordement horizontal, même bug que DashboardSectionNav. */}
-          <div className="flex items-center gap-2 min-w-0 overflow-x-auto">
+          {/* flex-wrap (plutôt que l'ancien overflow-x-auto) : sur un écran
+              étroit, les boutons qui ne rentrent pas sur la 1re ligne
+              passent à la ligne suivante plutôt que de défiler
+              horizontalement. La hauteur de la barre n'est plus fixée en
+              dur sur mobile (py-3, contre h-16 avant) pour pouvoir
+              accueillir 2 lignes de boutons sans rien couper -- inchangé à
+              partir de md: (md:h-16 md:py-0, une seule ligne comme avant). */}
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             {activeParcours.category === "vocabulaire" && (
               <Button
                 onClick={() => handleNext(nextVocabulary)}
