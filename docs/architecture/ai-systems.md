@@ -52,8 +52,11 @@ Le moteur de recommandation a deux volets distincts :
 | `writing_correct` | 3 | 100 | 100 | 100 |
 | `oral_analyze` | 3 | 3 | 100 | 100 |
 | `oral_session` | 2 | 2 | 50 | 50 |
+| `vocab_exercise` | 3 | 300 | 300 | 300 |
+| `qcm_exercise` | 3 | 300 | 300 | 300 |
+| `grammar_trous_exercise` | 3 | 300 | 300 | 300 |
 
-  Les plafonds "essentiel"/"premium"/"super_premium" sur `coach_chat`/`writing_correct` sont un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à l'écrit pour ces 3 paliers payants. Sur `oral_analyze`/`oral_session`, "essentiel" garde le seuil le plus bas mais c'est sans effet : le verrou dur décrit en §6 bloque déjà ce palier avant même d'atteindre ce quota.
+  Les plafonds "essentiel"/"premium"/"super_premium" sur `coach_chat`/`writing_correct` sont un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à l'écrit pour ces 3 paliers payants. Sur `oral_analyze`/`oral_session`, "essentiel" garde le seuil le plus bas mais c'est sans effet : le verrou dur décrit en §6 bloque déjà ce palier avant même d'atteindre ce quota. Les 3 routes `*_exercise` (depuis le 2026-09-17) ne sont pas de la génération IA à proprement parler mais réutilisent le même mécanisme (`checkAiRateLimit`) pour plafonner les exercices de pratique individuels (vocabulaire, QCM, chasse aux erreurs) via `POST /api/exercise-practice/check`, vérifiée à chaque exercice affiché — pas au chargement du lot.
 
 ## 6. Paliers d'abonnement (Entitlements)
 
