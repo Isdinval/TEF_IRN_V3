@@ -60,10 +60,17 @@ export async function POST(req: Request) {
     const gradedResults = typedResults.map((r) => {
       const question = questionById.get(r.questionId);
       const correctAnswer = question?.correct_answer ?? '';
+      // Bug critique signalé par Olivier (toute réponse marquée fausse même
+      // quand elle est correcte) : `options` est stocké comme des chaînes
+      // complètes ("A) a décidé"), mais `correct_answer` en base ne contient
+      // que la lettre ("A") -- comparer les deux tels quels ne matche jamais.
+      // On extrait la lettre en tête de la réponse envoyée par le client
+      // avant de comparer.
+      const userLetter = (r.userAnswer || '').trim().charAt(0).toUpperCase();
       return {
         questionId: r.questionId,
         userAnswer: r.userAnswer,
-        isCorrect: !!question && r.userAnswer === correctAnswer,
+        isCorrect: !!question && userLetter === correctAnswer,
         correctAnswer,
         explanation: question?.explanation ?? undefined,
       };

@@ -56,6 +56,8 @@ src/app/
 │
 ├── tef-irn/                  # ⚠️ La quasi-totalité du produit vit sous ce préfixe de route (voir avertissement ci-dessous) — SAUF `examen-civique/` ci-dessous, hors préfixe
     ├── admin/generator/      # Interface admin de génération de contenu IA
+    ├── comprehension-ecrite/ # Pratique libre CE : catalogue (filtres format/niveau) + `[scenarioId]` (tables `ce_scenarios`)
+    ├── comprehension-orale/  # Pratique libre CO (tables `co_scenarios`) — niveaux pas encore alignés sur A2/B1/B2
     ├── correction/           # Correction écrite IA — feedback ligne par ligne
     ├── dashboard/            # Tableau de bord utilisateur (radar, historique, stats)
     ├── exam/                 # Simulation d'examen TEF IRN complet
@@ -224,6 +226,17 @@ Deux fonctions dans `src/lib/parcours.ts` sont la SEULE source de vérité pour 
 La page `/tef-irn/progression` (`src/lib/progression.ts`) donne la vue macro correspondante : par niveau CECRL (A1 à B2), statut de chaque parcours puis, une fois tous terminés, checkpoints Expression Écrite / Expression Orale / Examen blanc. Ces 3 checkpoints n'existent qu'à partir du niveau A2 (contraintes `CHECK` sur `writing_exam_scenarios.level` et `oral_session_results.level` — aucun contenu EE/EO/Examen n'existe encore au niveau A1). Aucun gating dur : l'entraînement libre reste toujours accessible, ces checkpoints ne sont qu'une recommandation visuelle.
 
 ---
+
+### Pratique libre CE (`comprehension-ecrite/`, tables `ce_scenarios`)
+
+Sujets autonomes de Compréhension Écrite, **dissociés de l'Examen Blanc** (`exam_questions`, qui garde ses niveaux composites). Conventions permanentes — détail dans `docs/calibration/ce-pratique-libre.md` :
+
+- Un sujet = **exactement 5 questions**. Niveaux **`A2` / `B1` / `B2` uniquement** (jamais de plage type `A2-B1`). 5 formats : `court`, `trous`, `multi_texte`, `long_admin`, `article_presse`. Cible : 5 sujets par couple niveau × format (atteinte : 75 sujets).
+- Chaque `question` est une **vraie interrogative** (finit par « ? ») ; en `multi_texte` : situation + question. La consigne par format est affichée par l'UI (`FORMAT_CONSIGNES`), pas stockée en base.
+- Options : la bonne réponse n'est pas la plus longue dans plus de 2 questions sur 5, pas de distracteur absolu, lettres correctes réparties (≥ 3 lettres, ≤ 2 fois la même par sujet), une seule réponse cohérente par lacune en `trous`.
+- **Ajouter du contenu uniquement via le skill `llamakusi-ce-scenario-content`** (validation `validate_content.py` puis SQL généré par `build_sql.py`), sous forme de migration à garde-fou d'idempotence, testée localement puis exécutée manuellement dans le SQL Editor Supabase.
+- Supprimer des sujets : purger d'abord `ce_scenario_attempts` (FK sans `ON DELETE CASCADE`).
+- Ne pas confondre avec `llamakusi-ce-content` / `exam_questions` (création d'un Examen Blanc).
 
 ## Variables d'environnement requises
 

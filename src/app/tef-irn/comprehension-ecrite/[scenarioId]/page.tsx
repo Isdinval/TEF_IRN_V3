@@ -5,22 +5,57 @@
 // lecture directe de ce_scenarios/ce_scenario_questions_public, correction
 // via /api/comprehension/complete (jamais côté client, voir cette route).
 //
-// Rendu volontairement simple (pas de chrono, pas de multi-sections) :
-// texte (ou sous-textes pour multi_texte) en haut, questions à la suite,
-// un seul bouton de correction pour l'ensemble du sujet.
+// Refonte du 2026-09-21 (retour Olivier après test réel) : reprend le même
+// gabarit que /tef-irn/practice ([id]/page.tsx -> page.tsx#PracticeContent)
+// -- ExerciseLayout compact + barre de progression, ExerciseContextHeader,
+// décorations LlamaMountainDecoration/DestinationLandmarkDecoration (nouvelle
+// variante "comprehension", indigo), 1 question par page avec correction
+// immédiate, écran de résultat avec mascotte. Différence structurelle avec
+// practice : un sujet CE partage un texte (ou des sous-textes) entre
+// plusieurs questions -- ce texte reste affiché au-dessus de la question en
+// cours sur toutes les pages, jamais seulement sur la première.
+//
+// La correction reste faite question par question côté serveur (jamais le
+// texte "A) ..." comparé côté client) : chaque "Vérifier ma réponse" envoie
+// un seul élément dans results[] à /api/comprehension/complete, au lieu
+// d'un envoi groupé des 5 réponses à la fin -- la route accepte déjà un
+// tableau de longueur quelconque, aucun changement nécessaire côté API.
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { ExerciseLayout } from '@/components/shared/ExerciseLayout';
+import { LlamaMountainDecoration } from '@/components/decorative/LlamaMountainDecoration';
+import { DestinationLandmarkDecoration } from '@/components/decorative/DestinationLandmarkDecoration';
+import { VICTORY_MASCOT_URLS, pickRandomImage } from '@/data/grammar-check-images';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, CheckCircle2, XCircle, Sparkles, ArrowRight, RotateCcw, AlertTriangle } from 'lucide-react';
+
+type CeFormat = 'court' | 'trous' | 'multi_texte' | 'long_admin' | 'article_presse';
+const FORMAT_LABELS: Record<CeFormat, string> = {
+  court: 'Texte court',
+  trous: 'Texte à trous',
+  multi_texte: 'Textes multiples',
+  long_admin: 'Document administratif',
+  article_presse: 'Article de presse',
+};
+
+// Consigne affichée au-dessus de chaque question, calquée sur celles de l'Examen Blanc.
+const FORMAT_CONSIGNES: Record<CeFormat, string> = {
+  court: 'Lisez attentivement le texte et répondez à la question.',
+  trous: 'Lisez le texte et choisissez le mot qui complète la lacune indiquée.',
+  multi_texte: 'Lisez les documents et répondez à la question.',
+  long_admin: 'Lisez attentivement le document et répondez à la question.',
+  article_presse: "Lisez attentivement l'article et répondez à la question.",
+};
 
 interface SubText { label: string; content: string }
 interface CeScenario {
   id: string;
-  format: string;
+  format: CeFormat;
   level: string;
   title: string | null;
   texte: string | null;
@@ -47,11 +82,16 @@ export default function ComprehensionEcriteScenarioPage() {
 
   const [scenario, setScenario] = useState<CeScenario | null>(null);
   const [questions, setQuestions] = useState<CeQuestion[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [results, setResults] = useState<Record<string, GradedResult> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(false);
+
+  const [mode, setMode] = useState<'practice' | 'result'>('practice');
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checkedResult, setCheckedResult] = useState<GradedResult | null>(null);
+  const [score, setScore] = useState(0);
+  const [resultMascotUrl, setResultMascotUrl] = useState<string>(VICTORY_MASCOT_URLS[0]);
 
   useEffect(() => {
     let active = true;
@@ -74,143 +114,289 @@ export default function ComprehensionEcriteScenarioPage() {
     return () => { active = false; };
   }, [scenarioId, supabase]);
 
-  const handleSubmit = async () => {
-    if (submitting || Object.keys(answers).length < questions.length) return;
-    setSubmitting(true);
+  const currentQuestion = questions[currentIdx];
+  const totalQuestions = questions.length;
+  const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
+
+  const handleCheck = async () => {
+    if (!selected || !currentQuestion || checking) return;
+    setChecking(true);
     try {
       const res = await fetch('/api/comprehension/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           skill: 'CE',
-          results: questions.map((q) => ({ questionId: q.id, userAnswer: answers[q.id] || '' })),
+          results: [{ questionId: currentQuestion.id, userAnswer: selected }],
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur de correction');
-      const byId: Record<string, GradedResult> = {};
-      data.results.forEach((r: GradedResult) => { byId[r.questionId] = r; });
-      setResults(byId);
+      const graded = data.results[0] as GradedResult;
+      setCheckedResult(graded);
+      if (graded.isCorrect) setScore((s) => s + 1);
     } catch {
-      setError(true);
+      // Filet simple : pas de correction affichée, l'utilisateur peut
+      // réessayer (le bouton "Vérifier" redevient actif car checking repasse
+      // à false ci-dessous, checkedResult reste null).
     } finally {
-      setSubmitting(false);
+      setChecking(false);
     }
   };
 
+  const handleNext = () => {
+    if (currentIdx < totalQuestions - 1) {
+      setCurrentIdx((i) => i + 1);
+      setSelected(null);
+      setCheckedResult(null);
+    } else {
+      setResultMascotUrl(pickRandomImage(VICTORY_MASCOT_URLS));
+      setMode('result');
+    }
+  };
+
+  const restartExercise = () => {
+    setCurrentIdx(0);
+    setSelected(null);
+    setCheckedResult(null);
+    setScore(0);
+    setMode('practice');
+  };
+
+  // Retour Olivier : la touche Entrée déclenche l'action principale de
+  // l'écran d'exercice -- même raccourci que /tef-irn/practice.
+  useEffect(() => {
+    if (mode !== 'practice') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (!checkedResult) {
+        if (selected !== null) handleCheck();
+      } else {
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, checkedResult, selected, currentIdx]);
+
   if (loading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
-  }
-  if (error || !scenario) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <p className="font-bold text-zinc-600">Impossible de charger ce sujet.</p>
-        <Link href="/tef-irn/comprehension-ecrite" className="text-indigo-600 font-black text-sm">Retour au catalogue</Link>
+      <div className="flex min-h-screen items-center justify-center text-zinc-300">
+        <Loader2 className="animate-spin" size={28} />
       </div>
     );
   }
 
-  const score = results ? Object.values(results).filter((r) => r.isCorrect).length : 0;
+  if (error || !scenario) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+        <AlertTriangle className="text-red-300" size={40} />
+        <p className="font-bold text-zinc-600">Sujet introuvable.</p>
+        <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} className="rounded-xl bg-zinc-900 font-black">
+          Retour au catalogue
+        </Button>
+      </div>
+    );
+  }
 
+  // ÉCRAN RÉSULTAT
+  if (mode === 'result') {
+    const finalPercent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
+          <img src={resultMascotUrl} alt="Mascotte LlamaKusi célébrant la réussite du sujet" className="w-40 h-40 mx-auto object-contain drop-shadow-xl" />
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Sujet terminé !</h2>
+            <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                Niveau {scenario.level}
+              </Badge>
+              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                {FORMAT_LABELS[scenario.format]}
+              </Badge>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
+            </div>
+            <div className="w-px h-10 bg-zinc-100" />
+            <div className="text-center">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-2xl font-black text-indigo-600">{score} / {totalQuestions}</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all">
+              Retourner au catalogue
+            </Button>
+            <Button variant="ghost" onClick={restartExercise} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">
+              <RotateCcw size={14} className="mr-2" /> Recommencer le sujet
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ÉCRAN PRATIQUE
   return (
-    <div className="min-h-screen bg-slate-50/30 pb-24">
-      <div className="mx-auto max-w-3xl p-4 md:p-10">
-        <Link href="/tef-irn/comprehension-ecrite" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-indigo-600 transition-colors mb-6">
-          <ChevronLeft size={14} /> Catalogue Compréhension Écrite
-        </Link>
-
-        <div className="mb-6 flex items-center gap-2">
-          <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-            Niveau {scenario.level}
-          </Badge>
-          {results && (
-            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
-              {score} / {questions.length}
-            </Badge>
-          )}
-        </div>
-        <h1 className="text-2xl md:text-3xl font-black text-zinc-900 mb-6">{scenario.title}</h1>
-
-        {scenario.texte && (
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-6 mb-6 whitespace-pre-line text-sm leading-relaxed text-zinc-700">
-            {scenario.texte}
-          </div>
-        )}
-
-        {scenario.sub_texts && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            {scenario.sub_texts.map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-2">{t.label}</p>
-                <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{t.content}</p>
+    <div className="relative min-h-screen bg-zinc-50 flex flex-col">
+      <LlamaMountainDecoration variant="comprehension" />
+      <DestinationLandmarkDecoration variant="comprehension" />
+      <ExerciseLayout
+        variant="compact"
+        title="COMPRÉHENSION ÉCRITE"
+        badge="Coach CE"
+        badgeColor="indigo"
+        onBack={() => router.push('/tef-irn/comprehension-ecrite')}
+        rightElement={
+          <div className="hidden md:flex items-center gap-6">
+            <div className="text-right">
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Précision</div>
+              <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
+            </div>
+            <div className="h-12 w-px bg-zinc-100" />
+            <div className="flex flex-col gap-2">
+              <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-indigo-600" />
               </div>
-            ))}
+              <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
+                <span>DÉBUT</span>
+                <span>{Math.round(progress)}%</span>
+                <span>FIN</span>
+              </div>
+            </div>
           </div>
-        )}
+        }
+      />
 
-        <div className="space-y-4">
-          {questions.map((q, i) => {
-            const graded = results?.[q.id];
-            return (
-              <div key={q.id} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <p className="font-bold text-zinc-900 text-sm">
-                    {q.highlight_gap ? `Lacune n°${q.highlight_gap} — ` : `Question ${i + 1} — `}
-                    {q.question}
-                  </p>
-                  {graded && (graded.isCorrect ? <CheckCircle2 className="text-emerald-500 shrink-0" size={20} /> : <XCircle className="text-red-400 shrink-0" size={20} />)}
+      <main className="flex-1 flex flex-col items-center gap-4 p-3 lg:p-4 overflow-y-auto">
+        <div className="max-w-2xl w-full mx-auto space-y-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIdx}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              className="space-y-3"
+            >
+              {/* Retour Olivier (2026-09-21) : badges + question réunis dans
+                  UN seul rectangle (au lieu de 2 blocs séparés), suivi du
+                  texte du sujet, puis des réponses -- ordre : badges+question
+                  -> texte -> réponses. */}
+              <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
+                  <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+                    {scenario.level}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                    {FORMAT_LABELS[scenario.format]}
+                  </Badge>
                 </div>
-                <div className="space-y-2">
-                  {q.options.map((opt) => {
-                    const isSelected = answers[q.id] === opt;
-                    const isCorrectOpt = graded?.correctAnswer === opt;
-                    return (
-                      <button
-                        key={opt}
-                        disabled={!!results}
-                        onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
-                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-                          results
-                            ? isCorrectOpt
-                              ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                              : isSelected
-                                ? 'border-red-300 bg-red-50 text-red-600'
-                                : 'border-zinc-100 text-zinc-400'
-                            : isSelected
-                              ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
-                              : 'border-zinc-200 text-zinc-600 hover:border-indigo-200'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    );
-                  })}
+                <p className="text-xs font-semibold text-zinc-500 mb-2 relative z-10">
+                  {FORMAT_CONSIGNES[scenario.format]}
+                </p>
+                <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
+                  {currentQuestion?.highlight_gap ? `Lacune n°${currentQuestion.highlight_gap} — ` : `Question ${currentIdx + 1} — `}
+                  {currentQuestion?.question}
+                </h3>
+                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
+                <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
+              </div>
+
+              {/* Texte du sujet : reste affiché à chaque question, jamais
+                  seulement sur la première (retour Olivier explicite). */}
+              {scenario.sub_texts ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {scenario.sub_texts.map((t, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">{t.label}</p>
+                      <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{t.content}</p>
+                    </div>
+                  ))}
                 </div>
-                {graded?.explanation && (
-                  <p className="mt-3 text-xs font-medium text-zinc-500 bg-zinc-50 rounded-xl p-3">{graded.explanation}</p>
+              ) : (
+                <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+                  <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{scenario.texte}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-2">
+                <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
+                {currentQuestion?.options.map((opt) => {
+                  const isSelected = selected === opt;
+                  const optLetter = opt.trim().charAt(0).toUpperCase();
+                  const isCorrectOpt = !!checkedResult && optLetter === checkedResult.correctAnswer;
+
+                  let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
+                  if (checkedResult) {
+                    if (isCorrectOpt) buttonStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10';
+                    else if (isSelected) buttonStyle = 'border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10';
+                  } else if (isSelected) {
+                    buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5';
+                  }
+
+                  return (
+                    <motion.button
+                      key={opt}
+                      whileHover={!checkedResult ? { x: 5 } : {}}
+                      whileTap={!checkedResult ? { scale: 0.98 } : {}}
+                      onClick={() => setSelected(opt)}
+                      disabled={!!checkedResult}
+                      className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+                          {optLetter}
+                        </div>
+                        {opt.slice(3)}
+                      </div>
+                      {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
+                      {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-1">
+                {!checkedResult ? (
+                  <Button
+                    onClick={handleCheck}
+                    disabled={selected === null || checking}
+                    className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {checking ? <Loader2 className="animate-spin" size={18} /> : 'VÉRIFIER MA RÉPONSE'}
+                  </Button>
+                ) : (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                    {checkedResult.explanation && (
+                      <Card className={`p-4 rounded-2xl border-none shadow-lg ${checkedResult.isCorrect ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
+                        <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
+                          <Sparkles size={14} /> Explication
+                        </div>
+                        <p className="text-xs font-bold leading-relaxed italic">&quot;{checkedResult.explanation}&quot;</p>
+                      </Card>
+                    )}
+                    <Button
+                      onClick={handleNext}
+                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                    >
+                      {currentIdx < totalQuestions - 1 ? 'QUESTION SUIVANTE' : 'VOIR MON RÉSULTAT'}
+                      <ArrowRight size={20} />
+                    </Button>
+                  </motion.div>
                 )}
               </div>
-            );
-          })}
+            </motion.div>
+          </AnimatePresence>
         </div>
-
-        {!results ? (
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || Object.keys(answers).length < questions.length}
-            className="mt-6 w-full h-12 rounded-2xl bg-zinc-900 font-black hover:bg-indigo-600"
-          >
-            {submitting ? <Loader2 className="animate-spin" size={18} /> : 'Corriger'}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => router.push('/tef-irn/comprehension-ecrite')}
-            className="mt-6 w-full h-12 rounded-2xl bg-zinc-900 font-black hover:bg-indigo-600"
-          >
-            Voir d&apos;autres sujets
-          </Button>
-        )}
-      </div>
+      </main>
     </div>
   );
 }

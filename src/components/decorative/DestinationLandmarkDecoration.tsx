@@ -24,12 +24,13 @@ import { cn } from "@/lib/utils";
  * le breakpoint lg (pas de place utile en mobile/tablette portrait).
  */
 
-type DestinationVariant = "vocab" | "grammar" | "practice";
+type DestinationVariant = "vocab" | "grammar" | "practice" | "comprehension";
 
 const VARIANT_COLOR_CLASS: Record<DestinationVariant, string> = {
   vocab: "text-emerald-600/[0.22]",
   grammar: "text-blue-600/[0.22]",
   practice: "text-violet-600/[0.22]",
+  comprehension: "text-indigo-600/[0.22]",
 };
 
 function EiffelParisSvg(props: SVGProps<SVGSVGElement>) {

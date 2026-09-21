@@ -52,8 +52,11 @@ Le moteur de recommandation a deux volets distincts :
 | `writing_correct` | 3 | 100 | 100 | 100 |
 | `oral_analyze` | 3 | 3 | 100 | 100 |
 | `oral_session` | 2 | 2 | 50 | 50 |
+| `vocab_exercise` | 3 | 300 | 300 | 300 |
+| `qcm_exercise` | 3 | 300 | 300 | 300 |
+| `grammar_trous_exercise` | 3 | 300 | 300 | 300 |
 
-  Les plafonds "essentiel"/"premium"/"super_premium" sur `coach_chat`/`writing_correct` sont un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à l'écrit pour ces 3 paliers payants. Sur `oral_analyze`/`oral_session`, "essentiel" garde le seuil le plus bas mais c'est sans effet : le verrou dur décrit en §6 bloque déjà ce palier avant même d'atteindre ce quota.
+  Les plafonds "essentiel"/"premium"/"super_premium" sur `coach_chat`/`writing_correct` sont un garde-fou anti-abus (script, bug, compte compromis), pas une vraie limite commerciale — l'offre annonce un accès illimité à l'écrit pour ces 3 paliers payants. Sur `oral_analyze`/`oral_session`, "essentiel" garde le seuil le plus bas mais c'est sans effet : le verrou dur décrit en §6 bloque déjà ce palier avant même d'atteindre ce quota. Les 3 routes `*_exercise` (depuis le 2026-09-17) ne sont pas de la génération IA à proprement parler mais réutilisent le même mécanisme (`checkAiRateLimit`) pour plafonner les exercices de pratique individuels (vocabulaire, QCM, chasse aux erreurs) via `POST /api/exercise-practice/check`, vérifiée à chaque exercice affiché — pas au chargement du lot.
 
 ## 6. Paliers d'abonnement (Entitlements)
 
@@ -61,7 +64,7 @@ Les 4 paliers réels (`gratuit`, `essentiel`, `premium`, `super_premium`, colonn
 
 ### Droits modélisés aujourd'hui
 - **`hasOralCoach`** (Premium/Super Premium uniquement) : verrou dur identique en pratique libre (`/tef-irn/oral`) et dans l'examen blanc (section EO), car les deux passent par les mêmes routes `/api/oral/session` et `/api/oral/analyze`.
-- **`hasExamWritingCorrection`** (Essentiel/Premium/Super Premium) : verrou dur, mais **uniquement** dans le contexte "examen blanc" de `/api/writing/correct` (paramètre `context: 'exam'` envoyé par `ExamContext.tsx`). La pratique libre EE (page `/writing`, même endpoint sans ce paramètre) garde son quota existant (voir tableau ci-dessus), non concernée par ce verrou.
+- **`hasExamWritingCorrection`** (Essentiel/Premium/Super Premium) : verrou dur, mais **uniquement** dans le contexte "examen blanc" de `/api/writing/correct` (paramètre `context: 'exam'` envoyé par `ExamContext.tsx`). La pratique libre EE (page `/writing`, même endpoint sans ce paramètre) est plafonnée séparément à 1 essai à vie pour Gratuit via `profiles.free_ee_correction_used` (migration 20260909000002) — le quota quotidien de `writing_correct` (voir tableau ci-dessus) ne s'applique donc jamais en pratique à ce palier, le verrou à vie intervenant avant.
 - **`oralDailyMinutes`** (40 pour Premium, 75 pour Super Premium) : quota réel en minutes, vérifié par `api/oral/session` (RPC `get_oral_seconds_used_today`, colonne `ai_usage_daily.seconds_used`) avant de délivrer un nouveau token — refus (429) si le cumul du jour dépasse `oralDailyMinutes * 60` secondes. La durée est déclarée côté client (`api/oral/analyze`, RPC `increment_oral_seconds`) : le serveur n'observe jamais la session Realtime WebRTC en direct. Les quotas d'appels du tableau ci-dessus restent une limite indépendante, toujours active en plus de ce quota en minutes.
 
 ### Où c'est appliqué

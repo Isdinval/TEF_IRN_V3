@@ -1,5 +1,8 @@
 # Règles de calibration du contenu CE — LlamaKusi
 
+> Ce document concerne les questions des **Examens Blancs** (`exam_questions`). Pour la pratique libre
+> (`ce_scenarios` : niveaux A2/B1/B2, 5 questions par sujet), voir [ce-pratique-libre.md](./ce-pratique-libre.md).
+
 **Contexte** : ce document fige les règles de conception des questions de Compréhension Écrite
 (TEF IRN), établies le 13/08/2026 suite à un défaut identifié par Olivier sur la 1ère version
 du contenu (item 5/6 du plan "Refonte CE examen blanc") : les bonnes réponses étaient des
