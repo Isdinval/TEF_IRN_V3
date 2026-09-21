@@ -163,7 +163,10 @@ export default function ComprehensionEcriteScenarioPage() {
                 <div className="space-y-2">
                   {q.options.map((opt) => {
                     const isSelected = answers[q.id] === opt;
-                    const isCorrectOpt = graded?.correctAnswer === opt;
+                    // Même correctif que /api/comprehension/complete : comparer
+                    // la lettre en tête de l'option ("A" dans "A) ...") à
+                    // graded.correctAnswer ("A"), pas la chaîne complète.
+                    const isCorrectOpt = !!graded && opt.trim().charAt(0).toUpperCase() === graded.correctAnswer;
                     return (
                       <button
                         key={opt}
