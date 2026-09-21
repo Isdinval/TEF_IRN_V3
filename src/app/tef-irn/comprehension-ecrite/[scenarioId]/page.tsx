@@ -203,7 +203,7 @@ export default function ComprehensionEcriteScenarioPage() {
   }
 
   if (quotaBlocked) {
-    return <ComprehensionQuotaBlocked message={quotaBlocked} catalogueHref="/tef-irn/comprehension-ecrite" />;
+    return <ComprehensionQuotaBlocked skill="CE" message={quotaBlocked} catalogueHref="/tef-irn/comprehension-ecrite" />;
   }
 
   if (error || !scenario) {

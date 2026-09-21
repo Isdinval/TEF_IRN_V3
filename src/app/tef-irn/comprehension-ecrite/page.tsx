@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { ComprehensionDailyQuotaBadge } from '@/components/shared/ComprehensionDailyQuotaBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -97,6 +98,7 @@ export default function ComprehensionEcritePage() {
             Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté,
             ou parcourez librement tous les sujets disponibles.
           </p>
+          <ComprehensionDailyQuotaBadge skill="CE" />
         </div>
 
         {loading ? (

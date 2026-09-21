@@ -25,3 +25,24 @@ export async function checkComprehensionScenarioQuota(
     return { allowed: true, error: null };
   }
 }
+
+/**
+ * Statut du jour pour le badge des catalogues. null = palier payant (illimité)
+ * ou erreur : dans les deux cas, aucun badge n'est affiché.
+ */
+export async function getComprehensionQuotaStatus(
+  skill: 'CE' | 'CO'
+): Promise<{ limit: number; used: number } | null> {
+  try {
+    const res = await fetch('/api/comprehension/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data?.limit === 'number' ? { limit: data.limit, used: data.used ?? 0 } : null;
+  } catch {
+    return null;
+  }
+}

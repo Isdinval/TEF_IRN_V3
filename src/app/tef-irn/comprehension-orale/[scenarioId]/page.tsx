@@ -177,7 +177,7 @@ export default function ComprehensionOraleScenarioPage() {
   }
 
   if (quotaBlocked) {
-    return <ComprehensionQuotaBlocked message={quotaBlocked} catalogueHref="/tef-irn/comprehension-orale" />;
+    return <ComprehensionQuotaBlocked skill="CO" message={quotaBlocked} catalogueHref="/tef-irn/comprehension-orale" />;
   }
 
   if (error || !scenario) {

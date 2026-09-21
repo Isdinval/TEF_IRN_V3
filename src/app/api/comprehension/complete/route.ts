@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { checkComprehensionQuota, comprehensionQuotaMessage } from '@/lib/comprehension-quota';
+import { normalizeTier } from '@/lib/entitlements';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 // Route de correction pour la pratique CE/CO dissociée de l'Examen Blanc
 // (item 4 du plan "pratique CE/CO"). Miroir simplifié de
@@ -70,6 +72,12 @@ export async function POST(req: Request) {
     const scenarioIds = [...new Set((questions || []).map((q) => q.scenario_id as string))];
     const quota = await checkComprehensionQuota(supabase, user.id, skill, profile?.subscription_tier, scenarioIds);
     if (!quota.allowed) {
+      await captureServerEvent(user.id, 'comprehension_quota_reached', {
+        skill,
+        subscription_tier: normalizeTier(profile?.subscription_tier),
+        limit: quota.limit,
+        source: 'complete',
+      });
       return NextResponse.json(
         { error: comprehensionQuotaMessage(skill, quota.limit ?? 0), limit: quota.limit },
         { status: 429 }
