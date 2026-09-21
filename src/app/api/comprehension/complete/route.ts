@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { checkComprehensionQuota, comprehensionQuotaMessage } from '@/lib/comprehension-quota';
 
 // Route de correction pour la pratique CE/CO dissociée de l'Examen Blanc
 // (item 4 du plan "pratique CE/CO"). Miroir simplifié de
@@ -50,12 +51,30 @@ export async function POST(req: Request) {
     const admin = createAdminClient();
     const { data: questions, error: questionsError } = await admin
       .from(questionsTable)
-      .select('id, correct_answer, explanation')
+      .select('id, scenario_id, correct_answer, explanation')
       .in('id', questionIds);
 
     if (questionsError) throw questionsError;
 
     const questionById = new Map((questions || []).map((q) => [q.id, q]));
+
+    // Quota freemium (1 sujet distinct/jour/épreuve pour Gratuit) : contrôle
+    // serveur avant toute correction, source de vérité (le check à l'ouverture
+    // du sujet n'est que de l'UX). Un envoi mêlant des questions de plusieurs
+    // sujets est compté sujet par sujet.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .maybeSingle();
+    const scenarioIds = [...new Set((questions || []).map((q) => q.scenario_id as string))];
+    const quota = await checkComprehensionQuota(supabase, user.id, skill, profile?.subscription_tier, scenarioIds);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        { error: comprehensionQuotaMessage(skill, quota.limit ?? 0), limit: quota.limit },
+        { status: 429 }
+      );
+    }
 
     const gradedResults = typedResults.map((r) => {
       const question = questionById.get(r.questionId);
