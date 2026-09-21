@@ -43,6 +43,15 @@ const FORMAT_LABELS: Record<CeFormat, string> = {
   article_presse: 'Article de presse',
 };
 
+// Consigne affichée au-dessus de chaque question, calquée sur celles de l'Examen Blanc.
+const FORMAT_CONSIGNES: Record<CeFormat, string> = {
+  court: 'Lisez attentivement le texte et répondez à la question.',
+  trous: 'Lisez le texte et choisissez le mot qui complète la lacune indiquée.',
+  multi_texte: 'Lisez les documents et répondez à la question.',
+  long_admin: 'Lisez attentivement le document et répondez à la question.',
+  article_presse: "Lisez attentivement l'article et répondez à la question.",
+};
+
 interface SubText { label: string; content: string }
 interface CeScenario {
   id: string;
@@ -290,6 +299,9 @@ export default function ComprehensionEcriteScenarioPage() {
                     {FORMAT_LABELS[scenario.format]}
                   </Badge>
                 </div>
+                <p className="text-xs font-semibold text-zinc-500 mb-2 relative z-10">
+                  {FORMAT_CONSIGNES[scenario.format]}
+                </p>
                 <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
                   {currentQuestion?.highlight_gap ? `Lacune n°${currentQuestion.highlight_gap} — ` : `Question ${currentIdx + 1} — `}
                   {currentQuestion?.question}

@@ -75,7 +75,7 @@ export default function ComprehensionEcritePage() {
   }, [supabase]);
 
   const levels = useMemo(() => {
-    const distinct = Array.from(new Set(scenarios.map((s) => s.level)));
+    const distinct = Array.from(new Set(scenarios.map((s) => s.level))).sort();
     return [ALL, ...distinct];
   }, [scenarios]);
 
