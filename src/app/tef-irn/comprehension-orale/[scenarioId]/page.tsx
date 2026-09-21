@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ExerciseLayout } from '@/components/shared/ExerciseLayout';
-import { ExerciseContextHeader } from '@/components/shared/ExerciseContextHeader';
 import { LlamaMountainDecoration } from '@/components/decorative/LlamaMountainDecoration';
 import { DestinationLandmarkDecoration } from '@/components/decorative/DestinationLandmarkDecoration';
 import { AudioPlayer } from '@/components/exam/AudioPlayer';
@@ -251,12 +250,6 @@ export default function ComprehensionOraleScenarioPage() {
 
       <main className="flex-1 flex flex-col items-center gap-4 p-3 lg:p-4 overflow-y-auto">
         <div className="max-w-2xl w-full mx-auto space-y-4">
-          {/* Audio du sujet : reste affiché au-dessus de chaque question,
-              jamais seulement sur la première. */}
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
-            <AudioPlayer url={scenario.audio_url} maxPlays={scenario.max_plays ?? 2} questionId={scenario.id} />
-          </div>
-
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIdx}
@@ -265,18 +258,30 @@ export default function ComprehensionOraleScenarioPage() {
               exit={{ opacity: 0, y: -30 }}
               className="space-y-3"
             >
-              <ExerciseContextHeader
-                category={FORMAT_LABELS[scenario.format]}
-                level={scenario.level}
-                accentColor="indigo"
-              />
-
+              {/* Retour Olivier (2026-09-21) : badges + question réunis dans
+                  UN seul rectangle, suivi de l'audio du sujet, puis des
+                  réponses -- même ordre que CE (badges+question -> contenu
+                  -> réponses). */}
               <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
+                  <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+                    {scenario.level}
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                    {FORMAT_LABELS[scenario.format]}
+                  </Badge>
+                </div>
                 <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
                   Question {currentIdx + 1} — {currentQuestion?.question}
                 </h3>
                 <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
                 <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
+              </div>
+
+              {/* Audio du sujet : reste affiché à chaque question, jamais
+                  seulement sur la première. */}
+              <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+                <AudioPlayer url={scenario.audio_url} maxPlays={scenario.max_plays ?? 2} questionId={scenario.id} />
               </div>
 
               <div className="grid grid-cols-1 gap-2">
