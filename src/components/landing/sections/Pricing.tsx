@@ -35,6 +35,7 @@ const plans: Plan[] = [
       "1 correction d'Expression Écrite (à vie)",
       "Accès libre aux fiches de vocabulaire",
       "3 exercices par jour (vocabulaire, QCM, chasse aux erreurs)",
+      "1 sujet de Compréhension Écrite et 1 de Compréhension Orale par jour",
       "Entraînement Examen Civique illimité"
     ],
     cta: "Commencer gratuitement",
@@ -48,7 +49,7 @@ const plans: Plan[] = [
     desc: "Pour progresser sérieusement à l'écrit et en compréhension, sans coach oral.",
     features: [
       "Coach Expression Écrite illimité",
-      "Compréhension Écrite & Orale : parcours adaptatif A1 → B2",
+      "Compréhension Écrite & Orale illimitée",
       "Tableau de bord de progression : points, séries de jours et radar de compétences",
       "Simulateur d'examen complet",
       "Entraînement Examen Civique illimité"
