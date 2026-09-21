@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { ParcoursProgressBar } from "./ParcoursProgressBar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight, HelpCircle, Type, BookOpen, CheckCircle2 } from "lucide-react";
+import { ChevronRight, HelpCircle, Type, BookOpen, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
+
+// A2 (plan "ParcoursTopBar mobile") : même convention que
+// vocab/page.tsx (LEVEL_SWITCHER_HINT_KEY) -- un indice ponctuel, affiché
+// une seule fois par utilisateur, qui disparaît dès la 1re interaction avec
+// la barre plutôt que via un bouton de fermeture dédié.
+const PARCOURS_TOPBAR_HINT_KEY = "parcours_topbar_hint_seen";
 
 export function ParcoursTopBar() {
   const { activeParcours, progress, nextLesson, nextExercise, nextVocabulary, vocabFullyMastered, exerciseCounts, academicQuotaMet, isLoading, learningMode } = useParcours();
@@ -16,9 +22,25 @@ export function ParcoursTopBar() {
   // partagent toutes plusieurs allers-retours Supabase) -- évite un double-clic
   // qui ouvrirait 2 onglets ou lancerait 2 navigations concurrentes.
   const [isResolving, setIsResolving] = useState(false);
+  const [showTopbarHint, setShowTopbarHint] = useState(false);
+
+  useEffect(() => {
+    if (!activeParcours) return;
+    try {
+      if (!localStorage.getItem(PARCOURS_TOPBAR_HINT_KEY)) setShowTopbarHint(true);
+    } catch { /* localStorage indisponible, pas d'indice affiché -- pas bloquant */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Boolean(activeParcours)]);
+
+  const dismissHint = () => {
+    if (!showTopbarHint) return;
+    setShowTopbarHint(false);
+    try { localStorage.setItem(PARCOURS_TOPBAR_HINT_KEY, "1"); } catch { /* localStorage indisponible, tant pis */ }
+  };
 
   const handleNext = async (action: () => Promise<void>) => {
     if (isResolving) return;
+    dismissHint();
     setIsResolving(true);
     try {
       await action();
@@ -39,25 +61,34 @@ export function ParcoursTopBar() {
         exit={{ y: -100 }}
         className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-zinc-100 shadow-sm"
       >
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4 shrink-0">
-            <Link href="/tef-irn/progression" className="hidden sm:block group">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block mb-0.5 group-hover:text-indigo-500 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:h-16 md:py-0 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          {/* Ligne titre : pleine largeur sur mobile, avec chevron en bout
+              (affordance "c'est cliquable, ça mène ailleurs") -- au lieu de
+              rivaliser pour l'espace horizontal avec les boutons, elle a
+              maintenant sa propre ligne. Le titre fait office de "Retour"
+              (bouton dédié retiré, redondant). Légende "Parcours en cours"
+              maintenant toujours visible (plus de place disponible qu'avant
+              sur sa propre ligne). */}
+          <Link
+            href={`/tef-irn/parcours/${activeParcours.slug}`}
+            className="flex items-center justify-between gap-2 min-w-0 group md:justify-start md:shrink-0"
+            onClick={dismissHint}
+          >
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 block group-hover:text-indigo-500 transition-colors">
                 Parcours en cours
               </span>
-              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[200px] group-hover:text-indigo-600 transition-colors">
+              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[220px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
                 {activeParcours.category} {activeParcours.level}
               </h4>
-            </Link>
+            </div>
+            <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-500 transition-colors md:hidden" />
+          </Link>
 
-            <Link href={`/tef-irn/parcours/${activeParcours.slug}`}>
-              <Button variant="ghost" size="sm" className="h-8 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                <ArrowLeft size={14} className="mr-1" /> Retour
-              </Button>
-            </Link>
-          </div>
-
-          <div className="flex-1 max-w-md hidden md:block">
+          {/* Barre de progression détaillée : uniquement à partir de md:,
+              comme avant. Le badge "%" compact ajouté puis retiré (item A3
+              puis retour terrain) n'est pas réintroduit ici. */}
+          <div className="hidden md:block md:flex-1 md:max-w-md">
             <div className="flex justify-between items-center mb-1">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                 {progress?.completed} / {progress?.total} leçons
@@ -69,19 +100,23 @@ export function ParcoursTopBar() {
             <ParcoursProgressBar percent={progress?.percent || 0} />
           </div>
 
-          {/* min-w-0 + overflow-x-auto : filet de sécurité si ce groupe de
-              boutons reste malgré tout plus large que l'espace disponible
-              (ex. petit écran + plusieurs boutons simultanés) -- il défile
-              alors lui-même au lieu de pousser toute la topbar/la page en
-              débordement horizontal, même bug que DashboardSectionNav. */}
-          <div className="flex items-center gap-2 min-w-0 overflow-x-auto">
+          {/* Retour terrain (mobile) : le flex-wrap précédent laissait les
+              boutons s'entasser à gauche, largeurs inégales, "Leçon
+              suivante" se réduisant à une icône seule sans texte (label
+              hidden sm:inline) -- peu engageant. Grille 2 colonnes sur
+              mobile (chaque bouton pleine largeur de sa cellule, tailles
+              homogènes) ; "Leçon suivante" (CTA principal) occupe toute la
+              largeur sur sa propre ligne, avec son libellé toujours visible.
+              À partir de sm:, on repasse en ligne classique (assez de place
+              pour tout tenir, comme avant ces retouches mobile). */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:w-auto">
             {activeParcours.category === "vocabulaire" && (
               <Button
                 onClick={() => handleNext(nextVocabulary)}
                 disabled={isResolving || vocabFullyMastered}
                 variant="outline"
                 size="sm"
-                className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                   vocabFullyMastered
                     ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                     : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -110,7 +145,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.qcm === 0}
               variant="outline"
               size="sm"
-              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                 exerciseCounts?.qcm === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -129,7 +164,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.trous === 0}
               variant="outline"
               size="sm"
-              className={`h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
                 exerciseCounts?.trous === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -151,14 +186,31 @@ export function ParcoursTopBar() {
                 onClick={() => handleNext(nextLesson)}
                 disabled={isResolving}
                 size="sm"
-                className="h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
+                className="w-full sm:w-auto col-span-2 sm:col-span-1 h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
               >
-                <span className="hidden sm:inline">Leçon suivante</span>
-                <ChevronRight size={14} className="sm:ml-1" />
+                <span>Leçon suivante</span>
+                <ChevronRight size={14} className="ml-1" />
               </Button>
             )}
           </div>
         </div>
+
+        {/* A2 (plan "ParcoursTopBar mobile") : indice ponctuel expliquant le
+            rôle de la barre, 1re visite mobile uniquement -- disparaît dès
+            la 1re interaction avec la barre (voir dismissHint). Pas de
+            bouton de fermeture dédié, ni d'animation de sortie : même
+            convention que l'indice du level switcher sur /tef-irn/vocab. */}
+        {showTopbarHint && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="sm:hidden overflow-hidden bg-indigo-50/80 border-t border-indigo-100"
+          >
+            <p className="max-w-7xl mx-auto px-4 py-1.5 text-[10px] font-bold text-indigo-600">
+              💡 Cette barre suit votre parcours guidé en cours — touchez le titre pour le retrouver.
+            </p>
+          </motion.div>
+        )}
 
         <div className="md:hidden h-1 w-full bg-zinc-50">
           <motion.div

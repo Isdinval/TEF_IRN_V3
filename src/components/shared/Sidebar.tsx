@@ -38,7 +38,9 @@ import {
   Gauge,
   Shuffle,
   Route,
-  Library
+  Library,
+  FileText,
+  Headset
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -122,7 +124,9 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
         { label: "Chasse aux erreurs", icon: Zap, href: "/tef-irn/grammar-check", section: "libre" as const },
         { label: "Développez votre Vocabulaire", icon: RotateCcw, href: "/tef-irn/vocab", section: "libre" as const },
         { label: "Entraînement QCM", icon: Target, href: "/tef-irn/practice", section: "libre" as const },
-        { label: "Rédaction", icon: PenTool, href: "/tef-irn/writing", section: "libre" as const },
+        { label: "Compréhension Écrite", icon: FileText, href: "/tef-irn/comprehension-ecrite", section: "libre" as const },
+        { label: "Compréhension Orale", icon: Headset, href: "/tef-irn/comprehension-orale", section: "libre" as const },
+        { label: "Expression Écrite", icon: PenTool, href: "/tef-irn/writing", section: "libre" as const },
         { label: "Expression Orale", icon: Mic, href: "/tef-irn/oral", section: "libre" as const },
         { label: "Examen blanc", icon: ClipboardCheck, href: "/tef-irn/exam", section: "libre" as const },
         { label: "Corrections", icon: History, href: "/tef-irn/correction", section: "tronc-commun" as const },

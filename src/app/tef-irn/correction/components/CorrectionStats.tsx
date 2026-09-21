@@ -45,7 +45,7 @@ const MAX_POINTS_PER_SKILL = 15;
 // page writing", "EO via page oral").
 const typeLabel = (skill: "EE" | "EO", context?: string) => {
   if (context === "exam") return "Examen blanc";
-  return skill === "EE" ? "Pratique — Rédaction (writing)" : "Pratique — Oral (oral)";
+  return skill === "EE" ? "Pratique — Expression Écrite (writing)" : "Pratique — Oral (oral)";
 };
 
 interface ChartPoint {
