@@ -48,7 +48,7 @@ pour optimiser la mémorisation.
 | `exams` / `exam_questions` | Examens blancs complets (CE/CO/EE/EO), avec sous-formats dédiés CE (`ce_format`) et CO (`co_format`) |
 | `exam_ce_co_attempts` | Réponses individuelles aux questions CE/CO d'un examen blanc |
 | `ce_scenarios` / `ce_scenario_questions` | Pratique libre CE : sujets autonomes de 5 questions (niveaux A2/B1/B2, 5 formats), dissociés de l'examen blanc — voir `docs/calibration/ce-pratique-libre.md` |
-| `ce_scenario_attempts` | Réponses individuelles aux sujets de pratique libre CE (FK vers `ce_scenario_questions` sans `ON DELETE CASCADE`) |
+| `ce_scenario_attempts` | Réponses individuelles aux sujets de pratique libre CE (FK vers `ce_scenario_questions` sans `ON DELETE CASCADE`) ; sert aussi de base au quota Gratuit (sujets distincts entamés aujourd'hui, voir `ai-systems.md` §5) |
 | `co_scenarios` / `co_scenario_questions` / `co_scenario_attempts` | Équivalent pour la Compréhension Orale (niveaux composites hérités, alignement à venir) |
 | `oral_exam_scenarios` / `oral_session_results` | Catalogue + résultats des simulations orales (`context`: `standalone` ou `exam`) |
 | `writing_exam_scenarios` / `writing_scenario_attempts` | Catalogue + résultats des simulations écrites, avec `niveau_apparent_cecrl` estimé par l'IA |

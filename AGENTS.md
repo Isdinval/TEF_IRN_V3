@@ -238,6 +238,10 @@ Sujets autonomes de Compréhension Écrite, **dissociés de l'Examen Blanc** (`e
 - Supprimer des sujets : purger d'abord `ce_scenario_attempts` (FK sans `ON DELETE CASCADE`).
 - Ne pas confondre avec `llamakusi-ce-content` / `exam_questions` (création d'un Examen Blanc).
 
+### Quota freemium de la pratique libre CE/CO
+
+Gratuit : **1 sujet CE + 1 sujet CO par jour** (jour UTC), payants illimités. Unité = le sujet distinct, dérivé des tentatives (`src/lib/comprehension-quota.ts`, constante `FREE_DAILY_SCENARIOS`) — **ne pas** réutiliser `checkAiRateLimit` / `ExercisePracticeType` pour ce cas (ils comptent des appels, pas des sujets). Toute nouvelle route ou page qui délivre la correction d'un sujet CE/CO doit appeler `checkComprehensionQuota()` côté serveur avant de corriger. Détail : `docs/calibration/ce-pratique-libre.md` §2 et `docs/architecture/ai-systems.md` §5.
+
 ## Variables d'environnement requises
 
 ```
