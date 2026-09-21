@@ -11,6 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { checkComprehensionScenarioQuota } from '@/lib/comprehension-quota-client';
+import { ComprehensionQuotaBlocked } from '@/components/shared/ComprehensionQuotaBlocked';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -61,6 +63,7 @@ export default function ComprehensionOraleScenarioPage() {
   const [questions, setQuestions] = useState<CoQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [quotaBlocked, setQuotaBlocked] = useState<string | null>(null);
 
   const [mode, setMode] = useState<'practice' | 'result'>('practice');
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -73,11 +76,17 @@ export default function ComprehensionOraleScenarioPage() {
   useEffect(() => {
     let active = true;
     async function load() {
-      const [{ data: scenarioRow }, { data: questionRows }] = await Promise.all([
+      const [{ data: scenarioRow }, { data: questionRows }, quota] = await Promise.all([
         supabase.from('co_scenarios').select('id, format, level, title, audio_url, max_plays').eq('id', scenarioId).maybeSingle(),
         supabase.from('co_scenario_questions_public').select('id, order_index, question, options').eq('scenario_id', scenarioId).order('order_index'),
+        checkComprehensionScenarioQuota('CO', scenarioId),
       ]);
       if (!active) return;
+      if (!quota.allowed) {
+        setQuotaBlocked(quota.error);
+        setLoading(false);
+        return;
+      }
       if (!scenarioRow) {
         setError(true);
         setLoading(false);
@@ -108,6 +117,10 @@ export default function ComprehensionOraleScenarioPage() {
         }),
       });
       const data = await res.json();
+      if (res.status === 429) {
+        setQuotaBlocked(data.error);
+        return;
+      }
       if (!res.ok) throw new Error(data.error || 'Erreur de correction');
       const graded = data.results[0] as GradedResult;
       setCheckedResult(graded);
@@ -161,6 +174,10 @@ export default function ComprehensionOraleScenarioPage() {
         <Loader2 className="animate-spin" size={28} />
       </div>
     );
+  }
+
+  if (quotaBlocked) {
+    return <ComprehensionQuotaBlocked message={quotaBlocked} catalogueHref="/tef-irn/comprehension-orale" />;
   }
 
   if (error || !scenario) {
