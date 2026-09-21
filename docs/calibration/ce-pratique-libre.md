@@ -25,7 +25,17 @@ de contenu et la procédure pour ajouter des sujets. Les règles des questions d
 - `src/app/tef-irn/comprehension-ecrite/[scenarioId]/page.tsx` — une question à la fois, texte du sujet toujours
   affiché, **consigne propre au format** au-dessus de la question (constante `FORMAT_CONSIGNES`, reprise des
   consignes de l'Examen Blanc).
-- `POST /api/comprehension/complete` — correction et enregistrement des réponses.
+- `POST /api/comprehension/complete` — correction et enregistrement des réponses, **après contrôle du quota** (429 sinon).
+- `POST /api/comprehension/check` — contrôle du quota en lecture seule (aucun incrément), avec `scenarioId` à l'ouverture d'un sujet, sans `scenarioId` pour le badge des catalogues.
+
+### Quota freemium (CE et CO)
+
+- **Gratuit : 1 sujet CE + 1 sujet CO par jour** ; Essentiel, Premium, Super Premium : illimité. Constante unique : `FREE_DAILY_SCENARIOS` dans `src/lib/comprehension-quota.ts`.
+- **Unité = le sujet** (5 questions) : compte des sujets distincts ayant au moins une tentative aujourd'hui (jour UTC, comme `ai_usage_daily`), dérivé de `ce_scenario_attempts` / `co_scenario_attempts` — aucun compteur à incrémenter. Un sujet commencé se termine toujours ; rejouer un sujet déjà entamé ne consomme rien.
+- **Le verrou réel est `/complete`** (seul point qui délivre `correct_answer` / `explanation`). Le contrôle à l'ouverture et l'écran `ComprehensionQuotaBlocked` ne sont que de l'UX : `ce_scenarios` / `co_scenarios` restent lisibles par tous (RLS `select to public`).
+- Erreur de requête sur le contrôle : **fail-open** (la pratique n'est pas cassée), erreur loguée `Comprehension quota check failed`.
+- Wording : `Pricing.tsx` et `TIER_FEATURES` (`src/lib/entitlements.ts`) — Gratuit « 1 sujet de Compréhension Écrite et 1 de Compréhension Orale par jour », paliers payants « Compréhension Écrite & Orale illimitée ».
+- **Événements PostHog** : `comprehension_scenario_started` (serveur, à chaque ouverture autorisée, tous paliers — pas un compte de sujets distincts), `comprehension_quota_reached` (serveur, propriété `source` = `check` ou `complete` ; filtrer sur `check` pour compter les personnes bloquées), `comprehension_paywall_cta_clicked` (client, clic « Voir les abonnements » de l'écran de blocage). Propriété `skill` = `CE` ou `CO` partout.
 
 ## 3. Règles de contenu
 
@@ -103,7 +113,6 @@ Tous les textes sont **fictifs** (aucun montant, délai ou règle juridique rée
 
 - **Compréhension Orale non alignée** : `co_scenarios` conserve les niveaux composites hérités des Examens Blancs
   (`A2-B1`, `B1`, `B1-B2`). Décision prise d'aligner aussi la CO sur A2 / B1 / B2, mais dans un chantier ultérieur.
-- **Quota freemium non branché** : ni `POST /api/comprehension/complete` ni les pages de pratique CE/CO n'appellent
-  `checkExercisePracticeQuota()` (vérifié dans le code à cette date). À arbitrer avant ouverture aux utilisateurs Gratuit.
+- **Quota du jour remis à zéro à minuit UTC** (1 h ou 2 h à Paris), aligné sur `ai_usage_daily` ; un utilisateur peut aussi lire le texte de plusieurs sujets sans répondre (aucune correction délivrée, donc sans valeur).
 - **Répartition des bonnes réponses légèrement inégale** sur le catalogue (A 96 · B 116 · C 88 · D 75) : à
   compenser (davantage de D) dans les prochains lots.
