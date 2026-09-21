@@ -79,6 +79,7 @@ npm run dev
 - [Correction Expression Écrite par niveau CECRL](./docs/calibration/writing-correction-levels.md)
 - [Notation Expression Orale par niveau CECRL](./docs/calibration/oral-analysis-levels.md)
 - [Calibration Compréhension Écrite](./docs/calibration/ce-content-calibration-rules.md)
+- [Pratique libre CE (sujets autonomes A2/B1/B2)](./docs/calibration/ce-pratique-libre.md)
 - [Contraintes de génération Compréhension Orale](./docs/calibration/co-contraintes-generation-texte.md)
 - [Taxonomie des tags de leçons](./docs/calibration/lessons-tags-taxonomy.md)
 - [Particularités du Vocabulaire dans le moteur de recommandation](./docs/calibration/vocabulaire-particularites-recommandation.md)
