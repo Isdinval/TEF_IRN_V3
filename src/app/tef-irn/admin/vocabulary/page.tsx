@@ -29,6 +29,13 @@ interface VocabRow {
   audio_url: string | null;
 }
 
+interface VocabKpi {
+  total: number;
+  withoutAudio: number;
+  byLevel: Record<string, number>;
+  byCategory: Record<string, number>;
+}
+
 const LEVELS = ["A1", "A2", "B1", "B2"];
 const CATEGORIES: string[] = [...VOCAB_CATEGORIES];
 const PAGE_SIZE = 50;
@@ -56,6 +63,32 @@ export default function VocabularyAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [kpi, setKpi] = useState<VocabKpi | null>(null);
+  const [kpiLoading, setKpiLoading] = useState(false);
+
+  // Vue d'ensemble globale (total, par niveau, par catégorie) : une seule
+  // requête légère au chargement, indépendante des filtres de la liste
+  // ci-dessous (reste bon marché même quand le catalogue grossit).
+  const fetchKpi = useCallback(async () => {
+    setKpiLoading(true);
+    const { data, error } = await supabase.from("vocabulary").select("level, category, audio_url");
+    if (!error && data) {
+      const byLevel: Record<string, number> = {};
+      const byCategory: Record<string, number> = {};
+      let withoutAudio = 0;
+      for (const row of data as { level: string | null; category: string; audio_url: string | null }[]) {
+        if (row.level) byLevel[row.level] = (byLevel[row.level] || 0) + 1;
+        byCategory[row.category] = (byCategory[row.category] || 0) + 1;
+        if (!row.audio_url) withoutAudio += 1;
+      }
+      setKpi({ total: data.length, withoutAudio, byLevel, byCategory });
+    }
+    setKpiLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    if (authState === "granted") fetchKpi();
+  }, [authState, fetchKpi]);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -169,6 +202,39 @@ export default function VocabularyAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un mot
         </Button>
       </header>
+
+      {kpiLoading && !kpi && (
+        <div className="flex justify-center py-6"><Loader2 className="animate-spin text-indigo-600" size={20} /></div>
+      )}
+
+      {kpi && (
+        <div className="mb-8 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+              <p className="text-[10px] font-black uppercase text-zinc-400">Total mots</p>
+              <p className="text-2xl font-black text-zinc-800">{kpi.total}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+              <p className="text-[10px] font-black uppercase text-zinc-400">Sans audio</p>
+              <p className="text-2xl font-black text-zinc-800">{kpi.withoutAudio}</p>
+            </div>
+            {LEVELS.map((l) => (
+              <div key={l} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+                <p className="text-[10px] font-black uppercase text-zinc-400">Niveau {l}</p>
+                <p className="text-2xl font-black text-zinc-800">{kpi.byLevel[l] || 0}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {CATEGORIES.map((c) => (
+              <div key={c} className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-4 py-3 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-zinc-500 truncate">{c}</span>
+                <span className="text-sm font-black text-zinc-800 shrink-0">{kpi.byCategory[c] || 0}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={levelFilter} onChange={(e) => updateLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
