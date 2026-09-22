@@ -186,19 +186,34 @@ export default function VocabularyAdmin() {
   // La génération audio se fait hors-ligne (script Python TTS Gemini, jamais
   // en runtime). Cette action efface audio_url : le mot sera repris au
   // prochain lancement du script (qui ne traite que les mots sans audio_url).
+  // Mise à jour optimiste en local (pas de fetchItems()) pour ne pas faire
+  // s'effondrer/remonter toute la liste pendant une revue mot par mot.
   const handleClearAudio = async (id: string) => {
     if (!window.confirm("Marquer ce mot pour régénération audio ? Le son actuel sera retiré jusqu'au prochain lancement du script TTS.")) return;
     const { error } = await supabase.from("vocabulary").update({ audio_url: null }).eq("id", id);
-    if (!error) fetchItems();
+    if (!error) {
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, audio_url: null } : item)));
+    }
   };
 
   // Signalement manuel de qualité audio (revue humaine). Ne modifie ni ne
   // supprime rien d'autre : le nettoyage groupé (vidage audio_url + fichier
-  // Storage pour tous les mots signalés) est une action séparée à venir.
+  // Storage pour tous les mots signalés) est une action séparée (bouton
+  // "Exporter + nettoyer"). Mise à jour optimiste en local, même raison que
+  // handleClearAudio ci-dessus.
   const handleToggleFlag = async (v: VocabRow) => {
-    const { error } = await supabase.from("vocabulary").update({ audio_flagged_bad: !v.audio_flagged_bad }).eq("id", v.id);
+    const nextValue = !v.audio_flagged_bad;
+    const { error } = await supabase.from("vocabulary").update({ audio_flagged_bad: nextValue }).eq("id", v.id);
     if (!error) {
-      fetchItems();
+      if (flaggedOnly && !nextValue) {
+        // Le mot ne correspond plus au filtre "signalés uniquement" — on le
+        // retire de la vue plutôt que de laisser un mot non signalé dans une
+        // liste filtrée sur les mots signalés.
+        setItems((prev) => prev.filter((item) => item.id !== v.id));
+        setTotalCount((c) => Math.max(0, c - 1));
+      } else {
+        setItems((prev) => prev.map((item) => (item.id === v.id ? { ...item, audio_flagged_bad: nextValue } : item)));
+      }
       fetchKpi();
     }
   };
