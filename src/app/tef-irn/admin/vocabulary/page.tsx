@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Plus, Pencil, Trash2, Volume2, RotateCcw } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Volume2, RotateCcw, Flag } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
 import { VOCAB_CATEGORIES } from "@/lib/vocab/categories";
@@ -27,11 +27,13 @@ interface VocabRow {
   level: string | null;
   category: string;
   audio_url: string | null;
+  audio_flagged_bad: boolean;
 }
 
 interface VocabKpi {
   total: number;
   withoutAudio: number;
+  flaggedBad: number;
   byLevel: Record<string, number>;
   byCategory: Record<string, number>;
 }
@@ -58,6 +60,7 @@ export default function VocabularyAdmin() {
   const [levelFilter, setLevelFilter] = useState("Tous");
   const [categoryFilter, setCategoryFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
@@ -71,17 +74,19 @@ export default function VocabularyAdmin() {
   // ci-dessous (reste bon marché même quand le catalogue grossit).
   const fetchKpi = useCallback(async () => {
     setKpiLoading(true);
-    const { data, error } = await supabase.from("vocabulary").select("level, category, audio_url");
+    const { data, error } = await supabase.from("vocabulary").select("level, category, audio_url, audio_flagged_bad");
     if (!error && data) {
       const byLevel: Record<string, number> = {};
       const byCategory: Record<string, number> = {};
       let withoutAudio = 0;
-      for (const row of data as { level: string | null; category: string; audio_url: string | null }[]) {
+      let flaggedBad = 0;
+      for (const row of data as { level: string | null; category: string; audio_url: string | null; audio_flagged_bad: boolean }[]) {
         if (row.level) byLevel[row.level] = (byLevel[row.level] || 0) + 1;
         byCategory[row.category] = (byCategory[row.category] || 0) + 1;
         if (!row.audio_url) withoutAudio += 1;
+        if (row.audio_flagged_bad) flaggedBad += 1;
       }
-      setKpi({ total: data.length, withoutAudio, byLevel, byCategory });
+      setKpi({ total: data.length, withoutAudio, flaggedBad, byLevel, byCategory });
     }
     setKpiLoading(false);
   }, [supabase]);
@@ -96,6 +101,7 @@ export default function VocabularyAdmin() {
     if (levelFilter !== "Tous") query = query.eq("level", levelFilter);
     if (categoryFilter !== "Toutes") query = query.eq("category", categoryFilter);
     if (search.trim()) query = query.ilike("word", `%${search.trim()}%`);
+    if (flaggedOnly) query = query.eq("audio_flagged_bad", true);
     const from = (page - 1) * PAGE_SIZE;
     const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
     if (!error) {
@@ -103,7 +109,7 @@ export default function VocabularyAdmin() {
       setTotalCount(count ?? 0);
     }
     setLoading(false);
-  }, [supabase, levelFilter, categoryFilter, search, page]);
+  }, [supabase, levelFilter, categoryFilter, search, flaggedOnly, page]);
 
   useEffect(() => {
     if (authState === "granted") fetchItems();
@@ -114,6 +120,7 @@ export default function VocabularyAdmin() {
   const updateLevelFilter = (v: string) => { setLevelFilter(v); setPage(1); };
   const updateCategoryFilter = (v: string) => { setCategoryFilter(v); setPage(1); };
   const updateSearch = (v: string) => { setSearch(v); setPage(1); };
+  const updateFlaggedOnly = (v: boolean) => { setFlaggedOnly(v); setPage(1); };
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -184,6 +191,17 @@ export default function VocabularyAdmin() {
     if (!error) fetchItems();
   };
 
+  // Signalement manuel de qualité audio (revue humaine). Ne modifie ni ne
+  // supprime rien d'autre : le nettoyage groupé (vidage audio_url + fichier
+  // Storage pour tous les mots signalés) est une action séparée à venir.
+  const handleToggleFlag = async (v: VocabRow) => {
+    const { error } = await supabase.from("vocabulary").update({ audio_flagged_bad: !v.audio_flagged_bad }).eq("id", v.id);
+    if (!error) {
+      fetchItems();
+      fetchKpi();
+    }
+  };
+
   if (authState !== "granted") {
     return <AdminGuardScreen state={authState} />;
   }
@@ -209,7 +227,7 @@ export default function VocabularyAdmin() {
 
       {kpi && (
         <div className="mb-8 space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
               <p className="text-[10px] font-black uppercase text-zinc-400">Total mots</p>
               <p className="text-2xl font-black text-zinc-800">{kpi.total}</p>
@@ -217,6 +235,10 @@ export default function VocabularyAdmin() {
             <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
               <p className="text-[10px] font-black uppercase text-zinc-400">Sans audio</p>
               <p className="text-2xl font-black text-zinc-800">{kpi.withoutAudio}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+              <p className="text-[10px] font-black uppercase text-zinc-400">Audios signalés</p>
+              <p className="text-2xl font-black text-rose-600">{kpi.flaggedBad}</p>
             </div>
             {LEVELS.map((l) => (
               <div key={l} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
@@ -246,6 +268,10 @@ export default function VocabularyAdmin() {
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <Input placeholder="Rechercher un mot..." value={search} onChange={(e) => updateSearch(e.target.value)} className="h-10 max-w-xs" />
+        <label className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={flaggedOnly} onChange={(e) => updateFlaggedOnly(e.target.checked)} />
+          Audios signalés uniquement
+        </label>
       </div>
 
       {loading ? (
@@ -277,9 +303,21 @@ export default function VocabularyAdmin() {
                       Pas d'audio
                     </Badge>
                   )}
+                  {v.audio_flagged_bad && (
+                    <Badge variant="outline" className="text-[9px] font-black uppercase gap-1 text-rose-600 border-rose-200 bg-rose-50">
+                      <Flag size={10} /> Audio signalé
+                    </Badge>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => handleToggleFlag(v)}
+                  title={v.audio_flagged_bad ? "Retirer le signalement" : "Signaler cet audio comme mauvais"}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${v.audio_flagged_bad ? "bg-rose-50 text-rose-600" : "bg-zinc-50 text-zinc-400 hover:text-rose-600"}`}
+                >
+                  <Flag size={15} />
+                </button>
                 {v.audio_url && (
                   <button onClick={() => handleClearAudio(v.id)} title="Marquer pour régénération audio" className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-amber-600">
                     <RotateCcw size={15} />
