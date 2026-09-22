@@ -47,6 +47,7 @@ interface CoQuestion {
   order_index: number;
   question: string;
   options: string[];
+  audio_url: string | null;
 }
 interface GradedResult {
   questionId: string;
@@ -79,7 +80,7 @@ export default function ComprehensionOraleScenarioPage() {
     async function load() {
       const [{ data: scenarioRow }, { data: questionRows }, quota] = await Promise.all([
         supabase.from('co_scenarios').select('id, format, level, title, audio_url, max_plays').eq('id', scenarioId).maybeSingle(),
-        supabase.from('co_scenario_questions_public').select('id, order_index, question, options').eq('scenario_id', scenarioId).order('order_index'),
+        supabase.from('co_scenario_questions_public').select('id, order_index, question, options, audio_url').eq('scenario_id', scenarioId).order('order_index'),
         checkComprehensionScenarioQuota('CO', scenarioId),
       ]);
       if (!active) return;
@@ -300,10 +301,19 @@ export default function ComprehensionOraleScenarioPage() {
                 <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
               </div>
 
-              {/* Audio du sujet : reste affiché à chaque question, jamais
-                  seulement sur la première. */}
+              {/* Audio : par question pour annonce/repondeur (5 clips
+                  indépendants, chacun sa propre URL -- décision du
+                  2026-09-22, corrige le fait que le sujet entier se
+                  rejouait à chaque question) ; par sujet pour
+                  chronique/micro_trottoir (fallback, comportement
+                  inchangé -- 1 seul audio couvre réellement les 5
+                  questions). */}
               <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
-                <AudioPlayer url={scenario.audio_url} maxPlays={scenario.max_plays ?? 2} questionId={scenario.id} />
+                <AudioPlayer
+                  url={currentQuestion?.audio_url || scenario.audio_url}
+                  maxPlays={scenario.max_plays ?? 2}
+                  questionId={currentQuestion?.id ?? scenario.id}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-2">
