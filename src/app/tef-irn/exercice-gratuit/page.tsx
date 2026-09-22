@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { AudioPlayer } from "@/components/exam/AudioPlayer";
 import { renderClozeText } from "@/lib/ce-format";
 import { ORAL_CRITERIA_LABELS, OralCriterionKey } from "@/lib/oral-criteria";
 import { captureEvent } from "@/lib/analytics";
+import { shuffleQcmOptions } from "@/lib/shuffle-qcm-options";
 import {
   CheckCircle2,
   Sparkles,
@@ -191,6 +192,10 @@ export default function FreeExercisePage() {
   const streamRef = useRef<MediaStream | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
+  const shuffledOptions = useMemo(
+    () => (currentQuestion ? shuffleQcmOptions(currentQuestion.options) : []),
+    [currentQuestion?.id]
+  );
 
   // Restaure le brouillon EE tant qu'il correspond au sujet tiré pour cette session.
   useEffect(() => {
@@ -491,11 +496,10 @@ export default function FreeExercisePage() {
                       </div>
                     )}
 
-                    {currentQuestion.options.map((opt) => {
-                      const letter = opt.substring(0, 1);
-                      const isSelected = answers[currentQuestionIndex] === letter;
+                    {shuffledOptions.map((opt) => {
+                      const isSelected = answers[currentQuestionIndex] === opt.originalLetter;
                       const currentGrade = gradedAnswers[currentQuestionIndex];
-                      const isCorrect = isShowingFeedback && letter === currentGrade?.correctAnswer;
+                      const isCorrect = isShowingFeedback && opt.originalLetter === currentGrade?.correctAnswer;
                       const showCorrectness = isShowingFeedback && (isSelected || isCorrect);
                       const badgeState = !isShowingFeedback
                         ? "bg-zinc-100 text-zinc-500"
@@ -507,9 +511,9 @@ export default function FreeExercisePage() {
 
                       return (
                         <button
-                          key={letter}
+                          key={opt.original}
                           disabled={isShowingFeedback || isGrading}
-                          onClick={() => handleAnswer(letter)}
+                          onClick={() => handleAnswer(opt.originalLetter)}
                           className={`w-full p-3 text-left border rounded-xl transition-all flex items-center gap-3 ${
                             !isShowingFeedback
                               ? "border-zinc-200 hover:border-indigo-500 hover:bg-indigo-50/50"
@@ -521,9 +525,9 @@ export default function FreeExercisePage() {
                           }`}
                         >
                           <div className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center font-black text-xs ${badgeState}`}>
-                            {letter}
+                            {opt.display.charAt(0)}
                           </div>
-                          <span className="font-medium text-sm text-zinc-700 flex-1">{opt.substring(3)}</span>
+                          <span className="font-medium text-sm text-zinc-700 flex-1">{opt.display.slice(3)}</span>
                           {showCorrectness && isCorrect && <CheckCircle2 className="text-green-600 shrink-0" size={18} />}
                         </button>
                       );
