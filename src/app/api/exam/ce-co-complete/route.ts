@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { trackUserError, resolveUserError, completeRecommendationIfResolved, analyzeUserErrorsAndRecommend } from '@/lib/recommendation-engine';
+import { checkExamSectionTrial, examTrialMessage } from '@/lib/exam-quota';
+import { normalizeTier } from '@/lib/entitlements';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 // Route dédiée à la persistance des sections CE/CO d'examen blanc (table
 // exam_ce_co_attempts, item 4 du plan). Appelée une fois par section terminée
@@ -44,6 +47,28 @@ export async function POST(req: Request) {
     const typedResults = results as CeCoResultInput[] | undefined;
     if (!typedResults || typedResults.length === 0) {
       return NextResponse.json({ error: 'results manquant ou vide' }, { status: 400 });
+    }
+
+    // 0. Essai gratuit du simulateur d'examen blanc (voir /api/exam/check
+    // pour la vérification en amont, purement UX) : ceci est le garde-fou
+    // qui fait réellement autorité -- le palier Gratuit n'a droit qu'à 1
+    // section CE + 1 CO à vie (src/lib/exam-quota.ts). On bloque avant
+    // toute correction/lecture de exam_questions pour ne jamais exposer
+    // correct_answer sur une section déjà consommée par ce palier.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const trial = await checkExamSectionTrial(supabase, user.id, section, profile?.subscription_tier);
+    if (!trial.allowed) {
+      await captureServerEvent(user.id, 'exam_trial_blocked', {
+        section,
+        subscription_tier: normalizeTier(profile?.subscription_tier),
+        source: 'complete',
+      });
+      return NextResponse.json({ error: examTrialMessage(section) }, { status: 403 });
     }
 
     // 1. Récupérer category/tags/correct_answer/explanation des questions
