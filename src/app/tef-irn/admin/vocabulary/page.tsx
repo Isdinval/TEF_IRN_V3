@@ -31,6 +31,7 @@ interface VocabRow {
 
 const LEVELS = ["A1", "A2", "B1", "B2"];
 const CATEGORIES: string[] = [...VOCAB_CATEGORIES];
+const PAGE_SIZE = 50;
 
 const EMPTY_FORM = {
   word: "",
@@ -44,6 +45,8 @@ export default function VocabularyAdmin() {
   const supabase = useMemo(() => createClient(), []);
   const authState = useAdminGuard();
   const [items, setItems] = useState<VocabRow[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [levelFilter, setLevelFilter] = useState("Tous");
   const [categoryFilter, setCategoryFilter] = useState("Toutes");
@@ -56,18 +59,28 @@ export default function VocabularyAdmin() {
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from("vocabulary").select("*").order("word", { ascending: true });
+    let query = supabase.from("vocabulary").select("*", { count: "exact" }).order("word", { ascending: true });
     if (levelFilter !== "Tous") query = query.eq("level", levelFilter);
     if (categoryFilter !== "Toutes") query = query.eq("category", categoryFilter);
     if (search.trim()) query = query.ilike("word", `%${search.trim()}%`);
-    const { data, error } = await query.limit(300);
-    if (!error) setItems((data as VocabRow[]) || []);
+    const from = (page - 1) * PAGE_SIZE;
+    const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
+    if (!error) {
+      setItems((data as VocabRow[]) || []);
+      setTotalCount(count ?? 0);
+    }
     setLoading(false);
-  }, [supabase, levelFilter, categoryFilter, search]);
+  }, [supabase, levelFilter, categoryFilter, search, page]);
 
   useEffect(() => {
     if (authState === "granted") fetchItems();
   }, [authState, fetchItems]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  const updateLevelFilter = (v: string) => { setLevelFilter(v); setPage(1); };
+  const updateCategoryFilter = (v: string) => { setCategoryFilter(v); setPage(1); };
+  const updateSearch = (v: string) => { setSearch(v); setPage(1); };
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -149,7 +162,7 @@ export default function VocabularyAdmin() {
           <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
           <h1 className="text-3xl font-black tracking-tight">Vocabulaire</h1>
           <p className="text-muted-foreground">
-            {items.length} mot{items.length > 1 ? "s" : ""} affiché{items.length > 1 ? "s" : ""}
+            {totalCount} mot{totalCount > 1 ? "s" : ""} au total
           </p>
         </div>
         <Button onClick={openCreateDialog} className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-black shadow-xl shadow-indigo-100">
@@ -158,15 +171,15 @@ export default function VocabularyAdmin() {
       </header>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => updateLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={categoryFilter} onChange={(e) => updateCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les catégories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <Input placeholder="Rechercher un mot..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />
+        <Input placeholder="Rechercher un mot..." value={search} onChange={(e) => updateSearch(e.target.value)} className="h-10 max-w-xs" />
       </div>
 
       {loading ? (
@@ -215,6 +228,30 @@ export default function VocabularyAdmin() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && totalCount > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4">
+          <Button
+            variant="secondary"
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="rounded-xl font-black text-sm"
+          >
+            Précédent
+          </Button>
+          <span className="text-sm text-zinc-400 font-bold">
+            Page {page} / {totalPages}
+          </span>
+          <Button
+            variant="secondary"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="rounded-xl font-black text-sm"
+          >
+            Suivant
+          </Button>
         </div>
       )}
 
