@@ -12,7 +12,12 @@ import type { GuideProduct, GuideSiloRole } from "@/types/guides";
 // écrit en clair dans `content`, rendu par ReactMarkdown côté public (GuideContent.tsx). Ce module
 // recalcule donc le graphe à la volée à partir du contenu déjà chargé, sans nouvelle colonne ni job de sync.
 
-const GUIDE_PATH_PATTERN = /^\/(tef-irn|examen-civique)\/guides\/([a-z0-9-]+)\/?$/;
+// Les slugs sont presque toujours en minuscules, mais au moins un existant (tef-irn-carte-sejour-A2)
+// contient une majuscule : un pattern strictement [a-z0-9-] le classe à tort comme lien produit
+// plutôt que lien guide, ce qui le fait remonter comme "orphelin" dans le health check alors qu'il
+// est bel et bien linké. La comparaison de slug reste sensible à la casse (cf. `.eq('slug', slug)`
+// dans les pages [slug]), donc on élargit juste la classe de caractères acceptée, sans normaliser.
+const GUIDE_PATH_PATTERN = /^\/(tef-irn|examen-civique)\/guides\/([a-zA-Z0-9-]+)\/?$/;
 
 export interface GuideLinkRef {
   product: GuideProduct;
