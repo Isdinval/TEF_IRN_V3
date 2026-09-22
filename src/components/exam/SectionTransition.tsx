@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb, X } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, ListChecks, Lightbulb, X, Loader2 } from 'lucide-react';
 import { ExamSectionType } from '@/types/exam';
 import { SECTION_BRIEFINGS, pickRandomTips } from '@/lib/exam-briefings';
 import { AudioCheckWidget } from '@/components/exam/AudioCheckWidget';
+import { checkExamTrial } from '@/lib/exam-quota-client';
+import { ExamTrialBlocked } from '@/components/shared/ExamTrialBlocked';
 
 const sectionNames: Record<ExamSectionType, string> = {
   CO: 'Compréhension Orale',
@@ -32,6 +34,29 @@ export function SectionTransition() {
   const displayedTips = useMemo(() => pickRandomTips(briefing.tips, 2), [briefing.tips]);
   const questionCount = allQuestions.filter(q => q.section === targetSection).length;
 
+  // Essai gratuit CE/CO du simulateur d'examen blanc (voir /api/exam/check) :
+  // vérifié à l'ouverture de la section (ce briefing), pas seulement à sa
+  // soumission (/api/exam/ce-co-complete, garde qui fait autorité), pour ne
+  // pas faire passer 20 questions à un candidat Gratuit dont l'essai est
+  // déjà consommé. EE et EO ne sont pas concernés (droits séparés).
+  const [trialChecking, setTrialChecking] = useState(false);
+  const [trialBlockedMessage, setTrialBlockedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (targetSection !== 'CE' && targetSection !== 'CO') {
+      setTrialBlockedMessage(null);
+      return;
+    }
+    let cancelled = false;
+    setTrialChecking(true);
+    checkExamTrial(targetSection).then(({ allowed, error }) => {
+      if (cancelled) return;
+      setTrialBlockedMessage(allowed ? null : error);
+      setTrialChecking(false);
+    });
+    return () => { cancelled = true; };
+  }, [targetSection]);
+
   const getDuration = (section: ExamSectionType) => {
     if (!activeExam) return '20 minutes';
     switch(section) {
@@ -42,6 +67,24 @@ export function SectionTransition() {
       default: return '20 minutes';
     }
   };
+
+  if (trialBlockedMessage) {
+    return (
+      <ExamTrialBlocked
+        section={targetSection as 'CE' | 'CO'}
+        message={trialBlockedMessage}
+        onAbandon={resetExam}
+      />
+    );
+  }
+
+  if (trialChecking) {
+    return (
+      <div className="min-h-screen bg-slate-50/30 flex items-center justify-center p-4">
+        <Loader2 className="animate-spin text-zinc-300" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/30 flex items-center justify-center p-4">
