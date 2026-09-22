@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useExam } from '@/contexts/ExamContext';
 import { QCMQuestion, WritingQuestion, SpeakingQuestion } from '@/types/exam';
 import { renderClozeText } from '@/lib/ce-format';
@@ -16,11 +16,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { createClient } from '@/lib/supabase';
 import { getEntitlements } from '@/lib/entitlements';
+import { shuffleQcmOptions } from '@/lib/shuffle-qcm-options';
 
 export function QuestionCard() {
   const { state, questions, currentQuestion, setAnswer, nextQuestion, isCorrecting, submitOralAnalysis, oralAnalyses } = useExam();
   const [wordCount, setWordCount] = useState(0);
   const [unansweredWarning, setUnansweredWarning] = useState<string | null>(null);
+
+  // Mélange l'ordre d'affichage des options CE/CO à chaque nouvelle question
+  // (biais de position de la bonne réponse) -- lettre/texte original toujours
+  // soumis via setAnswer, la correction serveur (ce-co-complete) ne voit
+  // aucune différence. Sans effet sur EE/EO (pas d'options).
+  const shuffledOptions = useMemo(
+    () => ('options' in currentQuestion ? shuffleQcmOptions(currentQuestion.options) : []),
+    [currentQuestion?.id]
+  );
 
   // Item 7 frontend (retour Olivier) : avertir AVANT que le candidat écrive
   // pour l'EE, comme c'est déjà fait pour l'EO (SpeakingSession) -- même
@@ -139,14 +149,13 @@ export function QuestionCard() {
           </h2>
 
           <div className="grid gap-2">
-            {q.options.map((opt) => {
-              const letter = opt.substring(0, 1);
-              const isSelected = selectedAnswer === letter;
+            {shuffledOptions.map((opt) => {
+              const isSelected = selectedAnswer === opt.originalLetter;
 
               return (
                 <button
-                  key={opt}
-                  onClick={() => setAnswer(q.id, letter)}
+                  key={opt.original}
+                  onClick={() => setAnswer(q.id, opt.originalLetter)}
                   className={`
                     w-full p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3
                     ${isSelected
@@ -158,9 +167,9 @@ export function QuestionCard() {
                     w-8 h-8 shrink-0 rounded-xl flex items-center justify-center font-black
                     ${isSelected ? 'bg-white/15 text-white' : 'bg-zinc-50 text-zinc-400'}
                   `}>
-                    {letter}
+                    {opt.display.charAt(0)}
                   </div>
-                  <span className="font-medium">{opt.substring(3)}</span>
+                  <span className="font-medium">{opt.display.slice(3)}</span>
                   {isSelected && <CheckCircle2 className="ml-auto shrink-0 text-white" size={20} />}
                 </button>
               );
