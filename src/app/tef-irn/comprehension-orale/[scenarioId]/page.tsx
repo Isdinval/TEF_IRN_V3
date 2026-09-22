@@ -8,10 +8,11 @@
 // dépendance à ExamContext) au lieu du texte/sous-textes, resté affiché
 // au-dessus de chaque question comme pour CE ; pas de highlight_gap.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { checkComprehensionScenarioQuota } from '@/lib/comprehension-quota-client';
+import { shuffleQcmOptions } from '@/lib/shuffle-qcm-options';
 import { ComprehensionQuotaBlocked } from '@/components/shared/ComprehensionQuotaBlocked';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -101,6 +102,10 @@ export default function ComprehensionOraleScenarioPage() {
   }, [scenarioId, supabase]);
 
   const currentQuestion = questions[currentIdx];
+  const shuffledOptions = useMemo(
+    () => (currentQuestion ? shuffleQcmOptions(currentQuestion.options) : []),
+    [currentQuestion?.id]
+  );
   const totalQuestions = questions.length;
   const progress = totalQuestions > 0 ? ((currentIdx + 1) / totalQuestions) * 100 : 0;
 
@@ -303,10 +308,9 @@ export default function ComprehensionOraleScenarioPage() {
 
               <div className="grid grid-cols-1 gap-2">
                 <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
-                {currentQuestion?.options.map((opt) => {
-                  const isSelected = selected === opt;
-                  const optLetter = opt.trim().charAt(0).toUpperCase();
-                  const isCorrectOpt = !!checkedResult && optLetter === checkedResult.correctAnswer;
+                {shuffledOptions.map((opt) => {
+                  const isSelected = selected === opt.original;
+                  const isCorrectOpt = !!checkedResult && opt.originalLetter === checkedResult.correctAnswer;
 
                   let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
                   if (checkedResult) {
@@ -318,18 +322,18 @@ export default function ComprehensionOraleScenarioPage() {
 
                   return (
                     <motion.button
-                      key={opt}
+                      key={opt.original}
                       whileHover={!checkedResult ? { x: 5 } : {}}
                       whileTap={!checkedResult ? { scale: 0.98 } : {}}
-                      onClick={() => setSelected(opt)}
+                      onClick={() => setSelected(opt.original)}
                       disabled={!!checkedResult}
                       className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
-                          {optLetter}
+                          {opt.display.charAt(0)}
                         </div>
-                        {opt.slice(3)}
+                        {opt.display.slice(3)}
                       </div>
                       {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
                       {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
