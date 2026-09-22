@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { checkComprehensionQuota, comprehensionQuotaMessage } from '@/lib/comprehension-quota';
 import { normalizeTier } from '@/lib/entitlements';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { awardXpAndStreak } from '@/lib/xp-streak';
 
 // Route de correction pour la pratique CE/CO dissociée de l'Examen Blanc
 // (item 4 du plan "pratique CE/CO"). Miroir simplifié de
@@ -115,7 +116,23 @@ export async function POST(req: Request) {
 
     if (attemptsError) throw attemptsError;
 
-    return NextResponse.json({ success: true, results: gradedResults });
+    // Parité avec les exercices vocab/qcm/trous (api/exercise-complete) :
+    // un sujet CE/CO n'a jusqu'ici jamais donné d'XP ni compté pour la série
+    // ni émis exercise_completed -- invisible pour le funnel PostHog
+    // "premier exercice" (onboarding, Examen Civique) et pour le compteur
+    // XP du jour du dashboard (RPC get_dashboard_data, SUM(score) sur
+    // exercise_attempts). xpGain = % de bonnes réponses du sujet, même
+    // formule que exercise-complete (Math.round(score)). Pas de garde-fou
+    // "1ère fois seulement" : voir xp-streak.ts, comportement volontairement
+    // aligné sur les exercices existants (aucun anti-farming là non plus).
+    const xpGain = Math.round((gradedResults.filter((g) => g.isCorrect).length / gradedResults.length) * 100);
+    await awardXpAndStreak(supabase, user.id, xpGain);
+    await captureServerEvent(user.id, 'exercise_completed', {
+      score: xpGain,
+      exercise_type: skill === 'CE' ? 'ce' : 'co',
+    });
+
+    return NextResponse.json({ success: true, results: gradedResults, xpGained: xpGain });
   } catch (error: any) {
     console.error('Comprehension complete API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
