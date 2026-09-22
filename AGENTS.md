@@ -242,6 +242,12 @@ Sujets autonomes de Compréhension Écrite, **dissociés de l'Examen Blanc** (`e
 
 Gratuit : **1 sujet CE + 1 sujet CO par jour** (jour UTC), payants illimités. Unité = le sujet distinct, dérivé des tentatives (`src/lib/comprehension-quota.ts`, constante `FREE_DAILY_SCENARIOS`) — **ne pas** réutiliser `checkAiRateLimit` / `ExercisePracticeType` pour ce cas (ils comptent des appels, pas des sujets). Toute nouvelle route ou page qui délivre la correction d'un sujet CE/CO doit appeler `checkComprehensionQuota()` côté serveur avant de corriger. Détail : `docs/calibration/ce-pratique-libre.md` §2 et `docs/architecture/ai-systems.md` §5.
 
+Depuis le 2026-09-22, un sujet terminé donne aussi de l'XP et compte pour la série de jours (`awardXpAndStreak()`, `src/lib/xp-streak.ts`, factorisé avec `api/exercise-complete`) et émet `exercise_completed` (`exercise_type: 'ce'|'co'`) — voir `docs/architecture/ai-systems.md` §5.
+
+### Essai gratuit du simulateur d'examen blanc (CE/CO)
+
+Depuis le 2026-09-22 : `hasFullExam` (voir `src/lib/entitlements.ts`) verrouille `/tef-irn/exam` à partir d'Essentiel, mais Gratuit n'est pas totalement exclu — il a droit à **1 section CE + 1 section CO à vie**, tous examens confondus, dérivé de `exam_ce_co_attempts` (`src/lib/exam-quota.ts`, `checkExamSectionTrial()` — pas de nouvelle colonne : la présence d'une tentative pour la section suffit). EE et EO de l'examen blanc gardent leurs droits existants (`hasExamWritingCorrection`, `hasOralCoach`), inchangés. Vérifié en deux temps, même duo que la pratique libre CE/CO : `api/exam/check` (lecture seule, appelé par `SectionTransition.tsx` avant le bouton "Commencer l'épreuve") et `api/exam/ce-co-complete` (403 qui fait autorité, avant toute correction). Détail : `docs/architecture/ai-systems.md` §6.
+
 ## Variables d'environnement requises
 
 ```

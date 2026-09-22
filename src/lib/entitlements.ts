@@ -25,6 +25,14 @@
  *   client, cumulée dans ai_usage_daily.seconds_used -- voir la migration
  *   20260909000003_oral_seconds_tracking.sql pour le détail et les
  *   limites de cette approche).
+ * - hasFullExam : verrou dur sur le simulateur d'examen blanc
+ *   (`/tef-irn/exam`). Gratuit n'a PAS un verrou total : il a un essai à vie
+ *   de 1 section CE + 1 section CO (voir `src/lib/exam-quota.ts`, dérivé de
+ *   `exam_ce_co_attempts`, même logique de dérivation que le quota
+ *   quotidien de la pratique libre CE/CO plutôt qu'un compteur dédié sur
+ *   `profiles`). EE et EO de l'examen blanc restent gérés par leurs propres
+ *   droits (`hasExamWritingCorrection`, `hasOralCoach`), inchangés par ce
+ *   droit.
  */
 
 export type SubscriptionTier = "gratuit" | "essentiel" | "premium" | "super_premium";
@@ -88,13 +96,14 @@ export interface Entitlements {
   hasOralCoach: boolean;
   hasExamWritingCorrection: boolean;
   oralDailyMinutes: number;
+  hasFullExam: boolean;
 }
 
 const ENTITLEMENTS: Record<SubscriptionTier, Entitlements> = {
-  gratuit: { hasOralCoach: false, hasExamWritingCorrection: false, oralDailyMinutes: 0 },
-  essentiel: { hasOralCoach: false, hasExamWritingCorrection: true, oralDailyMinutes: 0 },
-  premium: { hasOralCoach: true, hasExamWritingCorrection: true, oralDailyMinutes: 40 },
-  super_premium: { hasOralCoach: true, hasExamWritingCorrection: true, oralDailyMinutes: 75 },
+  gratuit: { hasOralCoach: false, hasExamWritingCorrection: false, oralDailyMinutes: 0, hasFullExam: false },
+  essentiel: { hasOralCoach: false, hasExamWritingCorrection: true, oralDailyMinutes: 0, hasFullExam: true },
+  premium: { hasOralCoach: true, hasExamWritingCorrection: true, oralDailyMinutes: 40, hasFullExam: true },
+  super_premium: { hasOralCoach: true, hasExamWritingCorrection: true, oralDailyMinutes: 75, hasFullExam: true },
 };
 
 const VALID_TIERS = new Set<string>(Object.keys(ENTITLEMENTS));
