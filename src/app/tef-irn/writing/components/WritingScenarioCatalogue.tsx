@@ -60,7 +60,7 @@ export function WritingScenarioCatalogue({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
         <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
           <div>
             <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 mb-2">
@@ -71,7 +71,7 @@ export function WritingScenarioCatalogue({
                 <button
                   key={s}
                   onClick={() => onSectionChange(s)}
-                  className={`flex-1 h-10 rounded-xl font-black text-sm transition-all ${section === s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                  className={`flex-1 h-12 rounded-2xl font-black transition-all ${section === s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                 >
                   {s === "all" ? "Toutes" : s}
                 </button>
@@ -87,7 +87,7 @@ export function WritingScenarioCatalogue({
                 <button
                   key={l}
                   onClick={() => onLevelChange(l)}
-                  className={`flex-1 h-10 rounded-xl font-black text-sm transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                  className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                 >
                   {l === "all" ? "Tous" : l}
                 </button>

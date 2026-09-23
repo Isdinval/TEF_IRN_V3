@@ -42,7 +42,7 @@ export function ScenarioCatalogue({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
           <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
             <Layers size={14} className="text-indigo-600" /> Section
