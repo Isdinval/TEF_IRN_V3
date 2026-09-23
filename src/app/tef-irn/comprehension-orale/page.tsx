@@ -12,7 +12,7 @@ import { ComprehensionDailyQuotaBadge } from '@/components/shared/ComprehensionD
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Headset, Loader2, Layers, Target } from 'lucide-react';
+import { Headset, Loader2, Layers, Target, Shuffle, Play } from 'lucide-react';
 
 type CoFormat = 'annonce' | 'repondeur' | 'chronique' | 'micro_trottoir' | 'conversation';
 
@@ -85,6 +85,12 @@ export default function ComprehensionOralePage() {
     (s) => (format === ALL || s.format === format) && (level === ALL || s.level === level)
   );
 
+  const handleSurpriseMe = () => {
+    if (filtered.length === 0) return;
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    router.push(`/tef-irn/comprehension-orale/${random.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/30 pb-20">
       <div className="mx-auto max-w-6xl p-4 md:p-10 lg:p-12">
@@ -112,7 +118,7 @@ export default function ComprehensionOralePage() {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Layers size={14} className="text-indigo-600" /> Format
@@ -150,6 +156,20 @@ export default function ComprehensionOralePage() {
                       {l === ALL ? 'Tous' : `Niveau ${l}`}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div
+                onClick={handleSurpriseMe}
+                className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                  <Shuffle size={14} /> Scénario surprise
+                </div>
+                <h4 className="text-base font-black leading-tight">Laissez-vous surprendre</h4>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                  <Play size={16} /> Tirage aléatoire
                 </div>
               </div>
             </div>
