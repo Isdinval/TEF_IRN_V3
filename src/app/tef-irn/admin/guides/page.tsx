@@ -21,6 +21,7 @@ import Link from "next/link";
 import { Loader2, Plus, Pencil, Trash2, UploadCloud, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 import { GuideType, GuideSiloRole } from "@/types/guides";
 import { CIVIC_GUIDE_CATEGORIES } from "@/lib/civic-guide-categories";
 import GuidesGraphView from "@/components/features/admin/GuidesGraphView";
@@ -149,6 +150,12 @@ export default function GuidesAdmin() {
   const supabase = useMemo(() => createClient(), []);
   const authState = useAdminGuard();
   const [guides, setGuides] = useState<GuideRow[]>([]);
+  const [guidesKpi, setGuidesKpi] = useState<{
+    total: number;
+    published: number;
+    byProduct: Record<string, number>;
+    orphans: number;
+  } | null>(null);
   const [parcoursOptions, setParcoursOptions] = useState<ParcoursOption[]>([]);
   const [guideRelationOptions, setGuideRelationOptions] = useState<GuideRelationOption[]>([]);
   const [originalChildIds, setOriginalChildIds] = useState<Set<string>>(new Set());
@@ -194,9 +201,28 @@ export default function GuidesAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, productFilter, publishedFilter, search]);
 
+  // KPI calculés sur l'ensemble des guides (pas de .limit) : le select principal ci-dessus
+  // est plafonné à 300 lignes pour l'affichage, une marge qui se réduit avec la croissance du contenu.
+  const fetchGuidesKpi = useCallback(async () => {
+    const { data, error } = await supabase.from("guides").select("is_published, product, silo_role, parent_guide_id");
+    if (error || !data) return;
+    const byProduct: Record<string, number> = {};
+    let published = 0;
+    let orphans = 0;
+    for (const row of data as any[]) {
+      byProduct[row.product] = (byProduct[row.product] || 0) + 1;
+      if (row.is_published) published++;
+      if (!row.parent_guide_id && row.silo_role !== "hub") orphans++;
+    }
+    setGuidesKpi({ total: data.length, published, byProduct, orphans });
+  }, [supabase]);
+
   useEffect(() => {
-    if (authState === "granted") fetchGuides();
-  }, [authState, fetchGuides]);
+    if (authState === "granted") {
+      fetchGuides();
+      fetchGuidesKpi();
+    }
+  }, [authState, fetchGuides, fetchGuidesKpi]);
 
   useEffect(() => {
     if (authState !== "granted") return;
@@ -544,6 +570,18 @@ export default function GuidesAdmin() {
 
       {activeTab === "liste" && (
         <>
+      {guidesKpi && (
+        <AdminKpiBand
+          items={[
+            { label: "Total guides", value: guidesKpi.total },
+            { label: "Publiés", value: guidesKpi.published, tone: "success" },
+            { label: "Brouillons", value: guidesKpi.total - guidesKpi.published },
+            { label: "TEF IRN", value: guidesKpi.byProduct["tef-irn"] || 0 },
+            { label: "Examen civique", value: guidesKpi.byProduct["examen-civique"] || 0 },
+            { label: "Orphelins (hors hub)", value: guidesKpi.orphans, tone: guidesKpi.orphans > 0 ? "warning" : "success" },
+          ]}
+        />
+      )}
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={productFilter} onChange={(e) => setProductFilter(e.target.value as any)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les produits</option>
