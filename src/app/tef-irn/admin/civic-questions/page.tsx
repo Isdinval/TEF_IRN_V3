@@ -18,6 +18,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface CivicQuestionRow {
   id: string;
@@ -58,6 +59,11 @@ export default function CivicQuestionsAdmin() {
   const supabase = useMemo(() => createClient(), []);
   const authState = useAdminGuard();
   const [questions, setQuestions] = useState<CivicQuestionRow[]>([]);
+  const [questionsKpi, setQuestionsKpi] = useState<{
+    total: number;
+    reviewed: number;
+    byTheme: Record<string, number>;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [themeFilter, setThemeFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
@@ -77,9 +83,26 @@ export default function CivicQuestionsAdmin() {
     setLoading(false);
   }, [supabase, themeFilter, search]);
 
+  // KPI calculés sur l'ensemble des questions (pas de .limit) : le select principal ci-dessus
+  // est plafonné à 200 lignes, très en dessous du volume réel (528 questions).
+  const fetchQuestionsKpi = useCallback(async () => {
+    const { data, error } = await supabase.from("civic_questions").select("theme, reviewed");
+    if (error || !data) return;
+    const byTheme: Record<string, number> = {};
+    let reviewed = 0;
+    for (const row of data as any[]) {
+      byTheme[row.theme] = (byTheme[row.theme] || 0) + 1;
+      if (row.reviewed) reviewed++;
+    }
+    setQuestionsKpi({ total: data.length, reviewed, byTheme });
+  }, [supabase]);
+
   useEffect(() => {
-    if (authState === "granted") fetchQuestions();
-  }, [authState, fetchQuestions]);
+    if (authState === "granted") {
+      fetchQuestions();
+      fetchQuestionsKpi();
+    }
+  }, [authState, fetchQuestions, fetchQuestionsKpi]);
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -190,6 +213,20 @@ export default function CivicQuestionsAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter une question
         </Button>
       </header>
+
+      {questionsKpi && (
+        <AdminKpiBand
+          items={[
+            { label: "Total questions", value: questionsKpi.total },
+            {
+              label: "Relues",
+              value: `${Math.round((questionsKpi.reviewed / questionsKpi.total) * 100)}%`,
+              tone: questionsKpi.reviewed / questionsKpi.total < 0.5 ? "danger" : questionsKpi.reviewed / questionsKpi.total < 0.9 ? "warning" : "success",
+            },
+            ...THEMES.map((t) => ({ label: t.label, value: questionsKpi.byTheme[t.value] || 0 })),
+          ]}
+        />
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select

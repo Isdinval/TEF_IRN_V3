@@ -17,6 +17,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface ParcoursRow {
   id: string;
@@ -53,6 +54,16 @@ export default function ParcoursAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const parcoursKpi = useMemo(() => {
+    const byLevel: Record<string, number> = {};
+    const byCategory: Record<string, number> = {};
+    for (const p of items) {
+      byLevel[p.level] = (byLevel[p.level] || 0) + 1;
+      byCategory[p.category] = (byCategory[p.category] || 0) + 1;
+    }
+    return { total: items.length, byLevel, byCategory };
+  }, [items]);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -153,6 +164,14 @@ export default function ParcoursAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un parcours
         </Button>
       </header>
+
+      <AdminKpiBand
+        items={[
+          { label: "Total parcours", value: parcoursKpi.total },
+          ...LEVELS.map((l) => ({ label: `Niveau ${l}`, value: parcoursKpi.byLevel[l] || 0 })),
+          ...CATEGORIES.map((c) => ({ label: c, value: parcoursKpi.byCategory[c] || 0 })),
+        ]}
+      />
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">

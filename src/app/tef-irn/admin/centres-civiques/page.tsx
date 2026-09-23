@@ -17,6 +17,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface CentreRow {
   id: string;
@@ -59,6 +60,11 @@ export default function CentresCiviquesAdmin() {
   const supabase = useMemo(() => createClient(), []);
   const authState = useAdminGuard();
   const [items, setItems] = useState<CentreRow[]>([]);
+  const [centresKpi, setCentresKpi] = useState<{
+    total: number;
+    active: number;
+    withoutCoords: number;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("Tous");
   const [produitFilter, setProduitFilter] = useState("Tous");
@@ -81,9 +87,22 @@ export default function CentresCiviquesAdmin() {
     setLoading(false);
   }, [supabase, statusFilter, produitFilter, search]);
 
+  // KPI calculés sur l'ensemble des centres (pas de .limit) : le select principal ci-dessus
+  // est plafonné à 300 lignes, une marge qui se réduit avec la croissance du contenu (248 centres actuels).
+  const fetchCentresKpi = useCallback(async () => {
+    const { data, error } = await supabase.from("centres_examen_civique").select("actif, latitude, longitude");
+    if (error || !data) return;
+    const active = (data as any[]).filter((r) => r.actif).length;
+    const withoutCoords = (data as any[]).filter((r) => r.latitude == null || r.longitude == null).length;
+    setCentresKpi({ total: data.length, active, withoutCoords });
+  }, [supabase]);
+
   useEffect(() => {
-    if (authState === "granted") fetchItems();
-  }, [authState, fetchItems]);
+    if (authState === "granted") {
+      fetchItems();
+      fetchCentresKpi();
+    }
+  }, [authState, fetchItems, fetchCentresKpi]);
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -187,6 +206,20 @@ export default function CentresCiviquesAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un centre
         </Button>
       </header>
+
+      {centresKpi && (
+        <AdminKpiBand
+          items={[
+            { label: "Total centres", value: centresKpi.total },
+            { label: "Actifs", value: centresKpi.active, tone: centresKpi.active < centresKpi.total ? "warning" : "success" },
+            {
+              label: "Sans coordonnées",
+              value: centresKpi.withoutCoords,
+              tone: centresKpi.withoutCoords > 0 ? "danger" : "success",
+            },
+          ]}
+        />
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">

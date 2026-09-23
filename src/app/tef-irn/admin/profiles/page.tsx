@@ -23,6 +23,7 @@ import {
 import { Loader2, ShieldCheck, ShieldOff, RotateCcw, Eye, FlaskConical, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface ProfileRow {
   id: string;
@@ -174,6 +175,19 @@ export default function ProfilesAdmin() {
     () => profiles.find((p) => p.id === currentUserId) ?? null,
     [profiles, currentUserId]
   );
+
+  const kpi = useMemo(() => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const real = profiles.filter((p) => !p.is_admin && !p.is_test_account);
+    const newLast7Days = real.filter((p) => new Date(p.created_at).getTime() >= sevenDaysAgo).length;
+    const activeLast7Days = real.filter((p) => new Date(p.last_activity_at).getTime() >= sevenDaysAgo).length;
+    const byTier: Record<string, number> = {};
+    for (const p of real) {
+      const tier = p.subscription_tier || "gratuit";
+      byTier[tier] = (byTier[tier] || 0) + 1;
+    }
+    return { total: real.length, newLast7Days, activeLast7Days, byTier };
+  }, [profiles]);
 
   const displayedProfiles = useMemo(() => {
     let list = profiles.filter((p) => p.id !== currentUserId);
@@ -466,6 +480,22 @@ export default function ProfilesAdmin() {
           </p>
         </div>
       </header>
+
+      <AdminKpiBand
+        items={[
+          { label: "Comptes réels", value: kpi.total },
+          { label: "Nouveaux (7j)", value: kpi.newLast7Days, tone: kpi.newLast7Days > 0 ? "success" : "default" },
+          {
+            label: "Actifs (7j)",
+            value: kpi.activeLast7Days,
+            tone: kpi.total > 0 && kpi.activeLast7Days === 0 ? "danger" : "default",
+          },
+          { label: "Gratuit", value: kpi.byTier["gratuit"] || 0 },
+          { label: "Essentiel", value: kpi.byTier["essentiel"] || 0 },
+          { label: "Premium", value: kpi.byTier["premium"] || 0 },
+          { label: "Super Premium", value: kpi.byTier["super_premium"] || 0 },
+        ]}
+      />
 
       <div className="flex flex-wrap gap-3 mb-6">
         <Input placeholder="Rechercher par email, username ou nom..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />

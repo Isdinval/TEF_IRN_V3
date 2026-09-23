@@ -19,6 +19,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface LessonRow {
   id: string;
@@ -66,6 +67,11 @@ export default function LessonsAdmin() {
   const supabase = useMemo(() => createClient(), []);
   const authState = useAdminGuard();
   const [lessons, setLessons] = useState<LessonRow[]>([]);
+  const [lessonsKpi, setLessonsKpi] = useState<{
+    total: number;
+    byCategory: Record<string, number>;
+    withoutExercise: number;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [levelFilter, setLevelFilter] = useState("Tous");
   const [categoryFilter, setCategoryFilter] = useState("Toutes");
@@ -87,9 +93,29 @@ export default function LessonsAdmin() {
     setLoading(false);
   }, [supabase, levelFilter, categoryFilter, search]);
 
+  // KPI calculés sur l'ensemble des leçons + jointure légère avec exercises.lesson_id
+  // pour détecter les leçons sans aucun exercice (pas de .limit sur le select principal).
+  const fetchLessonsKpi = useCallback(async () => {
+    const [lessonsRes, exercisesRes] = await Promise.all([
+      supabase.from("lessons").select("id, category"),
+      supabase.from("exercises").select("lesson_id"),
+    ]);
+    if (lessonsRes.error || !lessonsRes.data) return;
+    const byCategory: Record<string, number> = {};
+    for (const row of lessonsRes.data as any[]) {
+      byCategory[row.category] = (byCategory[row.category] || 0) + 1;
+    }
+    const lessonIdsWithExercise = new Set((exercisesRes.data || []).map((r: any) => r.lesson_id));
+    const withoutExercise = lessonsRes.data.filter((l: any) => !lessonIdsWithExercise.has(l.id)).length;
+    setLessonsKpi({ total: lessonsRes.data.length, byCategory, withoutExercise });
+  }, [supabase]);
+
   useEffect(() => {
-    if (authState === "granted") fetchLessons();
-  }, [authState, fetchLessons]);
+    if (authState === "granted") {
+      fetchLessons();
+      fetchLessonsKpi();
+    }
+  }, [authState, fetchLessons, fetchLessonsKpi]);
 
   const computeNextOrderIndex = useCallback(async (level: string, category: string) => {
     const { data } = await supabase
@@ -214,6 +240,20 @@ export default function LessonsAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter une leçon
         </Button>
       </header>
+
+      {lessonsKpi && (
+        <AdminKpiBand
+          items={[
+            { label: "Total leçons", value: lessonsKpi.total },
+            {
+              label: "Sans exercice",
+              value: lessonsKpi.withoutExercise,
+              tone: lessonsKpi.withoutExercise > 0 ? "danger" : "success",
+            },
+            ...CATEGORIES.map((c) => ({ label: c, value: lessonsKpi.byCategory[c] || 0 })),
+          ]}
+        />
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">

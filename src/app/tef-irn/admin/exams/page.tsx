@@ -18,6 +18,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2, ListChecks } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface ExamRow {
   id: string;
@@ -54,6 +55,16 @@ export default function ExamsAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const examsKpi = useMemo(() => {
+    const active = exams.filter((e) => e.is_active).length;
+    const byLevel: Record<string, number> = {};
+    for (const e of exams) {
+      const level = e.level || "Sans niveau";
+      byLevel[level] = (byLevel[level] || 0) + 1;
+    }
+    return { total: exams.length, active, byLevel };
+  }, [exams]);
 
   const fetchExams = useCallback(async () => {
     setLoading(true);
@@ -153,6 +164,14 @@ export default function ExamsAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un examen
         </Button>
       </header>
+
+      <AdminKpiBand
+        items={[
+          { label: "Total examens", value: examsKpi.total },
+          { label: "Actifs", value: examsKpi.active, tone: examsKpi.active < examsKpi.total ? "warning" : "success" },
+          ...Object.entries(examsKpi.byLevel).map(([level, count]) => ({ label: level, value: count })),
+        ]}
+      />
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
