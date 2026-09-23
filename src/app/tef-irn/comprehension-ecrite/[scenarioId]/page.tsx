@@ -46,6 +46,11 @@ const FORMAT_LABELS: Record<CeFormat, string> = {
   article_presse: 'Article de presse',
 };
 
+// Formats à texte long : sur desktop, texte à gauche (sticky, scroll indépendant)
+// et question/réponses à droite -- retour Olivier du 2026-09-23, le texte
+// sortait de l'écran avant d'arriver aux réponses. Formats courts inchangés.
+const LONG_FORMATS: CeFormat[] = ['multi_texte', 'long_admin', 'article_presse'];
+
 // Consigne affichée au-dessus de chaque question, calquée sur celles de l'Examen Blanc.
 const FORMAT_CONSIGNES: Record<CeFormat, string> = {
   court: 'Lisez attentivement le texte et répondez à la question.',
@@ -223,6 +228,8 @@ export default function ComprehensionEcriteScenarioPage() {
     );
   }
 
+  const isLongFormat = LONG_FORMATS.includes(scenario.format);
+
   // ÉCRAN RÉSULTAT
   if (mode === 'result') {
     const finalPercent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
@@ -266,6 +273,125 @@ export default function ComprehensionEcriteScenarioPage() {
     );
   }
 
+  // Blocs de l'écran pratique, réordonnés selon le format (voir plus bas) :
+  // formats courts -> ordre inchangé (question -> texte -> réponses -> bouton) ;
+  // formats longs -> texte en colonne gauche, reste en colonne droite.
+  const headerBlock = (
+    // Retour Olivier (2026-09-21) : badges + question réunis dans UN seul
+    // rectangle (au lieu de 2 blocs séparés).
+    <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
+        <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+          {scenario.level}
+        </Badge>
+        <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+          {FORMAT_LABELS[scenario.format]}
+        </Badge>
+      </div>
+      <p className="text-xs font-semibold text-zinc-500 mb-2 relative z-10">
+        {FORMAT_CONSIGNES[scenario.format]}
+      </p>
+      <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
+        {currentQuestion?.highlight_gap ? `Lacune n°${currentQuestion.highlight_gap} — ` : `Question ${currentIdx + 1} — `}
+        {currentQuestion?.question}
+      </h3>
+      <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
+    </div>
+  );
+
+  // Texte du sujet : reste affiché à chaque question, jamais seulement sur
+  // la première (retour Olivier explicite). Formats longs : sticky + scroll
+  // indépendant sur desktop pour rester visible pendant qu'on répond.
+  const texteBlock = (
+    <div className={isLongFormat ? 'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1' : ''}>
+      {scenario.sub_texts ? (
+        <div className={`grid grid-cols-1 gap-3 ${isLongFormat ? '' : 'sm:grid-cols-2'}`}>
+          {scenario.sub_texts.map((t, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">{t.label}</p>
+              <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{t.content}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+          <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{scenario.texte}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const optionsBlock = (
+    <div className="grid grid-cols-1 gap-2">
+      <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
+      {shuffledOptions.map((opt) => {
+        const isSelected = selected === opt.original;
+        const isCorrectOpt = !!checkedResult && opt.originalLetter === checkedResult.correctAnswer;
+
+        let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
+        if (checkedResult) {
+          if (isCorrectOpt) buttonStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10';
+          else if (isSelected) buttonStyle = 'border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10';
+        } else if (isSelected) {
+          buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5';
+        }
+
+        return (
+          <motion.button
+            key={opt.original}
+            whileHover={!checkedResult ? { x: 5 } : {}}
+            whileTap={!checkedResult ? { scale: 0.98 } : {}}
+            onClick={() => setSelected(opt.original)}
+            disabled={!!checkedResult}
+            className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+                {opt.display.charAt(0)}
+              </div>
+              {opt.display.slice(3)}
+            </div>
+            {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
+            {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+
+  const answerActionBlock = (
+    <div className="pt-1">
+      {!checkedResult ? (
+        <Button
+          onClick={handleCheck}
+          disabled={selected === null || checking}
+          className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+        >
+          {checking ? <Loader2 className="animate-spin" size={18} /> : 'VÉRIFIER MA RÉPONSE'}
+        </Button>
+      ) : (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+          {checkedResult.explanation && (
+            <Card className={`p-4 rounded-2xl border-none shadow-lg ${checkedResult.isCorrect ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
+              <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
+                <Sparkles size={14} /> Explication
+              </div>
+              <p className="text-xs font-bold leading-relaxed italic">&quot;{checkedResult.explanation}&quot;</p>
+            </Card>
+          )}
+          <Button
+            onClick={handleNext}
+            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+          >
+            {currentIdx < totalQuestions - 1 ? 'QUESTION SUIVANTE' : 'VOIR MON RÉSULTAT'}
+            <ArrowRight size={20} />
+          </Button>
+        </motion.div>
+      )}
+    </div>
+  );
+
   // ÉCRAN PRATIQUE
   return (
     <div className="relative h-full bg-zinc-50 flex flex-col">
@@ -298,122 +424,38 @@ export default function ComprehensionEcriteScenarioPage() {
         }
       />
 
-      <main className="flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto">
-        <div className="max-w-2xl w-full mx-auto space-y-4">
+      <main className="flex-1 flex flex-col items-center justify-start gap-4 p-3 lg:p-4 overflow-y-auto">
+        <div className={`w-full mx-auto ${isLongFormat ? 'max-w-6xl' : 'max-w-2xl'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIdx}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
-              className="space-y-3"
+              className={isLongFormat ? 'space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start' : 'space-y-3'}
             >
-              {/* Retour Olivier (2026-09-21) : badges + question réunis dans
-                  UN seul rectangle (au lieu de 2 blocs séparés), suivi du
-                  texte du sujet, puis des réponses -- ordre : badges+question
-                  -> texte -> réponses. */}
-              <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
-                  <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
-                    {scenario.level}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
-                    {FORMAT_LABELS[scenario.format]}
-                  </Badge>
-                </div>
-                <p className="text-xs font-semibold text-zinc-500 mb-2 relative z-10">
-                  {FORMAT_CONSIGNES[scenario.format]}
-                </p>
-                <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
-                  {currentQuestion?.highlight_gap ? `Lacune n°${currentQuestion.highlight_gap} — ` : `Question ${currentIdx + 1} — `}
-                  {currentQuestion?.question}
-                </h3>
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
-                <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
-              </div>
-
-              {/* Texte du sujet : reste affiché à chaque question, jamais
-                  seulement sur la première (retour Olivier explicite). */}
-              {scenario.sub_texts ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {scenario.sub_texts.map((t, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">{t.label}</p>
-                      <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{t.content}</p>
-                    </div>
-                  ))}
-                </div>
+              {isLongFormat ? (
+                <>
+                  {/* Formats longs : texte à gauche (sticky sur desktop),
+                      question/réponses/bouton à droite -- toujours visibles
+                      pendant la lecture. Sur mobile : sujet puis questions. */}
+                  {texteBlock}
+                  <div className="space-y-3">
+                    {headerBlock}
+                    {optionsBlock}
+                    {answerActionBlock}
+                  </div>
+                </>
               ) : (
-                <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
-                  <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{scenario.texte}</p>
-                </div>
+                <>
+                  {/* Formats courts : ordre inchangé (retour Olivier du
+                      2026-09-21) -- question -> texte -> réponses -> bouton. */}
+                  {headerBlock}
+                  {texteBlock}
+                  {optionsBlock}
+                  {answerActionBlock}
+                </>
               )}
-
-              <div className="grid grid-cols-1 gap-2">
-                <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
-                {shuffledOptions.map((opt) => {
-                  const isSelected = selected === opt.original;
-                  const isCorrectOpt = !!checkedResult && opt.originalLetter === checkedResult.correctAnswer;
-
-                  let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
-                  if (checkedResult) {
-                    if (isCorrectOpt) buttonStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10';
-                    else if (isSelected) buttonStyle = 'border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10';
-                  } else if (isSelected) {
-                    buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5';
-                  }
-
-                  return (
-                    <motion.button
-                      key={opt.original}
-                      whileHover={!checkedResult ? { x: 5 } : {}}
-                      whileTap={!checkedResult ? { scale: 0.98 } : {}}
-                      onClick={() => setSelected(opt.original)}
-                      disabled={!!checkedResult}
-                      className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
-                          {opt.display.charAt(0)}
-                        </div>
-                        {opt.display.slice(3)}
-                      </div>
-                      {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
-                      {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
-                    </motion.button>
-                  );
-                })}
-              </div>
-
-              <div className="pt-1">
-                {!checkedResult ? (
-                  <Button
-                    onClick={handleCheck}
-                    disabled={selected === null || checking}
-                    className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    {checking ? <Loader2 className="animate-spin" size={18} /> : 'VÉRIFIER MA RÉPONSE'}
-                  </Button>
-                ) : (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-                    {checkedResult.explanation && (
-                      <Card className={`p-4 rounded-2xl border-none shadow-lg ${checkedResult.isCorrect ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
-                        <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
-                          <Sparkles size={14} /> Explication
-                        </div>
-                        <p className="text-xs font-bold leading-relaxed italic">&quot;{checkedResult.explanation}&quot;</p>
-                      </Card>
-                    )}
-                    <Button
-                      onClick={handleNext}
-                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
-                    >
-                      {currentIdx < totalQuestions - 1 ? 'QUESTION SUIVANTE' : 'VOIR MON RÉSULTAT'}
-                      <ArrowRight size={20} />
-                    </Button>
-                  </motion.div>
-                )}
-              </div>
             </motion.div>
           </AnimatePresence>
         </div>
