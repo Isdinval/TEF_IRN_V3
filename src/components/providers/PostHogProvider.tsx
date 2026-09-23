@@ -24,6 +24,11 @@ export function initializePostHog() {
   posthog.init(projectToken, {
     api_host: host,
     person_profiles: 'identified_only',
+    // App Router : les navigations côté client (Link, router.push) ne
+    // rechargent pas la page. Sans cette option, seul le premier chargement
+    // produit un $pageview et les funnels basés sur les pages (landing →
+    // inscription, page tarifs) sont sous-comptés.
+    capture_pageview: 'history_change',
     capture_exceptions: true,
   });
   initialized = true;

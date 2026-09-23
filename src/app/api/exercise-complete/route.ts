@@ -49,6 +49,10 @@ export async function POST(req: Request) {
     const xpGain = Math.round(score);
     await awardXpAndStreak(supabase, user.id, xpGain);
 
+    // Type d'exercice (qcm, trous, qcm_centre_entrainement…) remonté dans
+    // l'événement PostHog exercise_completed, pour comparer l'usage par module.
+    let exerciseType: string | null = null;
+
     // 3. Tracker ou résoudre l'erreur selon le résultat (prérequis du moteur
     // de recommandation), puis vérifier si une recommandation en cours peut
     // être clôturée (leçon terminée + point faible résolu).
@@ -56,9 +60,11 @@ export async function POST(req: Request) {
       try {
         const { data: exerciseData } = await supabase
           .from('exercises')
-          .select('category, tags, lesson_id, level')
+          .select('category, tags, lesson_id, level, type')
           .eq('id', exerciseId)
           .single();
+
+        exerciseType = exerciseData?.type ?? null;
 
         if (exerciseData?.category) {
           const subCategory = exerciseData.tags?.find((t: string) => t !== exerciseData.category) ?? null;
@@ -95,6 +101,7 @@ export async function POST(req: Request) {
       score: xpGain,
       study_time_minutes: studyTimeMinutes || 0,
       has_ai_feedback: Boolean(aiFeedback),
+      exercise_type: exerciseType,
     });
 
     return NextResponse.json({ success: true, xpGained: xpGain });
