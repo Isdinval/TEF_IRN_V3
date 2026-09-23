@@ -304,7 +304,7 @@ export default function ComprehensionEcriteScenarioPage() {
   // la première (retour Olivier explicite). Formats longs : sticky + scroll
   // indépendant sur desktop pour rester visible pendant qu'on répond.
   const texteBlock = (
-    <div className={isLongFormat ? 'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1' : ''}>
+    <div className={isLongFormat ? 'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1 lg:col-start-2 lg:row-start-1 lg:row-span-3' : ''}>
       {scenario.sub_texts ? (
         <div className={`grid grid-cols-1 gap-3 ${isLongFormat ? '' : 'sm:grid-cols-2'}`}>
           {scenario.sub_texts.map((t, i) => (
@@ -432,19 +432,20 @@ export default function ComprehensionEcriteScenarioPage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
-              className={isLongFormat ? 'space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start' : 'space-y-3'}
+              className={isLongFormat ? 'space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-5 lg:gap-y-3 lg:items-start' : 'space-y-3'}
             >
               {isLongFormat ? (
                 <>
-                  {/* Formats longs : texte à gauche (sticky sur desktop),
-                      question/réponses/bouton à droite -- toujours visibles
-                      pendant la lecture. Sur mobile : sujet puis questions. */}
+                  {/* Formats longs : sujet/réponses/bouton à gauche, texte à
+                      droite (sticky sur desktop) -- toujours visible pendant
+                      la lecture. Sur mobile : sujet, texte, réponses, bouton
+                      (retour Olivier du 2026-09-23). Placement en grid nommé
+                      par lg:col-start/row-start pour découpler l'ordre mobile
+                      (DOM naturel) de l'ordre desktop (grid). */}
+                  <div className="lg:col-start-1 lg:row-start-1">{headerBlock}</div>
                   {texteBlock}
-                  <div className="space-y-3">
-                    {headerBlock}
-                    {optionsBlock}
-                    {answerActionBlock}
-                  </div>
+                  <div className="lg:col-start-1 lg:row-start-2">{optionsBlock}</div>
+                  <div className="lg:col-start-1 lg:row-start-3">{answerActionBlock}</div>
                 </>
               ) : (
                 <>
