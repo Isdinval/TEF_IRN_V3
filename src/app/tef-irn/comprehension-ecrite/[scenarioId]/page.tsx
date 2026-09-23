@@ -425,7 +425,7 @@ export default function ComprehensionEcriteScenarioPage() {
       />
 
       <main className="flex-1 flex flex-col items-center justify-start gap-4 p-3 lg:p-4 overflow-y-auto">
-        <div className={`w-full mx-auto ${isLongFormat ? 'max-w-6xl' : 'max-w-2xl'}`}>
+        <div className={`w-full m-auto ${isLongFormat ? 'max-w-6xl' : 'max-w-2xl'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIdx}
