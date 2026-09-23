@@ -293,6 +293,21 @@ npx supabase db push     # Appliquer les migrations
 npx shadcn@latest add <composant>  # Ajouter un composant shadcn/ui
 ```
 
+### Identité Git obligatoire — commits et PR au nom d'Olivier
+
+⚠️ **Obligatoire, sans exception** : tout commit créé par un agent IA sur ce projet (Claude Code ou autre) doit être signé avec l'identité d'Olivier, jamais celle de l'agent/outil :
+
+```bash
+git config user.name "Olivier RAYMOND"
+git config user.email "olivier.raymond.17@eigsi.fr"
+```
+
+À vérifier/appliquer en tout début de session (`git config user.name` / `git config user.email`) avant le premier commit, sur chaque nouveau clone ou conteneur — ne jamais laisser l'identité par défaut de l'outil (ex. `Claude <noreply@anthropic.com>`).
+
+Même exigence pour toute pull request ouverte par un agent : elle doit être créée sous le compte GitHub d'Olivier (`Isdinval`), jamais sous un compte/bot lié à l'outil IA. Si l'outil utilisé ne permet pas de choisir cette identité (ex. connecteur/app GitHub tiers plutôt que le compte personnel), le signaler explicitement à Olivier avant de créer la PR plutôt que de la créer sous une autre identité par défaut.
+
+Rappel : cette règle porte sur l'auteur du commit/PR (l'identité git/GitHub), pas sur le contenu — les règles ci-dessous (pas de ligne d'attribution IA, pas de lien de session) restent valables en plus de celle-ci, pas à la place.
+
 ### Génération de patchs
 
 Toujours utiliser `git format-patch` (jamais `git diff`) pour fournir un patch à appliquer :
@@ -331,6 +346,8 @@ Quand un plan (ensemble d'items validés par Olivier) est entièrement livré �
 ⚠️ **Ne jamais ajouter de ligne d'attribution IA** (type "🤖 Generated with [Claude Code](...)" ou toute variante, quel que soit l'agent utilisé) dans une description de PR ou un message de commit sur ce projet. Olivier est toujours l'auteur/générateur déclaré du code, quel que soit l'outil utilisé pour le produire.
 
 ⚠️ **Ne jamais inclure de lien de session** (type `https://claude.ai/code/session_...` ou toute variante équivalente d'un autre outil agentique) dans une description de PR ou un message de commit sur ce projet — même règle et même raison que l'attribution IA ci-dessus.
+
+⚠️ **Vérifier systématiquement après la création d'une PR** (pas seulement au moment de rédiger le texte envoyé) que sa description ne contient ni ligne d'attribution IA ni lien de session : certains outils/connecteurs ajoutent automatiquement un footer de ce type après coup, même quand le texte fourni ne le contenait pas. Si c'est le cas, éditer immédiatement la description de la PR pour le retirer, sans attendre qu'Olivier le remarque.
 
 ---
 
