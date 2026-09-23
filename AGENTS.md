@@ -33,7 +33,7 @@ Plateforme SaaS de préparation au **TEF IRN** (Test d'Évaluation de Français 
 - **IA** : OpenAI API (package `openai` ^4.68)
 - **UI** : Tailwind CSS v4 + shadcn/ui (`components.json` à la racine) + Framer Motion + Lucide React
 - **Charts** : Recharts
-- **Analytics** : PostHog
+- **Analytics** : PostHog (dashboards, sources et conventions de mesure : `docs/ops/analytics-posthog.md`)
 - **Tests** : Playwright (`@playwright/test`)
 - **Déploiement** : Vercel
 
@@ -265,8 +265,8 @@ OPENAI_API_KEY
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
-NEXT_PUBLIC_POSTHOG_KEY         (optionnel)
-NEXT_PUBLIC_POSTHOG_HOST        (optionnel)
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN (erreur levée en dev si absente)
+NEXT_PUBLIC_POSTHOG_HOST          (erreur levée en dev si absente)
 SUPABASE_SERVICE_ROLE_KEY       (server-only, jobs cron/admin — voir src/lib/supabase-admin.ts)
 RESEND_API_KEY                  (rappels email SRS, voir /api/cron/srs-reminders)
 RESEND_FROM_EMAIL
