@@ -293,6 +293,21 @@ npx supabase db push     # Appliquer les migrations
 npx shadcn@latest add <composant>  # Ajouter un composant shadcn/ui
 ```
 
+### Identité Git obligatoire — commits et PR au nom d'Olivier
+
+⚠️ **Obligatoire, sans exception** : tout commit créé par un agent IA sur ce projet (Claude Code ou autre) doit être signé avec l'identité d'Olivier, jamais celle de l'agent/outil :
+
+```bash
+git config user.name "Olivier RAYMOND"
+git config user.email "olivier.raymond.17@eigsi.fr"
+```
+
+À vérifier/appliquer en tout début de session (`git config user.name` / `git config user.email`) avant le premier commit, sur chaque nouveau clone ou conteneur — ne jamais laisser l'identité par défaut de l'outil (ex. `Claude <noreply@anthropic.com>`).
+
+Même exigence pour toute pull request ouverte par un agent : elle doit être créée sous le compte GitHub d'Olivier (`Isdinval`), jamais sous un compte/bot lié à l'outil IA. Si l'outil utilisé ne permet pas de choisir cette identité (ex. connecteur/app GitHub tiers plutôt que le compte personnel), le signaler explicitement à Olivier avant de créer la PR plutôt que de la créer sous une autre identité par défaut.
+
+Rappel : cette règle porte sur l'auteur du commit/PR (l'identité git/GitHub), pas sur le contenu — les règles ci-dessous (pas de ligne d'attribution IA, pas de lien de session) restent valables en plus de celle-ci, pas à la place.
+
 ### Génération de patchs
 
 Toujours utiliser `git format-patch` (jamais `git diff`) pour fournir un patch à appliquer :
