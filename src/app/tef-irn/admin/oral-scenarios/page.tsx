@@ -18,6 +18,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 interface ScenarioRow {
   id: string;
@@ -60,6 +61,13 @@ export default function OralScenariosAdmin() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const scenariosKpi = useMemo(() => {
+    const active = scenarios.filter((s) => s.is_active).length;
+    const bySection: Record<string, number> = {};
+    for (const s of scenarios) bySection[s.section] = (bySection[s.section] || 0) + 1;
+    return { total: scenarios.length, active, bySection };
+  }, [scenarios]);
 
   const fetchScenarios = useCallback(async () => {
     setLoading(true);
@@ -164,6 +172,15 @@ export default function OralScenariosAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un scénario
         </Button>
       </header>
+
+      <AdminKpiBand
+        items={[
+          { label: "Total scénarios", value: scenariosKpi.total },
+          { label: "Actifs", value: scenariosKpi.active, tone: scenariosKpi.active < scenariosKpi.total ? "warning" : "success" },
+          { label: "Section A", value: scenariosKpi.bySection["A"] || 0 },
+          { label: "Section B", value: scenariosKpi.bySection["B"] || 0 },
+        ]}
+      />
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
