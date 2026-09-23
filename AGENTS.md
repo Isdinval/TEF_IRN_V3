@@ -168,6 +168,13 @@ git reset --hard FETCH_HEAD   # jamais git pull, pour éviter les conflits
 - Props typées avec une interface dédiée dans le même fichier
 - Nommage : PascalCase pour les composants, kebab-case pour les fichiers (`my-component.tsx`)
 
+### Pages admin — bandeau KPI
+- `AdminKpiBand` (`src/components/shared/AdminKpiBand.tsx`) est le composant partagé pour tout bandeau de KPI en haut d'une page `/tef-irn/admin/*` — grille de cartes `{ label, value, tone? }` (`tone`: `default`/`success`/`warning`/`danger`). Toujours le réutiliser plutôt que dupliquer le markup carte.
+- **Ne jamais calculer un KPI en réduisant un state déjà plafonné par `.limit()`** sur le select principal de la page — le compteur serait silencieusement faux dès que le volume réel dépasse la limite d'affichage. Deux cas :
+  - Volume réel confirmé inférieur au `.limit()` de la page (vérifié en base) : dériver directement du state déjà chargé, via `useMemo`.
+  - Volume qui dépasse ou peut dépasser le `.limit()` (ex. `exercises` ~1616 lignes vs `.limit(200)`, `civic_questions` 528 vs `.limit(200)`) : faire un fetch dédié, sans `.limit()`, en ne sélectionnant que les colonnes nécessaires au calcul (jamais `select("*")`). Pour un champ JSONB, utiliser l'aliasing de chemin PostgREST dans le select plutôt que de charger la colonne complète : `alias:content->explanations` renvoie directement la sous-valeur.
+- Avant de deviner une répartition (catégorie, produit, etc.) depuis le `SELECT` partiel d'une page admin, vérifier le schéma et le volume réel en base (Supabase MCP `list_tables`/`execute_sql`) — un champ peut exister en base sans être sélectionné dans la page (ex. `exercises.lesson_id`, absent du `SELECT` de `admin/exercises` mais utilisé pour calculer les leçons sans exercice sur `admin/lessons`).
+
 ### Supabase
 - Toujours utiliser les helpers `@supabase/ssr` — **ne jamais importer directement** `createClient` de `@supabase/supabase-js` dans des Server Components sans passer par `src/lib/supabase/`
 - Le middleware (`middleware.ts`) gère le rafraîchissement de session — ne pas le supprimer
