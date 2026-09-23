@@ -117,15 +117,15 @@ export default function ComprehensionEcritePage() {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 items-start">
               <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Layers size={14} className="text-indigo-600" /> Format
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setFormat(ALL)}
-                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                    className={`h-12 rounded-2xl font-black text-sm transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                   >
                     Tous
                   </button>
@@ -133,7 +133,7 @@ export default function ComprehensionEcritePage() {
                     <button
                       key={f}
                       onClick={() => setFormat(f)}
-                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                      className={`h-12 rounded-2xl font-black text-sm transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                     >
                       {FORMAT_LABELS[f]}
                     </button>
@@ -152,7 +152,7 @@ export default function ComprehensionEcritePage() {
                       onClick={() => setLevel(l)}
                       className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                     >
-                      {l === ALL ? 'Tous' : `Niveau ${l}`}
+                      {l === ALL ? 'Tous' : l}
                     </button>
                   ))}
                 </div>
