@@ -326,7 +326,11 @@ Olivier préfère que les réponses (analyses, résumés, "prochaines étapes") 
 
 Quand un plan (ensemble d'items validés par Olivier) est entièrement livré — dernier patch du lot — toujours fournir automatiquement, sans qu'il ait à le redemander, un titre de PR suggéré + une description Markdown prête à coller (section "Résumé", "Changements" en liste à puces reprenant les vrais commits du plan via `git log <base>..HEAD --oneline --no-merges`, et "Tests effectués" si des vérifications ont été faites : `tsc --noEmit`, `npm run lint`, `npm run build`, requêtes Supabase de contrôle, etc.). Ne pas inventer de contenu : la description reflète les commits réels, pas un résumé approximatif de la conversation.
 
+**Titre de PR** : toujours au format Conventional Commits (`feat(scope): ...`, `fix(scope): ...`, `chore(scope): ...`, etc.), jamais une phrase libre en français. Si le lot mélange plusieurs types de commits (ex. `fix` + `feat`), choisir le type dominant côté effet produit pour le titre (typiquement `feat` si une nouvelle fonctionnalité est visible pour l'utilisateur, même si des `fix` l'accompagnent) ; le détail par commit reste de toute façon listé dans la section "Changements".
+
 ⚠️ **Ne jamais ajouter de ligne d'attribution IA** (type "🤖 Generated with [Claude Code](...)" ou toute variante, quel que soit l'agent utilisé) dans une description de PR ou un message de commit sur ce projet. Olivier est toujours l'auteur/générateur déclaré du code, quel que soit l'outil utilisé pour le produire.
+
+⚠️ **Ne jamais inclure de lien de session** (type `https://claude.ai/code/session_...` ou toute variante équivalente d'un autre outil agentique) dans une description de PR ou un message de commit sur ce projet — même règle et même raison que l'attribution IA ci-dessus.
 
 ---
 
