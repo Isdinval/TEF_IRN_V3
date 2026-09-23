@@ -93,15 +93,15 @@ export default function ComprehensionOralePage() {
 
   return (
     <div className="min-h-screen bg-slate-50/30 pb-20">
-      <div className="mx-auto max-w-6xl p-4 md:p-10 lg:p-12">
+      <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
         <div className="mb-8">
-          <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 mb-3">
-            Compréhension Orale
+          <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+            Coach CO
           </Badge>
-          <h1 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight">
-            Entraînez-vous à la Compréhension Orale
+          <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+            COACH DE COMPRÉHENSION <span className="text-indigo-600">ORALE</span>
           </h1>
-          <p className="mt-2 text-zinc-500 font-medium max-w-2xl">
+          <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
             Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté,
             ou parcourez librement tous les sujets disponibles.
           </p>
@@ -126,7 +126,7 @@ export default function ComprehensionOralePage() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setFormat(ALL)}
-                    className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wide transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                   >
                     Tous
                   </button>
@@ -134,7 +134,7 @@ export default function ComprehensionOralePage() {
                     <button
                       key={f}
                       onClick={() => setFormat(f)}
-                      className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wide transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                     >
                       {FORMAT_LABELS[f]}
                     </button>
@@ -146,12 +146,12 @@ export default function ComprehensionOralePage() {
                 <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Target size={14} className="text-indigo-600" /> Niveau
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2">
                   {levels.map((l) => (
                     <button
                       key={l}
                       onClick={() => setLevel(l)}
-                      className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wide transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
                     >
                       {l === ALL ? 'Tous' : `Niveau ${l}`}
                     </button>
@@ -175,9 +175,16 @@ export default function ComprehensionOralePage() {
             </div>
 
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
-                {filtered.length} sujet{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
+              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">
+                  {format === ALL ? 'Tous les formats' : FORMAT_LABELS[format]}
+                </Badge>
+                <span className="text-zinc-400">•</span>
+                <span className="capitalize text-zinc-500">Niveau {level === ALL ? 'Tous' : level}</span>
               </h2>
+              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {filtered.length} sujet{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
+              </div>
             </div>
 
             {filtered.length === 0 ? (

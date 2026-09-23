@@ -368,7 +368,7 @@ export function WritingCoachContent() {
         <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-8 p-6 pt-10 lg:p-10">
           <header>
             <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              Expression Écrite
+              Coach EE
             </Badge>
             <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
               COACH D&apos;EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
