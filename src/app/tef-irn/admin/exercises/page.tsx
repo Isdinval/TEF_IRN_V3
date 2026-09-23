@@ -18,6 +18,7 @@ import {
 import { Loader2, Plus, Pencil, Trash2, X } from "lucide-react";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
 import { AdminGuardScreen } from "@/components/shared/AdminGuardScreen";
+import { AdminKpiBand } from "@/components/shared/AdminKpiBand";
 
 type ExerciseType = "trous" | "qcm" | "ecrit";
 
@@ -74,6 +75,12 @@ export default function ExercisesAdmin() {
   const authState = useAdminGuard();
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exercisesKpi, setExercisesKpi] = useState<{
+    total: number;
+    withExplanations: number;
+    withPointClePedagogique: number;
+    byCategory: Record<string, number>;
+  } | null>(null);
   const [typeFilter, setTypeFilter] = useState("Toutes");
   const [levelFilter, setLevelFilter] = useState("Toutes");
   const [search, setSearch] = useState("");
@@ -94,9 +101,31 @@ export default function ExercisesAdmin() {
     setLoading(false);
   }, [supabase, typeFilter, levelFilter, search]);
 
+  // KPI calculés sur l'ensemble des exercices (pas de .limit) : le select principal ci-dessus
+  // est plafonné à 200 lignes pour l'affichage, très en dessous du volume réel (~1616+).
+  const fetchExercisesKpi = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("exercises")
+      .select("category, point_cle_pedagogique, explanations:content->explanations");
+    if (error || !data) return;
+    const byCategory: Record<string, number> = {};
+    let withExplanations = 0;
+    let withPointClePedagogique = 0;
+    for (const row of data as any[]) {
+      const cat = row.category || "Sans catégorie";
+      byCategory[cat] = (byCategory[cat] || 0) + 1;
+      if (Array.isArray(row.explanations) && row.explanations.length > 0) withExplanations++;
+      if (row.point_cle_pedagogique) withPointClePedagogique++;
+    }
+    setExercisesKpi({ total: data.length, withExplanations, withPointClePedagogique, byCategory });
+  }, [supabase]);
+
   useEffect(() => {
-    if (authState === "granted") fetchExercises();
-  }, [authState, fetchExercises]);
+    if (authState === "granted") {
+      fetchExercises();
+      fetchExercisesKpi();
+    }
+  }, [authState, fetchExercises, fetchExercisesKpi]);
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -241,6 +270,24 @@ export default function ExercisesAdmin() {
           <Plus className="mr-2" size={18} /> Ajouter un exercice
         </Button>
       </header>
+
+      {exercisesKpi && (
+        <AdminKpiBand
+          items={[
+            { label: "Total exercices", value: exercisesKpi.total },
+            {
+              label: "Avec explications",
+              value: `${Math.round((exercisesKpi.withExplanations / exercisesKpi.total) * 100)}%`,
+              tone: exercisesKpi.withExplanations / exercisesKpi.total < 0.5 ? "danger" : exercisesKpi.withExplanations / exercisesKpi.total < 0.9 ? "warning" : "success",
+            },
+            {
+              label: "Avec point clé pédagogique",
+              value: `${Math.round((exercisesKpi.withPointClePedagogique / exercisesKpi.total) * 100)}%`,
+            },
+            ...CATEGORIES.map((c) => ({ label: c, value: exercisesKpi.byCategory[c] || 0 })),
+          ]}
+        />
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
