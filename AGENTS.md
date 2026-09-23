@@ -347,6 +347,8 @@ Quand un plan (ensemble d'items validés par Olivier) est entièrement livré �
 
 ⚠️ **Ne jamais inclure de lien de session** (type `https://claude.ai/code/session_...` ou toute variante équivalente d'un autre outil agentique) dans une description de PR ou un message de commit sur ce projet — même règle et même raison que l'attribution IA ci-dessus.
 
+⚠️ **Vérifier systématiquement après la création d'une PR** (pas seulement au moment de rédiger le texte envoyé) que sa description ne contient ni ligne d'attribution IA ni lien de session : certains outils/connecteurs ajoutent automatiquement un footer de ce type après coup, même quand le texte fourni ne le contenait pas. Si c'est le cas, éditer immédiatement la description de la PR pour le retirer, sans attendre qu'Olivier le remarque.
+
 ---
 
 ## Domaine métier — TEF IRN
