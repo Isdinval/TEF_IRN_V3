@@ -268,7 +268,7 @@ export default function ComprehensionEcriteScenarioPage() {
 
   // ÉCRAN PRATIQUE
   return (
-    <div className="relative min-h-screen bg-zinc-50 flex flex-col">
+    <div className="relative h-full bg-zinc-50 flex flex-col">
       <LlamaMountainDecoration variant="comprehension" />
       <DestinationLandmarkDecoration variant="comprehension" />
       <ExerciseLayout
@@ -298,7 +298,7 @@ export default function ComprehensionEcriteScenarioPage() {
         }
       />
 
-      <main className="flex-1 flex flex-col items-center gap-4 p-3 lg:p-4 overflow-y-auto">
+      <main className="flex-1 flex flex-col items-center justify-center gap-4 p-3 lg:p-4 overflow-y-auto">
         <div className="max-w-2xl w-full mx-auto space-y-4">
           <AnimatePresence mode="wait">
             <motion.div
