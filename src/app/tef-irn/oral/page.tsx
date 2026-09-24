@@ -49,18 +49,32 @@ function OralCoachContent() {
   const { user } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null | undefined>(undefined);
+  // Essai gratuit Coach Oral (business case croissance du 24/09/2026, validé
+  // par Olivier : "1 essai par compte à vie, un seul !!!") -- même principe
+  // d'affichage que freeCorrectionStatus dans writing/page.tsx. undefined =
+  // palier pas encore chargé, null = pas Gratuit (aucun essai à afficher),
+  // 'available' = Gratuit, essai pas encore utilisé, 'used' = déjà utilisé.
+  const [oralTrialStatus, setOralTrialStatus] = useState<'available' | 'used' | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!user) { setSubscriptionTier(null); return; }
+    if (!user) { setSubscriptionTier(null); setOralTrialStatus(null); return; }
     supabase
       .from('profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, free_oral_trial_used')
       .eq('id', user.id)
       .single()
-      .then(({ data }: { data: { subscription_tier: string } | null }) => setSubscriptionTier(data?.subscription_tier ?? 'gratuit'));
+      .then(({ data }: { data: { subscription_tier: string; free_oral_trial_used: boolean } | null }) => {
+        setSubscriptionTier(data?.subscription_tier ?? 'gratuit');
+        setOralTrialStatus(
+          (data?.subscription_tier ?? 'gratuit') === 'gratuit'
+            ? (data?.free_oral_trial_used ? 'used' : 'available')
+            : null
+        );
+      });
   }, [supabase, user]);
 
   const hasOralCoach = getEntitlements(subscriptionTier).hasOralCoach;
+  const hasFreeOralTrial = oralTrialStatus === 'available';
 
   const [allScenarios, setAllScenarios] = useState<ScenarioListItem[]>([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -318,18 +332,23 @@ function OralCoachContent() {
 
   // undefined = palier pas encore chargé -- ne rien afficher pour éviter un
   // flash du catalogue avant de le remplacer par l'écran verrouillé.
-  if (subscriptionTier === undefined) {
+  if (subscriptionTier === undefined || oralTrialStatus === undefined) {
     return <div className="flex justify-center h-screen items-center"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
   }
 
-  if (!hasOralCoach) {
+  if (!hasOralCoach && !hasFreeOralTrial) {
+    const trialAlreadyUsed = oralTrialStatus === 'used';
     return (
       <div className="min-h-full flex items-center justify-center p-8">
         <div className="max-w-2xl text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center">
             <Lock className="w-7 h-7 text-indigo-600" />
           </div>
-          <h1 className="text-2xl font-black text-zinc-900">Le Coach Oral n'est pas inclus dans votre abonnement actuel</h1>
+          <h1 className="text-2xl font-black text-zinc-900">
+            {trialAlreadyUsed
+              ? "Vous avez déjà utilisé votre essai gratuit du Coach Oral"
+              : "Le Coach Oral n'est pas inclus dans votre abonnement actuel"}
+          </h1>
           <p className="text-zinc-500 font-medium">
             Passez au palier Premium pour débloquer les mises en situation orales avec le Coach IA : session vocale en temps réel, transcription en direct et correction détaillée selon la grille officielle TEF IRN.
           </p>
@@ -388,6 +407,14 @@ function OralCoachContent() {
               <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4">
                 <AlertTriangle className="text-red-400 shrink-0" size={24} />
                 <p className="text-sm font-bold text-zinc-600">{sessionError}</p>
+              </Card>
+            )}
+            {hasFreeOralTrial && (
+              <Card className="rounded-[2rem] border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
+                <Lock className="text-indigo-400 shrink-0" size={18} />
+                <p className="text-xs font-bold text-zinc-500">
+                  Il s'agit de votre unique session d'essai gratuite du Coach Oral. Passez à Premium pour un accès illimité.
+                </p>
               </Card>
             )}
             {scenariosError ? (

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { trackUserError, analyzeUserErrorsAndRecommend } from "@/lib/recommendation-engine";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
-import { getEntitlements } from "@/lib/entitlements";
+import { getEntitlements, normalizeTier } from "@/lib/entitlements";
 
 type Turn = { role: "candidat" | "coach"; text: string };
 
@@ -106,11 +106,33 @@ export async function POST(req: Request) {
       .eq('id', user.id)
       .maybeSingle();
 
+    // Essai gratuit Coach Oral (business case croissance du 24/09/2026) :
+    // /api/oral/session consomme free_oral_trial_used dès le démarrage de la
+    // session, donc ce champ vaut déjà `true` ici pour un compte Gratuit qui
+    // vient de faire son essai -- il ne permet pas de distinguer "en train
+    // d'utiliser son essai" de "essai déjà utilisé il y a longtemps". On
+    // s'appuie donc sur un fait vérifiable en base plutôt que sur ce booléen :
+    // un compte Gratuit n'a droit qu'à UNE SEULE analyse notée, tant qu'aucune
+    // ligne n'existe encore pour lui dans oral_session_results.
+    const isGratuit = normalizeTier(rateLimitProfile?.subscription_tier) === 'gratuit';
+    let hasUnusedGratuitTrialAnalysis = false;
+    if (isGratuit) {
+      const { count: existingResultsCount } = await supabase
+        .from('oral_session_results')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      hasUnusedGratuitTrialAnalysis = (existingResultsCount ?? 0) === 0;
+    }
+
     // Chantier abonnements (2026-09) : même verrou que /api/oral/session --
     // voir ce fichier pour le contexte complet.
-    if (!getEntitlements(rateLimitProfile?.subscription_tier).hasOralCoach) {
+    if (!getEntitlements(rateLimitProfile?.subscription_tier).hasOralCoach && !hasUnusedGratuitTrialAnalysis) {
       return NextResponse.json(
-        { error: "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder." },
+        {
+          error: isGratuit
+            ? "Vous avez déjà utilisé votre essai gratuit du Coach Oral. Passez au palier Premium pour un accès illimité."
+            : "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder.",
+        },
         { status: 403 }
       );
     }

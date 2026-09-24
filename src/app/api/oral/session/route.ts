@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { checkAiRateLimit } from "@/lib/ai-rate-limit";
-import { getEntitlements } from "@/lib/entitlements";
+import { getEntitlements, normalizeTier } from "@/lib/entitlements";
 
 type OralScenario = {
   id: string;
@@ -162,11 +162,24 @@ export async function GET(request: Request) {
   // voir lib/ai-rate-limit.ts pour les chiffres et leur justification.
   const { data: rateLimitProfile } = await supabase
     .from('profiles')
-    .select('subscription_tier')
+    .select('subscription_tier, free_oral_trial_used')
     .eq('id', user.id)
     .maybeSingle();
 
   const entitlements = getEntitlements(rateLimitProfile?.subscription_tier);
+
+  // Essai gratuit Coach Oral (business case croissance du 24/09/2026,
+  // validé par Olivier : "1 essai par compte à vie, un seul !!!") : Gratuit
+  // n'a normalement pas accès (hasOralCoach=false, palier Essentiel non
+  // concerné par cette idée), mais a droit à UNE session d'essai à vie,
+  // consommée dès l'émission du jeton ci-dessous -- pas seulement si
+  // l'analyse finale (/api/oral/analyze) aboutit. Contrairement à
+  // free_ee_correction_used (consommé au succès de la correction), le coût
+  // réel ici (audio streaming OpenAI Realtime) est engagé dès la connexion,
+  // et un utilisateur qui fermerait l'onglet avant l'analyse ne doit pas
+  // pouvoir relancer indéfiniment de nouvelles "premières" sessions.
+  const isGratuit = normalizeTier(rateLimitProfile?.subscription_tier) === 'gratuit';
+  const hasFreeOralTrial = isGratuit && !rateLimitProfile?.free_oral_trial_used;
 
   // Chantier abonnements (2026-09) : le Coach Oral n'est inclus qu'à partir
   // du palier Premium (voir landing /tef-irn/pricing). Jusqu'ici, seul le
@@ -174,32 +187,43 @@ export async function GET(request: Request) {
   // même créer 2-3 sessions/jour. Même verrou utilisé en pratique libre
   // (page /tef-irn/oral) et dans l'examen blanc (section EO, SpeakingSession
   // appelle cette même route).
-  if (!entitlements.hasOralCoach) {
+  if (!entitlements.hasOralCoach && !hasFreeOralTrial) {
     return NextResponse.json(
-      { error: "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder." },
+      {
+        error: isGratuit
+          ? "Vous avez déjà utilisé votre essai gratuit du Coach Oral. Passez au palier Premium pour un accès illimité."
+          : "Le Coach Oral n'est pas disponible avec votre abonnement actuel. Passez au palier Premium pour y accéder.",
+      },
       { status: 403 }
     );
   }
 
-  // Item 10 (2026-09) : vrai quota en MINUTES (40 Premium, 75 Super Premium)
-  // au lieu du plafond d'appels générique de ai-rate-limit.ts. La durée est
-  // déclarée par le client à la fin de chaque session (voir
-  // /api/oral/analyze) et cumulée par jour dans ai_usage_daily.seconds_used
-  // -- on refuse ici de délivrer un nouveau token si le total du jour est
-  // déjà atteint.
-  const { data: oralSecondsUsed, error: oralSecondsError } = await createAdminClient().rpc(
-    "get_oral_seconds_used_today",
-    { p_user_id: user.id }
-  );
-  if (oralSecondsError) {
-    // Best-effort, même philosophie que checkAiRateLimit : un souci sur ce
-    // compteur annexe ne doit pas bloquer une fonctionnalité principale.
-    console.error("Lecture du quota oral en minutes échouée (non bloquant):", oralSecondsError);
-  } else if ((oralSecondsUsed ?? 0) >= entitlements.oralDailyMinutes * 60) {
-    return NextResponse.json(
-      { error: `Quota quotidien de coach oral atteint (${entitlements.oralDailyMinutes} min/jour). Réessayez demain.` },
-      { status: 429 }
+  // Le quota quotidien en minutes (oralDailyMinutes) ne s'applique pas à
+  // l'essai gratuit : il vaut 0 pour Gratuit, ce qui bloquerait l'essai dès
+  // la première seconde. La durée de la session d'essai reste bornée par le
+  // filet de sécurité MAX_SESSION_MS déjà en place côté client
+  // (oral/page.tsx), commun à tous les paliers.
+  if (!hasFreeOralTrial) {
+    // Item 10 (2026-09) : vrai quota en MINUTES (40 Premium, 75 Super Premium)
+    // au lieu du plafond d'appels générique de ai-rate-limit.ts. La durée est
+    // déclarée par le client à la fin de chaque session (voir
+    // /api/oral/analyze) et cumulée par jour dans ai_usage_daily.seconds_used
+    // -- on refuse ici de délivrer un nouveau token si le total du jour est
+    // déjà atteint.
+    const { data: oralSecondsUsed, error: oralSecondsError } = await createAdminClient().rpc(
+      "get_oral_seconds_used_today",
+      { p_user_id: user.id }
     );
+    if (oralSecondsError) {
+      // Best-effort, même philosophie que checkAiRateLimit : un souci sur ce
+      // compteur annexe ne doit pas bloquer une fonctionnalité principale.
+      console.error("Lecture du quota oral en minutes échouée (non bloquant):", oralSecondsError);
+    } else if ((oralSecondsUsed ?? 0) >= entitlements.oralDailyMinutes * 60) {
+      return NextResponse.json(
+        { error: `Quota quotidien de coach oral atteint (${entitlements.oralDailyMinutes} min/jour). Réessayez demain.` },
+        { status: 429 }
+      );
+    }
   }
 
   const rateLimit = await checkAiRateLimit(user.id, 'oral_session', rateLimitProfile?.subscription_tier);
@@ -307,6 +331,20 @@ export async function GET(request: Request) {
   if (!response.ok) {
     console.error("OpenAI Realtime Session Error:", data);
     return NextResponse.json({ error: data.error?.message || "Erreur OpenAI" }, { status: response.status });
+  }
+
+  // Consomme l'essai gratuit uniquement au moment d'un succès réel (jeton
+  // effectivement émis par OpenAI) -- même philosophie que
+  // free_ee_correction_used : un incident technique côté OpenAI ne doit
+  // jamais coûter son unique essai à l'utilisateur. Best-effort (try isolé) :
+  // un échec de cette écriture ne doit pas priver le candidat de la session
+  // déjà obtenue.
+  if (hasFreeOralTrial) {
+    try {
+      await createAdminClient().from('profiles').update({ free_oral_trial_used: true }).eq('id', user.id);
+    } catch (flagError) {
+      console.error("Échec de l'enregistrement free_oral_trial_used (non bloquant):", flagError);
+    }
   }
 
   return NextResponse.json({ ...data, scenario });
