@@ -33,6 +33,7 @@ const plans: Plan[] = [
     features: [
       "Test de positionnement A1 → B2",
       "1 correction d'Expression Écrite (à vie)",
+      "1 session de Coach Oral (à vie)",
       "Accès libre aux fiches de vocabulaire",
       "3 exercices par jour (vocabulaire, QCM, chasse aux erreurs)",
       "1 sujet de Compréhension Écrite et 1 de Compréhension Orale par jour",
