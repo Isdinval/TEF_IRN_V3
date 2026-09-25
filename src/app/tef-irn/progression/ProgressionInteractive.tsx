@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { CompletionBadge } from "@/components/ui/CompletionVisuals";
-import { InfoTooltip } from "@/components/features/dashboard/new/InfoTooltip";
-import { CheckCircle2, Circle, Lock, PenTool, Mic, ClipboardCheck, Compass, ChevronDown, Loader2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2, Circle, CircleDot, Lock, PenTool, Mic, ClipboardCheck, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { LevelProgression, LevelStep, ParcoursStepStatus, ChecklistStepStatus, CheckpointStatus } from "@/lib/progression";
+import type { LevelProgression, LevelStep, ParcoursStepStatus } from "@/lib/progression";
 import { useCoachContext } from "@/contexts/CoachContext";
 
 interface ProgressionInteractiveProps {
@@ -24,6 +23,8 @@ interface LessonItem {
   exercises: { id: string; type: string; isCompleted: boolean; url: string }[];
 }
 
+type LessonsState = LessonItem[] | "error";
+
 const CATEGORY_LABEL: Record<string, string> = {
   grammaire: "Grammaire",
   conjugaison: "Conjugaison",
@@ -31,19 +32,9 @@ const CATEGORY_LABEL: Record<string, string> = {
   vocabulaire: "Vocabulaire",
 };
 
-// Une couleur par catégorie -- retour Olivier après tests manuels : "pas
-// assez de couleur" sur la page progression.
-const CATEGORY_COLOR: Record<string, string> = {
-  grammaire: "bg-blue-500",
-  conjugaison: "bg-purple-500",
-  syntaxe: "bg-orange-500",
-  vocabulaire: "bg-emerald-500",
-};
-const DEFAULT_CATEGORY_COLOR = "bg-zinc-400";
-
-// Justification pédagogique affichée au clic sur l'icône (i) de chaque étape
-// -- copie statique, pas de dépendance à un champ base de données (aucune
-// colonne "justification" n'existe pour les catégories/EE/EO/Examen).
+// Justification pédagogique affichée une seule fois, dans l'en-tête du
+// panneau détail du parcours sélectionné (remplace les (i) répétés sur
+// chaque ligne).
 const CATEGORY_WHY: Record<string, string> = {
   grammaire: "Les règles qui structurent vos phrases (accords, temps, structures) — la base évaluée dans toutes les épreuves du TEF IRN.",
   conjugaison: "Maîtriser les verbes à chaque temps est indispensable à l'oral comme à l'écrit — une erreur de conjugaison se voit immédiatement.",
@@ -52,93 +43,74 @@ const CATEGORY_WHY: Record<string, string> = {
 };
 const DEFAULT_CATEGORY_WHY = "Une compétence évaluée au TEF IRN, à consolider avant de passer au niveau suivant.";
 
-const EE_WHY = "L'Expression Écrite se travaille différemment des exercices ciblés : rédiger un texte complet et structuré, avec le lexique et la grammaire de ce niveau. Intercalée entre les parcours pour ne pas s'entraîner uniquement en fin de niveau.";
-const EO_WHY = "L'Expression Orale teste votre spontanéité face à un examinateur — impossible à s'entraîner via des QCM, il faut pratiquer la prise de parole régulièrement.";
-const EXAM_WHY = "Un examen blanc complet (CE, CO, EE, EO) dans les conditions réelles, pour vérifier que vous êtes prêt avant de passer l'épreuve officielle.";
+const EXERCISE_GROUPS: { type: string; short: string; label: string }[] = [
+  { type: "qcm", short: "QCM", label: "Exercice QCM" },
+  { type: "trous", short: "Erreurs", label: "Exercice Chasse à l'erreur" },
+];
 
-const EXERCISE_TYPE_LABEL: Record<string, string> = {
-  qcm: "Exercice QCM",
-  trous: "Exercice Chasse à l'erreur",
-};
+type StepState = "done" | "current" | "todo";
 
-function StatusIcon({ done }: { done: boolean }) {
-  return done
-    ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-    : <Circle size={18} className="text-zinc-300 shrink-0" />;
+function isStepDone(step: LevelStep): boolean {
+  return step.kind === "parcours" ? step.data.isCompleted : step.data.done;
 }
 
-function StepRow({
-  icon: Icon,
-  iconColor,
-  title,
-  subtitle,
-  done,
-  href,
-  why,
-}: {
-  icon: React.ElementType;
-  iconColor?: string;
-  title: string;
-  subtitle: string;
-  done: boolean;
-  href: string;
-  why: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-3 rounded-2xl border p-4 transition-colors",
-        done ? "border-emerald-200 bg-emerald-50" : "border-zinc-100 bg-white hover:bg-zinc-50"
-      )}
-    >
-      <StatusIcon done={done} />
-      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", iconColor || "bg-zinc-400")}>
-        <Icon size={14} className="text-white" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-black text-zinc-900 truncate">{title}</p>
-          <span onClick={(e) => e.preventDefault()}>
-            <InfoTooltip text={why} />
-          </span>
-        </div>
-        <p className="text-xs font-medium text-zinc-400">{subtitle}</p>
-      </div>
-    </Link>
-  );
+function parcoursOf(level: LevelProgression | undefined): ParcoursStepStatus[] {
+  if (!level) return [];
+  return level.steps.flatMap((s) => (s.kind === "parcours" ? [s.data] : []));
 }
 
-/**
- * Numérote les exercices d'une leçon dans l'ordre reçu (QCM puis Chasse aux
- * erreurs -- déjà trié ainsi par getLessonQuotaExercises côté serveur) --
- * retour Olivier après tests manuels : remplace l'ancien affichage
- * notion/catégorie/thématique par un simple "Exercice QCM 1/2/3, Exercice
- * Chasse à l'erreur 1/2/3", tout le superflu retiré.
- */
-function ExerciseChips({ exercises }: { exercises: LessonItem["exercises"] }) {
-  const seenPerType: Record<string, number> = {};
+/** Parcours "en cours" = premier parcours non terminé du niveau. */
+function currentParcoursId(level: LevelProgression | undefined): string | null {
+  const parcours = parcoursOf(level);
+  return (parcours.find((p) => !p.isCompleted) ?? parcours[0])?.id ?? null;
+}
+
+function parcoursTitle(p: ParcoursStepStatus): string {
+  return CATEGORY_LABEL[p.category.toLowerCase()] || p.category;
+}
+
+async function fetchLessons(parcoursId: string): Promise<LessonsState> {
+  try {
+    const res = await fetch(`/api/progression/parcours-catalogue?parcoursId=${parcoursId}`);
+    if (!res.ok) throw new Error("fetch failed");
+    const json = await res.json();
+    return json.lessons as LessonItem[];
+  } catch {
+    return "error";
+  }
+}
+
+function StatusIcon({ state, size = 16 }: { state: StepState; size?: number }) {
+  if (state === "done") return <CheckCircle2 size={size} className="text-emerald-500 shrink-0" />;
+  if (state === "current") return <CircleDot size={size} className="text-indigo-600 shrink-0" />;
+  return <Circle size={size} className="text-zinc-300 shrink-0" />;
+}
+
+function ExerciseDots({ exercises }: { exercises: LessonItem["exercises"] }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {exercises.map((ex) => {
-        seenPerType[ex.type] = (seenPerType[ex.type] || 0) + 1;
-        const label = `${EXERCISE_TYPE_LABEL[ex.type] || "Exercice"} ${seenPerType[ex.type]}`;
+    <div className="flex items-center gap-3 shrink-0">
+      {EXERCISE_GROUPS.map((group) => {
+        const items = exercises.filter((ex) => ex.type === group.type);
+        if (items.length === 0) return null;
         return (
-          <Link
-            key={ex.id}
-            href={ex.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors",
-              ex.isCompleted
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-            )}
-          >
-            {ex.isCompleted ? <CheckCircle2 size={13} /> : <Circle size={13} className="text-zinc-300" />}
-            {label}
-          </Link>
+          <div key={group.type} className="flex items-center gap-0.5">
+            <span className="text-[11px] font-medium text-zinc-400 mr-1">{group.short}</span>
+            {items.map((ex, i) => {
+              const label = `${group.label} ${i + 1} — ${ex.isCompleted ? "fait" : "à faire"}`;
+              return (
+                <Link key={ex.id} href={ex.url} aria-label={label} title={label} className="p-1 group">
+                  <span
+                    className={cn(
+                      "block h-2.5 w-2.5 rounded-full border transition-colors",
+                      ex.isCompleted
+                        ? "border-emerald-500 bg-emerald-500"
+                        : "border-zinc-300 group-hover:border-indigo-600"
+                    )}
+                  />
+                </Link>
+              );
+            })}
+          </div>
         );
       })}
     </div>
@@ -148,188 +120,181 @@ function ExerciseChips({ exercises }: { exercises: LessonItem["exercises"] }) {
 function LessonRow({ lesson }: { lesson: LessonItem }) {
   if (!lesson.unlocked) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-zinc-50/60 px-4 py-3">
-        <Lock size={15} className="text-zinc-300 shrink-0" />
-        <p className="text-sm font-bold text-zinc-400 truncate">{lesson.title}</p>
+      <div className="flex items-center gap-3 py-2.5 border-b border-zinc-100 last:border-b-0">
+        <Lock size={14} className="text-zinc-300 shrink-0" />
+        <p className="text-sm text-zinc-400 truncate">{lesson.title}</p>
       </div>
     );
   }
+  const started = lesson.exercises.some((ex) => ex.isCompleted);
+  const state: StepState = lesson.isCompleted ? "done" : started ? "current" : "todo";
   return (
-    <div className={cn("rounded-xl border px-4 py-3 space-y-2", lesson.isCompleted ? "border-emerald-100 bg-emerald-50/40" : "border-zinc-100 bg-white")}>
-      <div className="flex items-center gap-2">
-        <StatusIcon done={lesson.isCompleted} />
-        <p className="text-sm font-bold text-zinc-900 truncate">{lesson.title}</p>
-      </div>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 border-b border-zinc-100 last:border-b-0">
+      <StatusIcon state={state} size={14} />
+      <p className="flex-1 min-w-0 text-sm text-zinc-900 truncate">{lesson.title}</p>
       {lesson.exercises.length > 0 ? (
-        <ExerciseChips exercises={lesson.exercises} />
+        <ExerciseDots exercises={lesson.exercises} />
       ) : (
-        <p className="text-xs text-zinc-400 italic">Aucun exercice qcm/trous sur cette leçon.</p>
+        <p className="text-xs text-zinc-400 italic">Aucun exercice</p>
       )}
     </div>
   );
 }
 
-function ParcoursTreeStep({ p, level, why }: { p: ParcoursStepStatus; level: string; why: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [lessons, setLessons] = useState<LessonItem[] | null>(null);
-  const [error, setError] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch(`/api/progression/parcours-catalogue?parcoursId=${p.id}`);
-      if (!res.ok) throw new Error("fetch failed");
-      const json = await res.json();
-      setLessons(json.lessons);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggle = () => {
-    const next = !isOpen;
-    setIsOpen(next);
-    if (next && !lessons && !loading) load();
-  };
-
-  const categoryKey = p.category.toLowerCase();
-
-  return (
-    <div className={cn("rounded-2xl border transition-colors", p.isCompleted ? "border-emerald-200 bg-emerald-50" : "border-zinc-100 bg-white")}>
-      <button onClick={handleToggle} className="w-full flex items-center gap-3 p-4 text-left">
-        <StatusIcon done={p.isCompleted} />
-        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", CATEGORY_COLOR[categoryKey] || DEFAULT_CATEGORY_COLOR)}>
-          <Compass size={14} className="text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-black text-zinc-900 truncate">
-              Parcours {CATEGORY_LABEL[categoryKey] || p.category} {level}
-            </p>
-            <span onClick={(e) => e.stopPropagation()}>
-              <InfoTooltip text={why} />
-            </span>
-          </div>
-          <p className="text-xs font-medium text-zinc-400">{p.completed}/{p.total} leçons terminées</p>
-        </div>
-        <ChevronDown size={16} className={cn("shrink-0 text-zinc-300 transition-transform", isOpen && "rotate-180")} />
-      </button>
-      {isOpen && (
-        <div className="px-4 pb-4 space-y-2">
-          {loading && (
-            <div className="flex justify-center py-6 text-zinc-300">
-              <Loader2 className="animate-spin" size={20} />
-            </div>
-          )}
-          {!loading && error && (
-            <p className="text-xs font-bold text-red-500 px-1">
-              Impossible de charger le détail.{" "}
-              <button onClick={load} className="underline underline-offset-2">Réessayer</button>
-            </p>
-          )}
-          {!loading && !error && lessons && (
-            lessons.length > 0 ? (
-              lessons.map((lesson) => <LessonRow key={lesson.id} lesson={lesson} />)
-            ) : (
-              <p className="text-xs text-zinc-400 italic px-1">Aucune leçon dans ce parcours pour l'instant.</p>
-            )
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ChecklistRow({ kind, step, level }: { kind: "ee" | "eo"; step: ChecklistStepStatus; level: string }) {
-  const isEE = kind === "ee";
-  const label = isEE ? "Expression Écrite" : "Expression Orale";
-  const unit = isEE ? "rédaction" : "session orale";
-  return (
-    <StepRow
-      icon={isEE ? PenTool : Mic}
-      iconColor={isEE ? "bg-pink-500" : "bg-cyan-500"}
-      title={`${label} ${level} — Section ${step.section}`}
-      subtitle={step.done ? `Fait (${unit} ${step.section} ${step.index}/${step.total})` : step.unlocked ? `À faire — ${unit} ${step.section} ${step.index}/${step.total} du niveau` : `Recommandé après le parcours ci-dessus (${unit} ${step.section} ${step.index}/${step.total})`}
-      done={step.done}
-      href={step.href}
-      why={isEE ? EE_WHY : EO_WHY}
-    />
-  );
-}
-
-function ExamRow({ step }: { step: CheckpointStatus & { unlocked: boolean } }) {
-  return (
-    <StepRow
-      icon={ClipboardCheck}
-      iconColor="bg-red-500"
-      title="Examen blanc"
-      subtitle={step.done ? "Fait" : step.unlocked ? "À faire" : "Recommandé une fois tous les parcours du niveau terminés"}
-      done={step.done}
-      href={step.href}
-      why={EXAM_WHY}
-    />
-  );
-}
-
-function LevelPanel({ level }: { level: LevelProgression }) {
-  const hasChecklist = level.steps.some((s) => s.kind !== "parcours");
-
+function ParcoursDetail({
+  parcours,
+  level,
+  isCurrent,
+  lessons,
+  onRetry,
+}: {
+  parcours: ParcoursStepStatus;
+  level: string;
+  isCurrent: boolean;
+  lessons: LessonsState | undefined;
+  onRetry: () => void;
+}) {
+  const state: StepState = parcours.isCompleted ? "done" : isCurrent ? "current" : "todo";
   return (
     <div className="space-y-3">
-      {level.steps.length === 0 && (
-        <p className="text-sm text-zinc-400 italic px-1">Aucun parcours disponible pour ce niveau pour l'instant.</p>
-      )}
-
-      {level.steps.map((step: LevelStep, i: number) => {
-        switch (step.kind) {
-          case "parcours":
-            return (
-              <ParcoursTreeStep
-                key={step.data.id}
-                p={step.data}
-                level={level.level}
-                why={CATEGORY_WHY[step.data.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
-              />
-            );
-          case "ee":
-            return <ChecklistRow key={`ee-${i}`} kind="ee" step={step.data} level={level.level} />;
-          case "eo":
-            return <ChecklistRow key={`eo-${i}`} kind="eo" step={step.data} level={level.level} />;
-          case "exam":
-            return <ExamRow key={`exam-${i}`} step={step.data} />;
-          default:
-            return null;
-        }
-      })}
-
-      {!hasChecklist && level.steps.length > 0 && (
-        <p className="text-xs text-zinc-400 italic px-1 pt-2">
-          Expression Écrite, Expression Orale et Examen blanc arrivent bientôt pour ce niveau.
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <StatusIcon state={state} size={18} />
+          <h2 className="flex-1 text-lg font-bold text-zinc-900">
+            Parcours {parcoursTitle(parcours)} {level}
+          </h2>
+          {isCurrent && !parcours.isCompleted && (
+            <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">Vous êtes ici</span>
+          )}
+        </div>
+        <p className="text-sm text-zinc-500">
+          {parcours.completed}/{parcours.total} leçons terminées
         </p>
+        <p className="text-xs text-zinc-400">
+          {CATEGORY_WHY[parcours.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
+        </p>
+      </div>
+
+      {lessons === undefined && (
+        <div className="space-y-2 pt-1">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-8 w-full" />
+          ))}
+        </div>
+      )}
+      {lessons === "error" && (
+        <p className="text-sm text-zinc-500">
+          Impossible de charger le détail.{" "}
+          <button onClick={onRetry} className="underline underline-offset-2">Réessayer</button>
+        </p>
+      )}
+      {Array.isArray(lessons) && (
+        lessons.length > 0 ? (
+          <div>{lessons.map((lesson) => <LessonRow key={lesson.id} lesson={lesson} />)}</div>
+        ) : (
+          <p className="text-sm text-zinc-400 italic">Aucune leçon dans ce parcours pour l&apos;instant.</p>
+        )
       )}
     </div>
   );
 }
 
-// Un dégradé par niveau -- retour Olivier après tests manuels : la page
-// manquait de couleur et ne prenait pas assez de place. Chaque niveau garde
-// son identité visuelle même une fois replié.
-const LEVEL_GRADIENT: Record<string, string> = {
-  A1: "from-sky-50 to-white border-sky-100",
-  A2: "from-emerald-50 to-white border-emerald-100",
-  B1: "from-amber-50 to-white border-amber-100",
-  B2: "from-violet-50 to-white border-violet-100",
-};
+function LevelMap({
+  level,
+  selectedId,
+  currentId,
+  onSelect,
+}: {
+  level: LevelProgression;
+  selectedId: string | null;
+  currentId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <nav aria-label={`Étapes du niveau ${level.level}`} className="space-y-0.5">
+      {level.steps.map((step, i) => {
+        if (step.kind === "parcours") {
+          const p = step.data;
+          const state: StepState = p.isCompleted ? "done" : p.id === currentId ? "current" : "todo";
+          return (
+            <button
+              key={p.id}
+              onClick={() => onSelect(p.id)}
+              aria-current={p.id === selectedId ? "true" : undefined}
+              className={cn(
+                "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                p.id === selectedId ? "bg-zinc-100 font-semibold text-zinc-900" : "text-zinc-700 hover:bg-zinc-50"
+              )}
+            >
+              <StatusIcon state={state} />
+              <span className="flex-1 truncate">{parcoursTitle(p)}</span>
+              <span className="text-xs text-zinc-400">{p.completed}/{p.total}</span>
+            </button>
+          );
+        }
+
+        const done = step.data.done;
+        const { icon: Icon, label } =
+          step.kind === "ee"
+            ? { icon: PenTool, label: `Expression Écrite — ${step.data.section}` }
+            : step.kind === "eo"
+              ? { icon: Mic, label: `Expression Orale — ${step.data.section}` }
+              : { icon: ClipboardCheck, label: "Examen blanc" };
+        return (
+          <Link
+            key={`${step.kind}-${i}`}
+            href={step.data.href}
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-50"
+          >
+            <StatusIcon state={done ? "done" : "todo"} />
+            <Icon size={14} className="shrink-0 text-zinc-400" />
+            <span className="flex-1 truncate">{label}</span>
+            {done ? <span className="text-xs text-zinc-400">Fait</span> : <ChevronRight size={14} className="shrink-0 text-zinc-300" />}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 export default function ProgressionInteractive({ levels, currentLevel }: ProgressionInteractiveProps) {
-  const [openLevels, setOpenLevels] = useState<string[]>(
-    levels.some((l) => l.level === currentLevel) ? [currentLevel] : [levels[0]?.level].filter(Boolean) as string[]
+  const initialLevel = levels.some((l) => l.level === currentLevel) ? currentLevel : levels[0]?.level ?? "";
+  const [activeLevel, setActiveLevel] = useState<string>(initialLevel);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    currentParcoursId(levels.find((l) => l.level === initialLevel))
   );
+  const [lessonsByParcours, setLessonsByParcours] = useState<Record<string, LessonsState>>({});
+  const requested = useRef(new Set<string>());
   const { setPageContext } = useCoachContext();
+
+  const level = levels.find((l) => l.level === activeLevel);
+  const currentId = currentParcoursId(level);
+  const selected = parcoursOf(level).find((p) => p.id === selectedId);
+
+  const load = (parcoursId: string) => {
+    requested.current.add(parcoursId);
+    fetchLessons(parcoursId).then((result) =>
+      setLessonsByParcours((prev) => ({ ...prev, [parcoursId]: result }))
+    );
+  };
+
+  const retry = (parcoursId: string) => {
+    setLessonsByParcours((prev) => {
+      const next = { ...prev };
+      delete next[parcoursId];
+      return next;
+    });
+    load(parcoursId);
+  };
+
+  // Préchargement en parallèle de tous les parcours du niveau affiché : le
+  // changement de parcours dans la carte est ensuite instantané.
+  useEffect(() => {
+    parcoursOf(levels.find((l) => l.level === activeLevel))
+      .filter((p) => !requested.current.has(p.id))
+      .forEach((p) => load(p.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLevel, levels]);
 
   useEffect(() => {
     setPageContext({
@@ -337,9 +302,7 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
       currentLevel,
       levelsSummary: levels.map((l) => ({
         level: l.level,
-        completedSteps: l.steps.filter((s) =>
-          s.kind === 'parcours' ? s.data.isCompleted : s.data.done
-        ).length,
+        completedSteps: l.steps.filter(isStepDone).length,
         totalSteps: l.steps.length,
         isLevelComplete: l.isLevelComplete,
       })),
@@ -348,47 +311,64 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levels, currentLevel]);
 
+  const handleLevelChange = (value: string) => {
+    setActiveLevel(value);
+    setSelectedId(currentParcoursId(levels.find((l) => l.level === value)));
+  };
+
+  const hasChecklist = level?.steps.some((s) => s.kind !== "parcours") ?? false;
+
   return (
-    <div className="max-w-5xl mx-auto p-6 py-12 space-y-8">
+    <div className="max-w-5xl mx-auto p-6 py-12 space-y-6">
       <div className="space-y-1">
-        <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent tracking-tight">
-          Ma progression
-        </h1>
+        <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight">Ma progression</h1>
         <p className="text-sm text-zinc-500 font-medium">
           Le chemin complet vers le TEF IRN, niveau par niveau : parcours, expression écrite, expression orale et examens blancs.
         </p>
       </div>
 
-      <Accordion className="space-y-4" value={openLevels} onValueChange={setOpenLevels}>
-        {levels.map((level) => {
-          const totalSteps = level.steps.length;
-          const doneSteps = level.steps.filter((s) => (s.kind === "parcours" ? s.data.isCompleted : s.data.done)).length;
+      <Tabs value={activeLevel} onValueChange={(value) => handleLevelChange(String(value))}>
+        <TabsList className="w-full h-10!">
+          {levels.map((l) => (
+            <TabsTrigger key={l.level} value={l.level}>
+              {l.level}
+              {l.isLevelComplete && <CheckCircle2 className="text-emerald-500" />}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
-          return (
-            <AccordionItem
-              key={level.level}
-              value={level.level}
-              className={cn(
-                "rounded-[2rem] border px-6 border-b-0 shadow-sm transition-colors bg-gradient-to-br",
-                LEVEL_GRADIENT[level.level] || "from-zinc-50 to-white border-zinc-100"
+      {level && (
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-500">
+            Niveau {level.level} · {level.steps.filter(isStepDone).length}/{level.steps.length || "—"} étapes
+          </p>
+
+          {level.steps.length === 0 ? (
+            <p className="text-sm text-zinc-400 italic">Aucun parcours disponible pour ce niveau pour l&apos;instant.</p>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-[260px_minmax(0,1fr)]">
+              <div className="md:border-r md:border-zinc-100 md:pr-4 space-y-3">
+                <LevelMap level={level} selectedId={selectedId} currentId={currentId} onSelect={setSelectedId} />
+                {!hasChecklist && (
+                  <p className="text-xs text-zinc-400 italic px-3">
+                    Expression Écrite, Expression Orale et Examen blanc arrivent bientôt pour ce niveau.
+                  </p>
+                )}
+              </div>
+              {selected && (
+                <ParcoursDetail
+                  parcours={selected}
+                  level={level.level}
+                  isCurrent={selected.id === currentId}
+                  lessons={lessonsByParcours[selected.id]}
+                  onRetry={() => retry(selected.id)}
+                />
               )}
-            >
-              <AccordionTrigger className="hover:no-underline py-6">
-                <div className="flex items-center gap-3 flex-1 text-left">
-                  <span className="text-xl font-black text-zinc-900">Niveau {level.level}</span>
-                  <span className="text-[11px] font-black uppercase tracking-widest text-zinc-400">
-                    {doneSteps}/{totalSteps || "—"} étapes
-                  </span>
-                  {level.isLevelComplete && <CompletionBadge />}
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-6">
-                <LevelPanel level={level} />
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
