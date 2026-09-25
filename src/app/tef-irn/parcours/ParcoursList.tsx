@@ -202,8 +202,8 @@ export default function ParcoursList({
           {user ? (
             <>
               {renderSection("En cours", enCours, "bg-indigo-600", true)}
-              {renderSection("Terminés", termines, "bg-emerald-500", true)}
               {renderSection("À découvrir", aDecouvrir, "bg-zinc-400", true)}
+              {renderSection("Terminés", termines, "bg-emerald-500", true)}
             </>
           ) : (
             renderSection("Tous les parcours", allParcours, "bg-indigo-600", false)
