@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Mic, MicOff, Loader2, Sparkles, ListChecks, AlertTriangle, Lock } from "lucide-react";
 import { ScenarioCatalogue, ScenarioListItem, Section, Level } from "./components/ScenarioCatalogue";
 import { OralAnalysisView } from "./components/OralAnalysisView";
@@ -403,41 +404,43 @@ function OralCoachContent() {
   return (
     <div className="min-h-screen bg-zinc-50/50 selection:bg-indigo-100">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 p-6 pt-10 lg:p-10">
-        <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              {scenario ? `Section ${scenario.section} · ${scenario.level}` : "Coach EO"}
-            </Badge>
-            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-              {scenario ? (
-                scenario.title
-              ) : (
-                <>COACH D'EXPRESSION <span className="text-indigo-600">ORALE</span></>
-              )}
-            </h1>
-            {scenario && (
+        {scenario ? (
+          <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+                {`Section ${scenario.section} · ${scenario.level}`}
+              </Badge>
+              <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
+                {scenario.title}
+              </h1>
               <p className="mb-4 text-sm font-bold uppercase tracking-wide text-zinc-400">
                 Vous incarnez <span className="text-zinc-600">le candidat</span> · en appel avec{" "}
                 <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
               </p>
-            )}
-            {scenario && (
               <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                 Mise en situation
               </div>
-            )}
-            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-              {scenario
-                ? scenario.sujet
-                : status === "catalogue"
-                ? "Choisissez un exercice dans le catalogue, ou laissez-vous surprendre."
-                : "Session en cours."}
-            </p>
-          </div>
-          <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-            <Sparkles size={14} className="mr-1" /> Session vocale
-          </Badge>
-        </header>
+              <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
+                {scenario.sujet}
+              </p>
+            </div>
+            <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+              <Sparkles size={14} className="mr-1" /> Session vocale
+            </Badge>
+          </header>
+        ) : (
+          <PageHeader
+            badge="Coach EO"
+            title="Coach d'expression"
+            highlight="orale"
+            description={status === "catalogue" ? "Choisissez un exercice dans le catalogue, ou laissez-vous surprendre." : "Session en cours."}
+            aside={
+              <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                <Sparkles size={14} className="mr-1" /> Session vocale
+              </Badge>
+            }
+          />
+        )}
 
         {status === "catalogue" && (
           <>

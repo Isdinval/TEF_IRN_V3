@@ -10,6 +10,7 @@ import type { LevelProgression, LevelStep, ParcoursStepStatus } from "@/lib/prog
 import { useCoachContext } from "@/contexts/CoachContext";
 import { useParcours } from "@/contexts/ParcoursContext";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
 
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
@@ -433,17 +434,12 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
 
   return (
     <div className="max-w-5xl mx-auto p-6 py-12 space-y-6">
-      <div>
-        <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-          Parcours guidé
-        </Badge>
-        <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tighter text-zinc-900">
-          MA <span className="text-indigo-600">PROGRESSION</span>
-        </h1>
-        <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-          Le chemin complet vers le TEF IRN, niveau par niveau : parcours, expression écrite, expression orale et examens blancs.
-        </p>
-      </div>
+      <PageHeader
+        badge="Parcours guidé"
+        title="Ma"
+        highlight="progression"
+        description="Le chemin complet vers le TEF IRN, niveau par niveau : parcours, expression écrite, expression orale et examens blancs."
+      />
 
       <Tabs value={activeLevel} onValueChange={(value) => handleLevelChange(String(value))}>
         <TabsList className="w-full h-10!">

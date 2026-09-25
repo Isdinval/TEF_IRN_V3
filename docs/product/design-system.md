@@ -156,7 +156,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 
 Prop optionnelle `aside` : élément affiché à droite sur desktop, en dessous sur mobile (ex. badge « Session vocale »).
 
-Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de taille, de couleur et de marge. Pour changer l'en-tête de **toutes** les pages, on modifie ce fichier, jamais une page.
+Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de taille et de couleur. Il n'a **pas de marge externe** : l'espace de 32 px sous l'en-tête est fourni par la page (conteneur `flex flex-col gap-8`, ou `mb-8` autour du composant). Pour changer l'en-tête de **toutes** les pages, on modifie ce fichier, jamais une page.
 
 ### 5.3 Règles
 
