@@ -55,7 +55,7 @@ function ProgressBar({ percent, label, className = "h-2" }: { percent: number; l
 
 function SectionTitle({ title, count }: { title: string; count: number }) {
   return (
-    <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-tight text-slate-900">
+    <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-tight text-zinc-900">
       {title}
       <span className="rounded-full bg-zinc-200/70 px-2 py-0.5 text-xs font-bold text-zinc-600">{count}</span>
     </h2>
@@ -66,7 +66,7 @@ function CategoryIcon({ p, done }: { p: ParcoursWithProgress; done?: boolean }) 
   const Icon = done ? CheckCircle2 : CATEGORY_ICONS[p.category?.toLowerCase()] ?? BookOpen;
   return (
     <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-indigo-600"}`}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${done ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-indigo-600"}`}
     >
       <Icon className="h-5 w-5" aria-hidden />
     </span>
@@ -111,7 +111,7 @@ function ParcoursRow({
       <Link href={hrefOf(p)} className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-indigo-50/40">
         <CategoryIcon p={p} done={done} />
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-[15px] font-bold text-zinc-900 first-letter:uppercase group-hover:text-indigo-600">{titleOf(p)}</p>
+          <p className="text-base font-bold text-zinc-900 first-letter:uppercase group-hover:text-indigo-600">{titleOf(p)}</p>
           <p className="text-xs font-medium text-zinc-500">
             <span className="capitalize">{p.category}</span> · {p.level}
             {!showStats && count > 0 && ` · ${count} leçons`}
@@ -124,7 +124,7 @@ function ParcoursRow({
           )}
         </div>
         {recommended && (
-          <span className="shrink-0 rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white">Conseillé</span>
+          <span className="shrink-0 rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white">Suite logique</span>
         )}
         <span
           className={`hidden shrink-0 items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold transition-colors sm:inline-flex ${
@@ -157,7 +157,7 @@ function ResumeCard({ p }: { p: ParcoursWithProgress }) {
       <p id="reprendre-title" className="mb-3 text-xs font-black uppercase tracking-widest text-indigo-600">
         Reprendre
       </p>
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest">
@@ -192,7 +192,7 @@ function ResumeCard({ p }: { p: ParcoursWithProgress }) {
   );
 }
 
-const listClass = "divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm";
+const listClass = "divide-y divide-zinc-100 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm";
 
 export default function ParcoursList({
   allParcours,
@@ -273,7 +273,7 @@ export default function ParcoursList({
                       <TabsTrigger key={l} value={l} className="font-black">
                         {l}
                         {user && (
-                          <span className="text-xs font-medium text-zinc-400">
+                          <span className="text-xs font-medium text-zinc-500">
                             {ofLevel.filter(isDone).length}/{ofLevel.length}
                           </span>
                         )}
@@ -305,7 +305,7 @@ export default function ParcoursList({
                   ))}
                 </ul>
               ) : (
-                <p className="rounded-2xl border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500">
+                <p className="rounded-3xl border border-dashed border-zinc-200 p-6 text-center text-sm font-medium text-zinc-500">
                   Tous les parcours du niveau {activeLevel} sont commencés ou terminés.
                 </p>
               )}
@@ -327,10 +327,10 @@ export default function ParcoursList({
           )}
 
           {allParcours.length === 0 && (
-            <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-zinc-200">
+            <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-zinc-200">
               <Sparkles className="mx-auto text-zinc-200 mb-6" size={48} />
               <h2 className="text-lg font-black text-zinc-900 mb-2">Aucun parcours disponible</h2>
-              <p className="text-zinc-400 font-bold">Les leçons arrivent bientôt !</p>
+              <p className="font-medium text-zinc-500">Les leçons arrivent bientôt !</p>
             </div>
           )}
         </div>

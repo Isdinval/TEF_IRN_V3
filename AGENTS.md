@@ -193,6 +193,7 @@ git reset --hard FETCH_HEAD   # jamais git pull, pour éviter les conflits
 ### Styling
 - ⚠️ **Lire `docs/product/design-system.md` avant toute création ou modification d'une page ou d'un composant visible.** C'est la source de vérité du design : couleurs (accent indigo unique, gris `zinc`), typographie, en-tête de page badge + titre + description, badges, boutons, cartes, états. Appliquer sa checklist de relecture UI (§9) avant chaque livraison.
 - Toute nouvelle décision de design validée est ajoutée au design system dans le même patch que le code qui l'applique.
+- Avant chaque livraison touchant une page visible : `npm run design:check` doit passer. Une page mise en conformité est ajoutée au tableau « Pages conformes » (§10) du design system.
 - Tailwind CSS v4 — utiliser les classes utilitaires directement
 - shadcn/ui pour les composants de base — ne pas modifier les fichiers dans `src/components/ui/` générés automatiquement
 - Framer Motion pour les animations — uniquement dans des composants `"use client"`

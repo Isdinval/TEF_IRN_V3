@@ -182,6 +182,11 @@ Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de 
 | Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
 | Badge d'état | `bg-emerald-50 text-emerald-700`, `bg-amber-50 text-amber-700` ou `bg-red-50 text-red-600` |
 
+Badges de carte (format + niveau) :
+- Le niveau s'affiche **seul** (`B2`), jamais « Niveau B2 » : le code CECRL suffit et évite la troncature.
+- Le libellé de format s'affiche **en entier** (« Document administratif »), jamais abrégé.
+- La rangée de badges est en `flex flex-wrap gap-2` : si la place manque, un badge passe à la ligne, il n'est **jamais tronqué**.
+
 Un badge doit être **compréhensible sans explication**. Exemple : « Conseillé » a été mal interprété, donc le libellé doit dire pourquoi (« Conseillé pour vous », « Suite logique »).
 
 ### 6.2 Boutons
@@ -201,7 +206,7 @@ Un badge doit être **compréhensible sans explication**. Exemple : « Conseill�
 - Fond `bg-white`, `rounded-3xl`, `p-6`, bordure `border-zinc-100` ou ombre (pas les deux fortes).
 - Structure interne : micro-label → titre → 1 à 2 lignes d'info → action. Maximum **4 informations** visibles par carte.
 - Carte mise en avant (ex. « Reprendre ») : **une seule par page**, `border-2 border-indigo-600 bg-indigo-50/60`.
-- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3.
+- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3. La navigation se fait par un `<Link>` Next.js (clavier, préchargement, nouvel onglet), jamais par `onClick` + `router.push` sur une `div`. Pas de `<Button>` dans un lien : l'action visible est une simple étiquette (`<span>`).
 
 ### 6.4 Progression
 
@@ -231,7 +236,7 @@ Chaque bloc qui charge des données gère ses 3 états :
 |---|---|
 | En-tête de page (badge + titre + description) | `src/components/shared/PageHeader.tsx` |
 | Bandeau KPI d'une page admin | `src/components/shared/AdminKpiBand.tsx` |
-| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` |
+| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` ⚠️ non conforme (couleur par page rose/bleu/vert, pas d'`aria`) : à mettre en conformité avant toute nouvelle réutilisation |
 | Pagination de catalogue | `src/components/shared/CataloguePagination.tsx` |
 | Badge de quota d'exercices | `src/components/shared/ExerciseQuotaBadge.tsx` |
 | Quota journalier CE/CO | `src/components/shared/ComprehensionDailyQuotaBadge.tsx` |
@@ -311,10 +316,22 @@ Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:
 - [ ] États chargement / erreur / vide gérés.
 - [ ] Un composant partagé existant a été réutilisé si le motif existait déjà.
 - [ ] Pas d'accordéon imbriqué, pas de ⓘ pour une info essentielle.
+- [ ] `npm run design:check` passe (classes interdites dans les lignes ajoutées).
 
 ---
 
-## 10. Faire évoluer ce document
+## 10. Pages conformes
+
+Pages entièrement relues avec la checklist §9. Toute autre page applicative est présumée **non conforme** tant qu'elle n'apparaît pas ici.
+
+| Page | Chantier |
+|---|---|
+| `/tef-irn/parcours` | `apply_ligne_directrice_design` |
+| `/tef-irn/comprehension-ecrite` | `apply_ligne_directrice_design` |
+
+---
+
+## 11. Faire évoluer ce document
 
 - Toute décision de design validée par le fondateur est ajoutée ici **dans le même patch** que le code qui l'applique.
 - Un motif qui revient sur 2 pages ou plus devient un composant partagé (`src/components/shared/`) et est listé au §6.7.
