@@ -119,6 +119,70 @@ export async function getParcours(supabase: SupabaseClient = defaultSupabase): P
   return data || [];
 }
 
+export interface ParcoursOverview {
+  progress: ParcoursProgress;
+  nextLesson: { slug: string; title: string } | null;
+}
+
+/**
+ * Progression + prochaine leçon de TOUS les parcours en 3 requêtes parallèles,
+ * au lieu d'un appel getParcoursProgress par parcours (N+1) sur la page
+ * /tef-irn/parcours. Même règle de calcul que getParcoursProgress (leçons du
+ * couple niveau/catégorie, lesson_progress de l'utilisateur).
+ * userId null (visiteur) : seules les leçons sont chargées (totaux, 1re leçon).
+ */
+export async function getParcoursOverviews(
+  parcours: Parcours[],
+  userId: string | null,
+  supabase: SupabaseClient = defaultSupabase
+): Promise<Record<string, ParcoursOverview>> {
+  const [lessonsResult, userParcoursResult, lessonProgressResult] = await Promise.all([
+    supabase
+      .from('lessons')
+      .select('id, slug, title, level, category, order_index')
+      .order('order_index', { ascending: true }),
+    userId
+      ? supabase.from('user_parcours_progress').select('parcours_id, status, started_at').eq('user_id', userId)
+      : Promise.resolve({ data: null }),
+    userId
+      ? supabase.from('lesson_progress').select('lesson_id').eq('user_id', userId)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const lessons = (lessonsResult.data ?? []) as Pick<Lesson, 'id' | 'slug' | 'title' | 'level' | 'category'>[];
+  const userParcours = new Map(
+    ((userParcoursResult.data ?? []) as { parcours_id: string; status: ParcoursProgress['status']; started_at: string | null }[])
+      .map((u) => [u.parcours_id, u])
+  );
+  const doneLessonIds = new Set(
+    ((lessonProgressResult.data ?? []) as { lesson_id: string }[]).map((l) => l.lesson_id)
+  );
+
+  const overviews: Record<string, ParcoursOverview> = {};
+  for (const p of parcours) {
+    const ofParcours = lessons.filter((l) => l.level === p.level && l.category === p.category);
+    const completedLessons = ofParcours.filter((l) => doneLessonIds.has(l.id)).map((l) => l.id);
+    const total = ofParcours.length;
+    const completed = completedLessons.length;
+    const next = ofParcours.find((l) => !doneLessonIds.has(l.id));
+    const up = userParcours.get(p.id);
+
+    overviews[p.id] = {
+      progress: {
+        total,
+        completed,
+        percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+        isCompleted: total > 0 && completed === total,
+        completedLessons,
+        status: up?.status,
+        started_at: up?.started_at,
+      },
+      nextLesson: next ? { slug: next.slug, title: next.title } : null,
+    };
+  }
+  return overviews;
+}
+
 export async function getParcoursProgress(
   userId: string,
   level: string,

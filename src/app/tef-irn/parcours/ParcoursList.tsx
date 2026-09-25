@@ -9,8 +9,10 @@ import { Parcours, ParcoursProgress } from "@/lib/parcours";
 import { User } from "@supabase/supabase-js";
 import { PageTransition } from "@/components/shared/Animations";
 
-interface ParcoursWithProgress extends Parcours {
+export interface ParcoursWithProgress extends Parcours {
   progress?: ParcoursProgress;
+  lessonCount?: number;
+  nextLesson?: { slug: string; title: string } | null;
 }
 
 const CATEGORY_THEMES: Record<string, { color: string, bg: string, text: string, gradient: string, border: string, accentBorder: string, button: string, shadow: string }> = {
