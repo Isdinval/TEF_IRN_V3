@@ -142,11 +142,17 @@ export function WritingCoachContent() {
       .finally(() => setLoadingScenarios(false));
   }, []);
 
+  // Dépendances limitées aux paramètres réellement lus : ParcoursContext
+  // ajoute ?parcoursId= à l'URL après le montage (router.replace), ce qui
+  // relançait cet effet et renvoyait au catalogue un sujet déjà ouvert
+  // (ex. lancement direct depuis /tef-irn/progression).
+  const idParam = searchParams.get('id');
+  const subjectParam = searchParams.get('subject');
+  const levelParam = searchParams.get('level');
+
   useEffect(() => {
     async function fetchData() {
-      const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
-      const subjectParam = searchParams.get('subject');
-      const levelParam = searchParams.get('level');
+      const exerciseId = (params?.id as string | undefined) || idParam;
 
       if (subjectParam) {
         setScenarioSection(null);
@@ -191,7 +197,7 @@ export function WritingCoachContent() {
       setLoading(false);
     }
     fetchData();
-  }, [params?.id, searchParams, supabase]);
+  }, [params?.id, idParam, subjectParam, levelParam, supabase]);
 
   useEffect(() => {
     if (status === "writing") {
