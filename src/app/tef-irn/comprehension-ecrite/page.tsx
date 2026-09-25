@@ -17,6 +17,7 @@ import { ComprehensionDailyQuotaBadge } from '@/components/shared/ComprehensionD
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { BookOpen, Loader2, Layers, Target, Shuffle, Play } from 'lucide-react';
 
 type CeFormat = 'court' | 'trous' | 'multi_texte' | 'long_admin' | 'article_presse';
@@ -46,6 +47,7 @@ export default function ComprehensionEcritePage() {
   const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [format, setFormat] = useState<CeFormat | typeof ALL>(ALL);
   const [level, setLevel] = useState<string>(ALL);
 
@@ -74,7 +76,7 @@ export default function ComprehensionEcritePage() {
     }
     load();
     return () => { active = false; };
-  }, [supabase]);
+  }, [supabase, reloadKey]);
 
   const levels = useMemo(() => {
     const distinct = Array.from(new Set(scenarios.map((s) => s.level))).sort();
@@ -110,9 +112,14 @@ export default function ComprehensionEcritePage() {
             <Loader2 className="animate-spin" size={28} />
           </div>
         ) : error ? (
-          <p className="py-10 text-center text-sm font-medium text-red-400">
-            Impossible de charger les sujets. Vérifiez votre connexion.
-          </p>
+          <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-red-200 bg-red-50/50 p-6 text-center">
+            <p className="text-sm font-medium text-red-600">
+              Impossible de charger les sujets. Vérifiez votre connexion.
+            </p>
+            <Button variant="outline" className="h-11 rounded-2xl font-bold" onClick={() => setReloadKey((k) => k + 1)}>
+              Réessayer
+            </Button>
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 items-start">
@@ -185,9 +192,20 @@ export default function ComprehensionEcritePage() {
             </div>
 
             {filtered.length === 0 ? (
-              <p className="py-10 text-center text-sm font-medium text-zinc-400">
-                Aucun sujet disponible pour ces filtres.
-              </p>
+              <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-zinc-200 p-6 text-center">
+                <p className="text-sm font-medium text-zinc-500">
+                  Aucun sujet disponible pour ces filtres.
+                </p>
+                {(format !== ALL || level !== ALL) && (
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-2xl font-bold"
+                    onClick={() => { setFormat(ALL); setLevel(ALL); }}
+                  >
+                    Réinitialiser les filtres
+                  </Button>
+                )}
+              </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((s) => (
