@@ -37,7 +37,7 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 | Fonds | `white`, `zinc-50` | Cartes (`white`) sur fond de page (`zinc-50/50`) |
 | **Succès** | `emerald-50` (fond) / `emerald-600` (icône, barre) / `emerald-700` (texte) | Terminé, réponse correcte, objectif atteint |
 | **Attention** | `amber-50` (fond) / `amber-600` (icône, barre) / `amber-700` (texte) | Quota bientôt atteint, point à revoir |
-| **Erreur** | `red-50` / `red-200` / `red-600` | Erreur de chargement, réponse fausse, action destructive |
+| **Erreur** | `red-50` / `red-200` / `red-600` (texte `red-700` sur fond `red-50`) | Erreur de chargement, réponse fausse, action destructive, **enregistrement micro en cours** (convention « REC »), chronomètre presque écoulé |
 
 ### 2.2 Interdits (nouveau code)
 
@@ -45,6 +45,8 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 - ❌ Couleurs décoratives : `violet`, `purple`, `rose`, `orange`, `blue`, `green`, etc. Une couleur doit **signifier** quelque chose (accent ou état).
 - ❌ Une couleur différente par compétence, par niveau ou par catégorie. Le niveau (A1–B2) et la compétence (CE/CO/EE/EO) s'affichent en **texte** (badge neutre ou indigo), pas en couleur.
 - ❌ Plus de 3 couleurs visibles dans un même écran, hors neutres.
+- ❌ Une couleur par type d'erreur (grammaire, conjugaison…). Les erreurs surlignées dans un texte de l'apprenant sont toutes en **attention** (`amber`), l'élément actif en indigo ; le type s'écrit dans la fiche de l'erreur.
+- ❌ `rose-*` pour un état : utiliser `red-*` (erreur) ou `amber-*` (attention).
 
 > Règle 60-30-10 : ~60 % de fond neutre, ~30 % de texte et de gris, ~10 % d'indigo.
 
@@ -58,6 +60,11 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 ### 2.4 Écart connu à ne pas reproduire
 
 Le token shadcn `--primary` de `globals.css` vaut `#002395` (bleu de marque historique). Un `<Button>` sans classe de couleur s'affiche donc en bleu marine, pas en indigo. **Toujours** préciser `bg-indigo-600 hover:bg-indigo-700` sur un bouton principal.
+
+### 2.5 Écarts tolérés
+
+- Éditeur Expression Écrite (`writing/page.tsx`, `ZoneRedaction.tsx`) : ses panneaux redimensionnables utilisent `max-md:` pour forcer la pleine largeur sur mobile. Toléré tant que la mise en page n'est pas refondue ; ne pas reproduire ailleurs.
+- Panneaux sombres (analyse orale, feedback EE) : sur fond `zinc-900`/`zinc-950`, le texte secondaire reste en `zinc-400` (le `zinc-500` y serait moins lisible).
 
 ---
 
@@ -328,9 +335,12 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 |---|---|
 | `/tef-irn/parcours` | `apply_ligne_directrice_design` |
 | `/tef-irn/comprehension-ecrite` | `apply_ligne_directrice_design` |
-| `/tef-irn/comprehension-orale` | `apply_ligne_directrice_design_lot2` |
-| `/tef-irn/writing` (catalogue de sujets) | `apply_ligne_directrice_design_lot2` |
-| `/tef-irn/oral` (catalogue de scénarios) | `apply_ligne_directrice_design_lot2` |
+| `/tef-irn/comprehension-orale` | `apply_ligne_directrice_design` (lot 2) |
+| `/tef-irn/writing` (catalogue et session) | `apply_ligne_directrice_design` (lots 2 et 3) |
+| `/tef-irn/oral` (catalogue et session) | `apply_ligne_directrice_design` (lots 2 et 3) |
+| `/tef-irn/comprehension-ecrite/[scenarioId]`, `/tef-irn/comprehension-orale/[scenarioId]` | `apply_ligne_directrice_design` (lot 3) |
+| `/tef-irn/practice`, `/tef-irn/grammar-check`, `/tef-irn/vocab` | `apply_ligne_directrice_design` (lot 3) |
+| `/tef-irn/correction` | `apply_ligne_directrice_design` (lot 3) |
 
 ---
 
