@@ -68,9 +68,15 @@ export default function ParcoursList({
 }) {
   const router = useRouter();
 
-  const enCours = allParcours.filter(p => p.progress && p.progress.percent > 0 && p.progress.percent < 100);
-  const termines = allParcours.filter(p => p.progress && p.progress.percent === 100);
-  const aDecouvrir = allParcours.filter(p => !p.progress || p.progress.percent === 0);
+  // Un parcours est "commencé" dès qu'il est démarré (status/started_at) ou qu'une leçon est faite,
+  // même à 0 % : même règle pour le classement en sections et pour le libellé du bouton.
+  const isDone = (p: ParcoursWithProgress) => p.progress?.percent === 100;
+  const isStarted = (p: ParcoursWithProgress) =>
+    p.progress?.status === 'in_progress' || p.progress?.started_at != null || (p.progress?.percent ?? 0) > 0;
+
+  const enCours = allParcours.filter(p => !isDone(p) && isStarted(p));
+  const termines = allParcours.filter(isDone);
+  const aDecouvrir = allParcours.filter(p => !isDone(p) && !isStarted(p));
 
   const renderSection = (title: string, items: ParcoursWithProgress[], badgeColor: string, showProgress: boolean) => {
     if (items.length === 0) return null;
@@ -88,10 +94,8 @@ export default function ParcoursList({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {items.map((p) => {
             const theme = CATEGORY_THEMES[p.category?.toLowerCase()] || CATEGORY_THEMES.default;
-            const isCompleted = p.progress?.percent === 100;
-
-            // TASK 2 Logic
-            const isInProgress = p.progress?.status === 'in_progress' || (p.progress?.started_at != null);
+            const isCompleted = isDone(p);
+            const isInProgress = isStarted(p);
             const buttonLabel = isCompleted ? "Complété" : (isInProgress ? "Continuer" : "Commencer");
 
             return (
