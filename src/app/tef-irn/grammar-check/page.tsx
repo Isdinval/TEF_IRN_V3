@@ -649,14 +649,14 @@ export function GrammarCheckContent() {
               </div>
             )}
           </div>
-          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
               <div className="text-2xl font-black text-emerald-600">{score} / {questions.length}</div>
             </div>
           </div>
@@ -688,7 +688,7 @@ export function GrammarCheckContent() {
                 onClick={() => {
                     if (exerciseIdFromParams) startTraining(exerciseIdFromParams);
                 }}
-                className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+                className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
               </Button>
@@ -702,7 +702,7 @@ export function GrammarCheckContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6 max-w-md w-full">
-          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto">
+          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto">
             <Sparkles size={28} />
           </div>
           <div className="space-y-2">
@@ -711,7 +711,7 @@ export function GrammarCheckContent() {
           </div>
           <div className="flex flex-col gap-3">
             <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
-            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>
@@ -734,7 +734,7 @@ export function GrammarCheckContent() {
           return (
             <div className="mb-3">
               <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
-              {subtitle && <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>}
+              {subtitle && <p className="text-xs font-medium text-zinc-500 mt-0.5">{subtitle}</p>}
             </div>
           );
         })()}
@@ -771,7 +771,7 @@ export function GrammarCheckContent() {
                 </Button>
               )}
               <div className="text-right">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
                 <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
               </div>
               <div className="h-12 w-px bg-zinc-100" />
@@ -836,7 +836,7 @@ export function GrammarCheckContent() {
                   accentColor="indigo"
                 />
 
-                <div className="bg-white p-4 lg:p-6 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                <div className="bg-white p-4 lg:p-6 rounded-3xl shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                   <div className="flex flex-wrap items-center justify-center gap-2 relative z-10">
                     {currentParsed.tokens.map((token) => {
                       const isSelected = selectedWordIndex === token.index;
@@ -853,9 +853,9 @@ export function GrammarCheckContent() {
                         } else if (isTheError) {
                           stateClass = "bg-emerald-100 text-emerald-900 border-emerald-400";
                         } else if (isSelected) {
-                          stateClass = "bg-rose-100 text-rose-900 border-rose-400";
+                          stateClass = "bg-red-100 text-red-700 border-red-400";
                         } else {
-                          stateClass = "bg-zinc-50 text-zinc-400 border-transparent";
+                          stateClass = "bg-zinc-50 text-zinc-500 border-transparent";
                         }
                       }
 
@@ -884,7 +884,7 @@ export function GrammarCheckContent() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden md:hidden"
                     >
-                      <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                      <Card className="p-6 rounded-3xl border border-zinc-100 shadow-sm bg-white">
                         {lessonPanelContent}
                       </Card>
                     </motion.div>
@@ -907,8 +907,8 @@ export function GrammarCheckContent() {
                           : !currentParsed.hasError
                           ? "border-emerald-400 bg-emerald-100 text-emerald-900"
                           : selectedNoError
-                          ? "border-rose-500 bg-rose-50 text-rose-900"
-                          : "border-zinc-100 bg-white text-zinc-400"
+                          ? "border-red-600 bg-red-50 text-red-700"
+                          : "border-zinc-100 bg-white text-zinc-500"
                       }`}
                     >
                       Il n'y a pas de faute
@@ -982,7 +982,7 @@ export function GrammarCheckContent() {
                 className="hidden md:block md:h-full md:overflow-y-auto md:shrink-0"
                 style={{ width: `${100 - leftPct}%` }}
               >
-                <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                <Card className="p-6 rounded-3xl border border-zinc-100 shadow-sm bg-white">
                   {lessonPanelContent}
                 </Card>
               </div>
@@ -1003,8 +1003,8 @@ export function GrammarCheckContent() {
           description="Perfectionnez votre conjugaison, grammaire, syntaxe et orthographe en repérant et corrigeant les erreurs. Progressez pas à pas en toute confiance."
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+            <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <Target size={14} className="text-indigo-600" /> Choisir votre niveau
               </div>
               <div className="flex gap-2">
@@ -1012,7 +1012,7 @@ export function GrammarCheckContent() {
                   <button
                     key={lvl}
                     onClick={() => setLevel(lvl)}
-                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
                   >
                     {lvl}
                   </button>
@@ -1020,8 +1020,8 @@ export function GrammarCheckContent() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+            <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <GraduationCap size={14} className="text-indigo-600" /> Thématiques
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1029,7 +1029,7 @@ export function GrammarCheckContent() {
                   <button
                     key={cat}
                     onClick={() => setCategory(cat)}
-                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
                   >
                     {cat}
                   </button>
@@ -1043,7 +1043,7 @@ export function GrammarCheckContent() {
                       ?? catalogue[Math.floor(Math.random() * catalogue.length)]?.id;
                     if (targetId) startTraining(targetId);
                 }}
-                className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                className="bg-indigo-600 p-6 rounded-3xl text-white space-y-4 shadow-xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
               <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
@@ -1074,7 +1074,7 @@ export function GrammarCheckContent() {
                 className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
                   hideCompleted
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
-                    : "bg-white border-zinc-100 text-zinc-400 hover:border-indigo-200"
+                    : "bg-white border-zinc-100 text-zinc-500 hover:border-indigo-200"
                 }`}
               >
                 Non complétés uniquement
@@ -1093,10 +1093,10 @@ export function GrammarCheckContent() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                 <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
-                <span className="text-zinc-400">•</span>
+                <span className="text-zinc-500">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
               </div>
             </div>
@@ -1104,11 +1104,11 @@ export function GrammarCheckContent() {
             {loadingCatalogue ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-16 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                  <div key={i} className="h-16 rounded-3xl bg-zinc-100 animate-pulse" />
                 ))}
               </div>
             ) : catalogueError ? (
-              <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+              <Card className="border-dashed border-2 border-red-200 rounded-3xl p-12 text-center bg-red-50/50">
                 <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
                 <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices. Vérifiez votre connexion.</p>
                 <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
@@ -1122,7 +1122,7 @@ export function GrammarCheckContent() {
                 basePath="/tef-irn/grammar-check"
               />
             ) : (
-              <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-white shadow-sm">
+              <Card className="border-dashed border-2 border-zinc-200 rounded-3xl p-12 text-center bg-white shadow-sm">
                 <img
                   src={emptyStateMascotUrl}
                   alt="Mascotte LlamaKusi perplexe, aucun exercice trouvé"

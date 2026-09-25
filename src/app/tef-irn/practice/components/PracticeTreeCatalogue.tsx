@@ -41,11 +41,11 @@ const STATUS_CONFIG: Record<TreeExerciseStatus, { label: string; className: stri
 // (exercises.category diverge parfois de lessons.category, par design). Mêmes
 // couleurs que GrammarCheckTreeCatalogue pour rester cohérent entre les 2 pages.
 const CATEGORY_COLORS: Record<string, string> = {
-  grammaire: "bg-emerald-50 text-emerald-700",
-  conjugaison: "bg-blue-50 text-blue-700",
-  syntaxe: "bg-violet-50 text-violet-700",
-  orthographe: "bg-amber-50 text-amber-700",
-  default: "bg-zinc-100 text-zinc-500",
+  grammaire: "bg-zinc-100 text-zinc-600",
+  conjugaison: "bg-zinc-100 text-zinc-600",
+  syntaxe: "bg-zinc-100 text-zinc-600",
+  orthographe: "bg-zinc-100 text-zinc-600",
+  default: "bg-zinc-100 text-zinc-600",
 };
 
 function getCategoryColor(category?: string): string {
@@ -138,7 +138,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
             key={group.lessonId}
             value={group.lessonId}
             id={`lesson-${group.lessonId}`}
-            className={`scroll-mt-24 rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${
+            className={`scroll-mt-24 rounded-3xl border shadow-sm px-6 border-b-0 transition-colors ${
               group.isFullyDone ? completionCardStyles(true) : "bg-white border-zinc-100"
             }`}
           >
@@ -146,7 +146,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
               <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 shrink-0">
                     {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
                   </span>
                   {group.isFullyDone && <CompletionBadge />}
@@ -156,7 +156,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                     GrammarCheckTreeCatalogue.tsx). Item 8 du plan
                     "point-clés pédagogiques". */}
                 {subtitle && (
-                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-400 line-clamp-1">
+                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-500 line-clamp-1">
                     {subtitle}
                   </p>
                 )}
@@ -165,7 +165,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
             <AccordionContent className="pb-6 space-y-5">
               {pointCleGroups.map(([label, items]) => (
                 <div key={label}>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 px-1">
+                  <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">
                     {label}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -188,7 +188,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                               une première ligne, l'énoncé passe seul en dessous sur toute la
                               largeur (2 lignes grâce à line-clamp-2) au lieu d'être écrasé entre
                               les badges. sm: restaure l'ordre et la largeur flexible d'origine. */}
-                          <p className="order-3 w-full sm:order-none sm:w-auto sm:flex-1 sm:min-w-0 text-sm font-bold text-zinc-800 line-clamp-2 group-hover:text-purple-600 transition-colors">
+                          <p className="order-3 w-full sm:order-none sm:w-auto sm:flex-1 sm:min-w-0 text-sm font-bold text-zinc-800 line-clamp-2 group-hover:text-indigo-600 transition-colors">
                             {ex.instructions || "Exercice"}
                           </p>
                           {st === "completed" ? (
@@ -200,7 +200,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                               {STATUS_CONFIG[st].label}
                             </Badge>
                           )}
-                          <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-purple-600 transition-colors" />
+                          <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
                         </Link>
                       );
                     })}

@@ -817,14 +817,14 @@ export function PracticeContent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 gap-6">
         <div className="relative">
-          <Loader2 className="animate-spin text-purple-600" size={64} />
+          <Loader2 className="animate-spin text-indigo-600" size={64} />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 bg-purple-600 rounded-full animate-ping" />
+            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-ping" />
           </div>
         </div>
         <div className="text-center space-y-2">
           <p className="text-lg font-black text-zinc-900 uppercase tracking-tighter">Préparation du centre</p>
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest animate-pulse italic">Configuration des algorithmes...</p>
+          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest animate-pulse italic">Configuration des algorithmes...</p>
         </div>
       </div>
     );
@@ -847,7 +847,7 @@ export function PracticeContent() {
             {(questions[0]?.level || questions[0]?.category) && (
               <div className="flex items-center justify-center gap-2 pt-1">
                 {questions[0]?.level && (
-                  <Badge className="bg-purple-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
                     {questions[0].level}
                   </Badge>
                 )}
@@ -859,15 +859,15 @@ export function PracticeContent() {
               </div>
             )}
           </div>
-          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
-              <div className="text-2xl font-black text-purple-600">{score} / {questions.length}</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-2xl font-black text-indigo-600">{score} / {questions.length}</div>
             </div>
           </div>
           {saveScoreError && (
@@ -907,7 +907,7 @@ export function PracticeContent() {
             <Button
               variant="ghost"
               onClick={restartExercise}
-              className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+              className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
             >
               <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
             </Button>
@@ -930,16 +930,16 @@ export function PracticeContent() {
           >
             {/* Quick Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Target size={14} className="text-purple-600" /> Votre Niveau
+              <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 space-y-4">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <Target size={14} className="text-indigo-600" /> Votre Niveau
                 </div>
                 <div className="flex gap-2">
                   {LEVELS.map((lvl) => (
                     <button
                       key={lvl}
                       onClick={() => setLevel(lvl)}
-                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-purple-600 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-100 hover:border-zinc-200'}`}
                     >
                       {lvl}
                     </button>
@@ -947,16 +947,16 @@ export function PracticeContent() {
                 </div>
               </div>
 
-              <div className="bg-zinc-50 p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 lg:col-span-2">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <GraduationCap size={14} className="text-purple-600" /> Thématiques
+              <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 space-y-4 lg:col-span-2">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <GraduationCap size={14} className="text-indigo-600" /> Thématiques
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
-                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-zinc-200'}`}
+                      className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-white text-zinc-500 border border-zinc-100 hover:border-zinc-200'}`}
                     >
                       {cat}
                     </button>
@@ -972,7 +972,7 @@ export function PracticeContent() {
                     startTraining();
                   }
                 }}
-                className="bg-purple-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-purple-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                className="bg-indigo-600 p-6 rounded-3xl text-white space-y-4 shadow-xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
@@ -995,7 +995,7 @@ export function PracticeContent() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     placeholder="Rechercher un exercice (ex. articles, subjonctif...)"
-                    className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-200 transition-all"
+                    className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
                   />
                 </div>
                 <button
@@ -1003,8 +1003,8 @@ export function PracticeContent() {
                   onClick={() => setHideCompleted((v) => !v)}
                   className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
                     hideCompleted
-                      ? "bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-100"
-                      : "bg-white border-zinc-100 text-zinc-400 hover:border-purple-200"
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
+                      : "bg-white border-zinc-100 text-zinc-500 hover:border-indigo-200"
                   }`}
                 >
                   Non complétés uniquement
@@ -1012,7 +1012,7 @@ export function PracticeContent() {
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as "recent" | "ancien")}
-                  className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-200 transition-all"
+                  className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
                   aria-label="Trier les exercices"
                 >
                   <option value="recent">Plus récents</option>
@@ -1022,11 +1022,11 @@ export function PracticeContent() {
 
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                  <Badge className="bg-purple-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
-                  <span className="text-zinc-400">•</span>
+                  <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
+                  <span className="text-zinc-500">•</span>
                   <span className="capitalize text-zinc-500">{filters.category}</span>
                 </h2>
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                   {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
                 </div>
               </div>
@@ -1034,11 +1034,11 @@ export function PracticeContent() {
               {loadingCatalogue ? (
                 <div className="space-y-3">
                   {[1, 2, 3, 4].map((i: number) => (
-                    <div key={i} className="h-16 rounded-[2rem] bg-zinc-100 animate-pulse" />
+                    <div key={i} className="h-16 rounded-3xl bg-zinc-100 animate-pulse" />
                   ))}
                 </div>
               ) : catalogueError ? (
-                <Card className="border-dashed border-2 border-red-200 rounded-[2rem] p-12 text-center bg-red-50/50">
+                <Card className="border-dashed border-2 border-red-200 rounded-3xl p-12 text-center bg-red-50/50">
                   <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
                   <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices. Vérifiez votre connexion.</p>
                   <Button onClick={() => fetchCatalogue()} variant="outline" className="rounded-2xl font-bold">
@@ -1052,7 +1052,7 @@ export function PracticeContent() {
                   basePath="/tef-irn/practice"
                 />
               ) : (
-                <Card className="border-dashed border-2 border-zinc-200 rounded-[2rem] p-12 text-center bg-zinc-50/50">
+                <Card className="border-dashed border-2 border-zinc-200 rounded-3xl p-12 text-center bg-zinc-50/50">
                   <Target className="mx-auto mb-4 text-zinc-300" size={40} />
                   <p className="font-bold text-zinc-500">Aucun exercice trouvé pour cette sélection.</p>
                 </Card>
@@ -1069,7 +1069,7 @@ export function PracticeContent() {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6 max-w-md w-full">
-          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mx-auto">
+          <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto">
             <Sparkles size={28} />
           </div>
           <div className="space-y-2">
@@ -1078,7 +1078,7 @@ export function PracticeContent() {
           </div>
           <div className="flex flex-col gap-3">
             <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
-            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>
@@ -1095,7 +1095,7 @@ export function PracticeContent() {
     const showSplit = showLessonPanel && isDesktop;
     const lessonPanelContent = activeLesson ? (
       <>
-        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
+        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
           <BookOpen size={14} /> Leçon associée
         </div>
         {(() => {
@@ -1103,7 +1103,7 @@ export function PracticeContent() {
           return (
             <div className="mb-3">
               <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
-              {subtitle && <p className="text-xs font-medium text-zinc-400 mt-0.5">{subtitle}</p>}
+              {subtitle && <p className="text-xs font-medium text-zinc-500 mt-0.5">{subtitle}</p>}
             </div>
           );
         })()}
@@ -1127,7 +1127,7 @@ export function PracticeContent() {
                 <Button
                   onClick={() => toggleLesson(currentQuestion.lesson_id)}
                   variant="outline"
-                  className="h-10 rounded-xl border-2 border-purple-100 bg-purple-50 text-purple-600 font-black text-[10px] uppercase tracking-widest hover:bg-purple-100"
+                  className="h-10 rounded-xl border-2 border-indigo-100 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100"
                 >
                   {loadingLesson ? (
                     <Loader2 size={14} className="mr-2 animate-spin" />
@@ -1140,7 +1140,7 @@ export function PracticeContent() {
                 </Button>
               )}
               <div className="text-right">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Précision</div>
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Précision</div>
                 <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
               </div>
               <div className="h-12 w-px bg-zinc-100" />
@@ -1149,7 +1149,7 @@ export function PracticeContent() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
-                      className="h-full bg-purple-600"
+                      className="h-full bg-indigo-600"
                     />
                  </div>
                  <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
@@ -1211,11 +1211,11 @@ export function PracticeContent() {
                   />
 
                   {/* Question Text */}
-                  <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                  <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                    <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
                     {currentQuestion?.text}
                   </h3>
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-purple-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
                 </div>
 
@@ -1227,7 +1227,7 @@ export function PracticeContent() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden md:hidden"
                     >
-                      <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                      <Card className="p-6 rounded-3xl border border-zinc-100 shadow-sm bg-white">
                         {lessonPanelContent}
                       </Card>
                     </motion.div>
@@ -1236,7 +1236,7 @@ export function PracticeContent() {
 
                 {/* Options Grid */}
                 <div className="grid grid-cols-1 gap-2">
-                   <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
+                   <p className="text-center text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
                   {currentQuestion?.options.map((option: string, i: number) => {
                     const isCorrect = i === currentQuestion.correctAnswer;
                     const isSelected = selected === i;
@@ -1244,9 +1244,9 @@ export function PracticeContent() {
                     let buttonStyle = "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm";
                     if (isChecked) {
                       if (isCorrect) buttonStyle = "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10";
-                      else if (isSelected) buttonStyle = "border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10";
+                      else if (isSelected) buttonStyle = "border-red-600 bg-red-50 text-red-700 shadow-none ring-4 ring-red-600/10";
                     } else if (isSelected) {
-                      buttonStyle = "border-purple-600 bg-purple-50 text-purple-900 shadow-xl ring-4 ring-purple-600/5";
+                      buttonStyle = "border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5";
                     }
 
                     return (
@@ -1259,13 +1259,13 @@ export function PracticeContent() {
                         disabled={isChecked}
                       >
                         <div className="flex items-center gap-3">
-                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-purple-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200'}`}>
                               {String.fromCharCode(65 + i)}
                            </div>
                            {option}
                         </div>
                         {isChecked && isCorrect && <CheckCircle2 className="text-emerald-500" size={18} />}
-                        {isChecked && isSelected && !isCorrect && <XCircle className="text-rose-500" size={18} />}
+                        {isChecked && isSelected && !isCorrect && <XCircle className="text-red-600" size={18} />}
                       </motion.button>
                     );
                   })}
@@ -1298,7 +1298,7 @@ export function PracticeContent() {
 
                       <Button
                         onClick={handleNext}
-                        className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-purple-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
                       >
                         {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
                         <ArrowRight size={20} />
@@ -1320,13 +1320,13 @@ export function PracticeContent() {
                 aria-orientation="vertical"
                 aria-label="Redimensionner les panneaux exercice / leçon"
               >
-                <div className="w-1 h-16 rounded-full bg-zinc-200 group-hover:bg-purple-400 transition-colors" />
+                <div className="w-1 h-16 rounded-full bg-zinc-200 group-hover:bg-indigo-400 transition-colors" />
               </div>
               <div
                 className="hidden md:block md:h-full md:overflow-y-auto md:shrink-0"
                 style={{ width: `${100 - leftPct}%` }}
               >
-                <Card className="p-6 rounded-[2rem] border border-zinc-100 shadow-sm bg-white">
+                <Card className="p-6 rounded-3xl border border-zinc-100 shadow-sm bg-white">
                   {lessonPanelContent}
                 </Card>
               </div>
@@ -1342,7 +1342,7 @@ export function PracticeContent() {
 
 export default function PracticePage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-purple-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
       <PracticeContent />
     </Suspense>
   );
