@@ -179,7 +179,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                         >
                           {ex.category && (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getCategoryColor(ex.category)}`}
+                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${getCategoryColor(ex.category)}`}
                             >
                               {ex.category}
                             </Badge>
@@ -195,7 +195,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                             <CompletionBadge />
                           ) : (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-3 py-1 text-[9px] font-black uppercase ${STATUS_CONFIG[st].className}`}
+                              className={`shrink-0 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${STATUS_CONFIG[st].className}`}
                             >
                               {STATUS_CONFIG[st].label}
                             </Badge>

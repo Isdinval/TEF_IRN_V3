@@ -205,13 +205,13 @@ export default function ComprehensionOraleScenarioPage() {
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
           <img src={resultMascotUrl} alt="Mascotte LlamaKusi célébrant la réussite du sujet" className="w-40 h-40 mx-auto object-contain drop-shadow-xl" />
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Sujet terminé !</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Sujet terminé !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
             <div className="flex items-center justify-center gap-2 pt-1">
-              <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+              <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none">
                 Niveau {scenario.level}
               </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
                 {FORMAT_LABELS[scenario.format]}
               </Badge>
             </div>
@@ -246,9 +246,8 @@ export default function ComprehensionOraleScenarioPage() {
       <DestinationLandmarkDecoration variant="comprehension" />
       <ExerciseLayout
         variant="compact"
-        title="COMPRÉHENSION ORALE"
+        title="Compréhension orale"
         badge="Coach CO"
-        badgeColor="indigo"
         onBack={() => router.push('/tef-irn/comprehension-orale')}
         rightElement={
           <div className="hidden md:flex items-center gap-6">
@@ -261,10 +260,10 @@ export default function ComprehensionOraleScenarioPage() {
               <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-indigo-600" />
               </div>
-              <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
-                <span>DÉBUT</span>
+              <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                <span>Début</span>
                 <span>{Math.round(progress)}%</span>
-                <span>FIN</span>
+                <span>Fin</span>
               </div>
             </div>
           </div>
@@ -287,10 +286,10 @@ export default function ComprehensionOraleScenarioPage() {
                   -> réponses). */}
               <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
-                  <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+                  <Badge className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
                     {scenario.level}
                   </Badge>
-                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
                     {FORMAT_LABELS[scenario.format]}
                   </Badge>
                 </div>
@@ -365,7 +364,7 @@ export default function ComprehensionOraleScenarioPage() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
                     {checkedResult.explanation && (
                       <Card className={`p-4 rounded-2xl border-none shadow-lg ${checkedResult.isCorrect ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
-                        <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
+                        <div className="flex items-center gap-2 mb-1 opacity-80 text-[10px] font-black uppercase tracking-widest">
                           <Sparkles size={14} /> Explication
                         </div>
                         <p className="text-xs font-bold leading-relaxed italic">&quot;{checkedResult.explanation}&quot;</p>
@@ -373,7 +372,7 @@ export default function ComprehensionOraleScenarioPage() {
                     )}
                     <Button
                       onClick={handleNext}
-                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
                     >
                       {currentIdx < totalQuestions - 1 ? 'QUESTION SUIVANTE' : 'VOIR MON RÉSULTAT'}
                       <ArrowRight size={20} />

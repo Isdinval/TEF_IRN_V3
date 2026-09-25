@@ -460,7 +460,6 @@ function CivicTrainingContent() {
         variant="compact"
         title={activeMode === "memoriser" ? "Mémoriser" : activeMode === "erreurs" ? "Révision de vos erreurs" : "Apprendre"}
         badge={mentionLabel(mention)}
-        badgeColor="indigo"
         onBack={() => router.push("/examen-civique")}
         rightElement={
           <div className="text-right">

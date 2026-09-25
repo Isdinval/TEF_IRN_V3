@@ -29,7 +29,7 @@ export default function VocabLevelSwitcher({ currentLevel, onSelectLevel, varian
             <button
               key={lvl}
               onClick={() => onSelectLevel(lvl)}
-              className="flex-1 h-10 rounded-xl bg-zinc-50 text-zinc-600 font-black text-sm hover:bg-emerald-50 hover:text-emerald-700 transition-all"
+              className="flex-1 h-11 rounded-2xl bg-zinc-50 text-zinc-600 font-black text-sm hover:bg-indigo-50 hover:text-indigo-700 transition-all"
             >
               {lvl}
             </button>
@@ -46,9 +46,9 @@ export default function VocabLevelSwitcher({ currentLevel, onSelectLevel, varian
           key={lvl}
           onClick={() => onSelectLevel(lvl)}
           disabled={lvl === currentLevel}
-          className={`w-10 h-9 rounded-xl font-black text-xs transition-all ${
+          className={`min-w-11 h-11 rounded-2xl font-black text-xs transition-all ${
             lvl === currentLevel
-              ? "bg-emerald-600 text-white shadow-md cursor-default"
+              ? "bg-indigo-600 text-white shadow-md cursor-default"
               : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"
           }`}
         >

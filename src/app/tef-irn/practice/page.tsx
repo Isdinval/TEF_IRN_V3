@@ -842,17 +842,17 @@ export function PracticeContent() {
             className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
           />
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Entraînement terminé !</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Entraînement terminé !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
             {(questions[0]?.level || questions[0]?.category) && (
               <div className="flex items-center justify-center gap-2 pt-1">
                 {questions[0]?.level && (
-                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none">
                     {questions[0].level}
                   </Badge>
                 )}
                 {questions[0]?.category && (
-                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
                     {questions[0].category}
                   </Badge>
                 )}
@@ -920,12 +920,12 @@ export function PracticeContent() {
   // SCREEN: SELECTION
   if (mode === "selection") {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10">
+      <div className="min-h-screen bg-zinc-50/50 pb-20">
+        <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
           <ExerciseLayout
-            title="CENTRE D’ENTRAÎNEMENT QCM"
+            title="Centre d’entraînement"
+            highlight="QCM"
             badge="Coach QCM"
-            badgeColor="purple"
             description="Renforcez sereinement votre grammaire, conjugaison et vocabulaire grâce à des QCM adaptés au TEF IRN. Construisez votre réussite étape par étape."
           >
             {/* Quick Filters */}
@@ -995,7 +995,7 @@ export function PracticeContent() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     placeholder="Rechercher un exercice (ex. articles, subjonctif...)"
-                    className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                    className="w-full h-11 pl-11 pr-4 rounded-2xl border border-zinc-100 bg-white text-sm font-medium text-zinc-700 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
                   />
                 </div>
                 <button
@@ -1021,7 +1021,7 @@ export function PracticeContent() {
               </div>
 
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
                   <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
                   <span className="text-zinc-500">•</span>
                   <span className="capitalize text-zinc-500">{filters.category}</span>
@@ -1073,7 +1073,7 @@ export function PracticeContent() {
             <Sparkles size={28} />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Limite quotidienne atteinte</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Limite quotidienne atteinte</h2>
             <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
           </div>
           <div className="flex flex-col gap-3">
@@ -1117,9 +1117,8 @@ export function PracticeContent() {
         <DestinationLandmarkDecoration variant="practice" />
         <ExerciseLayout
           variant="compact"
-          title="CENTRE D’ENTRAÎNEMENT QCM"
+          title="Centre d’entraînement QCM"
           badge="Coach QCM"
-          badgeColor="purple"
           onBack={handleBackToCatalogue}
           rightElement={
             <div className="hidden md:flex items-center gap-6">
@@ -1152,10 +1151,10 @@ export function PracticeContent() {
                       className="h-full bg-indigo-600"
                     />
                  </div>
-                 <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
-                    <span>DÉBUT</span>
+                 <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                    <span>Début</span>
                     <span>{Math.round(progress)}%</span>
-                    <span>FIN</span>
+                    <span>Fin</span>
                  </div>
               </div>
             </div>
@@ -1289,7 +1288,7 @@ export function PracticeContent() {
                     >
                        {currentQuestion.explanation && (
                          <Card className={`p-4 rounded-2xl border-none shadow-lg ${selected === currentQuestion.correctAnswer ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
-                            <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
+                            <div className="flex items-center gap-2 mb-1 opacity-80 text-[10px] font-black uppercase tracking-widest">
                                <Sparkles size={14} /> Note pédagogique
                             </div>
                             <p className="text-xs font-bold leading-relaxed italic">"{currentQuestion.explanation}"</p>
@@ -1298,9 +1297,9 @@ export function PracticeContent() {
 
                       <Button
                         onClick={handleNext}
-                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
                       >
-                        {currentIdx < totalQuestions - 1 ? "QUESTION SUIVANTE" : "VOIR MON RÉSULTAT"}
+                        {currentIdx < totalQuestions - 1 ? "Question suivante" : "Voir mon résultat"}
                         <ArrowRight size={20} />
                       </Button>
                     </motion.div>

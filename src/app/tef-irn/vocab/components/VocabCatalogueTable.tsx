@@ -38,17 +38,17 @@ export default function VocabCatalogueTable({ items }: VocabCatalogueTableProps)
           className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors group rounded-2xl border border-zinc-50"
         >
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-black text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
+            <h4 className="text-sm font-black text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
               {item.word}
             </h4>
             <p className="text-xs text-zinc-500 font-medium line-clamp-1 mt-0.5">
               {item.definition}
             </p>
           </div>
-          <Badge className={`shrink-0 border-none rounded-full px-3 py-1 text-[9px] font-black uppercase ${STATUS_CONFIG[item.status].className}`}>
+          <Badge className={`shrink-0 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${STATUS_CONFIG[item.status].className}`}>
             {STATUS_CONFIG[item.status].label}
           </Badge>
-          <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-emerald-600 transition-colors" />
+          <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
         </Link>
       ))}
     </div>

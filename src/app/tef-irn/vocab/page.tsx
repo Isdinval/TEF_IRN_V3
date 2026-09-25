@@ -521,7 +521,7 @@ export function VocabCoachContent() {
   if (loading) return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="animate-spin text-emerald-600 mx-auto mb-4" size={48} />
+        <Loader2 className="animate-spin text-indigo-600 mx-auto mb-4" size={48} />
         <p className="text-zinc-600 font-bold uppercase tracking-widest text-xs">Préparation de la session...</p>
       </div>
     </div>
@@ -537,7 +537,7 @@ export function VocabCoachContent() {
             className="w-40 h-40 mx-auto object-contain drop-shadow-xl"
           />
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Session terminée !</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Session terminée !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous avez maîtrisé {sessionMasteredCount} nouveaux mots.</p>
           </div>
           <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
@@ -580,7 +580,7 @@ export function VocabCoachContent() {
             <Sparkles size={28} />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Limite quotidienne atteinte</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Limite quotidienne atteinte</h2>
             <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
           </div>
           <div className="flex flex-col gap-3">
@@ -602,9 +602,8 @@ export function VocabCoachContent() {
         <DestinationLandmarkDecoration variant="vocab" />
         <ExerciseLayout
           variant="compact"
-          title="COACH VOCABULAIRE"
+          title="Coach vocabulaire"
           badge="Coach Vocabulaire"
-          badgeColor="emerald"
           onBack={handleBack}
           rightElement={
             <div className="hidden md:flex items-center gap-6">
@@ -618,10 +617,10 @@ export function VocabCoachContent() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
-                      className="h-full bg-emerald-600"
+                      className="h-full bg-indigo-600"
                     />
                  </div>
-                 <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
+                 <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                     <span>{Math.round(progress)}% complété</span>
                  </div>
               </div>
@@ -647,7 +646,7 @@ export function VocabCoachContent() {
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-[10px] font-bold text-emerald-600 italic"
+              className="text-xs font-medium text-indigo-600"
             >
               ↑ Vous pouvez aussi explorer ce thème aux autres niveaux
             </motion.p>
@@ -672,14 +671,14 @@ export function VocabCoachContent() {
                   relative w-full h-full transition-transform duration-700 transform-style-3d
                   ${flipped ? 'rotate-y-180' : ''}
                 `}>
-                  <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-xl shadow-zinc-200 rounded-3xl group-hover:shadow-emerald-100 transition-all duration-500 bg-white text-center">
+                  <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-xl shadow-zinc-200 rounded-3xl group-hover:shadow-indigo-100 transition-all duration-500 bg-white text-center">
                     <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest">{current?.category}</span>
-                      <span className="px-3 py-1 rounded-full bg-zinc-50 text-zinc-500 text-[9px] font-black uppercase tracking-widest">{current?.level}</span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-50 text-zinc-500 text-[10px] font-black uppercase tracking-widest">{current?.level}</span>
                     </div>
-                    <h2 className="text-[clamp(1.5rem,3vw+0.75rem,2.25rem)] font-black text-zinc-900 mb-4 tracking-tighter">{current?.word}</h2>
+                    <h2 className="text-2xl md:text-4xl font-black text-zinc-900 mb-4 tracking-tight">{current?.word}</h2>
                     <VocabAudioButton audioUrl={current?.audio_url} variant="light" onPlay={() => setFlipped(true)} />
-                    <div className="absolute bottom-8 flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-wider">
+                    <div className="absolute bottom-8 flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-xs font-black uppercase tracking-wider">
                       <RotateCcw size={14} /> Cliquer pour révéler
                     </div>
                   </Card>
@@ -687,11 +686,11 @@ export function VocabCoachContent() {
                   <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border-none bg-zinc-900 text-white shadow-xl rounded-3xl overflow-hidden text-center">
                     <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full blur-3xl" />
-                       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-500 rounded-full blur-3xl" />
+                       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500 rounded-full blur-3xl" />
                     </div>
                     <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2 z-10">
-                      <span className="px-3 py-1 rounded-full bg-white/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest">{current?.category}</span>
-                      <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[9px] font-black uppercase tracking-widest">{current?.level}</span>
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-[10px] font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-black uppercase tracking-widest">{current?.level}</span>
                     </div>
                     <div className="text-center space-y-6 z-10">
                       <div className="space-y-3 flex flex-col items-center">
@@ -700,7 +699,7 @@ export function VocabCoachContent() {
                         <p className="text-base font-bold leading-tight tracking-tight text-white">{current?.definition}</p>
                       </div>
                       <div className="space-y-2">
-                        <div className="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em]">Exemple</div>
+                        <div className="text-[10px] text-indigo-300 font-black uppercase tracking-widest">Exemple</div>
                         <p className="text-sm italic text-zinc-300 bg-white/5 p-4 rounded-2xl border border-white/10 leading-relaxed font-medium">
                           "{current?.example}"
                         </p>
@@ -719,7 +718,7 @@ export function VocabCoachContent() {
                 </Button>
                 <Button
                   onClick={() => handleStepComplete(true)}
-                  className="h-12 flex-[2] bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-200 text-sm"
+                  className="h-12 flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 text-sm"
                 >
                   C'est compris <ArrowRight className="ml-2" size={16} />
                 </Button>
@@ -737,7 +736,7 @@ export function VocabCoachContent() {
             >
               <div className="text-center space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Quelle est la définition de</p>
-                <h2 className="text-[clamp(1.25rem,2vw+0.75rem,1.75rem)] font-black text-zinc-900 tracking-tighter">"{current?.word}" ?</h2>
+                <h2 className="text-xl md:text-3xl font-black text-zinc-900 tracking-tight">"{current?.word}" ?</h2>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -748,7 +747,7 @@ export function VocabCoachContent() {
                     onClick={() => setSelectedOption(opt)}
                     className={`
                       w-full p-4 rounded-2xl border-2 text-left transition-all font-bold text-sm leading-snug
-                      ${selectedOption === opt ? 'border-emerald-600 bg-emerald-50 text-emerald-900' : 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300'}
+                      ${selectedOption === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-900' : 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300'}
                       ${quizChecked && opt === current?.definition ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : ''}
                       ${quizChecked && selectedOption === opt && opt !== current?.definition ? 'border-red-600 bg-red-50 text-red-700' : ''}
                     `}
@@ -778,7 +777,7 @@ export function VocabCoachContent() {
               ) : (
                 <Button
                   onClick={() => handleStepComplete(selectedOption === current?.definition)}
-                  className={`w-full h-12 text-sm text-white font-black rounded-2xl ${selectedOption === current?.definition ? 'bg-emerald-600' : 'bg-red-500'}`}
+                  className={`w-full h-12 text-sm text-white font-black rounded-2xl ${selectedOption === current?.definition ? 'bg-emerald-600' : 'bg-red-600'}`}
                 >
                   {selectedOption === current?.definition ? "Continuer" : "Réessayer le mot"} <ArrowRight className="ml-2" size={16} />
                 </Button>
@@ -812,10 +811,10 @@ export function VocabCoachContent() {
                   disabled={typeChecked}
                   autoFocus
                   placeholder="Tapez le mot ici..."
-                  className={`h-14 text-center text-[clamp(1rem,1.5vw+0.5rem,1.25rem)] font-black rounded-2xl border-4 transition-all ${
+                  className={`h-14 text-center text-base md:text-xl font-black rounded-2xl border-4 transition-all ${
                     typeChecked
                     ? (validationResult?.isValid ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-red-600 bg-red-50 text-red-700')
-                    : 'border-zinc-200 focus:border-emerald-600 bg-white'
+                    : 'border-zinc-200 focus:border-indigo-600 bg-white'
                   }`}
                 />
 
@@ -852,7 +851,7 @@ export function VocabCoachContent() {
                     )}
                     <Button
                       onClick={() => handleStepComplete(validationResult?.isValid || false)}
-                      className={`w-full h-12 text-sm text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-red-500'}`}
+                      className={`w-full h-12 text-sm text-white font-black rounded-2xl ${validationResult?.isValid ? 'bg-emerald-600' : 'bg-red-600'}`}
                     >
                       {validationResult?.isValid ? "Maîtrisé !" : "Reprendre du début"} <ArrowRight className="ml-2" size={16} />
                     </Button>
@@ -868,17 +867,17 @@ export function VocabCoachContent() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-7xl mx-auto px-6 py-8 lg:px-10">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
+      <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
         <ExerciseLayout
-          title="COACH VOCABULAIRE"
+          title="Coach"
+          highlight="vocabulaire"
           badge="Coach Vocabulaire"
-          badgeColor="emerald"
           description="Enrichissez votre lexique thématique pour le TEF IRN. Nous ciblons vos mots à réviser au bon moment pour une mémorisation durable."
         >
           <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
             <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <GraduationCap size={14} className="text-emerald-600" /> Thématiques
+              <GraduationCap size={14} className="text-indigo-600" /> Thématiques
             </div>
             <div className="flex flex-wrap gap-2">
               {[...VOCAB_CATEGORIES, "Toutes"].map((cat) => (
@@ -896,14 +895,14 @@ export function VocabCoachContent() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
               <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <Target size={14} className="text-emerald-600" /> Choisir votre niveau
+                <Target size={14} className="text-indigo-600" /> Choisir votre niveau
               </div>
               <div className="flex gap-2">
                 {["A1", "A2", "B1", "B2"].map((lvl) => (
                   <button
                     key={lvl}
                     onClick={() => setLevel(lvl)}
-                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-emerald-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
+                    className={`flex-1 h-12 rounded-2xl font-black transition-all ${filters.level === lvl ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
                   >
                     {lvl}
                   </button>
@@ -920,34 +919,34 @@ export function VocabCoachContent() {
                 <GraduationCap size={14} /> Nouveaux mots
               </div>
               <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
-              <p className="text-[11px] text-zinc-500 font-medium leading-snug">
+              <p className="text-xs text-zinc-500 font-medium leading-snug">
                 {loadingCatalogue
                   ? "Chargement…"
                   : `${Math.min(unmasteredCatalogueCount, 10)} mot${Math.min(unmasteredCatalogueCount, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
               </p>
             </div>
 
-            <div
+            <button
+                type="button"
                 onClick={() => startTraining(true)}
-                className="bg-emerald-600 p-6 rounded-3xl text-white space-y-2 shadow-sm relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform flex flex-col justify-center"
+                className="flex w-full flex-col justify-center space-y-2 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                <Brain size={14} /> Flash révision
-              </div>
-              <h4 className="text-sm font-black leading-tight">Réviser mes mots</h4>
-              <p className="text-[11px] text-emerald-100 font-medium leading-snug">
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                <Brain size={14} aria-hidden /> Flash révision
+              </span>
+              <span className="block text-sm font-black leading-tight">Réviser mes mots</span>
+              <span className="block text-xs text-indigo-100 font-medium leading-snug">
                 {reviewDueCount === null
                   ? "Chargement…"
                   : `${Math.min(reviewDueCount, 10)} mot${Math.min(reviewDueCount, 10) > 1 ? "s" : ""} à réviser · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
-              </p>
-            </div>
+              </span>
+            </button>
           </div>
 
           <section className="mt-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-base font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-                <Badge className="bg-emerald-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
+              <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">Niveau {filters.level}</Badge>
                 <span className="text-zinc-500">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
@@ -1029,7 +1028,7 @@ export function VocabCoachContent() {
 
 export default function VocabCoach() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-emerald-600" size={48} /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-zinc-50"><Loader2 className="animate-spin text-indigo-600" size={48} /></div>}>
       <VocabCoachContent />
     </Suspense>
   );

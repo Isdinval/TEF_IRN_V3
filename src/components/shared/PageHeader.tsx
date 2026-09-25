@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge";
 interface PageHeaderProps {
   /** 1 à 3 mots, saisis normalement (la casse est gérée par le style). */
   badge: string;
-  /** Début du titre, en zinc. */
-  title: string;
+  /** Début du titre, en zinc (texte, ou nœud déjà mis en forme). */
+  title: ReactNode;
   /** Fin du titre, en indigo (exactement un segment, toujours à la fin). */
-  highlight: string;
+  highlight?: string;
   /** 1 à 2 phrases orientées action. */
   description?: ReactNode;
   /** Élément sous la description (ex. quota du jour). */
@@ -29,7 +29,7 @@ export function PageHeader({ badge, title, highlight, description, children, asi
           {badge}
         </Badge>
         <h1 className="mb-4 text-4xl font-black uppercase tracking-tighter text-zinc-900 md:text-5xl">
-          {title} <span className="text-indigo-600">{highlight}</span>
+          {title}{highlight && <> <span className="text-indigo-600">{highlight}</span></>}
         </h1>
         {description && (
           <p className="max-w-2xl text-base font-medium leading-relaxed text-zinc-500 md:text-lg">{description}</p>
