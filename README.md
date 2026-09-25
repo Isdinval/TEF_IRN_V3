@@ -68,6 +68,7 @@ npm run dev
 - [Documentation Technique](./docs/architecture/technical-overview.md)
 - [Fonctionnalités Produit](./docs/product/features.md)
 - [Référentiel TEF IRN](./docs/product/tef-irn-reference.md)
+- [Design system (règles UI)](./docs/product/design-system.md)
 - [Guide du Coach IA](./COACH_GUIDE.md)
 
 ### Architecture & Base de données
