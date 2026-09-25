@@ -14,7 +14,7 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 
 1. **Une seule couleur d'accent : l'indigo.** Tout le reste est neutre (blanc + gris `zinc`) ou un état (succès / attention / erreur).
 2. **La hiérarchie avant la décoration.** On fait ressortir l'information par la taille, la graisse et l'espace, pas par la couleur.
-3. **Mobile d'abord.** Chaque taille de texte, grille ou marge se pense à 375 px de large, puis s'élargit (`md:`, `lg:`).
+3. **Mobile d'abord.** Chaque taille de texte, grille ou marge se pense à 375 px de large, puis s'élargit (`md:`, `lg:`). Attendus détaillés au §7.
 4. **Réutiliser avant de recoder.** Si un motif existe déjà (en-tête de page, bandeau KPI admin, barre de progression), on réutilise le composant. On ne recopie jamais son balisage.
 5. **Moins de clics, moins de couleurs, moins d'imbrication.** Pas d'accordéon dans un accordéon, pas d'icône ⓘ quand une phrase suffit.
 
@@ -237,15 +237,55 @@ Chaque bloc qui charge des données gère ses 3 états :
 
 ---
 
-## 7. Responsive
+## 7. Ordinateur vs Mobile ⭐
 
-- Tester chaque écran à **375 px**, 768 px et 1280 px.
-- Grilles : `grid-cols-1` → `sm:grid-cols-2` → `lg:grid-cols-3`.
-- Maître-détail (Ma Progression) : empilé sur mobile, côte à côte à partir de `lg:`.
-- Aucun défilement horizontal de la page. Un tableau large défile dans son propre conteneur `overflow-x-auto`.
-- Sur mobile, ordre de lecture = ordre d'action : consigne → contenu → réponses → bouton.
+Chaque écran est **conçu d'abord pour le téléphone**, puis élargi. Une page n'est terminée que si elle est vérifiée dans les deux formats.
 
----
+### 7.1 Les 3 formats de référence
+
+| Format | Largeur | Préfixe Tailwind | Largeur de test |
+|---|---|---|---|
+| **Mobile** | < 768 px | *(aucun, style de base)* | **375 px** (iPhone SE / 13 mini) |
+| Tablette | 768 – 1023 px | `md:` | 768 px |
+| **Ordinateur** | ≥ 1024 px | `lg:` | **1280 px** |
+
+Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:` décrivent l'élargissement. Exemple : `text-4xl md:text-5xl`, `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`.
+❌ Jamais de préfixe `max-md:` pour « réparer » le mobile après coup.
+
+### 7.2 Attendus élément par élément
+
+| Élément | 📱 Mobile (< 768 px) | 💻 Ordinateur (≥ 1024 px) |
+|---|---|---|
+| **Navigation principale** | Barre du bas fixe (`MobileBottomNav`, 64 px) + menu tiroir (`MobileDrawer`). Le contenu garde une marge basse de 64 px pour ne pas passer sous la barre. | Barre latérale (`Sidebar`). Pas de barre du bas. |
+| **Barre de parcours** (`ParcoursTopBar`) | Version compacte empilée. | Version complète sur une ligne. |
+| **Marges de page** | `p-4` (16 px) sur les côtés. | `lg:p-12` (48 px), contenu centré `max-w-5xl`. |
+| **En-tête de page** (`PageHeader`) | Titre 36 px ; élément `aside` **sous** la description. | Titre 48 px ; `aside` **à droite**, aligné en bas. |
+| **Texte** | Courant 14 px, description 16 px. Jamais sous 12 px (sauf micro-labels 10 px). | Courant 16 px, description 18 px. |
+| **Filtres** (section, niveau, format) | Empilés en pleine largeur, boutons ≥ 44 px de haut. | Côte à côte (`md:grid-cols-3`). |
+| **Grille de cartes** | 1 colonne. | 3 colonnes (2 en tablette). |
+| **Carte mise en avant** (« Reprendre ») | Pleine largeur, bouton principal **en pleine largeur sous** le texte. | Pleine largeur, bouton **à droite** du texte. |
+| **Maître-détail** (Ma Progression) | Empilé : liste puis détail. Toucher un élément fait défiler jusqu'au détail. | Côte à côte : liste à gauche, détail à droite. |
+| **Onglets de niveau** (A1–B2) | Pleine largeur, 4 onglets égaux. | Même rendu, largeur du contenu. |
+| **Tableaux** | Défilement horizontal **dans leur propre cadre** (`overflow-x-auto`), jamais la page entière. Si > 4 colonnes : préférer une liste de cartes. | Tableau complet. |
+| **Page d'exercice** | Ordre vertical imposé : **consigne → texte/audio → réponses → bouton de validation**. Bouton de validation en pleine largeur. | Mise en page libre (côte à côte possible), même ordre de lecture. |
+| **Boutons** | Principal en **pleine largeur** (`w-full md:w-auto`). Zone tactile ≥ 44 × 44 px. | Largeur ajustée au texte. |
+| **Fenêtres (dialogues)** | Quasi plein écran, bouton d'action en bas. | Fenêtre centrée, largeur max `max-w-lg`. |
+| **Survols** (`hover:`) | Aucune information ne doit dépendre du survol (le doigt ne survole pas). | Effets de survol autorisés en complément. |
+| **Images décoratives** (lama, monuments) | Masquées si elles gênent la lecture (`hidden md:block`). | Affichées. |
+
+### 7.3 Interdits mobile
+
+- ❌ Défilement horizontal de la page (tester en balayant l'écran de gauche à droite).
+- ❌ Texte ou bouton caché sous la barre de navigation du bas.
+- ❌ Hauteur en `100vh` (coupée par la barre d'adresse) → utiliser `100dvh`.
+- ❌ Deux éléments tactiles à moins de 8 px l'un de l'autre.
+- ❌ Information disponible uniquement dans une infobulle au survol.
+
+### 7.4 Comment vérifier (2 minutes)
+
+1. Chrome → `F12` → icône téléphone (`Ctrl+Shift+M`) → choisir **iPhone SE** (375 px).
+2. Parcourir la page de haut en bas : rien ne déborde, tout est lisible sans zoomer, chaque bouton se touche facilement.
+3. Passer à **1280 px** (« Responsive » → 1280) et vérifier l'alignement ordinateur décrit au §7.2.
 
 ## 8. Ton des textes d'interface
 
@@ -265,7 +305,7 @@ Chaque bloc qui charge des données gère ses 3 états :
 - [ ] Hiérarchie visible : titres en `font-black`, texte courant en `font-medium`.
 - [ ] Texte porteur d'information en `zinc-500` minimum.
 - [ ] Un seul bouton principal par zone ; aucun doublon d'action.
-- [ ] Rendu vérifié à 375 px : pas de débordement, titre lisible, zones tactiles ≥ 44 px.
+- [ ] Rendu vérifié à **375 px et à 1280 px** selon le tableau du §7.2 : pas de débordement, zones tactiles ≥ 44 px, rien sous la barre du bas.
 - [ ] États chargement / erreur / vide gérés.
 - [ ] Un composant partagé existant a été réutilisé si le motif existait déjà.
 - [ ] Pas d'accordéon imbriqué, pas de ⓘ pour une info essentielle.
