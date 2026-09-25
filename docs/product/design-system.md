@@ -47,6 +47,8 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 - ❌ Plus de 3 couleurs visibles dans un même écran, hors neutres.
 - ❌ Une couleur par type d'erreur (grammaire, conjugaison…). Les erreurs surlignées dans un texte de l'apprenant sont toutes en **attention** (`amber`), l'élément actif en indigo ; le type s'écrit dans la fiche de l'erreur.
 - ❌ `rose-*` pour un état : utiliser `red-*` (erreur) ou `amber-*` (attention).
+- ❌ Une couleur par section, par compétence (EE, EO, QCM…) ou par catégorie de leçon : l'accent est toujours l'indigo, la distinction se fait par le titre, le badge ou l'icône.
+- ❌ Dégradés décoratifs (`bg-gradient-*`) et lueurs (`shadow-[0_0_…]`) : fond plein, ou fond d'état pâle bordé (`emerald-50` + `border-emerald-200`).
 
 > Règle 60-30-10 : ~60 % de fond neutre, ~30 % de texte et de gris, ~10 % d'indigo.
 
@@ -366,6 +368,10 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/practice`, `/tef-irn/grammar-check`, `/tef-irn/vocab` | `apply_ligne_directrice_design` (lot 3) |
 | `/tef-irn/correction` | `apply_ligne_directrice_design` (lot 3) |
 | Écrans d'exercice QCM, Chasse aux erreurs, Vocabulaire, CE, CO | `apply_ligne_directrice_design` (lot 3 ter) |
+| `/tef-irn/dashboard` | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/progression` | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/lessons`, `/tef-irn/lessons/[slug]` (+ fin de leçon) | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/parcours/[slug]` (+ fin de parcours) | `apply_ligne_directrice_design` (lot 4) |
 
 ---
 
