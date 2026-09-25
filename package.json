@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "design:check": "node scripts/design-check.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.0",
