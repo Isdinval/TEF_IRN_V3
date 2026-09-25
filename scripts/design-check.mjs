@@ -13,7 +13,7 @@ const RULES = [
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
   // Éditeur EE : max-md: toléré (design system §2.5).
   [/\bmax-md:/, "préfixe max-md: (§7.1)", ["src/app/tef-irn/writing/page.tsx", "src/app/tef-irn/writing/components/ZoneRedaction.tsx"]],
-  [/\btext-\[(?:[0-9]|10\.|1[1-9])px\]/, "taille hors échelle : 10px minimum (micro-label), sinon text-xs et plus (§3.1, §7.2)"],
+  [/\btext-\[(?:[0-9]|1[0-9])(?:\.\d+)?px\]/, "taille hors échelle : text-xs (12px) minimum, capitales et badges uniquement (§3.1)"],
   [/\btext-\[clamp/, "taille fluide hors échelle : utiliser text-* + md: (§3.1)"],
   [/>[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ' ’!]{4,}</, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
   [/"[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ’ ]{7,}"/, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
@@ -22,6 +22,12 @@ const RULES = [
 
 const diff = execSync(`git diff -U0 ${base}...HEAD -- ${PATHS.join(" ")}`, { encoding: "utf8" });
 const errors = [];
+// Texte en casse normale : 14px minimum. text-xs (12px) seulement si la même chaîne de classes
+// porte uppercase (micro-label, bouton) ou rounded-full (badge).
+const smallLowercase = (l) =>
+  (l.match(/"[^"]*"|'[^']*'|`[^`]*`/g) ?? []).some(
+    (t) => /(?<![\w:-])text-xs\b/.test(t) && !/uppercase|rounded-full/.test(t)
+  );
 let file = "";
 let line = 0;
 for (const l of diff.split("\n")) {
@@ -29,6 +35,7 @@ for (const l of diff.split("\n")) {
   else if (l.startsWith("@@")) line = Number(/\+(\d+)/.exec(l)?.[1] ?? 0);
   else if (l.startsWith("+")) {
     for (const [re, msg, allowed = []] of RULES) if (re.test(l) && !allowed.includes(file)) errors.push(`${file}:${line}  ${msg}`);
+    if (smallLowercase(l)) errors.push(`${file}:${line}  text-xs sur du texte en casse normale : text-sm minimum (§3.1)`);
     line++;
   }
 }
