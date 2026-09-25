@@ -540,7 +540,7 @@ export function VocabCoachContent() {
             <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Session terminée !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous avez maîtrisé {sessionMasteredCount} nouveaux mots.</p>
           </div>
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Mots vus</div>
               <div className="text-2xl font-black text-zinc-900">{cards.length}</div>
@@ -552,7 +552,7 @@ export function VocabCoachContent() {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => { setFinished(false); setMode("selection"); }} className="h-12 bg-zinc-900 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-black transition-all">Retourner au catalogue</Button>
+            <Button onClick={() => { setFinished(false); setMode("selection"); }} className="h-12 rounded-2xl border border-zinc-200 bg-white text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-all">Retourner au catalogue</Button>
             {nextLesson && (
               <Button onClick={() => nextLesson()} variant="outline" className="h-12 border-2 border-zinc-100 rounded-2xl font-black text-sm text-zinc-600 hover:bg-zinc-50 transition-all">Leçon suivante</Button>
             )}
@@ -584,7 +584,7 @@ export function VocabCoachContent() {
             <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
+            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
             <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
@@ -613,7 +613,7 @@ export function VocabCoachContent() {
               </div>
               <div className="h-12 w-px bg-zinc-100" />
               <div className="flex flex-col gap-2">
-                 <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
+                 <div className="w-48 h-2 bg-indigo-100 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
@@ -684,10 +684,6 @@ export function VocabCoachContent() {
                   </Card>
 
                   <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border-none bg-zinc-900 text-white shadow-xl rounded-3xl overflow-hidden text-center">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                       <div className="absolute -top-24 -right-24 w-64 h-64 bg-white rounded-full blur-3xl" />
-                       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500 rounded-full blur-3xl" />
-                    </div>
                     <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2 z-10">
                       <span className="px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-[10px] font-black uppercase tracking-widest">{current?.category}</span>
                       <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-black uppercase tracking-widest">{current?.level}</span>
@@ -695,7 +691,7 @@ export function VocabCoachContent() {
                     <div className="text-center space-y-6 z-10">
                       <div className="space-y-3 flex flex-col items-center">
                         <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Définition</div>
-                        <VocabAudioButton audioUrl={current?.audio_url} variant="dark" className="h-10 w-10" />
+                        <VocabAudioButton audioUrl={current?.audio_url} variant="dark" className="h-11 w-11" />
                         <p className="text-base font-bold leading-tight tracking-tight text-white">{current?.definition}</p>
                       </div>
                       <div className="space-y-2">
@@ -769,7 +765,7 @@ export function VocabCoachContent() {
                   <Button
                     disabled={!selectedOption}
                     onClick={() => setQuizChecked(true)}
-                    className="h-12 flex-[2] bg-zinc-900 text-white font-black text-sm rounded-2xl"
+                    className="h-12 flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-indigo-200"
                   >
                     Vérifier
                   </Button>
@@ -811,7 +807,7 @@ export function VocabCoachContent() {
                   disabled={typeChecked}
                   autoFocus
                   placeholder="Tapez le mot ici..."
-                  className={`h-14 text-center text-base md:text-xl font-black rounded-2xl border-4 transition-all ${
+                  className={`h-14 text-center text-base md:text-xl font-black rounded-2xl border-2 transition-all ${
                     typeChecked
                     ? (validationResult?.isValid ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-red-600 bg-red-50 text-red-700')
                     : 'border-zinc-200 focus:border-indigo-600 bg-white'
@@ -834,18 +830,18 @@ export function VocabCoachContent() {
                         setValidationResult(res);
                         setTypeChecked(true);
                       }}
-                      className="h-12 flex-[2] bg-zinc-900 text-white font-black text-sm rounded-2xl"
+                      className="h-12 flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-indigo-200"
                     >
                       Valider
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className={`text-center p-3 rounded-xl font-bold text-sm ${validationResult?.isValid ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                    <div className={`text-center p-3 rounded-2xl font-bold text-sm ${validationResult?.isValid ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                          {validationResult?.isValid ? (validationResult.message || "Excellent !") : "Presque ! Réessayez (attention à l'orthographe)"}
                     </div>
                     {!validationResult?.isValid && (
-                      <div className="text-center p-4 bg-red-50 rounded-xl text-red-600 font-bold text-sm">
+                      <div className="text-center p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 font-bold text-sm">
                         La bonne réponse était : <span className="text-base uppercase underline decoration-2">{current?.word}</span>
                       </div>
                     )}
@@ -884,7 +880,7 @@ export function VocabCoachContent() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
+                  className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
                 >
                   {cat}
                 </button>
@@ -910,21 +906,21 @@ export function VocabCoachContent() {
               </div>
             </div>
 
-            <div
+            <button
+                type="button"
                 onClick={() => startTraining(false)}
-                className="bg-zinc-900 p-6 rounded-3xl text-white space-y-2 shadow-sm relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform flex flex-col justify-center"
+                className="flex w-full flex-col justify-center space-y-2 rounded-3xl border border-zinc-100 bg-white p-6 text-left text-zinc-900 shadow-sm transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl" />
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-2">
-                <GraduationCap size={14} /> Nouveaux mots
-              </div>
-              <h4 className="text-sm font-black leading-tight">Apprendre mes mots</h4>
-              <p className="text-xs text-zinc-500 font-medium leading-snug">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <GraduationCap size={14} aria-hidden /> Nouveaux mots
+              </span>
+              <span className="block text-sm font-black leading-tight">Apprendre mes mots</span>
+              <span className="block text-xs text-zinc-500 font-medium leading-snug">
                 {loadingCatalogue
                   ? "Chargement…"
                   : `${Math.min(unmasteredCatalogueCount, 10)} mot${Math.min(unmasteredCatalogueCount, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
-              </p>
-            </div>
+              </span>
+            </button>
 
             <button
                 type="button"
