@@ -172,26 +172,73 @@ function ExerciseDots({ exercises }: { exercises: LessonItem["exercises"] }) {
   );
 }
 
-function LessonRow({ lesson }: { lesson: LessonItem }) {
+/**
+ * Les titres de leçons suivent le format "Titre | Accroche" : le titre
+ * s'affiche en principal, l'accroche en second plan (plus de texte coupé).
+ */
+function splitTitle(title: string): { main: string; hook: string | null } {
+  const [main, ...rest] = title.split(" | ");
+  return { main, hook: rest.length > 0 ? rest.join(" | ") : null };
+}
+
+function LessonTitle({ title, muted }: { title: string; muted?: boolean }) {
+  const { main, hook } = splitTitle(title);
+  return (
+    <div className="flex-1 min-w-0">
+      <p className={cn("text-sm font-medium", muted ? "text-zinc-400" : "text-zinc-900")}>{main}</p>
+      {hook && <p className={cn("text-xs", muted ? "text-zinc-300" : "text-zinc-400")}>{hook}</p>}
+    </div>
+  );
+}
+
+function ProgressBar({ completed, total }: { completed: number; total: number }) {
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return (
+    <span className="block h-1.5 w-full overflow-hidden rounded-full bg-zinc-200/70">
+      <span
+        className={cn("block h-full rounded-full", pct === 100 ? "bg-emerald-500" : "bg-indigo-600")}
+        style={{ width: `${pct}%` }}
+      />
+    </span>
+  );
+}
+
+function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) {
   if (!lesson.unlocked) {
     return (
-      <div className="flex items-center gap-3 py-2.5 border-b border-zinc-100 last:border-b-0">
-        <Lock size={14} className="text-zinc-300 shrink-0" />
-        <p className="text-sm text-zinc-400 truncate">{lesson.title}</p>
+      <div className="flex items-start gap-3 px-3 py-2.5 border-b border-zinc-100 last:border-b-0">
+        <Lock size={14} className="mt-0.5 text-zinc-300 shrink-0" />
+        <LessonTitle title={lesson.title} muted />
       </div>
     );
   }
   const started = lesson.exercises.some((ex) => ex.isCompleted);
-  const state: StepState = lesson.isCompleted ? "done" : started ? "current" : "todo";
+  const state: StepState = lesson.isCompleted ? "done" : started || isNext ? "current" : "todo";
+  const nextExercise = isNext ? lesson.exercises.find((ex) => !ex.isCompleted) : undefined;
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 border-b border-zinc-100 last:border-b-0">
-      <StatusIcon state={state} size={14} />
-      <p className="flex-1 min-w-0 text-sm text-zinc-900 truncate">{lesson.title}</p>
-      {lesson.exercises.length > 0 ? (
-        <ExerciseDots exercises={lesson.exercises} />
-      ) : (
-        <p className="text-xs text-zinc-400 italic">Aucun exercice</p>
+    <div
+      className={cn(
+        "flex flex-wrap items-start gap-x-3 gap-y-2 px-3 py-2.5 border-b border-zinc-100 last:border-b-0",
+        isNext && "rounded-xl border-b-transparent bg-indigo-50/60"
       )}
+    >
+      <span className="mt-0.5"><StatusIcon state={state} size={14} /></span>
+      <LessonTitle title={lesson.title} />
+      <div className="flex items-center gap-3">
+        {lesson.exercises.length > 0 ? (
+          <ExerciseDots exercises={lesson.exercises} />
+        ) : (
+          <p className="text-xs text-zinc-400 italic">Aucun exercice</p>
+        )}
+        {nextExercise && (
+          <Link
+            href={nextExercise.url}
+            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
+          >
+            Continuer <ArrowRight size={12} />
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -210,9 +257,12 @@ function ParcoursDetail({
   onRetry: () => void;
 }) {
   const state: StepState = parcours.isCompleted ? "done" : isCurrent ? "current" : "todo";
+  const nextLessonId = Array.isArray(lessons)
+    ? lessons.find((l) => l.unlocked && !l.isCompleted)?.id
+    : undefined;
   return (
-    <div className="space-y-3">
-      <div className="space-y-1">
+    <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 md:p-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
           <StatusIcon state={state} size={18} />
           <h2 className="flex-1 text-lg font-bold text-zinc-900">
@@ -222,9 +272,12 @@ function ParcoursDetail({
             <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">Vous êtes ici</span>
           )}
         </div>
-        <p className="text-sm text-zinc-500">
-          {parcours.completed}/{parcours.total} leçons terminées
-        </p>
+        <div className="flex items-center gap-3">
+          <ProgressBar completed={parcours.completed} total={parcours.total} />
+          <p className="shrink-0 text-sm text-zinc-500">
+            {parcours.completed}/{parcours.total} leçons terminées
+          </p>
+        </div>
         <p className="text-xs text-zinc-400">
           {CATEGORY_WHY[parcours.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
         </p>
@@ -245,7 +298,11 @@ function ParcoursDetail({
       )}
       {Array.isArray(lessons) && (
         lessons.length > 0 ? (
-          <div>{lessons.map((lesson) => <LessonRow key={lesson.id} lesson={lesson} />)}</div>
+          <div className="-mx-3">
+            {lessons.map((lesson) => (
+              <LessonRow key={lesson.id} lesson={lesson} isNext={lesson.id === nextLessonId} />
+            ))}
+          </div>
         ) : (
           <p className="text-sm text-zinc-400 italic">Aucune leçon dans ce parcours pour l&apos;instant.</p>
         )
@@ -282,8 +339,13 @@ function LevelMap({
               )}
             >
               <StatusIcon state={state} />
-              <span className="flex-1 truncate">{parcoursTitle(p)}</span>
-              <span className="text-xs text-zinc-400">{p.completed}/{p.total}</span>
+              <span className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="truncate">{parcoursTitle(p)}</span>
+                  <span className="text-xs font-normal text-zinc-400">{p.completed}/{p.total}</span>
+                </span>
+                <ProgressBar completed={p.completed} total={p.total} />
+              </span>
             </button>
           );
         }
