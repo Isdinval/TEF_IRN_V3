@@ -123,7 +123,7 @@ export default function ComprehensionEcritePage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 items-start">
-              <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+              <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
                 <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                   <Layers size={14} className="text-indigo-600" /> Format
                 </div>
@@ -146,7 +146,7 @@ export default function ComprehensionEcritePage() {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
+              <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
                 <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                   <Target size={14} className="text-indigo-600" /> Niveau
                 </div>
@@ -163,19 +163,19 @@ export default function ComprehensionEcritePage() {
                 </div>
               </div>
 
-              <div
+              <button
+                type="button"
                 onClick={handleSurpriseMe}
-                className="bg-indigo-600 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                className="block w-full space-y-4 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                  <Shuffle size={14} /> Scénario surprise
-                </div>
-                <h4 className="text-base font-black leading-tight">Laissez-vous surprendre</h4>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                  <Play size={16} /> Tirage aléatoire
-                </div>
-              </div>
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-80">
+                  <Shuffle size={14} aria-hidden /> Scénario surprise
+                </span>
+                <span className="block text-base font-black leading-tight">Laissez-vous surprendre</span>
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase">
+                  <Play size={16} aria-hidden /> Tirage aléatoire
+                </span>
+              </button>
             </div>
 
             <div className="flex items-center justify-between mb-6">
@@ -212,9 +212,9 @@ export default function ComprehensionEcritePage() {
                   <Link
                     key={s.id}
                     href={`/tef-irn/comprehension-ecrite/${s.id}`}
-                    className="group block rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
+                    className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
                   >
-                  <Card className="h-full overflow-hidden rounded-[1.75rem] border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform group-hover:-translate-y-1 group-hover:shadow-xl">
+                  <Card className="h-full overflow-hidden rounded-3xl border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform group-hover:-translate-y-1 group-hover:shadow-xl">
                     <CardContent className="flex flex-col gap-3 p-6">
                       <div className="flex items-center gap-2">
                         <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
