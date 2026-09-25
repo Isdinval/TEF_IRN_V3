@@ -84,6 +84,9 @@ Polices déjà configurées : **Montserrat** (`font-heading`) et **Inter** (`fon
 | Micro-label | `text-[10px] font-black uppercase tracking-widest text-zinc-500` | « Section », « Niveau », « Mise en situation »… |
 | Chiffre clé (KPI) | `text-3xl font-black text-zinc-900` | |
 
+Tailles : **uniquement l'échelle Tailwind** (`text-xs` à `text-5xl`) + `text-[10px]` pour les micro-labels. ❌ Rien sous 10 px, pas de `text-[11px]`…`text-[19px]`, pas de `text-[clamp(...)]` : une taille qui grandit avec l'écran s'écrit `text-2xl md:text-4xl`.
+Police : celle du thème (`font-sans`, définie une seule fois dans le layout). ❌ Pas de police locale à une page.
+
 ### 3.2 Graisses : 3 niveaux, pas plus
 
 - **`font-black` (900)** : H1, H2, micro-labels, badges, boutons principaux, chiffres clés.
@@ -166,6 +169,8 @@ import { PageHeader } from "@/components/shared/PageHeader";
 Prop optionnelle `aside` : élément affiché à droite sur desktop, en dessous sur mobile (ex. badge « Session vocale »).
 
 Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de taille et de couleur. Il n'a **pas de marge externe** : l'espace de 32 px sous l'en-tête est fourni par la page (conteneur `flex flex-col gap-8`, ou `mb-8` autour du composant). Pour changer l'en-tête de **toutes** les pages, on modifie ce fichier, jamais une page.
+
+`ExerciseLayout` (variante `full`, pages QCM, Chasse aux erreurs, Vocabulaire, Examen Civique) délègue à `PageHeader` : même rendu, props `title` + `highlight`. Sa variante `compact` est la barre collante **pendant** un exercice, pas un en-tête de page.
 
 ### 5.3 Règles
 
@@ -311,7 +316,9 @@ Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:
 
 ## 9. Checklist de relecture UI (avant chaque livraison)
 
-À vérifier sur **chaque** patch qui touche une page visible :
+À vérifier sur **chaque** patch qui touche une page visible.
+
+**« Revoir le design d'une page » = revue complète**, jamais seulement les couleurs : en-tête (§5), conteneur (§4.1), couleurs (§2), typographie — tailles, graisses, casse, police (§3), rayons et ombres (§4), composants (§6), mobile (§7), accessibilité RGAA / WCAG 2.2 AA (contraste, clavier, focus visible, `aria-label` des boutons-icônes, `alt` des images, cibles de 44 px).
 
 - [ ] L'en-tête suit le §5 **à l'identique** (taille, couleurs, marges, majuscules via `uppercase`).
 - [ ] Une seule couleur d'accent (indigo) ; les autres couleurs sont des états justifiés.
