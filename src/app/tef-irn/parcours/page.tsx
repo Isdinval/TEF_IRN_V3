@@ -44,7 +44,14 @@ export default async function ParcoursPage() {
 
   // Fetch all parcours + leur progression (3 requêtes groupées, pas de N+1)
   const allParcours = await getParcours(supabase);
-  const overviews = await getParcoursOverviews(allParcours, user?.id ?? null, supabase);
+  const [overviews, profileResult] = await Promise.all([
+    getParcoursOverviews(allParcours, user?.id ?? null, supabase),
+    // Parcours actif = celui de la TopBar (ParcoursContext), source unique pour "Reprendre".
+    user
+      ? supabase.from('profiles').select('last_active_parcours_id').eq('id', user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const activeParcoursId = (profileResult.data as { last_active_parcours_id: string | null } | null)?.last_active_parcours_id ?? null;
 
   const parcoursWithProgress: ParcoursWithProgress[] = allParcours.map((p) => ({
     ...p,
@@ -89,6 +96,7 @@ export default async function ParcoursPage() {
       <ParcoursList
         allParcours={parcoursWithProgress}
         user={user}
+        activeParcoursId={activeParcoursId}
       />
     </>
   );

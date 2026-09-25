@@ -195,18 +195,23 @@ const listClass = "divide-y divide-zinc-100 overflow-hidden rounded-2xl border b
 
 export default function ParcoursList({
   allParcours,
-  user
+  user,
+  activeParcoursId = null
 }: {
   allParcours: ParcoursWithProgress[];
   user: User | null;
+  activeParcoursId?: string | null;
 }) {
-  // Le plus récemment démarré en tête : c'est lui que "Reprendre" met en avant.
+  // "Reprendre" = le parcours actif de la TopBar (profiles.last_active_parcours_id),
+  // même sans activité. À défaut, le parcours en cours démarré le plus récemment.
+  const active = allParcours.find(p => p.id === activeParcoursId && !isDone(p));
   const enCours = allParcours
     .filter(p => !isDone(p) && isStarted(p))
     .sort((a, b) => (b.progress?.started_at ?? "").localeCompare(a.progress?.started_at ?? ""));
+  const current = active ?? enCours[0];
+  const otherEnCours = enCours.filter(p => p.id !== current?.id);
   const termines = allParcours.filter(isDone);
-  const aDecouvrir = allParcours.filter(p => !isDone(p) && !isStarted(p));
-  const [current, ...otherEnCours] = enCours;
+  const aDecouvrir = allParcours.filter(p => !isDone(p) && !isStarted(p) && p.id !== current?.id);
 
   const levels = [...new Set(allParcours.map(p => p.level))].sort();
   // Conseillé : premier parcours non commencé du niveau le plus bas pas encore terminé
