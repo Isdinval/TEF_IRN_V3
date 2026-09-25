@@ -1,6 +1,7 @@
 # Design system LlamaKusi
 
 > **Source de vérité du design de l'application.** Tout agent IA (Claude, Claude Code, Jules, Copilot) doit lire ce document **avant** de créer ou de modifier une page ou un composant visible par l'apprenant.
+> Vitrine visuelle (Claude Design, privée) : https://claude.ai/artifact/U6NuuHqLuDxidH6F9nfXyG — elle reflète ce document, qui fait foi en cas d'écart.
 > Ce document fixe des règles déjà tranchées. En cas de doute, on reproduit la **page de référence** : le catalogue Expression Orale (`/tef-irn/oral`), jugé idéal par le fondateur.
 
 Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
