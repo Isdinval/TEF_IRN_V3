@@ -41,7 +41,7 @@ export default function VocabCatalogueTable({ items }: VocabCatalogueTableProps)
             <h4 className="text-sm font-black text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
               {item.word}
             </h4>
-            <p className="text-xs text-zinc-400 font-medium line-clamp-1 mt-0.5">
+            <p className="text-xs text-zinc-500 font-medium line-clamp-1 mt-0.5">
               {item.definition}
             </p>
           </div>
