@@ -157,7 +157,7 @@ function ResumeCard({ p }: { p: ParcoursWithProgress }) {
       <p id="reprendre-title" className="mb-3 text-xs font-black uppercase tracking-widest text-indigo-600">
         Reprendre
       </p>
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest">
