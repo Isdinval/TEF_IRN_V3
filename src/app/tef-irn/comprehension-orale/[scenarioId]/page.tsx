@@ -216,14 +216,14 @@ export default function ComprehensionOraleScenarioPage() {
               </Badge>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
               <div className="text-2xl font-black text-indigo-600">{score} / {totalQuestions}</div>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function ComprehensionOraleScenarioPage() {
             <Button onClick={() => router.push('/tef-irn/comprehension-orale')} className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all">
               Retourner au catalogue
             </Button>
-            <Button variant="ghost" onClick={restartExercise} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">
+            <Button variant="ghost" onClick={restartExercise} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">
               <RotateCcw size={14} className="mr-2" /> Recommencer le sujet
             </Button>
           </div>
@@ -253,7 +253,7 @@ export default function ComprehensionOraleScenarioPage() {
         rightElement={
           <div className="hidden md:flex items-center gap-6">
             <div className="text-right">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Précision</div>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Précision</div>
               <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
             </div>
             <div className="h-12 w-px bg-zinc-100" />
@@ -285,7 +285,7 @@ export default function ComprehensionOraleScenarioPage() {
                   UN seul rectangle, suivi de l'audio du sujet, puis des
                   réponses -- même ordre que CE (badges+question -> contenu
                   -> réponses). */}
-              <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+              <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
                   <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
                     {scenario.level}
@@ -308,7 +308,7 @@ export default function ComprehensionOraleScenarioPage() {
                   chronique/micro_trottoir (fallback, comportement
                   inchangé -- 1 seul audio couvre réellement les 5
                   questions). */}
-              <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+              <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5">
                 <AudioPlayer
                   url={currentQuestion?.audio_url || scenario.audio_url}
                   maxPlays={scenario.max_plays ?? 2}
@@ -317,7 +317,7 @@ export default function ComprehensionOraleScenarioPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-2">
-                <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
+                <p className="text-center text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
                 {shuffledOptions.map((opt) => {
                   const isSelected = selected === opt.original;
                   const isCorrectOpt = !!checkedResult && opt.originalLetter === checkedResult.correctAnswer;
@@ -325,7 +325,7 @@ export default function ComprehensionOraleScenarioPage() {
                   let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
                   if (checkedResult) {
                     if (isCorrectOpt) buttonStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10';
-                    else if (isSelected) buttonStyle = 'border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10';
+                    else if (isSelected) buttonStyle = 'border-red-600 bg-red-50 text-red-700 shadow-none ring-4 ring-red-600/10';
                   } else if (isSelected) {
                     buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5';
                   }
@@ -340,13 +340,13 @@ export default function ComprehensionOraleScenarioPage() {
                       className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200'}`}>
                           {opt.display.charAt(0)}
                         </div>
                         {opt.display.slice(3)}
                       </div>
                       {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
-                      {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
+                      {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-red-600" size={18} />}
                     </motion.button>
                   );
                 })}
