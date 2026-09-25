@@ -191,6 +191,8 @@ git reset --hard FETCH_HEAD   # jamais git pull, pour éviter les conflits
 - Streaming possible via `Response` avec `ReadableStream`
 
 ### Styling
+- ⚠️ **Lire `docs/product/design-system.md` avant toute création ou modification d'une page ou d'un composant visible.** C'est la source de vérité du design : couleurs (accent indigo unique, gris `zinc`), typographie, en-tête de page badge + titre + description, badges, boutons, cartes, états. Appliquer sa checklist de relecture UI (§9) avant chaque livraison.
+- Toute nouvelle décision de design validée est ajoutée au design system dans le même patch que le code qui l'applique.
 - Tailwind CSS v4 — utiliser les classes utilitaires directement
 - shadcn/ui pour les composants de base — ne pas modifier les fichiers dans `src/components/ui/` générés automatiquement
 - Framer Motion pour les animations — uniquement dans des composants `"use client"`
@@ -284,6 +286,7 @@ CRON_SECRET                     (vérifie l'appel Vercel Cron sur /api/cron/srs-
 - ❌ Modifier les fichiers `supabase/migrations/` manuellement sans créer une nouvelle migration
 - ❌ Utiliser `@supabase/auth-helpers-nextjs` — déprécié, remplacé par `@supabase/ssr`
 - ❌ Modifier `src/components/ui/` manuellement (fichiers gérés par shadcn CLI)
+- ❌ Recoder à la main un motif UI déjà standardisé (en-tête de page, bandeau KPI admin…) ou introduire des couleurs hors de la palette de `docs/product/design-system.md` (`slate`, `gray`, `violet`, `purple`, `rose`…)
 - ❌ Insérer une tentative d'exercice directement (`exercise_attempts.insert()` côté client) au lieu d'appeler `POST /api/exercise-complete` — ça contourne le tracking d'erreurs, le SRS et les recommandations
 - ❌ Mélanger un import `@/lib/supabase` (client) et `@/lib/supabase-server` (serveur) dans le même fichier `src/lib/` partagé entre composants client et server — voir `srs-engine.ts` / `srs-engine-server.ts` pour le pattern correct de séparation
 
