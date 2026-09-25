@@ -181,33 +181,33 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
   const remaining = qcmRemaining + trousRemaining;
 
   return (
-    <div className="max-w-5xl mx-auto p-8 py-16 min-h-screen space-y-16">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
+    <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12 space-y-16">
 
       {/* BANDEAU : Bien joué */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center gap-10 bg-white rounded-[3rem] p-8 md:p-10 shadow-xl shadow-zinc-200/50 border border-zinc-100"
+        className="flex flex-col md:flex-row md:items-center gap-10 bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-zinc-100"
       >
         <div className="relative shrink-0 mx-auto md:mx-0">
-          <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2rem] flex items-center justify-center rotate-6 relative z-10 shadow-xl shadow-emerald-100">
+          <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center rotate-6 relative z-10">
             <Trophy size={40} />
           </div>
-          <div className="absolute inset-0 bg-emerald-200 blur-2xl opacity-30 -z-10" />
         </div>
 
         <div className="flex-1 space-y-1 text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight leading-tight">
             Bien joué ! 🎉
           </h1>
-          <p className="text-lg text-slate-500 font-medium leading-relaxed">
-            Vous avez terminé la leçon <span className="text-indigo-600 font-black italic">"{lesson.title}"</span>
+          <p className="text-lg text-zinc-500 font-medium leading-relaxed">
+            Vous avez terminé la leçon <span className="text-indigo-600 font-black">"{lesson.title}"</span>
           </p>
         </div>
 
         <div className="w-full md:w-64 shrink-0 space-y-2">
           <div className="flex justify-between items-baseline">
-            <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Parcours {lesson.level}</span>
+            <span className="text-xs font-black uppercase text-zinc-500 tracking-widest">Parcours {lesson.level}</span>
             <span className="text-lg font-black text-indigo-600">{progress.completed}/{progress.total}</span>
           </div>
           <div className="h-3 bg-zinc-100 rounded-full overflow-hidden">
@@ -231,7 +231,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
           transition={{ delay: 0.15 }}
           className="space-y-8"
         >
-          <div className="bg-amber-50 border border-amber-100 rounded-[2.5rem] p-8 text-center space-y-4">
+          <div className="bg-amber-50 border border-amber-100 rounded-3xl p-8 text-center space-y-4">
             <p className="text-xl md:text-2xl font-black text-amber-700">
               Faites {remaining} exercice{remaining > 1 ? "s" : ""} ci-dessous pour débloquer {nextLesson ? "la leçon suivante" : "la fin du parcours"}
             </p>
@@ -253,11 +253,11 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
               )}
             </div>
           ) : (
-            <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
-              <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
-                <BookText size={32} className="text-slate-200" />
+            <div className="bg-white rounded-3xl p-12 text-center space-y-4 border-2 border-dashed border-zinc-200">
+              <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mx-auto">
+                <BookText size={32} className="text-zinc-200" />
               </div>
-              <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
+              <p className="text-lg font-bold text-zinc-500">Pas encore d'exercice recommandé pour cette leçon.</p>
             </div>
           )}
         </motion.section>
@@ -268,17 +268,17 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             <Link href={`/tef-irn/lessons/${nextLesson.slug}`}>
               <Button
                 size="lg"
-                className="w-full h-16 text-xl font-black rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-200 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                className="w-full h-14 text-sm font-black uppercase tracking-widest rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
               >
                 Leçon suivante <ArrowRight className="ml-2" size={22} />
               </Button>
             </Link>
           ) : (
-            <div className="p-8 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 text-center">
+            <div className="p-8 bg-emerald-50 rounded-3xl border border-emerald-100 text-center">
               <p className="text-2xl font-black text-emerald-600">🎉 Parcours terminé</p>
               <p className="text-emerald-500 font-medium mb-6">Félicitations ! Vous avez complété toutes les leçons de ce parcours.</p>
               <Link href={parcoursSlug ? `/tef-irn/parcours/${parcoursSlug}/complete` : "/tef-irn/parcours"}>
-                <Button size="lg" className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg">
+                <Button size="lg" className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200">
                   Voir mon parcours
                 </Button>
               </Link>
@@ -297,7 +297,7 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
             className="space-y-8 mt-16"
           >
             <div className="flex items-center gap-4">
-              <h2 className="text-lg font-black text-zinc-400 tracking-tight">Continuer à s'entraîner (facultatif)</h2>
+              <h2 className="text-lg font-black uppercase text-zinc-900 tracking-tight">Continuer à s'entraîner (facultatif)</h2>
               <div className="h-px bg-zinc-100 flex-1" />
             </div>
 
@@ -313,16 +313,17 @@ export default function LessonComplete({ params }: { params: Promise<{ slug: str
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-[2.5rem] p-12 text-center space-y-4 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
-                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
-                  <BookText size={32} className="text-slate-200" />
+              <div className="bg-white rounded-3xl p-12 text-center space-y-4 border-2 border-dashed border-zinc-200">
+                <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center mx-auto">
+                  <BookText size={32} className="text-zinc-200" />
                 </div>
-                <p className="text-lg font-bold text-slate-400">Pas encore d'exercice recommandé pour cette leçon.</p>
+                <p className="text-lg font-bold text-zinc-500">Pas encore d'exercice recommandé pour cette leçon.</p>
               </div>
             )}
           </motion.section>
         </>
       )}
+    </div>
     </div>
   );
 }
