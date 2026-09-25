@@ -182,6 +182,11 @@ Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de 
 | Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
 | Badge d'état | `bg-emerald-50 text-emerald-700`, `bg-amber-50 text-amber-700` ou `bg-red-50 text-red-600` |
 
+Badges de carte (format + niveau) :
+- Le niveau s'affiche **seul** (`B2`), jamais « Niveau B2 » : le code CECRL suffit et évite la troncature.
+- Le libellé de format s'affiche **en entier** (« Document administratif »), jamais abrégé.
+- La rangée de badges est en `flex flex-wrap gap-2` : si la place manque, un badge passe à la ligne, il n'est **jamais tronqué**.
+
 Un badge doit être **compréhensible sans explication**. Exemple : « Conseillé » a été mal interprété, donc le libellé doit dire pourquoi (« Conseillé pour vous », « Suite logique »).
 
 ### 6.2 Boutons

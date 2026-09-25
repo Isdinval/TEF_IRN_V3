@@ -216,12 +216,12 @@ export default function ComprehensionEcritePage() {
                   >
                   <Card className="h-full overflow-hidden rounded-3xl border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform group-hover:-translate-y-1 group-hover:shadow-xl">
                     <CardContent className="flex flex-col gap-3 p-6">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
                           {FORMAT_LABELS[s.format]}
                         </Badge>
                         <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                          Niveau {s.level}
+                          {s.level}
                         </Badge>
                       </div>
                       <h3 className="text-lg font-black leading-tight tracking-tight text-zinc-900">
