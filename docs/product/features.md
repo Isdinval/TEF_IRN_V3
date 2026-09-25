@@ -19,6 +19,7 @@ Un chemin guidé vers la réussite.
 - **Niveaux Progressifs** : Contenu structuré de A1 à B2.
 - **Catégories Clés** : Grammaire, Conjugaison, Syntaxe, Orthographe.
 - **Leçons & Pratique** : Chaque leçon est couplée à des exercices d'application immédiate.
+- **Page Mes Parcours** (`/tef-irn/parcours`) : bloc « Reprendre » (parcours actif de la TopBar, `profiles.last_active_parcours_id`, à défaut le parcours en cours démarré le plus récemment ; prochaine leçon, progression), puis « À découvrir » en liste par niveau (onglets A1–B2, onglet par défaut = niveau du parcours conseillé, badge « Conseillé »), puis « Terminés » replié. Un parcours est « en cours » dès qu'au moins une leçon ou un exercice est fait (un parcours seulement ouvert reste « À découvrir »). « Conseillé » = premier parcours non commencé du niveau le plus bas pas encore terminé (règle fixe, indépendante des erreurs). Les parcours actifs affichent leçons, QCM et Chasse aux erreurs faits (quota 3 + 3 par leçon). Accent indigo unique, catégories en icônes neutres. Progression chargée en 3 requêtes groupées (`getParcoursOverviews`). Le détail leçon par leçon reste dans Ma progression (`/tef-irn/progression`).
 
 ## 4. Vocabulaire & SRS
 Mémorisation efficace des mots essentiels.

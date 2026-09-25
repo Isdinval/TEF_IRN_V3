@@ -119,6 +119,140 @@ export async function getParcours(supabase: SupabaseClient = defaultSupabase): P
   return data || [];
 }
 
+export interface ParcoursExerciseStats {
+  qcmDone: number;
+  qcmTotal: number;
+  trousDone: number;
+  trousTotal: number;
+}
+
+export interface ParcoursOverview {
+  progress: ParcoursProgress;
+  nextLesson: { slug: string; title: string } | null;
+  /** Exercices du quota parcours (3 QCM + 3 Chasse aux erreurs max par leçon,
+   *  même règle que getLessonExercisesWithStatus). null si le parcours n'a
+   *  aucune activité (inutile de charger ses exercices). */
+  exercises: ParcoursExerciseStats | null;
+}
+
+/**
+ * Progression + prochaine leçon de TOUS les parcours en 3 requêtes parallèles,
+ * au lieu d'un appel getParcoursProgress par parcours (N+1) sur la page
+ * /tef-irn/parcours. Même règle de calcul que getParcoursProgress (leçons du
+ * couple niveau/catégorie, lesson_progress de l'utilisateur).
+ * userId null (visiteur) : seules les leçons sont chargées (totaux, 1re leçon).
+ */
+export async function getParcoursOverviews(
+  parcours: Parcours[],
+  userId: string | null,
+  supabase: SupabaseClient = defaultSupabase
+): Promise<Record<string, ParcoursOverview>> {
+  const [lessonsResult, userParcoursResult, lessonProgressResult, attemptsResult] = await Promise.all([
+    supabase
+      .from('lessons')
+      .select('id, slug, title, level, category, order_index')
+      .order('order_index', { ascending: true }),
+    userId
+      ? supabase.from('user_parcours_progress').select('parcours_id, status, started_at').eq('user_id', userId)
+      : Promise.resolve({ data: null }),
+    userId
+      ? supabase.from('lesson_progress').select('lesson_id').eq('user_id', userId)
+      : Promise.resolve({ data: null }),
+    userId
+      ? supabase
+          .from('exercise_attempts')
+          .select('exercise_id, exercises!inner(lesson_id, type)')
+          .eq('user_id', userId)
+          .eq('is_completed', true)
+          .in('exercises.type', ['qcm', 'trous'])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const lessons = (lessonsResult.data ?? []) as Pick<Lesson, 'id' | 'slug' | 'title' | 'level' | 'category'>[];
+  const userParcours = new Map(
+    ((userParcoursResult.data ?? []) as { parcours_id: string; status: ParcoursProgress['status']; started_at: string | null }[])
+      .map((u) => [u.parcours_id, u])
+  );
+  const doneLessonIds = new Set(
+    ((lessonProgressResult.data ?? []) as { lesson_id: string }[]).map((l) => l.lesson_id)
+  );
+
+  // Exercices faits, dédoublonnés (plusieurs tentatives possibles), comptés par leçon et par type.
+  type Embedded = { lesson_id: string | null; type: string };
+  const doneByLesson = new Map<string, { qcm: number; trous: number }>();
+  const seenExercises = new Set<string>();
+  for (const a of (attemptsResult.data ?? []) as unknown as { exercise_id: string; exercises: Embedded | Embedded[] }[]) {
+    const ex = Array.isArray(a.exercises) ? a.exercises[0] : a.exercises;
+    if (!ex?.lesson_id || seenExercises.has(a.exercise_id)) continue;
+    seenExercises.add(a.exercise_id);
+    const c = doneByLesson.get(ex.lesson_id) ?? { qcm: 0, trous: 0 };
+    if (ex.type === 'qcm') c.qcm++;
+    else c.trous++;
+    doneByLesson.set(ex.lesson_id, c);
+  }
+
+  // Totaux d'exercices : seulement pour les leçons des parcours ayant une activité
+  // (la table exercises dépasse la limite de 1000 lignes d'une requête).
+  const activeLessonIds = lessons
+    .filter((l) =>
+      lessons.some((o) => o.level === l.level && o.category === l.category && (doneLessonIds.has(o.id) || doneByLesson.has(o.id)))
+    )
+    .map((l) => l.id);
+  const availableByLesson = new Map<string, { qcm: number; trous: number }>();
+  if (activeLessonIds.length > 0) {
+    const { data: exercises } = await supabase
+      .from('exercises')
+      .select('lesson_id, type')
+      .in('lesson_id', activeLessonIds)
+      .in('type', ['qcm', 'trous']);
+    for (const e of (exercises ?? []) as { lesson_id: string; type: string }[]) {
+      const c = availableByLesson.get(e.lesson_id) ?? { qcm: 0, trous: 0 };
+      if (e.type === 'qcm') c.qcm++;
+      else c.trous++;
+      availableByLesson.set(e.lesson_id, c);
+    }
+  }
+  const QUOTA = 3;
+
+  const overviews: Record<string, ParcoursOverview> = {};
+  for (const p of parcours) {
+    const ofParcours = lessons.filter((l) => l.level === p.level && l.category === p.category);
+    const completedLessons = ofParcours.filter((l) => doneLessonIds.has(l.id)).map((l) => l.id);
+    const total = ofParcours.length;
+    const completed = completedLessons.length;
+    const next = ofParcours.find((l) => !doneLessonIds.has(l.id));
+    const up = userParcours.get(p.id);
+
+    let exercises: ParcoursExerciseStats | null = null;
+    if (ofParcours.some((l) => availableByLesson.has(l.id))) {
+      exercises = { qcmDone: 0, qcmTotal: 0, trousDone: 0, trousTotal: 0 };
+      for (const l of ofParcours) {
+        const avail = availableByLesson.get(l.id) ?? { qcm: 0, trous: 0 };
+        const done = doneByLesson.get(l.id) ?? { qcm: 0, trous: 0 };
+        exercises.qcmTotal += Math.min(QUOTA, avail.qcm);
+        exercises.trousTotal += Math.min(QUOTA, avail.trous);
+        exercises.qcmDone += Math.min(QUOTA, avail.qcm, done.qcm);
+        exercises.trousDone += Math.min(QUOTA, avail.trous, done.trous);
+      }
+    }
+
+    overviews[p.id] = {
+      progress: {
+        total,
+        completed,
+        percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+        isCompleted: total > 0 && completed === total,
+        completedLessons,
+        status: up?.status,
+        started_at: up?.started_at,
+      },
+      nextLesson: next ? { slug: next.slug, title: next.title } : null,
+      exercises,
+    };
+  }
+  return overviews;
+}
+
 export async function getParcoursProgress(
   userId: string,
   level: string,

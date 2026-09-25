@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase-server";
-import { getParcours, getParcoursProgress, Parcours, ParcoursProgress } from "@/lib/parcours";
-import ParcoursList from "./ParcoursList";
+import { getParcours, getParcoursOverviews } from "@/lib/parcours";
+import ParcoursList, { ParcoursWithProgress } from "./ParcoursList";
 import JsonLd from "@/components/shared/JsonLd";
 import { siteUrl } from "@/lib/site";
 
@@ -36,30 +36,30 @@ export const metadata: Metadata = {
   },
 };
 
-interface ParcoursWithProgress extends Parcours {
-  progress?: ParcoursProgress;
-}
-
 export default async function ParcoursPage() {
   const supabase = await createClient();
 
   // Fetch user session
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch all parcours
+  // Fetch all parcours + leur progression (3 requêtes groupées, pas de N+1)
   const allParcours = await getParcours(supabase);
+  const [overviews, profileResult] = await Promise.all([
+    getParcoursOverviews(allParcours, user?.id ?? null, supabase),
+    // Parcours actif = celui de la TopBar (ParcoursContext), source unique pour "Reprendre".
+    user
+      ? supabase.from('profiles').select('last_active_parcours_id').eq('id', user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const activeParcoursId = (profileResult.data as { last_active_parcours_id: string | null } | null)?.last_active_parcours_id ?? null;
 
-  let parcoursWithProgress: ParcoursWithProgress[] = [];
-
-  if (user) {
-    const progressPromises = allParcours.map(async (p) => {
-      const prog = await getParcoursProgress(user.id, p.level, p.category, p.id, supabase);
-      return { ...p, progress: prog };
-    });
-    parcoursWithProgress = await Promise.all(progressPromises);
-  } else {
-    parcoursWithProgress = allParcours.map(p => ({ ...p }));
-  }
+  const parcoursWithProgress: ParcoursWithProgress[] = allParcours.map((p) => ({
+    ...p,
+    progress: user ? overviews[p.id]?.progress : undefined,
+    lessonCount: overviews[p.id]?.progress.total ?? 0,
+    nextLesson: overviews[p.id]?.nextLesson ?? null,
+    exerciseStats: user ? overviews[p.id]?.exercises ?? null : null,
+  }));
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -96,6 +96,7 @@ export default async function ParcoursPage() {
       <ParcoursList
         allParcours={parcoursWithProgress}
         user={user}
+        activeParcoursId={activeParcoursId}
       />
     </>
   );
