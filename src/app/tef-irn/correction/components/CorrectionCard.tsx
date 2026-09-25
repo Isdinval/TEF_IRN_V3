@@ -34,7 +34,7 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600 bg-emerald-50";
     if (score >= 50) return "text-indigo-600 bg-indigo-50";
-    return "text-rose-600 bg-rose-50";
+    return "text-red-600 bg-red-50";
   };
 
   return (
@@ -44,9 +44,9 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
       transition={{ delay: index * 0.05 }}
       onClick={onClick}
     >
-      <Card className="group cursor-pointer overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/50">
+      <Card className="group cursor-pointer overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-100/50">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-200">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-500 transition-all group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-200">
             {isOral ? <Mic size={28} /> : <FileText size={28} />}
           </div>
 
@@ -59,7 +59,7 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
                 {level}
               </Badge>
               <Badge className={`shrink-0 rounded-full border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
-                isOral ? "bg-violet-50 text-violet-600" : "bg-sky-50 text-sky-600"
+                "bg-zinc-100 text-zinc-600"
               }`}>
                 {isOral ? "EO" : "EE"}
               </Badge>
@@ -70,7 +70,7 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-zinc-400">
+            <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-zinc-500">
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} className="text-zinc-300" />
                 {new Date(attempt.created_at).toLocaleDateString('fr-FR')}

@@ -254,7 +254,7 @@ function CorrectionHistoryPageContent() {
           <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-20 animate-pulse" />
           <Loader2 className="relative animate-spin text-indigo-600 mb-6" size={48} />
         </div>
-        <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
+        <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-500">
           {resolvingDeepLink ? "Ouverture de la correction..." : "Chargement de votre réussite..."}
         </p>
       </div>

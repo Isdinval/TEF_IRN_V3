@@ -146,7 +146,7 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
             </span>
             <span className="text-sm font-black text-zinc-900">{row.score}%</span>
           </div>
-          <p className="text-[11px] font-bold text-zinc-400">{row.date} · {row.type}</p>
+          <p className="text-[11px] font-bold text-zinc-500">{row.date} · {row.type}</p>
           {row.level && (
             <p className="text-[11px] font-bold text-zinc-500">Niveau CECRL estimé : <span className="text-zinc-700">{row.level}</span></p>
           )}
@@ -232,8 +232,8 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
       label: "Corrections",
       value: total,
       icon: History,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
       tooltip: "Nombre de tentatives correspondant au filtre Type actuellement sélectionné ci-dessous (Tous / Examen blanc / EE / EO)."
     },
     {
@@ -266,11 +266,11 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
     <div className="space-y-6">
       {estimatedLevel.level && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="overflow-hidden rounded-[2.5rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+          <Card className="overflow-hidden rounded-3xl border-none bg-zinc-950 shadow-xl shadow-indigo-100">
             <CardContent className="flex flex-col items-center gap-2 p-8 text-center relative">
               <div className="absolute top-5 right-5">
                 <InfoTooltip
-                  className="text-slate-500 hover:text-slate-300"
+                  className="text-zinc-500 hover:text-zinc-300"
                   text={`Estimation basée sur le niveau CECRL démontré (indépendant du niveau visé par chaque sujet) de vos ${estimatedLevel.sampleSize} dernières tentatives EE+EO les plus récentes, pondérées par récence. Ce n'est pas un score officiel TEF IRN.`}
                 />
               </div>
@@ -279,7 +279,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                 <span className="text-xs font-black uppercase tracking-widest">Niveau CECRL estimé actuel</span>
               </div>
               <h2 className="text-5xl font-black tracking-tighter text-white">{estimatedLevel.level}</h2>
-              <p className="text-xs font-medium text-slate-400">
+              <p className="text-xs font-medium text-zinc-400">
                 Basé sur vos {estimatedLevel.sampleSize} dernières tentatives EE+EO
               </p>
             </CardContent>
@@ -295,7 +295,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <Card className="border-none shadow-xl shadow-zinc-100 overflow-hidden rounded-[2.5rem]">
+            <Card className="border-none shadow-xl shadow-zinc-100 overflow-hidden rounded-3xl">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
@@ -303,7 +303,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                   </div>
                   <InfoTooltip text={stat.tooltip} />
                 </div>
-                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-sm font-bold text-zinc-500 uppercase tracking-widest">{stat.label}</p>
                 <h4 className="text-3xl font-black text-zinc-900 tracking-tighter">{stat.value}</h4>
               </CardContent>
             </Card>
@@ -317,7 +317,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-none shadow-xl shadow-zinc-100 rounded-[2.5rem] overflow-hidden bg-white">
+          <Card className="border-none shadow-xl shadow-zinc-100 rounded-3xl overflow-hidden bg-white">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -325,10 +325,10 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                     <TrendingUp className="text-indigo-600" size={24} />
                     Évolution de vos scores
                   </h3>
-                  <p className="text-sm font-medium text-zinc-400">
+                  <p className="text-sm font-medium text-zinc-500">
                     Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc). Cliquez un point pour voir le détail de la correction.
                   </p>
-                  <div className="mt-2 flex items-center gap-4 text-[11px] font-bold text-zinc-400">
+                  <div className="mt-2 flex items-center gap-4 text-[11px] font-bold text-zinc-500">
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-zinc-400" />
                       Pratique libre

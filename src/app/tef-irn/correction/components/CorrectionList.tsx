@@ -43,7 +43,7 @@ export const CorrectionList = ({
 
   if (attempts.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
+      <div className="flex flex-col items-center justify-center py-20 px-6 text-center bg-white rounded-3xl border-2 border-dashed border-zinc-100 shadow-xl shadow-zinc-50">
         <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
           <Inbox size={48} className="text-zinc-200" />
         </div>
@@ -81,7 +81,7 @@ export const CorrectionList = ({
 
       <div ref={observerTarget} className="h-20 flex items-center justify-center">
         {isLoading && (
-          <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
+          <div className="flex items-center gap-2 text-zinc-500 font-bold uppercase tracking-widest text-xs">
             <Loader2 className="animate-spin" size={20} />
             Chargement...
           </div>

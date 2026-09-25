@@ -59,7 +59,7 @@ export function RecommendedExercises({ attempt }: { attempt: ExerciseAttempt }) 
 
   return (
     <div className="space-y-4">
-      <h3 className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-zinc-400 px-4">
+      <h3 className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.2em] text-zinc-500 px-4">
         <Sparkles size={18} className="text-indigo-600" />
         Exercices recommandés pour progresser
       </h3>
