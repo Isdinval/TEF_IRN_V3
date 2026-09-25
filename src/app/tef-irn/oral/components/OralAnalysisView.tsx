@@ -18,19 +18,19 @@ export function OralAnalysisView({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden rounded-[2rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+      <Card className="overflow-hidden rounded-3xl border-none bg-zinc-950 shadow-xl shadow-indigo-100">
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
           <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest">
             Niveau estimé
           </Badge>
           <h2 className="text-6xl font-black tracking-tighter text-white">{analysis.estimated_level}</h2>
-          <p className="text-sm font-medium text-slate-400">
+          <p className="text-sm font-medium text-zinc-400">
             Score global : <span className="font-black text-white">{analysis.overall_score}/100</span>
           </p>
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+      <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
           <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
             Détail par critère (grille officielle TEF IRN)
@@ -50,7 +50,7 @@ export function OralAnalysisView({
       </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+        <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
           <CardHeader className="border-b border-zinc-100 bg-emerald-50 px-6 py-4">
             <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
               <CheckCircle2 size={14} /> Points forts
@@ -65,7 +65,7 @@ export function OralAnalysisView({
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+        <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
           <CardHeader className="border-b border-zinc-100 bg-amber-50 px-6 py-4">
             <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-700">
               <TrendingUp size={14} /> À travailler
@@ -81,7 +81,7 @@ export function OralAnalysisView({
         </Card>
       </div>
 
-      <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+      <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
           <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
             Commentaire du coach
@@ -92,7 +92,7 @@ export function OralAnalysisView({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+      <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
           <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
             <MessageSquareText size={14} /> Transcription complète

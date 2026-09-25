@@ -413,7 +413,7 @@ function OralCoachContent() {
               <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
                 {scenario.title}
               </h1>
-              <p className="mb-4 text-sm font-bold uppercase tracking-wide text-zinc-400">
+              <p className="mb-4 text-sm font-bold uppercase tracking-wide text-zinc-500">
                 Vous incarnez <span className="text-zinc-600">le candidat</span> · en appel avec{" "}
                 <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
               </p>
@@ -445,13 +445,13 @@ function OralCoachContent() {
         {status === "catalogue" && (
           <>
             {sessionError && (
-              <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4">
+              <Card className="rounded-3xl border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4">
                 <AlertTriangle className="text-red-400 shrink-0" size={24} />
                 <p className="text-sm font-bold text-zinc-600">{sessionError}</p>
               </Card>
             )}
             {hasFreeOralTrial && (
-              <Card className="rounded-[2rem] border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
+              <Card className="rounded-3xl border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
                 <Lock className="text-indigo-400 shrink-0" size={18} />
                 <p className="text-xs font-bold text-zinc-500">
                   Il s'agit de votre unique session d'essai gratuite du Coach Oral. Passez à Premium pour un accès illimité.
@@ -459,7 +459,7 @@ function OralCoachContent() {
               </Card>
             )}
             {scenariosError ? (
-              <Card className="rounded-[2rem] border-2 border-dashed border-red-200 bg-red-50/50 p-12 text-center">
+              <Card className="rounded-3xl border-2 border-dashed border-red-200 bg-red-50/50 p-12 text-center">
                 <AlertTriangle className="mx-auto mb-4 text-red-300" size={40} />
                 <p className="font-bold text-zinc-600 mb-4">Impossible de charger les exercices oraux. Vérifiez votre connexion.</p>
                 <Button onClick={fetchScenarios} variant="outline" className="rounded-2xl font-bold">
@@ -484,7 +484,7 @@ function OralCoachContent() {
         {(status === "connecting" || status === "active" || status === "analyzing") && (
           <div className="flex min-h-0 flex-1 flex-col gap-6">
             {scenario && scenario.objectifs?.length > 0 && (
-              <Card className="rounded-[2rem] border-none bg-white p-6 shadow-lg shadow-zinc-200/50">
+              <Card className="rounded-3xl border-none bg-white p-6 shadow-lg shadow-zinc-200/50">
                 <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                   <ListChecks size={14} /> Votre mission
                 </div>
@@ -499,7 +499,7 @@ function OralCoachContent() {
               </Card>
             )}
 
-            <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[3rem] border-none bg-slate-950 shadow-2xl shadow-indigo-100">
+            <Card className="relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border-none bg-zinc-950 shadow-xl shadow-indigo-100">
               {status === "active" && isListening && (
                 <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-20">
                   {[...Array(12)].map((_, index) => (
@@ -523,7 +523,7 @@ function OralCoachContent() {
                       ? isListening
                         ? "bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.6)]"
                         : "bg-indigo-900"
-                      : "bg-slate-800"
+                      : "bg-zinc-800"
                   }`}
                 >
                   {status === "connecting" || status === "analyzing" ? (
@@ -539,7 +539,7 @@ function OralCoachContent() {
                     {status === "active" && (isListening ? "Le Coach vous écoute..." : "Micro coupé")}
                     {status === "analyzing" && "Analyse de votre passage..."}
                   </h3>
-                  <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-slate-400">
+                  <p className="mt-3 max-w-md text-sm font-medium leading-relaxed text-zinc-400">
                     {status === "active"
                       ? "Parlez naturellement, comme lors de l'examen."
                       : status === "analyzing"
@@ -560,7 +560,7 @@ function OralCoachContent() {
                     </Button>
                     <Button
                       size="lg"
-                      className={`${isListening ? "bg-rose-500 hover:bg-rose-600" : "bg-indigo-600 hover:bg-indigo-700"} h-14 rounded-2xl px-8 font-black transition-colors`}
+                      className={`${isListening ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"} h-14 rounded-2xl px-8 font-black transition-colors`}
                       onClick={toggleMic}
                     >
                       {isListening ? (
@@ -579,7 +579,7 @@ function OralCoachContent() {
             </Card>
 
             {status === "active" && liveTranscript.length > 0 && (
-              <Card className="overflow-hidden rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-200/50">
+              <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
                 <div className="flex max-h-[220px] flex-col gap-3 overflow-auto p-6">
                   {liveTranscript.map((t, i) => (
                     <p key={i} className="text-sm leading-relaxed">
