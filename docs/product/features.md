@@ -19,6 +19,7 @@ Un chemin guidé vers la réussite.
 - **Niveaux Progressifs** : Contenu structuré de A1 à B2.
 - **Catégories Clés** : Grammaire, Conjugaison, Syntaxe, Orthographe.
 - **Leçons & Pratique** : Chaque leçon est couplée à des exercices d'application immédiate.
+- **Page Mes Parcours** (`/tef-irn/parcours`) : bloc « Reprendre » (parcours démarré le plus récemment, prochaine leçon, progression), puis « À découvrir » en liste par niveau (onglets A1–B2, niveau en cours par défaut, badge « Conseillé » sur le prochain parcours logique), puis « Terminés » replié. Un parcours est « en cours » dès qu'il est démarré, même à 0 %. Accent indigo unique, catégories en icônes neutres. Progression chargée en 3 requêtes groupées (`getParcoursOverviews`). Le détail leçon par leçon reste dans Ma progression (`/tef-irn/progression`).
 
 ## 4. Vocabulaire & SRS
 Mémorisation efficace des mots essentiels.
