@@ -95,6 +95,37 @@ function OralCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lancement direct depuis /tef-irn/progression (?start=1) : session démarrée
+  // sur un sujet du niveau et de la section de l'étape jamais fait par
+  // l'apprenant (repli sur le tirage de /api/oral/session s'il les a tous
+  // faits). Réservé aux paliers qui incluent le Coach Oral : un
+  // compte Gratuit ne doit jamais consommer son essai unique sans l'avoir
+  // choisi, il reste donc sur le catalogue filtré.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current || subscriptionTier === undefined || loadingScenarios || searchParams.get('start') !== '1') return;
+    autoStartedRef.current = true;
+    if (!hasOralCoach || !user) return;
+    const level = searchParams.get('level');
+    const section = searchParams.get('section');
+    supabase
+      .from('oral_session_results')
+      .select('scenario_id')
+      .eq('user_id', user.id)
+      .then(({ data }: { data: { scenario_id: string | null }[] | null }) => {
+        const done = new Set((data ?? []).map((r) => r.scenario_id));
+        const neverDone = allScenarios.filter(
+          (s) => (!level || s.level === level) && (!section || s.section === section) && !done.has(s.id)
+        );
+        if (neverDone.length > 0) {
+          startSession(neverDone[Math.floor(Math.random() * neverDone.length)].id);
+        } else {
+          startSession(undefined, { level, section });
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscriptionTier, loadingScenarios]);
+
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -144,7 +175,12 @@ function OralCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startSession = async (scenarioId?: string) => {
+  const startSession = async (
+    scenarioId?: string,
+    // Filtres explicites (lancement direct via l'URL) : l'état des filtres
+    // n'est pas encore à jour au premier rendu.
+    filters?: { level: string | null; section: string | null }
+  ) => {
     try {
       setSessionError(null);
       setStatus("connecting");
@@ -155,8 +191,10 @@ function OralCoachContent() {
       if (scenarioId) {
         params.set("scenarioId", scenarioId);
       } else {
-        if (filterSection !== "all") params.set("section", filterSection);
-        if (filterLevel !== "all") params.set("level", filterLevel);
+        const section = filters ? filters.section : filterSection !== "all" ? filterSection : null;
+        const level = filters ? filters.level : filterLevel !== "all" ? filterLevel : null;
+        if (section) params.set("section", section);
+        if (level) params.set("level", level);
       }
 
       const tokenResponse = await fetch(`/api/oral/session?${params.toString()}`);

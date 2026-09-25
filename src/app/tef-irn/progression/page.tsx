@@ -8,7 +8,12 @@ export const metadata = {
   description: "Votre progression complète vers le TEF IRN, niveau par niveau : parcours, expression écrite, expression orale et examens blancs.",
 };
 
-export default async function ProgressionPage() {
+export default async function ProgressionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ niveau?: string }>;
+}) {
+  const { niveau } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -30,6 +35,7 @@ export default async function ProgressionPage() {
     <ProgressionInteractive
       levels={levels}
       currentLevel={(profile?.current_level as string) || "A1"}
+      requestedLevel={niveau}
     />
   );
 }

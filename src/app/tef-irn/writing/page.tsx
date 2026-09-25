@@ -142,11 +142,17 @@ export function WritingCoachContent() {
       .finally(() => setLoadingScenarios(false));
   }, []);
 
+  // Dépendances limitées aux paramètres réellement lus : ParcoursContext
+  // ajoute ?parcoursId= à l'URL après le montage (router.replace), ce qui
+  // relançait cet effet et renvoyait au catalogue un sujet déjà ouvert
+  // (ex. lancement direct depuis /tef-irn/progression).
+  const idParam = searchParams.get('id');
+  const subjectParam = searchParams.get('subject');
+  const levelParam = searchParams.get('level');
+
   useEffect(() => {
     async function fetchData() {
-      const exerciseId = (params?.id as string | undefined) || searchParams.get('id');
-      const subjectParam = searchParams.get('subject');
-      const levelParam = searchParams.get('level');
+      const exerciseId = (params?.id as string | undefined) || idParam;
 
       if (subjectParam) {
         setScenarioSection(null);
@@ -191,7 +197,7 @@ export function WritingCoachContent() {
       setLoading(false);
     }
     fetchData();
-  }, [params?.id, searchParams, supabase]);
+  }, [params?.id, idParam, subjectParam, levelParam, supabase]);
 
   useEffect(() => {
     if (status === "writing") {
@@ -219,6 +225,32 @@ export function WritingCoachContent() {
     setActiveErrorIndex(null);
     setStatus("writing");
   }, [allScenarios]);
+
+  // Lancement direct depuis /tef-irn/progression (?start=1) : un sujet du
+  // niveau et de la section de l'étape, jamais fait par l'apprenant (repli sur
+  // tous les sujets s'il les a tous faits), est ouvert sans passer par le
+  // catalogue -- une seule fois, dès que les sujets sont chargés.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current || searchParams.get("start") !== "1" || allScenarios.length === 0) return;
+    autoStartedRef.current = true;
+    const levelParam = searchParams.get("level");
+    const sectionParam = searchParams.get("section");
+    const matching = allScenarios.filter(
+      (s) => (!levelParam || s.level === levelParam) && (!sectionParam || s.section === sectionParam)
+    );
+    if (matching.length === 0) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: attempts } = user
+        ? await supabase.from("writing_scenario_attempts").select("scenario_id").eq("user_id", user.id)
+        : { data: [] };
+      const done = new Set((attempts ?? []).map((a: { scenario_id: string | null }) => a.scenario_id));
+      const neverDone = matching.filter((s) => !done.has(s.id));
+      const pool = neverDone.length > 0 ? neverDone : matching;
+      handleSelectScenario(pool[Math.floor(Math.random() * pool.length)].id);
+    })();
+  }, [allScenarios, searchParams, handleSelectScenario, supabase]);
 
   const handleSurpriseMe = useCallback(() => {
     const filtered = allScenarios.filter(
