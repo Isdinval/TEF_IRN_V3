@@ -51,6 +51,7 @@ export default async function ParcoursPage() {
     progress: user ? overviews[p.id]?.progress : undefined,
     lessonCount: overviews[p.id]?.progress.total ?? 0,
     nextLesson: overviews[p.id]?.nextLesson ?? null,
+    exerciseStats: user ? overviews[p.id]?.exercises ?? null : null,
   }));
 
   const jsonLd = {
