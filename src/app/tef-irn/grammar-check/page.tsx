@@ -649,7 +649,7 @@ export function GrammarCheckContent() {
               </div>
             )}
           </div>
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
               <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
@@ -671,11 +671,11 @@ export function GrammarCheckContent() {
                   router.push("/tef-irn/grammar-check");
                 }
               }}
-              className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+              className="h-12 rounded-2xl border border-zinc-200 bg-white text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-all"
             >Retourner au catalogue</Button>
             {learningMode === "academique" && questions[0]?.lesson_id && lessonBreadcrumbById[questions[0].lesson_id]?.slug && (
               <Link href={`/tef-irn/lessons/${lessonBreadcrumbById[questions[0].lesson_id].slug}/complete`}>
-                <Button className="h-12 w-full bg-indigo-600 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-indigo-700 transition-all">
+                <Button className="h-12 w-full bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
                   Retour à la leçon
                 </Button>
               </Link>
@@ -710,7 +710,7 @@ export function GrammarCheckContent() {
             <p className="text-sm text-zinc-500 font-medium">{quotaBlocked}</p>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
+            <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
             <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
@@ -757,7 +757,7 @@ export function GrammarCheckContent() {
                 <Button
                   onClick={() => toggleLesson(current.lesson_id)}
                   variant="outline"
-                  className="h-10 rounded-xl border-2 border-indigo-100 bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100"
+                  className="h-11 rounded-2xl border border-zinc-200 bg-white text-zinc-700 font-bold text-xs uppercase tracking-widest hover:bg-zinc-50"
                 >
                   {loadingLesson ? (
                     <Loader2 size={14} className="mr-2 animate-spin" />
@@ -775,7 +775,7 @@ export function GrammarCheckContent() {
               </div>
               <div className="h-12 w-px bg-zinc-100" />
               <div className="flex flex-col gap-2">
-                 <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
+                 <div className="w-48 h-2 bg-indigo-100 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
@@ -832,10 +832,9 @@ export function GrammarCheckContent() {
                         ? `/tef-irn/lessons/${lessonBreadcrumbById[current.lesson_id].slug}`
                         : undefined
                     }
-                  accentColor="indigo"
                 />
 
-                <div className="bg-white p-4 lg:p-6 rounded-3xl shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+                <div className="bg-white p-4 lg:p-6 rounded-3xl border border-zinc-100 shadow-sm text-center relative overflow-hidden">
                   <div className="flex flex-wrap items-center justify-center gap-2 relative z-10">
                     {currentParsed.tokens.map((token) => {
                       const isSelected = selectedWordIndex === token.index;
@@ -848,7 +847,7 @@ export function GrammarCheckContent() {
                         }
                       } else {
                         if (isTheError && isSelected) {
-                          stateClass = "bg-emerald-500 text-white border-emerald-600";
+                          stateClass = "bg-emerald-600 text-white border-emerald-600";
                         } else if (isTheError) {
                           stateClass = "bg-emerald-100 text-emerald-900 border-emerald-400";
                         } else if (isSelected) {
@@ -864,15 +863,13 @@ export function GrammarCheckContent() {
                           type="button"
                           onClick={() => handleSelectWord(token.index)}
                           disabled={status !== "typing"}
-                          className={`px-3 py-1.5 rounded-xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
+                          className={`min-h-11 px-3 py-1.5 rounded-2xl border-2 font-bold text-sm tracking-tight transition-all ${stateClass} disabled:cursor-default`}
                         >
                           {token.display}
                         </button>
                       );
                     })}
                   </div>
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
-                  <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
                 </div>
 
                 <AnimatePresence>
@@ -896,7 +893,7 @@ export function GrammarCheckContent() {
                       type="button"
                       onClick={handleSelectNoError}
                       disabled={status !== "typing"}
-                      className={`h-11 px-6 rounded-2xl border-4 font-black text-xs uppercase tracking-widest transition-all shadow-lg disabled:cursor-default ${
+                      className={`h-11 px-6 rounded-2xl border-2 font-black text-xs uppercase tracking-widest transition-all shadow-sm disabled:cursor-default ${
                         status === "typing"
                           ? selectedNoError
                             ? "border-indigo-600 bg-indigo-600 text-white"
@@ -913,7 +910,7 @@ export function GrammarCheckContent() {
                       Il n'y a pas de faute
                     </button>
                     {status !== "typing" && (
-                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg bg-zinc-900">
+                       <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${status === "correct" ? "bg-emerald-600" : "bg-red-600"}`}>
                         {status === "correct" ? "Excellent !" : "Presque !"}
                        </div>
                     )}
@@ -925,7 +922,7 @@ export function GrammarCheckContent() {
                         <Button
                           onClick={checkCorrection}
                           disabled={selectedWordIndex === null && !selectedNoError}
-                          className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
                         >
                           VÉRIFIER MA RÉPONSE
                         </Button>
@@ -936,12 +933,12 @@ export function GrammarCheckContent() {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-2"
                       >
-                        <Card className={`p-4 rounded-2xl border-none shadow-lg ${status === "correct" ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white"}`}>
+                        <Card className={`p-4 rounded-2xl border shadow-sm ${status === "correct" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
                           <div className="flex items-center gap-2 mb-2 opacity-80 text-[10px] font-black uppercase tracking-widest">
                             <Sparkles size={14} /> Note pédagogique
                           </div>
-                          <p className="text-xs font-bold leading-relaxed italic mb-2">"{current?.explanation}"</p>
-                          <div className="flex items-center gap-2 font-black text-xs uppercase tracking-widest pt-2 border-t border-white/10">
+                          <p className="text-sm font-medium leading-relaxed mb-2">{current?.explanation}</p>
+                          <div className="flex items-center gap-2 font-black text-xs uppercase tracking-widest pt-2 border-t border-black/5">
                             {currentParsed.hasError ? (
                               <>Réponse correcte : <span className="underline decoration-wavy">{current?.correct_word}</span></>
                             ) : (
@@ -1028,7 +1025,7 @@ export function GrammarCheckContent() {
                   <button
                     key={cat}
                     onClick={() => setCategory(cat)}
-                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
+                    className={`px-6 h-12 rounded-2xl font-black text-sm transition-all ${filters.category === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-50 text-zinc-500 hover:border-zinc-200'}`}
                   >
                     {cat}
                   </button>
@@ -1036,23 +1033,23 @@ export function GrammarCheckContent() {
               </div>
             </div>
 
-            <div
+            <button
+                type="button"
                 onClick={() => {
                     const targetId = recommendedExerciseId
                       ?? catalogue[Math.floor(Math.random() * catalogue.length)]?.id;
                     if (targetId) startTraining(targetId);
                 }}
-                className="bg-indigo-600 p-6 rounded-3xl text-white space-y-4 shadow-xl shadow-indigo-100 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform"
+                className="block w-full space-y-4 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <div className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
-                <Zap size={14} /> Recommandé pour vous
-              </div>
-              <h4 className="text-lg font-black leading-tight">Lancer mon exercice recommandé</h4>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                <Sparkles size={16} /> {recommendationReason || "Basé sur vos performances"}
-              </div>
-            </div>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+                <Zap size={14} aria-hidden /> Recommandé pour vous
+              </span>
+              <span className="block text-lg font-black leading-tight">Lancer mon exercice recommandé</span>
+              <span className="flex items-start gap-2 text-xs font-medium leading-snug text-indigo-100">
+                <Sparkles size={16} aria-hidden className="mt-0.5 shrink-0" /> {recommendationReason || "Basé sur vos performances"}
+              </span>
+            </button>
           </div>
 
           <section className="mt-8">
