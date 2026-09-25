@@ -11,7 +11,12 @@ const RULES = [
   [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2)"],
   [/\bfont-(?:semibold|extrabold)\b/, "graisse interdite (§3.2)"],
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
-  [/\bmax-md:/, "préfixe max-md: (§7.1)"],
+  // Éditeur EE : max-md: toléré (design system §2.5).
+  [/\bmax-md:/, "préfixe max-md: (§7.1)", ["src/app/tef-irn/writing/page.tsx", "src/app/tef-irn/writing/components/ZoneRedaction.tsx"]],
+  [/\btext-\[(?:[0-9]|10\.|1[1-9])px\]/, "taille hors échelle : 10px minimum (micro-label), sinon text-xs et plus (§3.1, §7.2)"],
+  [/\btext-\[clamp/, "taille fluide hors échelle : utiliser text-* + md: (§3.1)"],
+  [/>[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ' ’!]{4,}</, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
+  [/"[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ’ ]{7,}"/, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
   [/\b100vh\b/, "100vh → 100dvh (§7.3)"],
 ];
 
@@ -23,7 +28,7 @@ for (const l of diff.split("\n")) {
   if (l.startsWith("+++ ")) file = l.slice(6);
   else if (l.startsWith("@@")) line = Number(/\+(\d+)/.exec(l)?.[1] ?? 0);
   else if (l.startsWith("+")) {
-    for (const [re, msg] of RULES) if (re.test(l)) errors.push(`${file}:${line}  ${msg}`);
+    for (const [re, msg, allowed = []] of RULES) if (re.test(l) && !allowed.includes(file)) errors.push(`${file}:${line}  ${msg}`);
     line++;
   }
 }
