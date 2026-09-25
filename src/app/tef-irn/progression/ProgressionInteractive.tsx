@@ -8,6 +8,8 @@ import { CheckCircle2, Circle, CircleDot, Lock, PenTool, Mic, ClipboardCheck, Ch
 import { cn } from "@/lib/utils";
 import type { LevelProgression, LevelStep, ParcoursStepStatus } from "@/lib/progression";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { useParcours } from "@/contexts/ParcoursContext";
+import { Badge } from "@/components/ui/badge";
 
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
@@ -61,10 +63,21 @@ function parcoursOf(level: LevelProgression | undefined): ParcoursStepStatus[] {
   return level.steps.flatMap((s) => (s.kind === "parcours" ? [s.data] : []));
 }
 
-/** Parcours "en cours" = premier parcours non terminé du niveau. */
-function currentParcoursId(level: LevelProgression | undefined): string | null {
+/**
+ * Parcours "en cours" : le parcours actif de l'utilisateur (le même que la
+ * barre "Parcours en cours" en haut de page) s'il appartient à ce niveau et
+ * n'est pas terminé ; sinon le premier parcours non terminé du niveau.
+ */
+function currentParcoursId(level: LevelProgression | undefined, activeParcoursId: string | null): string | null {
   const parcours = parcoursOf(level);
-  return (parcours.find((p) => !p.isCompleted) ?? parcours[0])?.id ?? null;
+  const active = parcours.find((p) => p.id === activeParcoursId && !p.isCompleted);
+  return (active ?? parcours.find((p) => !p.isCompleted) ?? parcours[0])?.id ?? null;
+}
+
+/** Étape mise en avant dans la barre et visée par "Reprendre". */
+function focusStepIndex(level: LevelProgression, currentId: string | null): number {
+  const currentIndex = level.steps.findIndex((s) => s.kind === "parcours" && s.data.id === currentId && !s.data.isCompleted);
+  return currentIndex !== -1 ? currentIndex : level.steps.findIndex((s) => !isStepDone(s));
 }
 
 function parcoursTitle(p: ParcoursStepStatus): string {
@@ -76,8 +89,12 @@ function parcoursTitle(p: ParcoursStepStatus): string {
  * parcours, on vise directement le premier exercice non fait des leçons
  * débloquées (si déjà chargées), sinon la page du parcours.
  */
-function nextActionHref(level: LevelProgression, lessonsByParcours: Record<string, LessonsState>): string | null {
-  const next = level.steps.find((s) => !isStepDone(s));
+function nextActionHref(
+  level: LevelProgression,
+  focusIndex: number,
+  lessonsByParcours: Record<string, LessonsState>
+): string | null {
+  const next = level.steps[focusIndex];
   if (!next) return null;
   if (next.kind !== "parcours") return next.data.href;
   const lessons = lessonsByParcours[next.data.id];
@@ -91,8 +108,7 @@ function nextActionHref(level: LevelProgression, lessonsByParcours: Record<strin
   return `/tef-irn/parcours/${next.data.slug}`;
 }
 
-function LevelProgressBar({ steps }: { steps: LevelStep[] }) {
-  const nextIndex = steps.findIndex((s) => !isStepDone(s));
+function LevelProgressBar({ steps, focusIndex }: { steps: LevelStep[]; focusIndex: number }) {
   return (
     <div className="flex gap-1" aria-hidden="true">
       {steps.map((step, i) => (
@@ -100,7 +116,7 @@ function LevelProgressBar({ steps }: { steps: LevelStep[] }) {
           key={i}
           className={cn(
             "h-2 flex-1 rounded-sm",
-            isStepDone(step) ? "bg-emerald-500" : i === nextIndex ? "bg-indigo-600" : "bg-zinc-200"
+            isStepDone(step) ? "bg-emerald-500" : i === focusIndex ? "bg-indigo-600" : "bg-zinc-200"
           )}
         />
       ))}
@@ -300,16 +316,17 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
   const initialLevel =
     [requestedLevel, currentLevel].find((lvl) => levels.some((l) => l.level === lvl)) ?? levels[0]?.level ?? "";
   const [activeLevel, setActiveLevel] = useState<string>(initialLevel);
-  const [selectedId, setSelectedId] = useState<string | null>(
-    currentParcoursId(levels.find((l) => l.level === initialLevel))
-  );
+  // null = suivre le parcours en cours (résolu une fois ParcoursContext chargé).
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [lessonsByParcours, setLessonsByParcours] = useState<Record<string, LessonsState>>({});
   const requested = useRef(new Set<string>());
   const { setPageContext } = useCoachContext();
+  const { activeParcours } = useParcours();
 
   const level = levels.find((l) => l.level === activeLevel);
-  const currentId = currentParcoursId(level);
-  const selected = parcoursOf(level).find((p) => p.id === selectedId);
+  const currentId = currentParcoursId(level, activeParcours?.id ?? null);
+  const effectiveSelectedId = selectedId ?? currentId;
+  const selected = parcoursOf(level).find((p) => p.id === effectiveSelectedId);
 
   const load = (parcoursId: string) => {
     requested.current.add(parcoursId);
@@ -355,18 +372,27 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
     setActiveLevel(value);
     // replaceState plutôt que router.replace : pas de nouveau rendu serveur,
     // mais l'URL garde l'onglet (bouton retour depuis un exercice, lien partagé).
-    window.history.replaceState(null, "", `?niveau=${value}`);
-    setSelectedId(currentParcoursId(levels.find((l) => l.level === value)));
+    // Les autres paramètres (ex. parcoursId ajouté par la Sidebar) sont conservés.
+    const params = new URLSearchParams(window.location.search);
+    params.set("niveau", value);
+    window.history.replaceState(null, "", `?${params.toString()}`);
+    setSelectedId(null);
   };
 
   const hasChecklist = level?.steps.some((s) => s.kind !== "parcours") ?? false;
-  const nextHref = level ? nextActionHref(level, lessonsByParcours) : null;
+  const focusIndex = level ? focusStepIndex(level, currentId) : -1;
+  const nextHref = level ? nextActionHref(level, focusIndex, lessonsByParcours) : null;
 
   return (
     <div className="max-w-5xl mx-auto p-6 py-12 space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-3xl md:text-4xl font-black text-zinc-900 tracking-tight">Ma progression</h1>
-        <p className="text-sm text-zinc-500 font-medium">
+      <div>
+        <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+          Parcours guidé
+        </Badge>
+        <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tighter text-zinc-900">
+          MA <span className="text-indigo-600">PROGRESSION</span>
+        </h1>
+        <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
           Le chemin complet vers le TEF IRN, niveau par niveau : parcours, expression écrite, expression orale et examens blancs.
         </p>
       </div>
@@ -398,7 +424,7 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
                 </Link>
               )}
             </div>
-            {level.steps.length > 0 && <LevelProgressBar steps={level.steps} />}
+            {level.steps.length > 0 && <LevelProgressBar steps={level.steps} focusIndex={focusIndex} />}
           </div>
 
           {level.steps.length === 0 ? (
@@ -406,7 +432,7 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
           ) : (
             <div className="grid gap-6 md:grid-cols-[260px_minmax(0,1fr)]">
               <div className="md:border-r md:border-zinc-100 md:pr-4 space-y-3">
-                <LevelMap level={level} selectedId={selectedId} currentId={currentId} onSelect={setSelectedId} />
+                <LevelMap level={level} selectedId={effectiveSelectedId} currentId={currentId} onSelect={setSelectedId} />
                 {!hasChecklist && (
                   <p className="text-xs text-zinc-400 italic px-3">
                     Expression Écrite, Expression Orale et Examen blanc arrivent bientôt pour ce niveau.
