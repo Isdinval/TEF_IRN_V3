@@ -37,8 +37,8 @@ export interface LessonMeta {
 
 const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   new: { label: "Non commencé", className: "bg-zinc-100 text-zinc-500" },
-  in_progress: { label: "En cours", className: "bg-amber-50 text-amber-600" },
-  completed: { label: "Terminé", className: "bg-emerald-50 text-emerald-600" },
+  in_progress: { label: "En cours", className: "bg-amber-50 text-amber-700" },
+  completed: { label: "Terminé", className: "bg-emerald-50 text-emerald-700" },
 };
 
 const CATEGORY_COLORS: Record<string, string> = {

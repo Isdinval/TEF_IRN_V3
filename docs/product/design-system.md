@@ -34,8 +34,8 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 | Texte discret | `zinc-400` | Micro-labels décoratifs et icônes uniquement (voir 2.3) |
 | Bordures | `zinc-100` / `zinc-200` | Contours de cartes, séparateurs |
 | Fonds | `white`, `zinc-50` | Cartes (`white`) sur fond de page (`zinc-50/50`) |
-| **Succès** | `emerald-50` / `emerald-600` | Terminé, réponse correcte, objectif atteint |
-| **Attention** | `amber-50` / `amber-600` | Quota bientôt atteint, point à revoir |
+| **Succès** | `emerald-50` (fond) / `emerald-600` (icône, barre) / `emerald-700` (texte) | Terminé, réponse correcte, objectif atteint |
+| **Attention** | `amber-50` (fond) / `amber-600` (icône, barre) / `amber-700` (texte) | Quota bientôt atteint, point à revoir |
 | **Erreur** | `red-50` / `red-200` / `red-600` | Erreur de chargement, réponse fausse, action destructive |
 
 ### 2.2 Interdits (nouveau code)
@@ -52,6 +52,7 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 - Tout texte porteur d'information : **`zinc-500` minimum** sur fond blanc (ratio ≥ 4,5:1).
 - `zinc-400` ne passe pas ce seuil : on le réserve aux icônes, aux puces « • » et aux micro-labels répétant une information déjà visible ailleurs.
 - Texte blanc uniquement sur `indigo-600` ou plus foncé.
+- Succès et attention : **texte en `-700`** (`text-emerald-700`, `text-amber-700`), car les teintes `-600` n'atteignent que 3,8:1 et 3,2:1. Les `-600` restent pour les icônes, les barres et les textes ≥ 24 px.
 
 ### 2.4 Écart connu à ne pas reproduire
 
@@ -178,7 +179,7 @@ Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de 
 | Badge accent (« Conseillé », « En cours ») | `rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white` |
 | Badge neutre (niveau, format, compteur) | `rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-600` |
 | Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
-| Badge d'état | `bg-emerald-50 text-emerald-600`, `bg-amber-50 text-amber-600` ou `bg-red-50 text-red-600` |
+| Badge d'état | `bg-emerald-50 text-emerald-700`, `bg-amber-50 text-amber-700` ou `bg-red-50 text-red-600` |
 
 Un badge doit être **compréhensible sans explication**. Exemple : « Conseillé » a été mal interprété, donc le libellé doit dire pourquoi (« Conseillé pour vous », « Suite logique »).
 

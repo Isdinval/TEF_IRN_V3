@@ -18,8 +18,8 @@ interface VocabItem {
 // pour garder un langage de statut cohérent entre les 2 verticales LlamaKusi.
 const STATUS_CONFIG: Record<VocabStatus, { label: string; className: string }> = {
   new: { label: "Pas appris", className: "bg-zinc-100 text-zinc-500" },
-  learning: { label: "En cours", className: "bg-amber-50 text-amber-600" },
-  mastered: { label: "Appris", className: "bg-emerald-50 text-emerald-600" },
+  learning: { label: "En cours", className: "bg-amber-50 text-amber-700" },
+  mastered: { label: "Appris", className: "bg-emerald-50 text-emerald-700" },
 };
 
 interface VocabCatalogueTableProps {
