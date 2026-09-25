@@ -139,21 +139,24 @@ Description courte, 1 à 2 phrases, en gris, qui dit quoi faire sur la page.
 (optionnel : un élément sous la description, ex. le quota du jour)
 ```
 
-### 5.2 Code de référence
+### 5.2 Composant obligatoire : `PageHeader`
 
 ```tsx
-<div className="mb-8">
-  <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-    Coach CE
-  </Badge>
-  <h1 className="mb-4 text-4xl font-black uppercase tracking-tighter text-zinc-900 md:text-5xl">
-    Coach de compréhension <span className="text-indigo-600">écrite</span>
-  </h1>
-  <p className="max-w-2xl text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
-    Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté.
-  </p>
-</div>
+import { PageHeader } from "@/components/shared/PageHeader";
+
+<PageHeader
+  badge="Coach CE"
+  title="Coach de compréhension"
+  highlight="écrite"
+  description="Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté."
+>
+  {/* optionnel : élément sous la description, ex. <ComprehensionDailyQuotaBadge skill="CE" /> */}
+</PageHeader>
 ```
+
+Prop optionnelle `aside` : élément affiché à droite sur desktop, en dessous sur mobile (ex. badge « Session vocale »).
+
+Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de taille, de couleur et de marge. Pour changer l'en-tête de **toutes** les pages, on modifie ce fichier, jamais une page.
 
 ### 5.3 Règles
 
@@ -171,7 +174,7 @@ Description courte, 1 à 2 phrases, en gris, qui dit quoi faire sur la page.
 
 | Type | Classes |
 |---|---|
-| Badge d'en-tête | voir §5.2 |
+| Badge d'en-tête | géré par `PageHeader` (§5.2) |
 | Badge accent (« Conseillé », « En cours ») | `rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white` |
 | Badge neutre (niveau, format, compteur) | `rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-600` |
 | Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
@@ -224,6 +227,7 @@ Chaque bloc qui charge des données gère ses 3 états :
 
 | Besoin | Composant |
 |---|---|
+| En-tête de page (badge + titre + description) | `src/components/shared/PageHeader.tsx` |
 | Bandeau KPI d'une page admin | `src/components/shared/AdminKpiBand.tsx` |
 | Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` |
 | Pagination de catalogue | `src/components/shared/CataloguePagination.tsx` |
