@@ -42,10 +42,10 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  grammaire: "bg-emerald-50 text-emerald-700",
-  conjugaison: "bg-blue-50 text-blue-700",
-  syntaxe: "bg-violet-50 text-violet-700",
-  orthographe: "bg-amber-50 text-amber-700",
+  grammaire: "bg-zinc-100 text-zinc-600",
+  conjugaison: "bg-zinc-100 text-zinc-600",
+  syntaxe: "bg-zinc-100 text-zinc-600",
+  orthographe: "bg-zinc-100 text-zinc-600",
   default: "bg-zinc-100 text-zinc-500",
 };
 
@@ -59,7 +59,7 @@ function getCategoryColor(category?: string): string {
 // même de cliquer. Même vocabulaire que les boutons de la TopBar (item #4).
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof HelpCircle; className: string }> = {
   qcm: { label: "QCM", icon: HelpCircle, className: "bg-indigo-50 text-indigo-600" },
-  trous: { label: "Chasse aux erreurs", icon: Type, className: "bg-fuchsia-50 text-fuchsia-600" },
+  trous: { label: "Chasse aux erreurs", icon: Type, className: "bg-indigo-50 text-indigo-600" },
 };
 
 const NO_LESSON_KEY = "__sans_lecon__";
@@ -143,7 +143,7 @@ export default function ParcoursExerciseTreeCatalogue({ exercises, lessonMeta, g
             key={group.lessonId}
             value={group.lessonId}
             id={`parcours-lesson-${group.lessonId}`}
-            className={`scroll-mt-24 rounded-[2rem] border shadow-sm px-6 border-b-0 transition-colors ${
+            className={`scroll-mt-24 rounded-3xl border shadow-sm px-6 border-b-0 transition-colors ${
               group.isFullyDone ? completionCardStyles(true) : "bg-white border-zinc-100"
             }`}
           >
@@ -151,13 +151,13 @@ export default function ParcoursExerciseTreeCatalogue({ exercises, lessonMeta, g
               <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 shrink-0">
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-500 shrink-0">
                     {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
                   </span>
                   {group.isFullyDone && <CompletionBadge />}
                 </div>
                 {subtitle && (
-                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-400 line-clamp-1">
+                  <p className="text-sm font-medium normal-case tracking-normal text-zinc-500 line-clamp-1">
                     {subtitle}
                   </p>
                 )}
@@ -166,7 +166,7 @@ export default function ParcoursExerciseTreeCatalogue({ exercises, lessonMeta, g
             <AccordionContent className="pb-6 space-y-5">
               {pointCleGroups.map(([label, items]) => (
                 <div key={label}>
-                  <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 px-1">
+                  <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">
                     {label}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -184,14 +184,14 @@ export default function ParcoursExerciseTreeCatalogue({ exercises, lessonMeta, g
                         >
                           {typeConfig && TypeIcon && (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase gap-1 ${typeConfig.className}`}
+                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-xs font-black uppercase gap-1 ${typeConfig.className}`}
                             >
                               <TypeIcon size={10} /> {typeConfig.label}
                             </Badge>
                           )}
                           {ex.category && (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getCategoryColor(ex.category)}`}
+                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-xs font-black uppercase ${getCategoryColor(ex.category)}`}
                             >
                               {ex.category}
                             </Badge>
@@ -203,12 +203,12 @@ export default function ParcoursExerciseTreeCatalogue({ exercises, lessonMeta, g
                             <CompletionBadge />
                           ) : (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-3 py-1 text-[9px] font-black uppercase ${STATUS_CONFIG[st].className}`}
+                              className={`shrink-0 border-none rounded-full px-3 py-1 text-xs font-black uppercase ${STATUS_CONFIG[st].className}`}
                             >
                               {STATUS_CONFIG[st].label}
                             </Badge>
                           )}
-                          <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
+                          <ChevronRight size={16} className="shrink-0 text-zinc-500 group-hover:text-indigo-600 transition-colors" />
                         </Link>
                       );
                     })}
