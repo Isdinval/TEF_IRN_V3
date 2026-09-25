@@ -95,6 +95,20 @@ function OralCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lancement direct depuis /tef-irn/progression (?start=1) : session démarrée
+  // sur un sujet du niveau et de la section de l'étape (choisi par
+  // /api/oral/session). Réservé aux paliers qui incluent le Coach Oral : un
+  // compte Gratuit ne doit jamais consommer son essai unique sans l'avoir
+  // choisi, il reste donc sur le catalogue filtré.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current || subscriptionTier === undefined || searchParams.get('start') !== '1') return;
+    autoStartedRef.current = true;
+    if (!hasOralCoach) return;
+    startSession(undefined, { level: searchParams.get('level'), section: searchParams.get('section') });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscriptionTier]);
+
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -144,7 +158,12 @@ function OralCoachContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startSession = async (scenarioId?: string) => {
+  const startSession = async (
+    scenarioId?: string,
+    // Filtres explicites (lancement direct via l'URL) : l'état des filtres
+    // n'est pas encore à jour au premier rendu.
+    filters?: { level: string | null; section: string | null }
+  ) => {
     try {
       setSessionError(null);
       setStatus("connecting");
@@ -155,8 +174,10 @@ function OralCoachContent() {
       if (scenarioId) {
         params.set("scenarioId", scenarioId);
       } else {
-        if (filterSection !== "all") params.set("section", filterSection);
-        if (filterLevel !== "all") params.set("level", filterLevel);
+        const section = filters ? filters.section : filterSection !== "all" ? filterSection : null;
+        const level = filters ? filters.level : filterLevel !== "all" ? filterLevel : null;
+        if (section) params.set("section", section);
+        if (level) params.set("level", level);
       }
 
       const tokenResponse = await fetch(`/api/oral/session?${params.toString()}`);

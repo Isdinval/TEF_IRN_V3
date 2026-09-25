@@ -220,6 +220,22 @@ export function WritingCoachContent() {
     setStatus("writing");
   }, [allScenarios]);
 
+  // Lancement direct depuis /tef-irn/progression (?start=1) : un sujet du
+  // niveau et de la section de l'étape est ouvert au hasard, sans passer par
+  // le catalogue -- une seule fois, dès que les sujets sont chargés.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (autoStartedRef.current || searchParams.get("start") !== "1" || allScenarios.length === 0) return;
+    autoStartedRef.current = true;
+    const levelParam = searchParams.get("level");
+    const sectionParam = searchParams.get("section");
+    const matching = allScenarios.filter(
+      (s) => (!levelParam || s.level === levelParam) && (!sectionParam || s.section === sectionParam)
+    );
+    if (matching.length === 0) return;
+    handleSelectScenario(matching[Math.floor(Math.random() * matching.length)].id);
+  }, [allScenarios, searchParams, handleSelectScenario]);
+
   const handleSurpriseMe = useCallback(() => {
     const filtered = allScenarios.filter(
       (s) =>

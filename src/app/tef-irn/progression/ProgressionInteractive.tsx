@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Circle, CircleDot, Lock, PenTool, Mic, ClipboardCheck, ChevronRight, ArrowRight } from "lucide-react";
+import { CheckCircle2, Circle, CircleDot, Lock, ChevronRight, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LevelProgression, LevelStep, ParcoursStepStatus } from "@/lib/progression";
 import { useCoachContext } from "@/contexts/CoachContext";
@@ -74,7 +74,7 @@ function currentParcoursId(level: LevelProgression | undefined, activeParcoursId
   return (active ?? parcours.find((p) => !p.isCompleted) ?? parcours[0])?.id ?? null;
 }
 
-/** Étape mise en avant dans la barre et visée par "Reprendre". */
+/** Étape mise en avant (indigo) dans la barre de progression du niveau. */
 function focusStepIndex(level: LevelProgression, currentId: string | null): number {
   const currentIndex = level.steps.findIndex((s) => s.kind === "parcours" && s.data.id === currentId && !s.data.isCompleted);
   return currentIndex !== -1 ? currentIndex : level.steps.findIndex((s) => !isStepDone(s));
@@ -82,30 +82,6 @@ function focusStepIndex(level: LevelProgression, currentId: string | null): numb
 
 function parcoursTitle(p: ParcoursStepStatus): string {
   return CATEGORY_LABEL[p.category.toLowerCase()] || p.category;
-}
-
-/**
- * Lien du bouton "Reprendre" : première étape non faite du niveau. Pour un
- * parcours, on vise directement le premier exercice non fait des leçons
- * débloquées (si déjà chargées), sinon la page du parcours.
- */
-function nextActionHref(
-  level: LevelProgression,
-  focusIndex: number,
-  lessonsByParcours: Record<string, LessonsState>
-): string | null {
-  const next = level.steps[focusIndex];
-  if (!next) return null;
-  if (next.kind !== "parcours") return next.data.href;
-  const lessons = lessonsByParcours[next.data.id];
-  if (Array.isArray(lessons)) {
-    const exercise = lessons
-      .filter((l) => l.unlocked && !l.isCompleted)
-      .flatMap((l) => l.exercises)
-      .find((ex) => !ex.isCompleted);
-    if (exercise) return exercise.url;
-  }
-  return `/tef-irn/parcours/${next.data.slug}`;
 }
 
 function LevelProgressBar({ steps, focusIndex }: { steps: LevelStep[]; focusIndex: number }) {
@@ -235,7 +211,7 @@ function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) 
             href={nextExercise.url}
             className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
           >
-            Continuer <ArrowRight size={12} />
+            {started ? "Continuer" : "Commencer"} <ArrowRight size={12} />
           </Link>
         )}
       </div>
@@ -247,12 +223,15 @@ function ParcoursDetail({
   parcours,
   level,
   isCurrent,
+  isActive,
   lessons,
   onRetry,
 }: {
   parcours: ParcoursStepStatus;
   level: string;
   isCurrent: boolean;
+  /** Parcours actif de l'utilisateur (barre "Parcours en cours") : seul à porter "Vous êtes ici". */
+  isActive: boolean;
   lessons: LessonsState | undefined;
   onRetry: () => void;
 }) {
@@ -268,7 +247,7 @@ function ParcoursDetail({
           <h2 className="flex-1 text-lg font-bold text-zinc-900">
             Parcours {parcoursTitle(parcours)} {level}
           </h2>
-          {isCurrent && !parcours.isCompleted && (
+          {isActive && !parcours.isCompleted && (
             <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">Vous êtes ici</span>
           )}
         </div>
@@ -351,12 +330,12 @@ function LevelMap({
         }
 
         const done = step.data.done;
-        const { icon: Icon, label } =
+        const label =
           step.kind === "ee"
-            ? { icon: PenTool, label: `Expression Écrite — ${step.data.section}` }
+            ? `Expression Écrite · ${step.data.section}`
             : step.kind === "eo"
-              ? { icon: Mic, label: `Expression Orale — ${step.data.section}` }
-              : { icon: ClipboardCheck, label: "Examen blanc" };
+              ? `Expression Orale · ${step.data.section}`
+              : "Examen blanc";
         return (
           <Link
             key={`${step.kind}-${i}`}
@@ -364,7 +343,6 @@ function LevelMap({
             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-50"
           >
             <StatusIcon state={done ? "done" : "todo"} />
-            <Icon size={14} className="shrink-0 text-zinc-400" />
             <span className="flex-1 truncate">{label}</span>
             {done ? <span className="text-xs text-zinc-400">Fait</span> : <ChevronRight size={14} className="shrink-0 text-zinc-300" />}
           </Link>
@@ -443,7 +421,6 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
 
   const hasChecklist = level?.steps.some((s) => s.kind !== "parcours") ?? false;
   const focusIndex = level ? focusStepIndex(level, currentId) : -1;
-  const nextHref = level ? nextActionHref(level, focusIndex, lessonsByParcours) : null;
 
   return (
     <div className="max-w-5xl mx-auto p-6 py-12 space-y-6">
@@ -473,26 +450,16 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
       {level && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-zinc-500">
-                Niveau {level.level} · {level.steps.filter(isStepDone).length}/{level.steps.length || "—"} étapes
-              </p>
-              {nextHref && (
-                <Link
-                  href={nextHref}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-                >
-                  Reprendre <ArrowRight size={14} />
-                </Link>
-              )}
-            </div>
+            <p className="text-sm text-zinc-500">
+              Niveau {level.level} · {level.steps.filter(isStepDone).length}/{level.steps.length || "—"} étapes
+            </p>
             {level.steps.length > 0 && <LevelProgressBar steps={level.steps} focusIndex={focusIndex} />}
           </div>
 
           {level.steps.length === 0 ? (
             <p className="text-sm text-zinc-400 italic">Aucun parcours disponible pour ce niveau pour l&apos;instant.</p>
           ) : (
-            <div className="grid gap-6 md:grid-cols-[260px_minmax(0,1fr)]">
+            <div className="grid gap-6 md:grid-cols-[280px_minmax(0,1fr)]">
               <div className="md:border-r md:border-zinc-100 md:pr-4 space-y-3">
                 <LevelMap level={level} selectedId={effectiveSelectedId} currentId={currentId} onSelect={setSelectedId} />
                 {!hasChecklist && (
@@ -506,6 +473,7 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
                   parcours={selected}
                   level={level.level}
                   isCurrent={selected.id === currentId}
+                  isActive={selected.id === activeParcours?.id}
                   lessons={lessonsByParcours[selected.id]}
                   onRetry={() => retry(selected.id)}
                 />

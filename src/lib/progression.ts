@@ -191,7 +191,7 @@ export async function getLevelProgression(
           kind: 'ee',
           data: {
             done: eeDoneBySection[eeSection] >= eeIndexInSection,
-            href: `/tef-irn/writing?level=${level}&section=${eeSection}`,
+            href: `/tef-irn/writing?level=${level}&section=${eeSection}&start=1`,
             section: eeSection,
             index: eeIndexInSection,
             total: eeTotalBySection[eeSection],
@@ -207,7 +207,7 @@ export async function getLevelProgression(
             kind: 'eo',
             data: {
               done: eoDoneBySection[eoSection] >= eoIndexInSection,
-              href: `/tef-irn/oral?level=${level}&section=${eoSection}`,
+              href: `/tef-irn/oral?level=${level}&section=${eoSection}&start=1`,
               section: eoSection,
               index: eoIndexInSection,
               total: eoTotalBySection[eoSection],
