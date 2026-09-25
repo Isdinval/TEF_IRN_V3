@@ -579,7 +579,7 @@ export default function FreeExercisePage() {
                       className="min-h-[160px] p-4 text-sm rounded-xl border border-zinc-200 focus:border-indigo-600 focus:ring-0 transition-all bg-white"
                     />
                     {writing.minWords && (
-                      <div className={`absolute bottom-2.5 right-3 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${eeMinReached ? "bg-emerald-50 text-emerald-600" : "bg-zinc-100 text-zinc-400"}`}>
+                      <div className={`absolute bottom-2.5 right-3 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${eeMinReached ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-400"}`}>
                         {eeWordCount} mots {eeMinReached ? "✅" : `(min. ${writing.minWords})`}
                       </div>
                     )}

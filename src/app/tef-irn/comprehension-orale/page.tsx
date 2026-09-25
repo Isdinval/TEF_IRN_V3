@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { ComprehensionDailyQuotaBadge } from '@/components/shared/ComprehensionDailyQuotaBadge';
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -95,17 +96,14 @@ export default function ComprehensionOralePage() {
     <div className="min-h-screen bg-slate-50/30 pb-20">
       <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
         <div className="mb-8">
-          <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-            Coach CO
-          </Badge>
-          <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-            COACH DE COMPRÉHENSION <span className="text-indigo-600">ORALE</span>
-          </h1>
-          <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-            Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté,
-            ou parcourez librement tous les sujets disponibles.
-          </p>
-          <ComprehensionDailyQuotaBadge skill="CO" />
+          <PageHeader
+            badge="Coach CO"
+            title="Coach de compréhension"
+            highlight="orale"
+            description="Choisissez un format précis pour cibler ce qui vous pose le plus de difficulté, ou parcourez librement tous les sujets disponibles."
+          >
+            <ComprehensionDailyQuotaBadge skill="CO" />
+          </PageHeader>
         </div>
 
         {loading ? (

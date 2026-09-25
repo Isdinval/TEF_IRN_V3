@@ -27,6 +27,7 @@ Ce document définit les standards et procédures pour contribuer au projet Llam
 - Respectez l'architecture atomique simplifiée : UI (Shadcn) -> Shared -> Features.
 
 ### CSS & Tailwind v4
+- Appliquez [`docs/product/design-system.md`](../product/design-system.md) et sa checklist de relecture UI (§9) avant toute PR qui touche une page visible.
 - Utilisez les classes utilitaires directement dans le JSX.
 - Pour les animations complexes, utilisez `framer-motion`.
 - Ne modifiez pas les fichiers dans `src/components/ui/` manuellement.

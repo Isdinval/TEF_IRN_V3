@@ -211,7 +211,7 @@ export function QuestionCard() {
             placeholder="Saisissez votre texte ici..."
             className="min-h-[220px] p-5 text-base rounded-2xl border border-zinc-100 focus:border-indigo-600 focus:ring-0 transition-all shadow-inner bg-white"
           />
-          <div className={`absolute bottom-3 right-4 px-3 py-1 rounded-full text-xs font-bold ${isMinReached ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
+          <div className={`absolute bottom-3 right-4 px-3 py-1 rounded-full text-xs font-bold ${isMinReached ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-400'}`}>
             {wordCount} mots {isMinReached ? '(Minimum atteint ✅)' : `(Min. ${q.minWords} mots)`}
           </div>
         </div>

@@ -42,7 +42,7 @@ export function ExerciseQuotaBadge({ done, required, label = "exercices", classN
       <p
         className={cn(
           "text-xs font-black uppercase tracking-widest flex items-center gap-1",
-          isComplete ? "text-emerald-600" : "text-amber-500"
+          isComplete ? "text-emerald-700" : "text-amber-700"
         )}
       >
         {isComplete && <CheckCircle2 size={12} />}

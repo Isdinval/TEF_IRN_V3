@@ -76,7 +76,7 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
               <InfoTooltip text={`${MASTERY_TOOLTIP} Le niveau du badge est celui du mot en base, pas votre propre niveau CECRL.`} />
             </p>
           </div>
-          <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+          <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-700">
             Niveau {topLevel}
           </div>
         </div>

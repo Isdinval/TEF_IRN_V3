@@ -21,7 +21,7 @@ src/
 │   └── examen-civique/  # Second produit — QCM civique (CSP/Carte de Résident/Naturalisation), hors préfixe /tef-irn/
 ├── components/   # Composants React
 │   ├── ui/       # Composants atomiques (shadcn)
-│   ├── shared/   # Composants transverses (Sidebar, Layouts)
+│   ├── shared/   # Composants transverses (Sidebar, Layouts, PageHeader, AdminKpiBand)
 │   └── features/ # Composants métier complexes
 ├── contexts/     # Contextes React (Exam, Parcours)
 ├── hooks/        # Hooks réutilisables (useTimer, etc.)
@@ -46,6 +46,7 @@ LlamaKusi utilise une approche hybride pour la gestion de l'état :
 - **Server Components par défaut** : Optimisation de la performance et du SEO.
 - **Typage Strict** : Utilisation systématique de TypeScript pour réduire les bugs de production.
 - **Tailwind v4** : Utilisation des nouvelles fonctionnalités CSS-first de Tailwind v4.
+- **Design system** : règles UI (couleurs, typographie, en-tête `PageHeader`, ordinateur vs mobile) dans [`docs/product/design-system.md`](../product/design-system.md).
 
 ## 7. Déploiement
 Le projet est optimisé pour un déploiement sur **Vercel**, bénéficiant ainsi de la mise à l'échelle automatique des fonctions Edge et de l'optimisation des images.

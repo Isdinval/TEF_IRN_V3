@@ -631,7 +631,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                       <p className="text-[10px] font-bold text-zinc-400">{formatAttemptDate(a.created_at)}</p>
                     </div>
                   </div>
-                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
+                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-500"}`}>
                     {a.passed ? "Réussi" : "Échoué"}
                   </Badge>
                 </div>

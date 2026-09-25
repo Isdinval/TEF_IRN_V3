@@ -15,8 +15,8 @@ type QuestionStatus = "new" | "learning" | "mastered";
 
 const STATUS_CONFIG: Record<QuestionStatus, { label: string; className: string }> = {
   new: { label: "Nouveau", className: "bg-zinc-100 text-zinc-500" },
-  learning: { label: "En cours", className: "bg-amber-50 text-amber-600" },
-  mastered: { label: "Maîtrisé", className: "bg-emerald-50 text-emerald-600" },
+  learning: { label: "En cours", className: "bg-amber-50 text-amber-700" },
+  mastered: { label: "Maîtrisé", className: "bg-emerald-50 text-emerald-700" },
 };
 
 function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQuestion[] }) {

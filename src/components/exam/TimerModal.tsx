@@ -102,7 +102,7 @@ export function TimerModal({ isOpen, onOpenChange, exam }: TimerModalProps) {
                 </div>
                 <div className="font-black text-zinc-900 text-base">Examen Complet</div>
               </div>
-              <div className="shrink-0 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">SANS CHRONO</div>
+              <div className="shrink-0 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">SANS CHRONO</div>
             </div>
             <div className="text-sm text-zinc-500 font-medium mt-2 pl-16">
               {formatTotalTime(totalDuration)} • 4 épreuves • Entraînement libre

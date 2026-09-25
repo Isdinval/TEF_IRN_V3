@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlignLeft, ArrowRight, BookOpen, CheckCircle2, ChevronRight, Clock, Languages, Sparkles } from "lucide-react";
 import { User } from "@supabase/supabase-js";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Parcours, ParcoursExerciseStats, ParcoursProgress } from "@/lib/parcours";
 import { PageTransition } from "@/components/shared/Animations";
@@ -229,29 +230,23 @@ export default function ParcoursList({
     <PageTransition>
       <article className="min-h-screen bg-zinc-50/50 p-6 pt-10 lg:p-12" aria-label="Liste des parcours TEF IRN">
         <div className="max-w-5xl mx-auto">
-          <header className="mb-8">
-            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              {user ? "Mes Parcours" : "Parcours de formation"}
-            </Badge>
-            <h1 className="mb-4 text-5xl font-black uppercase tracking-tighter text-zinc-900">
-              {user ? (
-                <>Votre <span className="text-indigo-600">apprentissage</span> sur mesure</>
-              ) : (
-                <>Des parcours <span className="text-indigo-600">d&apos;apprentissage</span> optimisés</>
+          <div className="mb-8">
+            <PageHeader
+              badge={user ? "Mes Parcours" : "Parcours de formation"}
+              title={user ? "Votre apprentissage" : "Des parcours d'apprentissage"}
+              highlight={user ? "sur mesure" : "optimisés"}
+              description="Suivez votre progression étape par étape à travers nos modules spécialisés pour réussir le TEF IRN."
+            >
+              {user && (
+                <Link
+                  href="/tef-irn/progression"
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-indigo-600 underline-offset-2 hover:underline"
+                >
+                  Voir le détail dans Ma progression <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
               )}
-            </h1>
-            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-              Suivez votre progression étape par étape à travers nos modules spécialisés pour réussir le TEF IRN.
-            </p>
-            {user && (
-              <Link
-                href="/tef-irn/progression"
-                className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-indigo-600 underline-offset-2 hover:underline"
-              >
-                Voir le détail dans Ma progression <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-              </Link>
-            )}
-          </header>
+            </PageHeader>
+          </div>
 
           {current && <ResumeCard p={current} />}
 

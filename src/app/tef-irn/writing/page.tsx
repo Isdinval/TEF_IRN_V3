@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from "rea
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Card } from "@/components/ui/card";
 import {
   BookOpen,
@@ -398,17 +399,12 @@ export function WritingCoachContent() {
     return (
       <div className="h-[100dvh] overflow-y-auto bg-zinc-50/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
         <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-8 p-6 pt-10 lg:p-10">
-          <header>
-            <Badge className="mb-4 rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
-              Coach EE
-            </Badge>
-            <h1 className="mb-4 text-5xl font-black tracking-tighter text-zinc-900">
-              COACH D&apos;EXPRESSION <span className="text-indigo-600">ÉCRITE</span>
-            </h1>
-            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
-              Choisissez un sujet dans le catalogue, ou laissez-vous surprendre.
-            </p>
-          </header>
+          <PageHeader
+            badge="Coach EE"
+            title="Coach d'expression"
+            highlight="écrite"
+            description="Choisissez un sujet dans le catalogue, ou laissez-vous surprendre."
+          />
 
           <WritingScenarioCatalogue
             scenarios={allScenarios}

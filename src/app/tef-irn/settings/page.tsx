@@ -379,7 +379,7 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                 {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}
               </Badge>
               {profile?.current_level && (
-                <Badge className="bg-emerald-50 text-emerald-600 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
+                <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
                   Niveau {profile.current_level}
                 </Badge>
               )}
