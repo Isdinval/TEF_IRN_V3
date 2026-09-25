@@ -37,12 +37,12 @@ export function ExamReadinessCard({ lessonsRemaining, lessonsPerWeek, targetExam
   // redirige juste l'attention vers lui.
   if (!targetExamDate) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
         <CardContent className="p-8 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
             <CalendarCheck2 size={14} /> Cap examen
           </h3>
-          <p className="text-sm font-bold text-zinc-400">
+          <p className="text-sm font-bold text-zinc-500">
             Renseignez votre date d'examen (en haut de page) pour activer cette projection.
           </p>
         </CardContent>
@@ -52,7 +52,7 @@ export function ExamReadinessCard({ lessonsRemaining, lessonsPerWeek, targetExam
 
   if (lessonsRemaining === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-xl shadow-emerald-100/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border border-emerald-200 bg-emerald-50 shadow-sm rounded-3xl">
         <CardContent className="p-8 flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white">
             <CheckCircle2 size={28} />
@@ -61,7 +61,7 @@ export function ExamReadinessCard({ lessonsRemaining, lessonsPerWeek, targetExam
             <p className="text-lg font-black text-zinc-900 tracking-tight">
               Parcours terminé jusqu'au niveau {goalLevel || "visé"} !
             </p>
-            <p className="text-xs font-bold text-zinc-500 mt-1">Il ne vous reste plus qu'à passer un examen blanc pour vérifier votre niveau.</p>
+            <p className="text-sm font-bold text-zinc-500 mt-1">Il ne vous reste plus qu'à passer un examen blanc pour vérifier votre niveau.</p>
           </div>
         </CardContent>
       </Card>
@@ -75,10 +75,10 @@ export function ExamReadinessCard({ lessonsRemaining, lessonsPerWeek, targetExam
   const onTrack = projectedDate != null ? projectedDate.getTime() <= examDate.getTime() : null;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
       <CardContent className="p-8 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
             <CalendarCheck2 size={14} /> Cap examen
             <InfoTooltip text={READINESS_TOOLTIP} />
           </h3>
@@ -89,7 +89,7 @@ export function ExamReadinessCard({ lessonsRemaining, lessonsPerWeek, targetExam
         </p>
 
         {!hasPace ? (
-          <p className="text-xs font-medium text-zinc-400 italic">
+          <p className="text-sm font-medium text-zinc-500">
             Pas encore assez d'activité récente pour estimer une date -- reprenez une leçon pour activer la projection.
           </p>
         ) : (

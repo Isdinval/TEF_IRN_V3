@@ -41,19 +41,19 @@ export function ExamCountdownCard({ targetExamDate, onUpdated }: ExamCountdownCa
 
   if (editing) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-lg shadow-zinc-100 rounded-3xl">
+      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
         <CardContent className="p-6 space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Date de l'examen</p>
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Date de l'examen</p>
           <Input
             type="date"
             value={dateInput}
             onChange={(e) => setDateInput(e.target.value)}
-            className="h-10 rounded-xl text-sm"
+            className="h-10 rounded-2xl text-sm"
           />
           <Button
             onClick={handleSave}
             disabled={saving || !dateInput}
-            className="w-full h-9 rounded-xl text-xs font-black bg-zinc-900 hover:bg-black"
+            className="w-full h-11 rounded-2xl text-sm font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700"
           >
             {saving ? "Enregistrement..." : "Valider"}
           </Button>
@@ -64,16 +64,16 @@ export function ExamCountdownCard({ targetExamDate, onUpdated }: ExamCountdownCa
 
   if (!targetExamDate) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-lg shadow-zinc-100 rounded-3xl">
+      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
         <CardContent className="p-6 space-y-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 mb-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-2">
             <CalendarClock size={20} />
           </div>
-          <p className="text-xs font-bold text-zinc-500 leading-snug">Aucune date d'examen définie.</p>
+          <p className="text-sm font-bold text-zinc-500 leading-snug">Aucune date d'examen définie.</p>
           <Button
             onClick={() => setEditing(true)}
             variant="outline"
-            className="w-full h-9 rounded-xl text-[10px] font-black uppercase tracking-widest"
+            className="w-full h-11 rounded-2xl text-xs font-black uppercase tracking-widest"
           >
             Définir ma date
           </Button>
@@ -85,10 +85,10 @@ export function ExamCountdownCard({ targetExamDate, onUpdated }: ExamCountdownCa
   const remaining = daysUntil(targetExamDate);
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-lg shadow-zinc-100 rounded-3xl transition-all hover:-translate-y-1">
+    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl transition-all hover:-translate-y-1">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
             <CalendarClock size={20} />
           </div>
           <InfoTooltip text="Nombre de jours restants avant la date d'examen que vous avez renseignée. Modifiable à tout moment." />
@@ -98,10 +98,10 @@ export function ExamCountdownCard({ targetExamDate, onUpdated }: ExamCountdownCa
             {remaining >= 0 ? `J-${remaining}` : "Passé"}
           </p>
           <div className="flex flex-col">
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Avant l'examen</p>
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Avant l'examen</p>
             <button
               onClick={() => { setDateInput(targetExamDate); setEditing(true); }}
-              className="text-[8px] font-bold text-zinc-300 uppercase tracking-tighter mt-0.5 hover:text-indigo-600 text-left"
+              className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-0.5 hover:text-indigo-600 text-left"
             >
               Modifier la date
             </button>

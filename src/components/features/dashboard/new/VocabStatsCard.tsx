@@ -21,7 +21,7 @@ const LEVEL_COLORS: Record<string, string> = {
   A1: "bg-emerald-400",
   A2: "bg-emerald-600",
   B1: "bg-indigo-500",
-  B2: "bg-violet-600",
+  B2: "bg-indigo-600",
 };
 
 export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable, topLevel }: VocabStatsCardProps) {
@@ -33,10 +33,10 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
   // droite de l'onglet "Ma progression" reste vide sans explication).
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
               <Languages size={14} /> Vocabulaire
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -45,10 +45,10 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
             </p>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-dashed border-zinc-100">
             <Languages size={40} className="text-zinc-200 mb-3" />
-            <p className="text-sm font-bold text-zinc-400">Aucun mot maîtrisé pour l'instant.</p>
-            <p className="text-xs text-zinc-300 mt-1">Révisez du vocabulaire pour voir votre progression ici.</p>
+            <p className="text-sm font-bold text-zinc-500">Aucun mot maîtrisé pour l'instant.</p>
+            <p className="text-sm text-zinc-500 mt-1">Révisez du vocabulaire pour voir votre progression ici.</p>
           </div>
 
           <Button
@@ -64,11 +64,11 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
   }
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
               <Languages size={14} /> Vocabulaire
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -76,7 +76,7 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
               <InfoTooltip text={`${MASTERY_TOOLTIP} Le niveau du badge est celui du mot en base, pas votre propre niveau CECRL.`} />
             </p>
           </div>
-          <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+          <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-emerald-700">
             Niveau {topLevel}
           </div>
         </div>
@@ -88,7 +88,7 @@ export function VocabStatsCard({ total, totalAvailable, levels, levelsAvailable,
             const percent = available > 0 ? Math.round((count / available) * 100) : 0;
             return (
               <div key={lvl} className="space-y-1">
-                <div className="flex justify-between text-xs font-bold text-zinc-500">
+                <div className="flex justify-between text-sm font-bold text-zinc-500">
                   <span>{lvl}</span>
                   <span>{count}{available > 0 ? ` / ${available}` : ""}</span>
                 </div>

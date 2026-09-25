@@ -38,7 +38,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
       label: "Score Moyen",
       value: displayScore,
       icon: History,
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-indigo-50 text-indigo-600",
       detail: avgScore > 0 ? "Estimation TEF" : "Commencez à pratiquer",
       tooltip: "Moyenne de vos scores par compétence (radar CE/EE/EO), pas un score officiel TEF IRN."
     },
@@ -46,7 +46,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
       label: "En attente",
       value: pendingCorrections,
       icon: MessageSquareText,
-      color: "bg-violet-50 text-violet-600",
+      color: "bg-indigo-50 text-indigo-600",
       detail: "Feedback IA",
       tooltip: "Exercices d'expression écrite déjà notés automatiquement mais pas encore relus/commentés par l'IA."
     }
@@ -55,7 +55,7 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
       {stats.map((stat, i) => (
-        <Card key={i} className="overflow-hidden border-none bg-white shadow-lg shadow-zinc-100 rounded-3xl transition-all hover:-translate-y-1">
+        <Card key={i} className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl transition-all hover:-translate-y-1">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${stat.color}`}>
@@ -66,8 +66,8 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
             <div className="space-y-1">
               <p className="text-2xl font-black text-zinc-900">{stat.value}</p>
               <div className="flex flex-col">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{stat.label}</p>
-                 <p className="text-[8px] font-bold text-zinc-300 uppercase tracking-tighter mt-0.5">{stat.detail}</p>
+                 <p className="text-xs font-black uppercase tracking-widest text-zinc-500">{stat.label}</p>
+                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-0.5">{stat.detail}</p>
               </div>
             </div>
           </CardContent>

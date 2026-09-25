@@ -13,7 +13,7 @@ export function InfoTooltip({ text, className = "" }: { text: string; className?
       <Tooltip>
         <TooltipTrigger
           aria-label="Plus d'informations"
-          className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-zinc-300 transition-colors hover:text-zinc-500 ${className}`}
+          className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-zinc-500 transition-colors hover:text-zinc-500 ${className}`}
         >
           <Info size={13} />
         </TooltipTrigger>

@@ -68,7 +68,7 @@ export function RecentCorrectionsList({
   const header = (
     <div className="mb-6 flex items-center gap-2">
       <h2 className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-zinc-900">
-        <Icon size={18} className="text-zinc-400" /> {title}
+        <Icon size={18} className="text-zinc-500" /> {title}
       </h2>
       <InfoTooltip text={tooltip} />
     </div>
@@ -77,9 +77,9 @@ export function RecentCorrectionsList({
   if (corrections.length === 0) return (
     <div>
       {header}
-      <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-100 bg-white">
+      <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl border-2 border-dashed border-zinc-100 bg-white">
         <FileText size={48} className="text-zinc-200 mb-4" />
-        <p className="text-sm font-bold text-zinc-400">{emptyMessage}</p>
+        <p className="text-sm font-bold text-zinc-500">{emptyMessage}</p>
       </div>
     </div>
   );
@@ -104,7 +104,7 @@ export function RecentCorrectionsList({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`group ${hasDetailPage ? "cursor-pointer" : ""}`}
+            className={`group rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 ${hasDetailPage ? "cursor-pointer" : ""}`}
             // /tef-irn/oral/history a été supprimée (item 9, plan refonte page
             // Correction) -- EE et EO pointent désormais tous les deux vers la
             // page Correction unifiée. Note : /tef-irn/correction ne consomme
@@ -112,33 +112,36 @@ export function RecentCorrectionsList({
             // tentative (limitation déjà présente avant ce patch pour l'EE,
             // pas introduite ici -- hors scope de l'item 9).
             onClick={hasDetailPage ? () => router.push(`/tef-irn/correction?id=${item.id}`) : undefined}
+            role={hasDetailPage ? "link" : undefined}
+            tabIndex={hasDetailPage ? 0 : undefined}
+            onKeyDown={hasDetailPage ? (e) => { if (e.key === "Enter") router.push(`/tef-irn/correction?id=${item.id}`); } : undefined}
           >
-            <div className={`p-6 bg-white border border-zinc-100 rounded-[2rem] shadow-sm transition-all ${hasDetailPage ? "group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30" : ""}`}>
+            <div className={`p-6 bg-white border border-zinc-100 rounded-3xl shadow-sm transition-all ${hasDetailPage ? "group-hover:border-indigo-200 group-hover:shadow-xl group-hover:shadow-indigo-100/30" : ""}`}>
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] uppercase font-black tracking-widest">
+                  <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-xs uppercase font-black tracking-widest">
                     {getTypeBadgeLabel(item.exercise?.type)}
                   </Badge>
                   {item.exercise?.type === "examen_blanc" && item.exercise?.skill && (
                     <Badge
                       variant="outline"
-                      className="flex items-center gap-1 border-zinc-200 text-zinc-500 rounded-full px-2 py-1 text-[10px] font-black"
+                      className="flex items-center gap-1 border-zinc-200 text-zinc-500 rounded-full px-2 py-1 text-xs font-black"
                     >
                       <SkillIcon size={10} />
                       {item.exercise.skill}
                     </Badge>
                   )}
                   {item.study_time_minutes > 0 && (
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-400">
+                    <div className="flex items-center gap-1 text-sm font-bold text-zinc-500">
                       <Timer size={10} /> {item.study_time_minutes}m
                     </div>
                   )}
-                  <span className="text-[10px] font-bold text-zinc-400">
+                  <span className="text-sm font-bold text-zinc-500">
                     {new Date(item.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
                   </span>
                 </div>
                 {hasDetailPage && (
-                  <ChevronRight size={20} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
+                  <ChevronRight size={20} className="shrink-0 text-zinc-500 group-hover:text-indigo-600 transition-transform group-hover:translate-x-1" />
                 )}
               </div>
 
@@ -152,7 +155,7 @@ export function RecentCorrectionsList({
                     <Badge
                       key={idx}
                       variant="outline"
-                      className="text-[8px] uppercase tracking-tighter border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+                      className="text-xs uppercase tracking-widest border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Le badge affiche "Grammaire (Comparatifs)" (item 10.12) -- category
@@ -183,24 +186,24 @@ export function RecentCorrectionsList({
                     </Badge>
                   ))}
                   {notions.length === 0 && score < 80 && (
-                     <Badge variant="outline" className="text-[8px] uppercase tracking-tighter border-zinc-100 text-zinc-400">
+                     <Badge variant="outline" className="text-xs uppercase tracking-widest border-zinc-100 text-zinc-500">
                        Notions à renforcer
                      </Badge>
                   )}
                 </div>
               )}
 
-              <p className="text-xs text-zinc-500 italic leading-relaxed mb-4">
+              <p className="text-sm text-zinc-500 leading-relaxed mb-4">
                 {item.ai_feedback?.global_comment || (score >= 80 ? "Excellent travail ! Continuez ainsi." : "Analyse terminée. Identifiez vos points faibles.") }
               </p>
 
               <div className="flex items-center justify-between pt-3 border-t border-zinc-50">
-                <div className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${score >= 50 ? "text-emerald-500" : "text-rose-500"}`}>
+                <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${score >= 50 ? "text-emerald-500" : "text-red-600"}`}>
                   <CheckCircle2 size={12} />
                   {score >= 50 ? 'Validé' : 'À refaire'}
                 </div>
-                <div className={`text-xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
-                  {score}<span className="text-xs text-zinc-400 ml-0.5">/100</span>
+                <div className={`text-xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                  {score}<span className="text-sm text-zinc-500 ml-0.5">/100</span>
                 </div>
               </div>
             </div>

@@ -68,10 +68,10 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
   const remaining = overview.in_progress + overview.not_started;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
             <Compass size={14} /> Parcours
           </h3>
           <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -84,13 +84,13 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap size={16} className="text-indigo-600 shrink-0" />
-              <p className="text-xs font-black text-zinc-700">
+              <p className="text-sm font-black text-zinc-700">
                 {mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
               </p>
             </div>
             <Switch checked={mode === "academique"} onCheckedChange={handleToggleMode} disabled={saving} />
           </div>
-          <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+          <p className="text-sm text-zinc-500 font-medium leading-relaxed">
             <span className="font-black text-zinc-500">Parcours guidé</span> : les leçons se débloquent dans l'ordre, avec quelques exercices à faire avant de passer à la suivante.{" "}
             <span className="font-black text-zinc-500">Entraînement libre</span> : vous choisissez vous-même vos leçons, exercices et examens blancs, sans contrainte.
           </p>
@@ -99,15 +99,15 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
         <div className="grid grid-cols-3 gap-3 mb-2">
           <div className="text-center p-3 rounded-2xl bg-emerald-50">
             <p className="text-lg font-black text-emerald-600">{overview.completed}</p>
-            <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Terminés</p>
+            <p className="text-xs font-black uppercase tracking-widest text-emerald-500">Terminés</p>
           </div>
-          <div className="text-center p-3 rounded-2xl bg-violet-50">
-            <p className="text-lg font-black text-violet-600">{overview.in_progress}</p>
-            <p className="text-[9px] font-black uppercase tracking-widest text-violet-500">En cours</p>
+          <div className="text-center p-3 rounded-2xl bg-indigo-50">
+            <p className="text-lg font-black text-indigo-600">{overview.in_progress}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-500">En cours</p>
           </div>
           <div className="text-center p-3 rounded-2xl bg-zinc-50">
             <p className="text-lg font-black text-zinc-500">{overview.not_started}</p>
-            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">À découvrir</p>
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">À découvrir</p>
           </div>
         </div>
 
@@ -116,26 +116,26 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
             {inProgressParcours.map((p) => (
               <div key={p.id} className="p-4 rounded-2xl bg-zinc-50 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
                     {p.category} {p.level} — {p.progress.completed}/{p.progress.total} leçons
                   </p>
                 </div>
                 {p.current_lesson ? (
                   <Link href={`/tef-irn/lessons/${p.current_lesson.slug}`} className="block space-y-2 group">
                     <div className="flex items-start gap-2">
-                      <BookOpen size={14} className="text-violet-500 mt-0.5 shrink-0" />
-                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2 group-hover:text-violet-600 transition-colors">
+                      <BookOpen size={14} className="text-indigo-500 mt-0.5 shrink-0" />
+                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
                         {p.current_lesson.title}
                       </p>
                     </div>
-                    <p className="text-xs font-medium text-zinc-500">
+                    <p className="text-sm font-medium text-zinc-500">
                       {p.current_lesson.qcm_remaining + p.current_lesson.trous_remaining > 0
                         ? `${p.current_lesson.qcm_remaining} QCM et ${p.current_lesson.trous_remaining} Trous restants`
                         : "Tous les exercices débloqués sont faits, bravo !"}
                     </p>
                   </Link>
                 ) : (
-                  <p className="text-xs font-medium text-zinc-400 italic">Toutes les leçons sont complétées.</p>
+                  <p className="text-sm font-medium text-zinc-500">Toutes les leçons sont complétées.</p>
                 )}
               </div>
             ))}

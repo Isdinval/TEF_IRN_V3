@@ -90,11 +90,11 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
       </h2>
 
       {isEmpty ? (
-        <div className="p-12 text-center border-2 border-dashed rounded-[2.5rem] text-zinc-400">Continuez à pratiquer !</div>
+        <div className="p-12 text-center border-2 border-dashed rounded-3xl text-zinc-500">Continuez à pratiquer !</div>
       ) : (
         <div className="space-y-6">
           {reviewsTotal > 0 && (
-            <Card className="overflow-hidden border-none bg-gradient-to-br from-amber-50 to-orange-50 shadow-xl shadow-amber-100/50 rounded-[2rem]">
+            <Card className="overflow-hidden border border-amber-200 bg-amber-50 shadow-sm rounded-3xl">
               <CardContent className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
@@ -105,7 +105,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                       {reviewsTotal} révision{reviewsTotal > 1 ? "s" : ""} vous attend{reviewsTotal > 1 ? "ent" : ""} aujourd'hui
                       <InfoTooltip text="Ces révisions reviennent à intervalles croissants : plus vous les réussissez, plus le délai avant la prochaine révision s'allonge — c'est la méthode la plus efficace pour mémoriser durablement, sans avoir à tout revoir chaque jour." />
                     </p>
-                    <p className="text-xs font-bold text-zinc-500 mt-1">
+                    <p className="text-sm font-bold text-zinc-500 mt-1">
                       {exerciseReviewsDue > 0 && `${exerciseReviewsDue} exercice${exerciseReviewsDue > 1 ? "s" : ""}`}
                       {exerciseReviewsDue > 0 && vocabReviewsDue > 0 && " · "}
                       {vocabReviewsDue > 0 && `${vocabReviewsDue} mot${vocabReviewsDue > 1 ? "s" : ""} de vocabulaire`}
@@ -116,7 +116,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                   {exerciseReviewsDue > 0 && (
                     <Button
                       onClick={() => router.push("/tef-irn/practice?mode=review")}
-                      className="h-12 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2"
+                      className="h-12 rounded-2xl bg-indigo-600 font-black uppercase tracking-widest text-sm text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
                     >
                       Réviser les exercices <ArrowRight size={16} />
                     </Button>
@@ -124,7 +124,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                   {vocabReviewsDue > 0 && (
                     <Button
                       onClick={() => router.push("/tef-irn/vocab?review=true")}
-                      className="h-12 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all flex items-center gap-2"
+                      className="h-12 rounded-2xl bg-indigo-600 font-black uppercase tracking-widest text-sm text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
                     >
                       Réviser le vocabulaire <ArrowRight size={16} />
                     </Button>
@@ -159,22 +159,22 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
           )}
 
           {orphanWeakPoints.length > 0 && (
-            <Card className="overflow-hidden border-none bg-rose-50/40 shadow-sm rounded-[2rem]">
+            <Card className="overflow-hidden border border-red-200 bg-red-50 shadow-sm rounded-3xl">
               <CardContent className="p-6 space-y-4">
-                <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-rose-500">
+                <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-red-600">
                   <AlertCircle size={14} /> En attente d'une action ciblée
                 </h3>
                 <div className="space-y-2">
                   {orphanWeakPoints.map((wp, i) => (
-                    <div key={i} className="rounded-xl bg-white px-4 py-3 space-y-2">
+                    <div key={i} className="rounded-2xl bg-white px-4 py-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-black text-zinc-900 capitalize">{wp.category}</p>
-                          {wp.sub_category && <p className="text-xs text-zinc-500">{wp.sub_category}</p>}
+                          {wp.sub_category && <p className="text-sm text-zinc-500">{wp.sub_category}</p>}
                         </div>
-                        <span className="text-xs font-black text-rose-500">×{wp.frequency}</span>
+                        <span className="text-sm font-black text-red-600">×{wp.frequency}</span>
                       </div>
-                      <p className="text-xs text-zinc-500 italic leading-relaxed">{formatReminder(wp)}</p>
+                      <p className="text-sm text-zinc-500 leading-relaxed">{formatReminder(wp)}</p>
                       <button
                         onClick={() => {
                           const params = new URLSearchParams({ topic: wp.category });
@@ -187,7 +187,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                           if (singleLevel) params.set('level', singleLevel);
                           router.push(`/tef-irn/practice?${params.toString()}`);
                         }}
-                        className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:gap-2 transition-all"
+                        className="flex items-center gap-1 text-xs font-black uppercase tracking-widest text-indigo-600 hover:gap-2 transition-all"
                       >
                         Travailler ces exercices <ArrowRight size={12} />
                       </button>
@@ -196,7 +196,7 @@ export function ActionPlanCard({ weakPoints, recommendations, vocabReviewsDue, e
                 </div>
                 <button
                   onClick={handleDiscussOrphans}
-                  className="flex items-center justify-center gap-2 w-full h-12 rounded-2xl bg-zinc-900 font-black text-sm text-white hover:bg-black transition-all"
+                  className="flex items-center justify-center gap-2 w-full h-12 rounded-2xl bg-indigo-600 font-black uppercase tracking-widest text-sm text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
                 >
                   <MessageCircle size={16} /> En discuter avec le Coach IA <ArrowRight size={16} />
                 </button>

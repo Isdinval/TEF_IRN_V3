@@ -1,9 +1,9 @@
 "use client";
 
 export const DASHBOARD_SECTIONS = [
-  { id: "today", label: "Aujourd'hui", activeClass: "bg-amber-500 text-white" },
-  { id: "progress", label: "Ma progression", activeClass: "bg-violet-600 text-white" },
-  { id: "analysis", label: "Analyse détaillée", activeClass: "bg-zinc-900 text-white" },
+  { id: "today", label: "Aujourd'hui", activeClass: "bg-indigo-600 text-white" },
+  { id: "progress", label: "Ma progression", activeClass: "bg-indigo-600 text-white" },
+  { id: "analysis", label: "Analyse détaillée", activeClass: "bg-indigo-600 text-white" },
 ] as const;
 
 export type DashboardSectionId = typeof DASHBOARD_SECTIONS[number]["id"];
@@ -25,9 +25,11 @@ export function DashboardSectionNav({ activeSection, onChange }: DashboardSectio
       {DASHBOARD_SECTIONS.map((s) => (
         <button
           key={s.id}
+          type="button"
           onClick={() => onChange(s.id)}
-          className={`shrink-0 rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
-            activeSection === s.id ? s.activeClass : "text-zinc-400 hover:text-zinc-700"
+          aria-pressed={activeSection === s.id}
+          className={`flex h-11 shrink-0 items-center rounded-full px-4 text-xs font-black uppercase tracking-widest transition-all ${
+            activeSection === s.id ? s.activeClass : "text-zinc-500 hover:text-zinc-700"
           }`}
         >
           {s.label}
