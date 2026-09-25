@@ -10,13 +10,13 @@
 // writing/components/WritingScenarioCatalogue.tsx.
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { ComprehensionDailyQuotaBadge } from '@/components/shared/ComprehensionDailyQuotaBadge';
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { BookOpen, Loader2, Layers, Target, Shuffle, Play } from 'lucide-react';
 
 type CeFormat = 'court' | 'trous' | 'multi_texte' | 'long_admin' | 'article_presse';
@@ -191,11 +191,12 @@ export default function ComprehensionEcritePage() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((s) => (
-                  <Card
+                  <Link
                     key={s.id}
-                    className="group cursor-pointer overflow-hidden rounded-[1.75rem] border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform hover:-translate-y-1 hover:shadow-xl"
-                    onClick={() => router.push(`/tef-irn/comprehension-ecrite/${s.id}`)}
+                    href={`/tef-irn/comprehension-ecrite/${s.id}`}
+                    className="group block rounded-[1.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
                   >
+                  <Card className="h-full overflow-hidden rounded-[1.75rem] border-none bg-white shadow-lg shadow-zinc-200/50 transition-transform group-hover:-translate-y-1 group-hover:shadow-xl">
                     <CardContent className="flex flex-col gap-3 p-6">
                       <div className="flex items-center gap-2">
                         <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
@@ -214,14 +215,12 @@ export default function ComprehensionEcritePage() {
                       <p className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-500">
                         {s.texte ?? 'Plusieurs documents courts à comparer.'}
                       </p>
-                      <Button
-                        size="sm"
-                        className="mt-2 w-fit rounded-xl bg-zinc-900 font-black group-hover:bg-indigo-600"
-                      >
-                        <BookOpen className="mr-2" size={14} /> Commencer
-                      </Button>
+                      <span className="mt-2 inline-flex h-11 w-fit items-center rounded-2xl bg-indigo-600 px-4 text-sm font-bold text-white transition-colors group-hover:bg-indigo-700">
+                        <BookOpen className="mr-2" size={14} aria-hidden /> Commencer
+                      </span>
                     </CardContent>
                   </Card>
+                  </Link>
                 ))}
               </div>
             )}
