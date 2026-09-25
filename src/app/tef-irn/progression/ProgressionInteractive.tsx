@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Circle, CircleDot, Lock, PenTool, Mic, ClipboardCheck, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, CircleDot, Lock, PenTool, Mic, ClipboardCheck, ChevronRight, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LevelProgression, LevelStep, ParcoursStepStatus } from "@/lib/progression";
 import { useCoachContext } from "@/contexts/CoachContext";
@@ -67,6 +67,43 @@ function currentParcoursId(level: LevelProgression | undefined): string | null {
 
 function parcoursTitle(p: ParcoursStepStatus): string {
   return CATEGORY_LABEL[p.category.toLowerCase()] || p.category;
+}
+
+/**
+ * Lien du bouton "Reprendre" : première étape non faite du niveau. Pour un
+ * parcours, on vise directement le premier exercice non fait des leçons
+ * débloquées (si déjà chargées), sinon la page du parcours.
+ */
+function nextActionHref(level: LevelProgression, lessonsByParcours: Record<string, LessonsState>): string | null {
+  const next = level.steps.find((s) => !isStepDone(s));
+  if (!next) return null;
+  if (next.kind !== "parcours") return next.data.href;
+  const lessons = lessonsByParcours[next.data.id];
+  if (Array.isArray(lessons)) {
+    const exercise = lessons
+      .filter((l) => l.unlocked && !l.isCompleted)
+      .flatMap((l) => l.exercises)
+      .find((ex) => !ex.isCompleted);
+    if (exercise) return exercise.url;
+  }
+  return `/tef-irn/parcours/${next.data.slug}`;
+}
+
+function LevelProgressBar({ steps }: { steps: LevelStep[] }) {
+  const nextIndex = steps.findIndex((s) => !isStepDone(s));
+  return (
+    <div className="flex gap-1" aria-hidden="true">
+      {steps.map((step, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-2 flex-1 rounded-sm",
+            isStepDone(step) ? "bg-emerald-500" : i === nextIndex ? "bg-indigo-600" : "bg-zinc-200"
+          )}
+        />
+      ))}
+    </div>
+  );
 }
 
 async function fetchLessons(parcoursId: string): Promise<LessonsState> {
@@ -317,6 +354,7 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
   };
 
   const hasChecklist = level?.steps.some((s) => s.kind !== "parcours") ?? false;
+  const nextHref = level ? nextActionHref(level, lessonsByParcours) : null;
 
   return (
     <div className="max-w-5xl mx-auto p-6 py-12 space-y-6">
@@ -340,9 +378,22 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
 
       {level && (
         <div className="space-y-4">
-          <p className="text-sm text-zinc-500">
-            Niveau {level.level} · {level.steps.filter(isStepDone).length}/{level.steps.length || "—"} étapes
-          </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-zinc-500">
+                Niveau {level.level} · {level.steps.filter(isStepDone).length}/{level.steps.length || "—"} étapes
+              </p>
+              {nextHref && (
+                <Link
+                  href={nextHref}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                >
+                  Reprendre <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+            {level.steps.length > 0 && <LevelProgressBar steps={level.steps} />}
+          </div>
 
           {level.steps.length === 0 ? (
             <p className="text-sm text-zinc-400 italic">Aucun parcours disponible pour ce niveau pour l&apos;instant.</p>
