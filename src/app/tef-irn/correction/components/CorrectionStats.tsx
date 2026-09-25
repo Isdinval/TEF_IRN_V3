@@ -146,9 +146,9 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
             </span>
             <span className="text-sm font-black text-zinc-900">{row.score}%</span>
           </div>
-          <p className="text-[11px] font-bold text-zinc-500">{row.date} · {row.type}</p>
+          <p className="text-xs font-bold text-zinc-500">{row.date} · {row.type}</p>
           {row.level && (
-            <p className="text-[11px] font-bold text-zinc-500">Niveau CECRL estimé : <span className="text-zinc-700">{row.level}</span></p>
+            <p className="text-xs font-bold text-zinc-500">Niveau CECRL estimé : <span className="text-zinc-700">{row.level}</span></p>
           )}
         </div>
       ))}
@@ -328,7 +328,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                   <p className="text-sm font-medium text-zinc-500">
                     Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc). Cliquez un point pour voir le détail de la correction.
                   </p>
-                  <div className="mt-2 flex items-center gap-4 text-[11px] font-bold text-zinc-500">
+                  <div className="mt-2 flex items-center gap-4 text-xs font-bold text-zinc-500">
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-zinc-400" />
                       Pratique libre

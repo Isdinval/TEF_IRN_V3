@@ -137,7 +137,7 @@ export const FeedbackIA = ({
                       <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                         <Target size={14} className="text-indigo-400" /> Points d'amélioration
                       </h3>
-                      <Badge variant="outline" className="text-[9px] font-black border-white/10 text-zinc-400">
+                      <Badge variant="outline" className="text-[10px] font-black border-white/10 text-zinc-400">
                         {feedback.liste_des_erreurs?.length || 0} analyses
                       </Badge>
                     </div>
@@ -176,7 +176,7 @@ export const FeedbackIA = ({
                                   {error.explication}
                                 </p>
                                 <div className="flex items-center justify-between">
-                                  <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
+                                  <Badge variant="outline" className={`text-[10px] uppercase tracking-tighter py-0 border-white/10 ${
                                     "text-zinc-400"
                                   }`}>
                                     {error.type_erreur}

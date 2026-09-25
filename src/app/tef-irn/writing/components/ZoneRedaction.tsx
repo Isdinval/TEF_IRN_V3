@@ -172,19 +172,19 @@ export const ZoneRedaction = ({
           </div>
         </div>
         {isAnalyzing && (
-           <Badge className="animate-pulse border-none bg-indigo-100 text-[9px] font-black uppercase tracking-widest text-indigo-700 px-3 py-1">
+           <Badge className="animate-pulse border-none bg-indigo-100 text-[10px] font-black uppercase tracking-widest text-indigo-700 px-3 py-1">
              Analyse en cours...
            </Badge>
         )}
         {feedback && !isAnalyzing && (
-          <Badge className="border-none bg-emerald-100 text-[9px] font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
+          <Badge className="border-none bg-emerald-100 text-[10px] font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
             Analyse terminée
           </Badge>
         )}
         {feedback && !isAnalyzing && unmatchedCount > 0 && (
           <Badge
             title="Ces corrections restent visibles dans le panneau de feedback, mais l'extrait exact n'a pas pu être localisé dans votre texte."
-            className="border-none bg-amber-100 text-[9px] font-black uppercase tracking-widest text-amber-700 px-3 py-1"
+            className="border-none bg-amber-100 text-[10px] font-black uppercase tracking-widest text-amber-700 px-3 py-1"
           >
             {unmatchedCount} correction{unmatchedCount > 1 ? "s" : ""} non surlignée{unmatchedCount > 1 ? "s" : ""}
           </Badge>
@@ -203,7 +203,7 @@ export const ZoneRedaction = ({
             >
               <Textarea
                 placeholder="Rédigez votre réponse ici. L'IA analysera votre texte pour vous donner un feedback détaillé."
-                className="min-h-[220px] w-full resize-none border-0 bg-transparent p-6 text-sm font-medium leading-relaxed text-zinc-800 focus-visible:ring-0 placeholder:text-zinc-300 placeholder:italic md:h-full md:min-h-0 md:p-10 md:text-xl"
+                className="min-h-[220px] w-full resize-none border-0 bg-transparent p-6 text-sm font-medium leading-relaxed text-zinc-800 focus-visible:ring-0 placeholder:text-zinc-500 placeholder:italic md:h-full md:min-h-0 md:p-10 md:text-xl"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={isAnalyzing}
