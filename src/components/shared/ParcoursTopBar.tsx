@@ -75,7 +75,7 @@ export function ParcoursTopBar() {
             onClick={dismissHint}
           >
             <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-0.5 block group-hover:text-indigo-500 transition-colors">
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-0.5 block group-hover:text-indigo-500 transition-colors">
                 Parcours en cours
               </span>
               <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[220px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
@@ -90,10 +90,10 @@ export function ParcoursTopBar() {
               puis retour terrain) n'est pas réintroduit ici. */}
           <div className="hidden md:block md:flex-1 md:max-w-md">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">
                 {progress?.completed} / {progress?.total} leçons
               </span>
-              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+              <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">
                 {progress?.percent}%
               </span>
             </div>
@@ -206,7 +206,7 @@ export function ParcoursTopBar() {
             animate={{ opacity: 1, height: "auto" }}
             className="sm:hidden overflow-hidden bg-indigo-50/80 border-t border-indigo-100"
           >
-            <p className="max-w-7xl mx-auto px-4 py-1.5 text-[10px] font-bold text-indigo-600">
+            <p className="max-w-7xl mx-auto px-4 py-1.5 text-sm font-bold text-indigo-600">
               💡 Cette barre suit votre parcours guidé en cours — touchez le titre pour le retrouver.
             </p>
           </motion.div>

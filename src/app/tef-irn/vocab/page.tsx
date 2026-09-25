@@ -542,12 +542,12 @@ export function VocabCoachContent() {
           </div>
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Mots vus</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Mots vus</div>
               <div className="text-2xl font-black text-zinc-900">{cards.length}</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Maîtrisés</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Maîtrisés</div>
               <div className="text-2xl font-black text-emerald-600">{sessionMasteredCount}</div>
             </div>
           </div>
@@ -562,7 +562,7 @@ export function VocabCoachContent() {
                     if (exerciseIdFromParams) startSpecificCard(exerciseIdFromParams);
                     else startTraining();
                 }}
-                className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+                className="h-12 text-zinc-500 font-black uppercase tracking-widest text-xs hover:text-zinc-900"
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer la session
               </Button>
@@ -585,7 +585,7 @@ export function VocabCoachContent() {
           </div>
           <div className="flex flex-col gap-3">
             <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
-            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-xs hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>
@@ -608,7 +608,7 @@ export function VocabCoachContent() {
           rightElement={
             <div className="hidden md:flex items-center gap-6">
               <div className="text-right">
-                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Progression</div>
+                <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Progression</div>
                 <div className="text-2xl font-black text-zinc-900">{index + 1} / {cards.length}</div>
               </div>
               <div className="h-12 w-px bg-zinc-100" />
@@ -620,7 +620,7 @@ export function VocabCoachContent() {
                       className="h-full bg-indigo-600"
                     />
                  </div>
-                 <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                 <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
                     <span>{Math.round(progress)}% complété</span>
                  </div>
               </div>
@@ -634,7 +634,7 @@ export function VocabCoachContent() {
             de contexte visuel du thème en cours). */}
         <div className="max-w-5xl mx-auto w-full px-4 lg:px-12 pt-4 flex flex-col items-end gap-2">
           <div className="w-full flex items-center justify-between flex-wrap gap-3">
-            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            <div className="text-xs font-black text-zinc-500 uppercase tracking-widest">
               Thème : <span className="text-zinc-700">{filters.category}</span>
             </div>
             <VocabLevelSwitcher currentLevel={filters.level} onSelectLevel={handleLevelSwitch} />
@@ -646,7 +646,7 @@ export function VocabCoachContent() {
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs font-medium text-indigo-600"
+              className="text-sm font-medium text-indigo-600"
             >
               ↑ Vous pouvez aussi explorer ce thème aux autres niveaux
             </motion.p>
@@ -673,8 +673,8 @@ export function VocabCoachContent() {
                 `}>
                   <Card className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 border-none shadow-xl shadow-zinc-200 rounded-3xl group-hover:shadow-indigo-100 transition-all duration-500 bg-white text-center">
                     <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase tracking-widest">{current?.category}</span>
-                      <span className="px-3 py-1 rounded-full bg-zinc-50 text-zinc-500 text-[10px] font-black uppercase tracking-widest">{current?.level}</span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-zinc-50 text-zinc-500 text-xs font-black uppercase tracking-widest">{current?.level}</span>
                     </div>
                     <h2 className="text-2xl md:text-4xl font-black text-zinc-900 mb-4 tracking-tight">{current?.word}</h2>
                     <VocabAudioButton audioUrl={current?.audio_url} variant="light" onPlay={() => setFlipped(true)} />
@@ -685,17 +685,17 @@ export function VocabCoachContent() {
 
                   <Card className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 border-none bg-zinc-900 text-white shadow-xl rounded-3xl overflow-hidden text-center">
                     <div className="absolute top-6 inset-x-0 flex items-center justify-center gap-2 z-10">
-                      <span className="px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-[10px] font-black uppercase tracking-widest">{current?.category}</span>
-                      <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-black uppercase tracking-widest">{current?.level}</span>
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-black uppercase tracking-widest">{current?.category}</span>
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-white text-xs font-black uppercase tracking-widest">{current?.level}</span>
                     </div>
                     <div className="text-center space-y-6 z-10">
                       <div className="space-y-3 flex flex-col items-center">
-                        <div className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Définition</div>
+                        <div className="text-xs text-zinc-500 font-black uppercase tracking-[0.2em]">Définition</div>
                         <VocabAudioButton audioUrl={current?.audio_url} variant="dark" className="h-11 w-11" />
                         <p className="text-base font-bold leading-tight tracking-tight text-white">{current?.definition}</p>
                       </div>
                       <div className="space-y-2">
-                        <div className="text-[10px] text-indigo-300 font-black uppercase tracking-widest">Exemple</div>
+                        <div className="text-xs text-indigo-300 font-black uppercase tracking-widest">Exemple</div>
                         <p className="text-sm italic text-zinc-300 bg-white/5 p-4 rounded-2xl border border-white/10 leading-relaxed font-medium">
                           "{current?.example}"
                         </p>
@@ -731,7 +731,7 @@ export function VocabCoachContent() {
               className="w-full max-w-lg mx-auto space-y-8"
             >
               <div className="text-center space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Quelle est la définition de</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Quelle est la définition de</p>
                 <h2 className="text-xl md:text-3xl font-black text-zinc-900 tracking-tight">"{current?.word}" ?</h2>
               </div>
 
@@ -789,7 +789,7 @@ export function VocabCoachContent() {
               className="w-full max-w-lg mx-auto space-y-6"
             >
               <div className="text-center space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Écrivez le mot correspondant à</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Écrivez le mot correspondant à</p>
                 <div className="p-6 bg-zinc-50 rounded-3xl border border-zinc-100 italic text-base font-medium text-zinc-700">
                   "{current?.definition}"
                 </div>
@@ -872,7 +872,7 @@ export function VocabCoachContent() {
           description="Enrichissez votre lexique thématique pour le TEF IRN. Nous ciblons vos mots à réviser au bon moment pour une mémorisation durable."
         >
           <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
-            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <GraduationCap size={14} className="text-indigo-600" /> Thématiques
             </div>
             <div className="flex flex-wrap gap-2">
@@ -890,7 +890,7 @@ export function VocabCoachContent() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <Target size={14} className="text-indigo-600" /> Choisir votre niveau
               </div>
               <div className="flex gap-2">
@@ -911,11 +911,11 @@ export function VocabCoachContent() {
                 onClick={() => startTraining(false)}
                 className="flex w-full flex-col justify-center space-y-2 rounded-3xl border border-zinc-100 bg-white p-6 text-left text-zinc-900 shadow-sm transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
                 <GraduationCap size={14} aria-hidden /> Nouveaux mots
               </span>
               <span className="block text-sm font-black leading-tight">Apprendre mes mots</span>
-              <span className="block text-xs text-zinc-500 font-medium leading-snug">
+              <span className="block text-sm text-zinc-500 font-medium leading-snug">
                 {loadingCatalogue
                   ? "Chargement…"
                   : `${Math.min(unmasteredCatalogueCount, 10)} mot${Math.min(unmasteredCatalogueCount, 10) > 1 ? "s" : ""} · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
@@ -927,11 +927,11 @@ export function VocabCoachContent() {
                 onClick={() => startTraining(true)}
                 className="flex w-full flex-col justify-center space-y-2 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
                 <Brain size={14} aria-hidden /> Flash révision
               </span>
               <span className="block text-sm font-black leading-tight">Réviser mes mots</span>
-              <span className="block text-xs text-indigo-100 font-medium leading-snug">
+              <span className="block text-sm text-indigo-100 font-medium leading-snug">
                 {reviewDueCount === null
                   ? "Chargement…"
                   : `${Math.min(reviewDueCount, 10)} mot${Math.min(reviewDueCount, 10) > 1 ? "s" : ""} à réviser · ${filters.category === "Toutes" ? "Toutes thématiques" : filters.category} · Niveau ${filters.level}`}
@@ -946,7 +946,7 @@ export function VocabCoachContent() {
                 <span className="text-zinc-500">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest">
                 {catalogue.length} mot{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
               </div>
             </div>
@@ -997,7 +997,7 @@ export function VocabCoachContent() {
                     <AccordionTrigger className="hover:no-underline py-5">
                       <div className="flex items-center gap-3 text-left flex-1">
                         <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{group.category}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        <span className="text-xs font-black uppercase tracking-widest text-zinc-500">
                           {group.items.length} mot{group.items.length > 1 ? "s" : ""}
                         </span>
                         {group.isFullyMastered && <CompletionBadge />}

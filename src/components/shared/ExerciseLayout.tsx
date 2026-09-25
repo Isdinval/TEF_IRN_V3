@@ -47,7 +47,7 @@ export function ExerciseLayout({
             )}
             <div>
               <div className="flex items-center gap-3 mb-0.5">
-                <Badge className="rounded-full border-none bg-indigo-600 px-2 py-0 text-[10px] font-black uppercase tracking-widest text-white">
+                <Badge className="rounded-full border-none bg-indigo-600 px-2 py-0 text-xs font-black uppercase tracking-widest text-white">
                   {badge}
                 </Badge>
               </div>

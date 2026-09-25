@@ -417,14 +417,14 @@ function OralCoachContent() {
                 Vous incarnez <span className="text-zinc-600">le candidat</span> · en appel avec{" "}
                 <span className="text-zinc-600">{scenario.role_interlocuteur}</span>
               </p>
-              <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+              <div className="mb-1 text-xs font-black uppercase tracking-widest text-indigo-600">
                 Mise en situation
               </div>
               <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-500">
                 {scenario.sujet}
               </p>
             </div>
-            <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+            <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-black uppercase tracking-widest text-indigo-600">
               <Sparkles size={14} className="mr-1" /> Session vocale
             </Badge>
           </header>
@@ -435,7 +435,7 @@ function OralCoachContent() {
             highlight="orale"
             description={status === "catalogue" ? "Choisissez un exercice dans le catalogue, ou laissez-vous surprendre." : "Session en cours."}
             aside={
-              <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+              <Badge variant="outline" className="w-fit rounded-full border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-black uppercase tracking-widest text-indigo-600">
                 <Sparkles size={14} className="mr-1" /> Session vocale
               </Badge>
             }
@@ -453,7 +453,7 @@ function OralCoachContent() {
             {hasFreeOralTrial && (
               <Card className="rounded-3xl border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
                 <Lock className="text-indigo-400 shrink-0" size={18} />
-                <p className="text-xs font-bold text-zinc-500">
+                <p className="text-sm font-bold text-zinc-500">
                   Il s'agit de votre unique session d'essai gratuite du Coach Oral. Passez à Premium pour un accès illimité.
                 </p>
               </Card>
@@ -485,7 +485,7 @@ function OralCoachContent() {
           <div className="flex min-h-0 flex-1 flex-col gap-6">
             {scenario && scenario.objectifs?.length > 0 && (
               <Card className="rounded-3xl border-none bg-white p-6 shadow-lg shadow-zinc-200/50">
-                <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600">
                   <ListChecks size={14} /> Votre mission
                 </div>
                 <ul className="space-y-2">

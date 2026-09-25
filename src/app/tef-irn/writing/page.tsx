@@ -475,15 +475,15 @@ export function WritingCoachContent() {
                 <h1 className="font-bold text-zinc-800 tracking-tight">Coach d'Expression Écrite</h1>
                 <div className="flex flex-wrap items-center gap-2 mt-0.5">
                   {exercise.section && (
-                    <Badge className="text-[10px] font-black uppercase tracking-wider text-white bg-indigo-600 border-none">
+                    <Badge className="text-xs font-black uppercase tracking-wider text-white bg-indigo-600 border-none">
                       Section {exercise.section}
                     </Badge>
                   )}
-                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
+                  <Badge variant="outline" className="text-xs font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
                     Niveau {exercise.level}
                   </Badge>
                   {exercise.type_texte && (
-                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-zinc-200 bg-zinc-50">
+                    <Badge variant="outline" className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-zinc-200 bg-zinc-50">
                       {TYPE_TEXTE_LABELS[exercise.type_texte] ?? exercise.type_texte}
                     </Badge>
                   )}
@@ -526,7 +526,7 @@ export function WritingCoachContent() {
               ) : freeCorrectionStatus === 'available' ? (
                 <Card className="rounded-3xl border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
                   <Lock className="text-indigo-400 shrink-0" size={18} />
-                  <p className="text-xs font-bold text-zinc-500">
+                  <p className="text-sm font-bold text-zinc-500">
                     Il s'agit de votre unique correction IA gratuite sur ce palier. Passez à Essentiel pour une correction illimitée.
                   </p>
                 </Card>

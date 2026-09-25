@@ -63,7 +63,7 @@ export const FeedbackIA = ({
             variant="ghost"
             size="sm"
             onClick={() => router.push("/tef-irn/dashboard")}
-            className="rounded-xl text-[10px] font-black uppercase tracking-widest text-white/50 hover:bg-white/10 hover:text-white transition-all"
+            className="rounded-xl text-xs font-black uppercase tracking-widest text-white/50 hover:bg-white/10 hover:text-white transition-all"
           >
             Quitter <ArrowRight size={14} className="ml-2" />
           </Button>
@@ -89,7 +89,7 @@ export const FeedbackIA = ({
                       l'introduction de ce champ -- fallback "—" plutôt que de retomber sur
                       l'ancien recalcul biaisé. */}
                   <div className="flex flex-col items-center gap-3 rounded-3xl bg-black/30 p-8 text-center">
-                    <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
+                    <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-widest">
                       Niveau apparent
                     </Badge>
                     <h2 className="text-6xl font-black tracking-tighter text-white">
@@ -99,7 +99,7 @@ export const FeedbackIA = ({
                       Score de réussite pour ce sujet : <span className="font-black text-white">{feedback.score_global}/100</span>
                     </p>
                     {feedback.niveau_apparent_justification && (
-                      <p className="max-w-sm text-xs font-medium italic leading-relaxed text-zinc-500">
+                      <p className="max-w-sm text-sm font-medium italic leading-relaxed text-zinc-500">
                         {feedback.niveau_apparent_justification}
                       </p>
                     )}
@@ -107,7 +107,7 @@ export const FeedbackIA = ({
 
                   {/* Détail par critère (grille officielle TEF IRN) */}
                   <div className="space-y-4">
-                    <h3 className="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                    <h3 className="px-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
                       Détail par critère
                     </h3>
                     <div className="flex flex-col gap-4 rounded-3xl border border-white/5 bg-white/5 p-6">
@@ -134,10 +134,10 @@ export const FeedbackIA = ({
                   {/* Detailed Errors */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between px-2">
-                      <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                      <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
                         <Target size={14} className="text-indigo-400" /> Points d'amélioration
                       </h3>
-                      <Badge variant="outline" className="text-[10px] font-black border-white/10 text-zinc-400">
+                      <Badge variant="outline" className="text-sm font-black border-white/10 text-zinc-400">
                         {feedback.liste_des_erreurs?.length || 0} analyses
                       </Badge>
                     </div>
@@ -172,11 +172,11 @@ export const FeedbackIA = ({
                                     {error.texte_corrige}
                                   </span>
                                 </div>
-                                <p className="text-xs font-bold leading-relaxed text-zinc-400 whitespace-pre-wrap">
+                                <p className="text-sm font-bold leading-relaxed text-zinc-400 whitespace-pre-wrap">
                                   {error.explication}
                                 </p>
                                 <div className="flex items-center justify-between">
-                                  <Badge variant="outline" className={`text-[10px] uppercase tracking-tighter py-0 border-white/10 ${
+                                  <Badge variant="outline" className={`text-xs uppercase tracking-tighter py-0 border-white/10 ${
                                     "text-zinc-400"
                                   }`}>
                                     {error.type_erreur}
@@ -192,7 +192,7 @@ export const FeedbackIA = ({
 
                   {/* Full Corrected Text */}
                   <div className="mt-10 space-y-4">
-                    <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 px-2">
+                    <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500 px-2">
                         <GraduationCap size={14} className="text-emerald-400" /> Texte corrigé complet
                       </h3>
                       <div className="rounded-3xl border border-emerald-500/10 bg-emerald-500/5 p-6 text-sm font-medium leading-relaxed text-zinc-300 whitespace-pre-wrap">
@@ -210,7 +210,7 @@ export const FeedbackIA = ({
               </div>
               <div className="space-y-2">
                 <h3 className="font-black uppercase tracking-tight text-white">En attente de rédaction</h3>
-                <p className="mx-auto max-w-[240px] text-xs font-medium italic leading-relaxed text-zinc-500">
+                <p className="mx-auto max-w-[240px] text-sm font-medium italic leading-relaxed text-zinc-500">
                   Complétez votre texte et lancez l'analyse pour recevoir votre feedback premium.
                 </p>
               </div>

@@ -32,7 +32,7 @@ export function OralAnalysisView({
 
       <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-          <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+          <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-500">
             Détail par critère (grille officielle TEF IRN)
           </CardTitle>
         </CardHeader>
@@ -52,7 +52,7 @@ export function OralAnalysisView({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
           <CardHeader className="border-b border-zinc-100 bg-emerald-50 px-6 py-4">
-            <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+            <CardTitle className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-700">
               <CheckCircle2 size={14} /> Points forts
             </CardTitle>
           </CardHeader>
@@ -67,7 +67,7 @@ export function OralAnalysisView({
 
         <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
           <CardHeader className="border-b border-zinc-100 bg-amber-50 px-6 py-4">
-            <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-700">
+            <CardTitle className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-amber-700">
               <TrendingUp size={14} /> À travailler
             </CardTitle>
           </CardHeader>
@@ -83,7 +83,7 @@ export function OralAnalysisView({
 
       <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-          <CardTitle className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+          <CardTitle className="text-xs font-black uppercase tracking-widest text-zinc-500">
             Commentaire du coach
           </CardTitle>
         </CardHeader>
@@ -94,7 +94,7 @@ export function OralAnalysisView({
 
       <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50 px-6 py-4">
-          <CardTitle className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+          <CardTitle className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500">
             <MessageSquareText size={14} /> Transcription complète
           </CardTitle>
         </CardHeader>

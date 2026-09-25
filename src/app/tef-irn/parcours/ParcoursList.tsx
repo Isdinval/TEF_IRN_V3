@@ -78,7 +78,7 @@ function StatsLine({ p }: { p: ParcoursWithProgress }) {
   const ex = p.exerciseStats;
   if (!prog) return null;
   return (
-    <p className="text-xs text-zinc-500">
+    <p className="text-sm text-zinc-500">
       <span className="font-bold text-zinc-900">{prog.completed}/{prog.total}</span> leçons
       {ex && (
         <>
@@ -112,7 +112,7 @@ function ParcoursRow({
         <CategoryIcon p={p} done={done} />
         <div className="min-w-0 flex-1 space-y-1">
           <p className="text-base font-bold text-zinc-900 first-letter:uppercase group-hover:text-indigo-600">{titleOf(p)}</p>
-          <p className="text-xs font-medium text-zinc-500">
+          <p className="text-sm font-medium text-zinc-500">
             <span className="capitalize">{p.category}</span> · {p.level}
             {!showStats && count > 0 && ` · ${count} leçons`}
           </p>
@@ -160,13 +160,13 @@ function ResumeCard({ p }: { p: ParcoursWithProgress }) {
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest">
+            <Badge variant="outline" className="border-indigo-200 bg-white text-xs font-black uppercase tracking-widest">
               {p.level}
             </Badge>
-            <Badge variant="outline" className="border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest">
+            <Badge variant="outline" className="border-indigo-200 bg-white text-xs font-black uppercase tracking-widest">
               {p.category}
             </Badge>
-            {startedLabel && <span className="text-xs text-zinc-500">commencé le {startedLabel}</span>}
+            {startedLabel && <span className="text-sm text-zinc-500">commencé le {startedLabel}</span>}
           </div>
           <h3 className="text-2xl font-black tracking-tight text-zinc-900 first-letter:uppercase">{titleOf(p)}</h3>
           {p.nextLesson && (
@@ -273,7 +273,7 @@ export default function ParcoursList({
                       <TabsTrigger key={l} value={l} className="font-black">
                         {l}
                         {user && (
-                          <span className="text-xs font-medium text-zinc-500">
+                          <span className="text-sm font-medium text-zinc-500">
                             {ofLevel.filter(isDone).length}/{ofLevel.length}
                           </span>
                         )}
@@ -285,7 +285,7 @@ export default function ParcoursList({
 
               {user && ofActiveLevel.length > 0 && (
                 <div className="flex items-center gap-3">
-                  <p className="shrink-0 text-xs text-zinc-500">
+                  <p className="shrink-0 text-sm text-zinc-500">
                     Niveau <span className="font-bold text-zinc-900">{activeLevel}</span> ·{" "}
                     <span className="font-bold text-zinc-900">{doneInLevel}/{ofActiveLevel.length}</span> parcours terminés
                   </p>

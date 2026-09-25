@@ -140,15 +140,15 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
       {rows.map(row => (
         <div key={row.key} className="space-y-0.5">
           <div className="flex items-center justify-between gap-4">
-            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest" style={{ color: row.color }}>
+            <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest" style={{ color: row.color }}>
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
               {row.label}
             </span>
             <span className="text-sm font-black text-zinc-900">{row.score}%</span>
           </div>
-          <p className="text-xs font-bold text-zinc-500">{row.date} · {row.type}</p>
+          <p className="text-sm font-bold text-zinc-500">{row.date} · {row.type}</p>
           {row.level && (
-            <p className="text-xs font-bold text-zinc-500">Niveau CECRL estimé : <span className="text-zinc-700">{row.level}</span></p>
+            <p className="text-sm font-bold text-zinc-500">Niveau CECRL estimé : <span className="text-zinc-700">{row.level}</span></p>
           )}
         </div>
       ))}
@@ -279,7 +279,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                 <span className="text-xs font-black uppercase tracking-widest">Niveau CECRL estimé actuel</span>
               </div>
               <h2 className="text-5xl font-black tracking-tighter text-white">{estimatedLevel.level}</h2>
-              <p className="text-xs font-medium text-zinc-400">
+              <p className="text-sm font-medium text-zinc-400">
                 Basé sur vos {estimatedLevel.sampleSize} dernières tentatives EE+EO
               </p>
             </CardContent>
@@ -328,7 +328,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                   <p className="text-sm font-medium text-zinc-500">
                     Expression Écrite et Expression Orale, {MAX_POINTS_PER_SKILL} dernières tentatives de chaque — toutes provenances confondues (pratique libre et examen blanc). Cliquez un point pour voir le détail de la correction.
                   </p>
-                  <div className="mt-2 flex items-center gap-4 text-xs font-bold text-zinc-500">
+                  <div className="mt-2 flex items-center gap-4 text-sm font-bold text-zinc-500">
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-zinc-400" />
                       Pratique libre
@@ -361,7 +361,7 @@ export const CorrectionStats = ({ attempts, chartAttempts, onSelectAttempt }: Co
                     />
                     <Tooltip content={<ChartTooltip />} />
                     <Legend
-                      formatter={(value) => <span className="text-xs font-black text-zinc-500">{value}</span>}
+                      formatter={(value) => <span className="text-sm font-black text-zinc-500">{value}</span>}
                       wrapperStyle={{ paddingTop: 16 }}
                     />
                     <Line

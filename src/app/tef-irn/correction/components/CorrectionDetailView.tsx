@@ -186,7 +186,7 @@ export const CorrectionDetailView = ({
             <ArrowLeft size={24} />
           </Button>
           <div>
-            <Badge className="mb-2 rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-100">
+            <Badge className="mb-2 rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-100">
               Analyse détaillée
             </Badge>
             <h1 className="text-3xl font-black tracking-tight text-zinc-900">
@@ -230,7 +230,7 @@ export const CorrectionDetailView = ({
                 </div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Votre production</p>
               </div>
-              <Badge variant="outline" className="rounded-full border-zinc-200 bg-white font-bold text-[10px]">
+              <Badge variant="outline" className="rounded-full border-zinc-200 bg-white font-bold text-xs">
                 {attempt.answers.text.trim().split(/\s+/).length} mots
               </Badge>
             </div>
@@ -251,7 +251,7 @@ export const CorrectionDetailView = ({
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="text-indigo-400" size={20} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Conseil du Coach</span>
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-indigo-400">Conseil du Coach</span>
                 </div>
                 <p className="text-lg font-medium italic leading-relaxed text-zinc-300">
                   {comment}
@@ -299,13 +299,13 @@ export const CorrectionDetailView = ({
                         <div className="space-y-4 flex-1">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Original</p>
+                              <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Original</p>
                               <p className="text-sm font-bold text-zinc-500 line-through decoration-red-400 decoration-2">
                                 {err.texte_original}
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Correction</p>
+                              <p className="text-xs font-black uppercase tracking-widest text-emerald-400">Correction</p>
                               <p className="text-sm font-black text-emerald-600 bg-emerald-50 inline-block px-2 py-0.5 rounded-lg">
                                 {err.texte_corrige}
                               </p>

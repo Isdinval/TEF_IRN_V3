@@ -23,7 +23,7 @@ export default function VocabLevelSwitcher({ currentLevel, onSelectLevel, varian
   if (variant === "card") {
     return (
       <div className={`space-y-2 ${className}`}>
-        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Autres niveaux pour ce thème</p>
+        <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">Autres niveaux pour ce thème</p>
         <div className="flex gap-2">
           {LEVELS.filter((lvl) => lvl !== currentLevel).map((lvl) => (
             <button
@@ -46,7 +46,7 @@ export default function VocabLevelSwitcher({ currentLevel, onSelectLevel, varian
           key={lvl}
           onClick={() => onSelectLevel(lvl)}
           disabled={lvl === currentLevel}
-          className={`min-w-11 h-11 rounded-2xl font-black text-xs transition-all ${
+          className={`min-w-11 h-11 rounded-2xl font-black text-sm transition-all ${
             lvl === currentLevel
               ? "bg-indigo-600 text-white shadow-md cursor-default"
               : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700"

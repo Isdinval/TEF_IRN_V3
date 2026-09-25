@@ -44,7 +44,7 @@ export function ScenarioCatalogue({
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
-          <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+          <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
             <Layers size={14} className="text-indigo-600" /> Section
           </div>
           <div className="flex gap-2">
@@ -61,7 +61,7 @@ export function ScenarioCatalogue({
         </div>
 
         <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
-          <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+          <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
             <Target size={14} className="text-indigo-600" /> Niveau
           </div>
           <div className="flex gap-2">
@@ -82,11 +82,11 @@ export function ScenarioCatalogue({
           onClick={onSurpriseMe}
           className="block w-full space-y-4 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
         >
-          <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-80">
+          <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest opacity-80">
             <Shuffle size={14} aria-hidden /> Scénario surprise
           </span>
           <span className="block text-base font-black leading-tight">Laissez-vous surprendre</span>
-          <span className="flex items-center gap-2 text-[10px] font-black uppercase">
+          <span className="flex items-center gap-2 text-xs font-black uppercase">
             <Play size={16} aria-hidden /> Tirage aléatoire
           </span>
         </button>
@@ -101,7 +101,7 @@ export function ScenarioCatalogue({
             <span className="text-zinc-500">•</span>
             <span className="capitalize text-zinc-500">Niveau {level === "all" ? "Tous" : level}</span>
           </h2>
-          <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+          <div className="text-xs font-black text-zinc-500 uppercase tracking-widest">
             {filtered.length} scénario{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
           </div>
         </div>
@@ -134,10 +134,10 @@ export function ScenarioCatalogue({
               >
                 <CardContent className="flex flex-col gap-3 p-6">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                    <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest">
                       Section {s.section}
                     </Badge>
-                    <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                    <Badge variant="outline" className="rounded-full border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-indigo-600">
                       {s.level}
                     </Badge>
                   </div>

@@ -637,12 +637,12 @@ export function GrammarCheckContent() {
             {(questions[0]?.level || questions[0]?.category) && (
               <div className="flex items-center justify-center gap-2 pt-1">
                 {questions[0]?.level && (
-                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none">
+                  <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none">
                     {questions[0].level}
                   </Badge>
                 )}
                 {questions[0]?.category && (
-                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
+                  <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest">
                     {questions[0].category}
                   </Badge>
                 )}
@@ -651,12 +651,12 @@ export function GrammarCheckContent() {
           </div>
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
               <div className="text-2xl font-black text-indigo-600">{score} / {questions.length}</div>
             </div>
           </div>
@@ -688,7 +688,7 @@ export function GrammarCheckContent() {
                 onClick={() => {
                     if (exerciseIdFromParams) startTraining(exerciseIdFromParams);
                 }}
-                className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900"
+                className="h-12 text-zinc-500 font-black uppercase tracking-widest text-xs hover:text-zinc-900"
               >
                 <RotateCcw size={14} className="mr-2" /> Recommencer l'exercice
               </Button>
@@ -711,7 +711,7 @@ export function GrammarCheckContent() {
           </div>
           <div className="flex flex-col gap-3">
             <Button onClick={() => window.location.assign('/tef-irn/pricing')} className="h-12 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">Voir les abonnements</Button>
-            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">Retourner au catalogue</Button>
+            <Button variant="ghost" onClick={() => { setQuotaBlocked(null); setMode("selection"); }} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-xs hover:text-zinc-900">Retourner au catalogue</Button>
           </div>
         </motion.div>
       </div>
@@ -726,7 +726,7 @@ export function GrammarCheckContent() {
     const showSplit = showLessonPanel && isDesktop;
     const lessonPanelContent = activeLesson ? (
       <>
-        <div className="flex items-center gap-2 mb-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+        <div className="flex items-center gap-2 mb-1 text-xs font-black uppercase tracking-widest text-indigo-600">
           <BookOpen size={14} /> Leçon associée
         </div>
         {(() => {
@@ -734,7 +734,7 @@ export function GrammarCheckContent() {
           return (
             <div className="mb-3">
               <h4 className="text-base font-black text-zinc-900 leading-snug">{main}</h4>
-              {subtitle && <p className="text-xs font-medium text-zinc-500 mt-0.5">{subtitle}</p>}
+              {subtitle && <p className="text-sm font-medium text-zinc-500 mt-0.5">{subtitle}</p>}
             </div>
           );
         })()}
@@ -770,7 +770,7 @@ export function GrammarCheckContent() {
                 </Button>
               )}
               <div className="text-right">
-                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
+                <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
                 <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
               </div>
               <div className="h-12 w-px bg-zinc-100" />
@@ -782,7 +782,7 @@ export function GrammarCheckContent() {
                       className="h-full bg-indigo-600"
                     />
                  </div>
-                 <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                 <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
                     <span>Début</span>
                     <span>{Math.round(progress)}%</span>
                     <span>Fin</span>
@@ -910,7 +910,7 @@ export function GrammarCheckContent() {
                       Il n'y a pas de faute
                     </button>
                     {status !== "typing" && (
-                       <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${status === "correct" ? "bg-emerald-600" : "bg-red-600"}`}>
+                       <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-widest text-white shadow-lg ${status === "correct" ? "bg-emerald-600" : "bg-red-600"}`}>
                         {status === "correct" ? "Excellent !" : "Presque !"}
                        </div>
                     )}
@@ -934,7 +934,7 @@ export function GrammarCheckContent() {
                         className="space-y-2"
                       >
                         <Card className={`p-4 rounded-2xl border shadow-sm ${status === "correct" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
-                          <div className="flex items-center gap-2 mb-2 opacity-80 text-[10px] font-black uppercase tracking-widest">
+                          <div className="flex items-center gap-2 mb-2 opacity-80 text-xs font-black uppercase tracking-widest">
                             <Sparkles size={14} /> Note pédagogique
                           </div>
                           <p className="text-sm font-medium leading-relaxed mb-2">{current?.explanation}</p>
@@ -1000,7 +1000,7 @@ export function GrammarCheckContent() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <Target size={14} className="text-indigo-600" /> Choisir votre niveau
               </div>
               <div className="flex gap-2">
@@ -1017,7 +1017,7 @@ export function GrammarCheckContent() {
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-zinc-100 space-y-4 lg:col-span-2 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <GraduationCap size={14} className="text-indigo-600" /> Thématiques
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1042,11 +1042,11 @@ export function GrammarCheckContent() {
                 }}
                 className="block w-full space-y-4 rounded-3xl bg-indigo-600 p-6 text-left text-white shadow-lg shadow-indigo-100 transition hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest opacity-80 flex items-center gap-2">
                 <Zap size={14} aria-hidden /> Recommandé pour vous
               </span>
               <span className="block text-lg font-black leading-tight">Lancer mon exercice recommandé</span>
-              <span className="flex items-start gap-2 text-xs font-medium leading-snug text-indigo-100">
+              <span className="flex items-start gap-2 text-sm font-medium leading-snug text-indigo-100">
                 <Sparkles size={16} aria-hidden className="mt-0.5 shrink-0" /> {recommendationReason || "Basé sur vos performances"}
               </span>
             </button>
@@ -1067,7 +1067,7 @@ export function GrammarCheckContent() {
               <button
                 type="button"
                 onClick={() => setHideCompleted((v) => !v)}
-                className={`h-11 px-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap ${
+                className={`h-11 px-4 rounded-2xl border font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${
                   hideCompleted
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
                     : "bg-white border-zinc-100 text-zinc-500 hover:border-indigo-200"
@@ -1078,7 +1078,7 @@ export function GrammarCheckContent() {
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "recent" | "ancien")}
-                className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
+                className="h-11 px-4 rounded-2xl border border-zinc-100 bg-white text-xs font-black uppercase tracking-widest text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-200 transition-all"
                 aria-label="Trier les exercices"
               >
                 <option value="recent">Plus récents</option>
@@ -1092,7 +1092,7 @@ export function GrammarCheckContent() {
                 <span className="text-zinc-500">•</span>
                 <span className="capitalize text-zinc-500">{filters.category}</span>
               </h2>
-              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest">
                 {catalogue.length} exercice{catalogue.length > 1 ? 's' : ''} disponible{catalogue.length > 1 ? 's' : ''}
               </div>
             </div>

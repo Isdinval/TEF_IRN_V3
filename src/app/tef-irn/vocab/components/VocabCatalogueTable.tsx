@@ -41,11 +41,11 @@ export default function VocabCatalogueTable({ items }: VocabCatalogueTableProps)
             <h4 className="text-sm font-black text-zinc-900 group-hover:text-indigo-600 transition-colors truncate">
               {item.word}
             </h4>
-            <p className="text-xs text-zinc-500 font-medium line-clamp-1 mt-0.5">
+            <p className="text-sm text-zinc-500 font-medium line-clamp-1 mt-0.5">
               {item.definition}
             </p>
           </div>
-          <Badge className={`shrink-0 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${STATUS_CONFIG[item.status].className}`}>
+          <Badge className={`shrink-0 border-none rounded-full px-3 py-1 text-xs font-black uppercase ${STATUS_CONFIG[item.status].className}`}>
             {STATUS_CONFIG[item.status].label}
           </Badge>
           <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-600 transition-colors" />

@@ -17,7 +17,7 @@ export function ParcoursProgressBar({ percent, className, showLabel = false }: P
   return (
     <div className={cn("w-full space-y-2", className)}>
       {showLabel && (
-        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
+        <div className="flex justify-between text-xs font-black uppercase tracking-widest text-zinc-500">
           <span>Progression</span>
           <span>{percent}%</span>
         </div>

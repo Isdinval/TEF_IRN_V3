@@ -159,12 +159,12 @@ export const ZoneRedaction = ({
               <CardTitle className="text-sm font-black uppercase tracking-tight text-zinc-900">Zone de rédaction</CardTitle>
               <Badge
                 variant="outline"
-                className={`rounded-full px-2 py-0 text-[10px] font-black normal-case tracking-normal tabular-nums ${wordCountStyles[wordCountStatus]}`}
+                className={`rounded-full px-2 py-0 text-xs font-black normal-case tracking-normal tabular-nums ${wordCountStyles[wordCountStatus]}`}
               >
                 {wordCount}{minWords ? ` / ${minWords}` : ""} mot{wordCount > 1 ? "s" : ""}
               </Badge>
             </div>
-            <p className="text-[10px] font-bold text-zinc-500">
+            <p className="text-sm font-bold text-zinc-500">
               {wordCountStatus === "over"
                 ? "Texte plutôt long par rapport à la consigne"
                 : "Exprimez-vous librement"}
@@ -172,19 +172,19 @@ export const ZoneRedaction = ({
           </div>
         </div>
         {isAnalyzing && (
-           <Badge className="animate-pulse border-none bg-indigo-100 text-[10px] font-black uppercase tracking-widest text-indigo-700 px-3 py-1">
+           <Badge className="animate-pulse border-none bg-indigo-100 text-xs font-black uppercase tracking-widest text-indigo-700 px-3 py-1">
              Analyse en cours...
            </Badge>
         )}
         {feedback && !isAnalyzing && (
-          <Badge className="border-none bg-emerald-100 text-[10px] font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
+          <Badge className="border-none bg-emerald-100 text-xs font-black uppercase tracking-widest text-emerald-700 px-3 py-1">
             Analyse terminée
           </Badge>
         )}
         {feedback && !isAnalyzing && unmatchedCount > 0 && (
           <Badge
             title="Ces corrections restent visibles dans le panneau de feedback, mais l'extrait exact n'a pas pu être localisé dans votre texte."
-            className="border-none bg-amber-100 text-[10px] font-black uppercase tracking-widest text-amber-700 px-3 py-1"
+            className="border-none bg-amber-100 text-xs font-black uppercase tracking-widest text-amber-700 px-3 py-1"
           >
             {unmatchedCount} correction{unmatchedCount > 1 ? "s" : ""} non surlignée{unmatchedCount > 1 ? "s" : ""}
           </Badge>

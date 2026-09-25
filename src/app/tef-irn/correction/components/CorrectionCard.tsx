@@ -55,16 +55,16 @@ export const CorrectionCard = ({ attempt, onClick, index }: CorrectionCardProps)
               <h3 className="line-clamp-1 text-lg font-black text-zinc-900 tracking-tight">
                 {subject}
               </h3>
-              <Badge variant="outline" className="shrink-0 rounded-full border-zinc-200 bg-zinc-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              <Badge variant="outline" className="shrink-0 rounded-full border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-zinc-500">
                 {level}
               </Badge>
-              <Badge className={`shrink-0 rounded-full border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
+              <Badge className={`shrink-0 rounded-full border-none px-3 py-1 text-xs font-black uppercase tracking-widest ${
                 "bg-zinc-100 text-zinc-600"
               }`}>
                 {isOral ? "EO" : "EE"}
               </Badge>
               {isExamBlanc && (
-                <Badge className="shrink-0 rounded-full border-none bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                <Badge className="shrink-0 rounded-full border-none bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-indigo-600">
                   Examen blanc
                 </Badge>
               )}

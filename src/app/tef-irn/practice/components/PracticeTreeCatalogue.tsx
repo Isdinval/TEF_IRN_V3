@@ -146,7 +146,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
               <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black uppercase tracking-tight text-zinc-900">{main}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 shrink-0">
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-500 shrink-0">
                     {group.completedCount}/{group.items.length} terminé{group.items.length > 1 ? "s" : ""}
                   </span>
                   {group.isFullyDone && <CompletionBadge />}
@@ -156,7 +156,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                     GrammarCheckTreeCatalogue.tsx). Item 8 du plan
                     "point-clés pédagogiques". */}
                 {subtitle && (
-                  <p className="text-xs font-medium normal-case tracking-normal text-zinc-500 line-clamp-1">
+                  <p className="text-sm font-medium normal-case tracking-normal text-zinc-500 line-clamp-1">
                     {subtitle}
                   </p>
                 )}
@@ -165,7 +165,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
             <AccordionContent className="pb-6 space-y-5">
               {pointCleGroups.map(([label, items]) => (
                 <div key={label}>
-                  <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">
+                  <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-2 px-1">
                     {label}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -179,7 +179,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                         >
                           {ex.category && (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${getCategoryColor(ex.category)}`}
+                              className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-xs font-black uppercase ${getCategoryColor(ex.category)}`}
                             >
                               {ex.category}
                             </Badge>
@@ -195,7 +195,7 @@ export default function PracticeTreeCatalogue({ exercises, lessonMeta, basePath 
                             <CompletionBadge />
                           ) : (
                             <Badge
-                              className={`shrink-0 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${STATUS_CONFIG[st].className}`}
+                              className={`shrink-0 border-none rounded-full px-3 py-1 text-xs font-black uppercase ${STATUS_CONFIG[st].className}`}
                             >
                               {STATUS_CONFIG[st].label}
                             </Badge>

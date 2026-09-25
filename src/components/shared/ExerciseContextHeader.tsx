@@ -55,7 +55,7 @@ export function ExerciseContextHeader({
   return (
     <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
       {hasBreadcrumb && (
-        <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+        <div className="flex items-center gap-1.5 text-xs font-black text-zinc-500 uppercase tracking-widest">
           <BookOpen size={12} className="shrink-0" />
           {parcoursLabel && (
             parcoursHref ? (
@@ -83,7 +83,7 @@ export function ExerciseContextHeader({
       )}
 
       {degradedMatchNotice && (
-        <div className="flex items-start gap-1.5 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+        <div className="flex items-start gap-1.5 rounded-2xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
           <AlertTriangle size={13} className="mt-0.5 shrink-0" />
           <span>{degradedMatchNotice}</span>
         </div>
@@ -92,17 +92,17 @@ export function ExerciseContextHeader({
       {hasMeta && (
         <div className="flex flex-wrap items-center gap-2">
           {level && (
-            <Badge className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+            <Badge className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
               {level}
             </Badge>
           )}
           {category && (
-            <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
+            <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest">
               {category}
             </Badge>
           )}
           {difficulty && (
-            <Badge className="rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none bg-zinc-100 text-zinc-600">
+            <Badge className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none bg-zinc-100 text-zinc-600">
               {difficulty}
             </Badge>
           )}
@@ -114,7 +114,7 @@ export function ExerciseContextHeader({
       )}
 
       {pointCle && (
-        <div className="text-xs text-zinc-500 italic flex items-start gap-1.5">
+        <div className="text-sm text-zinc-500 italic flex items-start gap-1.5">
           <Target size={13} className="mt-0.5 shrink-0 text-zinc-400" />
           <span>{pointCle}</span>
         </div>
