@@ -116,7 +116,7 @@ async function fetchLessons(parcoursId: string): Promise<LessonsState> {
 function StatusIcon({ state, size = 16 }: { state: StepState; size?: number }) {
   if (state === "done") return <CheckCircle2 size={size} className="text-emerald-500 shrink-0" />;
   if (state === "current") return <CircleDot size={size} className="text-indigo-600 shrink-0" />;
-  return <Circle size={size} className="text-zinc-300 shrink-0" />;
+  return <Circle size={size} className="text-zinc-500 shrink-0" />;
 }
 
 function ExerciseDots({ exercises }: { exercises: LessonItem["exercises"] }) {
@@ -127,7 +127,7 @@ function ExerciseDots({ exercises }: { exercises: LessonItem["exercises"] }) {
         if (items.length === 0) return null;
         return (
           <div key={group.type} className="flex items-center gap-0.5">
-            <span className="text-[11px] font-medium text-zinc-400 mr-1">{group.short}</span>
+            <span className="text-sm font-medium text-zinc-500 mr-1">{group.short}</span>
             {items.map((ex, i) => {
               const label = `${group.label} ${i + 1} — ${ex.isCompleted ? "fait" : "à faire"}`;
               return (
@@ -170,9 +170,9 @@ function LessonTitle({ title, href, muted }: { title: string; href?: string; mut
           {main}
         </Link>
       ) : (
-        <p className={cn("text-sm font-medium", muted ? "text-zinc-400" : "text-zinc-900")}>{main}</p>
+        <p className={cn("text-sm font-medium", muted ? "text-zinc-500" : "text-zinc-900")}>{main}</p>
       )}
-      {hook && <p className={cn("text-xs", muted ? "text-zinc-300" : "text-zinc-400")}>{hook}</p>}
+      {hook && <p className="text-sm text-zinc-500">{hook}</p>}
     </div>
   );
 }
@@ -193,7 +193,7 @@ function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) 
   if (!lesson.unlocked) {
     return (
       <div className="flex items-start gap-3 px-3 py-2.5 border-b border-zinc-100 last:border-b-0">
-        <Lock size={14} className="mt-0.5 text-zinc-300 shrink-0" />
+        <Lock size={14} className="mt-0.5 text-zinc-500 shrink-0" />
         <LessonTitle title={lesson.title} muted />
       </div>
     );
@@ -205,7 +205,7 @@ function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) 
     <div
       className={cn(
         "flex flex-wrap items-start gap-x-3 gap-y-2 px-3 py-2.5 border-b border-zinc-100 last:border-b-0",
-        isNext && "rounded-xl border-b-transparent bg-indigo-50/60"
+        isNext && "rounded-2xl border-b-transparent bg-indigo-50/60"
       )}
     >
       <span className="mt-0.5"><StatusIcon state={state} size={14} /></span>
@@ -214,12 +214,12 @@ function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) 
         {lesson.exercises.length > 0 ? (
           <ExerciseDots exercises={lesson.exercises} />
         ) : (
-          <p className="text-xs text-zinc-400 italic">Aucun exercice</p>
+          <p className="text-sm text-zinc-500">Aucun exercice</p>
         )}
         {nextExercise && (
           <Link
             href={nextExercise.url}
-            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
+            className="inline-flex h-11 items-center gap-1 rounded-2xl bg-indigo-600 px-4 text-sm font-bold text-white transition-colors hover:bg-indigo-700"
           >
             {started ? "Continuer" : "Commencer"} <ArrowRight size={12} />
           </Link>
@@ -258,7 +258,7 @@ function ParcoursDetail({
             Parcours {parcoursTitle(parcours)} {level}
           </h2>
           {isActive && !parcours.isCompleted && (
-            <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">Vous êtes ici</span>
+            <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-600">Vous êtes ici</span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -267,7 +267,7 @@ function ParcoursDetail({
             {parcours.completed}/{parcours.total} leçons terminées
           </p>
         </div>
-        <p className="text-xs text-zinc-400">
+        <p className="text-sm text-zinc-500">
           {CATEGORY_WHY[parcours.category.toLowerCase()] || DEFAULT_CATEGORY_WHY}
         </p>
       </div>
@@ -280,10 +280,10 @@ function ParcoursDetail({
         </div>
       )}
       {lessons === "error" && (
-        <p className="text-sm text-zinc-500">
-          Impossible de charger le détail.{" "}
-          <button onClick={onRetry} className="underline underline-offset-2">Réessayer</button>
-        </p>
+        <div className="flex flex-col items-start gap-3 rounded-3xl border-2 border-red-200 bg-red-50/50 p-4">
+          <p className="text-sm font-medium text-red-600">Impossible de charger le détail.</p>
+          <button type="button" onClick={onRetry} className="inline-flex h-11 items-center rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-bold text-zinc-900 hover:bg-zinc-50">Réessayer</button>
+        </div>
       )}
       {Array.isArray(lessons) && (
         lessons.length > 0 ? (
@@ -293,7 +293,7 @@ function ParcoursDetail({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-zinc-400 italic">Aucune leçon dans ce parcours pour l&apos;instant.</p>
+          <p className="text-sm text-zinc-500">Aucune leçon dans ce parcours pour l&apos;instant.</p>
         )
       )}
     </div>
@@ -323,15 +323,15 @@ function LevelMap({
               onClick={() => onSelect(p.id)}
               aria-current={p.id === selectedId ? "true" : undefined}
               className={cn(
-                "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                p.id === selectedId ? "bg-zinc-100 font-semibold text-zinc-900" : "text-zinc-700 hover:bg-zinc-50"
+                "w-full flex items-center gap-2.5 rounded-2xl px-3 py-2 text-left text-sm transition-colors",
+                p.id === selectedId ? "bg-zinc-100 font-bold text-zinc-900" : "text-zinc-700 hover:bg-zinc-50"
               )}
             >
               <StatusIcon state={state} />
               <span className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <span className="flex items-center justify-between gap-2">
                   <span className="truncate">{parcoursTitle(p)}</span>
-                  <span className="text-xs font-normal text-zinc-400">{p.completed}/{p.total}</span>
+                  <span className="text-sm font-medium text-zinc-500">{p.completed}/{p.total}</span>
                 </span>
                 <ProgressBar completed={p.completed} total={p.total} />
               </span>
@@ -350,11 +350,11 @@ function LevelMap({
           <Link
             key={`${step.kind}-${i}`}
             href={step.data.href}
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-50"
+            className="flex items-center gap-2.5 rounded-2xl px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-50"
           >
             <StatusIcon state={done ? "done" : "todo"} />
             <span className="flex-1 truncate">{label}</span>
-            {done ? <span className="text-xs text-zinc-400">Fait</span> : <ChevronRight size={14} className="shrink-0 text-zinc-300" />}
+            {done ? <span className="text-sm text-zinc-500">Fait</span> : <ChevronRight size={14} className="shrink-0 text-zinc-500" />}
           </Link>
         );
       })}
@@ -442,12 +442,12 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
       />
 
       <Tabs value={activeLevel} onValueChange={(value) => handleLevelChange(String(value))}>
-        <TabsList className="w-full h-10!">
+        <TabsList className="w-full h-11!">
           {levels.map((l) => (
-            <TabsTrigger key={l.level} value={l.level}>
+            <TabsTrigger key={l.level} value={l.level} className="font-black">
               {l.level}
               {l.steps.length > 0 && (
-                <span className="text-xs font-normal text-zinc-400">
+                <span className="text-sm font-medium text-zinc-500">
                   {l.steps.filter(isStepDone).length}/{l.steps.length}
                 </span>
               )}
@@ -467,13 +467,13 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
           </div>
 
           {level.steps.length === 0 ? (
-            <p className="text-sm text-zinc-400 italic">Aucun parcours disponible pour ce niveau pour l&apos;instant.</p>
+            <p className="text-sm text-zinc-500">Aucun parcours disponible pour ce niveau pour l&apos;instant.</p>
           ) : (
             <div className="grid gap-6 md:grid-cols-[280px_minmax(0,1fr)]">
               <div className="md:border-r md:border-zinc-100 md:pr-4 space-y-3">
                 <LevelMap level={level} selectedId={effectiveSelectedId} currentId={currentId} onSelect={setSelectedId} />
                 {!hasChecklist && (
-                  <p className="text-xs text-zinc-400 italic px-3">
+                  <p className="text-sm text-zinc-500 px-3">
                     Expression Écrite, Expression Orale et Examen blanc arrivent bientôt pour ce niveau.
                   </p>
                 )}
