@@ -92,7 +92,7 @@ export default function ComprehensionEcritePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/30 pb-20">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
       <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
         <div className="mb-8">
           <PageHeader
@@ -117,13 +117,13 @@ export default function ComprehensionEcritePage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 items-start">
               <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                   <Layers size={14} className="text-indigo-600" /> Format
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setFormat(ALL)}
-                    className={`h-12 rounded-2xl font-black text-sm transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                    className={`h-12 rounded-2xl font-black text-sm transition-all ${format === ALL ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}
                   >
                     Tous
                   </button>
@@ -131,7 +131,7 @@ export default function ComprehensionEcritePage() {
                     <button
                       key={f}
                       onClick={() => setFormat(f)}
-                      className={`h-12 rounded-2xl font-black text-sm transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                      className={`h-12 rounded-2xl font-black text-sm transition-all ${format === f ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}
                     >
                       {FORMAT_LABELS[f]}
                     </button>
@@ -140,7 +140,7 @@ export default function ComprehensionEcritePage() {
               </div>
 
               <div className="bg-white p-6 rounded-[2.5rem] border border-zinc-100 space-y-4 shadow-sm">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                   <Target size={14} className="text-indigo-600" /> Niveau
                 </div>
                 <div className="flex gap-2">
@@ -148,7 +148,7 @@ export default function ComprehensionEcritePage() {
                     <button
                       key={l}
                       onClick={() => setLevel(l)}
-                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-400 hover:border-zinc-200'}`}
+                      className={`flex-1 h-12 rounded-2xl font-black transition-all ${level === l ? 'bg-indigo-600 text-white shadow-lg' : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100'}`}
                     >
                       {l === ALL ? 'Tous' : l}
                     </button>
@@ -179,7 +179,7 @@ export default function ComprehensionEcritePage() {
                 <span className="text-zinc-400">•</span>
                 <span className="capitalize text-zinc-500">Niveau {level === ALL ? 'Tous' : level}</span>
               </h2>
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 {filtered.length} sujet{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function ComprehensionEcritePage() {
                       <h3 className="text-lg font-black leading-tight tracking-tight text-zinc-900">
                         {s.title ?? FORMAT_LABELS[s.format]}
                       </h3>
-                      <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">
+                      <p className="text-xs font-bold uppercase tracking-wide text-zinc-500">
                         {questionCounts[s.id] ?? 0} question{(questionCounts[s.id] ?? 0) > 1 ? 's' : ''}
                       </p>
                       <p className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-500">
