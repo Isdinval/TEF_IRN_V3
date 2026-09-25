@@ -81,10 +81,15 @@ Polices déjà configurées : **Montserrat** (`font-heading`) et **Inter** (`fon
 | Titre de carte (H3) | `text-base md:text-lg font-bold text-zinc-900` (carte mise en avant : `text-2xl font-black tracking-tight`) | |
 | Description d'en-tête | `max-w-2xl text-base md:text-lg font-medium leading-relaxed text-zinc-500` | |
 | Texte courant | `text-sm md:text-base font-medium text-zinc-600` | |
-| Micro-label | `text-[10px] font-black uppercase tracking-widest text-zinc-500` | « Section », « Niveau », « Mise en situation »… |
+| Texte secondaire (métadonnées, aides, sous-titres) | `text-sm font-medium text-zinc-500` | 14 px : jamais plus petit pour du texte en casse normale. |
+| Micro-label | `text-xs font-black uppercase tracking-widest text-zinc-500` | 12 px, **toujours en capitales**. « Section », « Niveau », « Mise en situation »… |
 | Chiffre clé (KPI) | `text-3xl font-black text-zinc-900` | |
 
-Tailles : **uniquement l'échelle Tailwind** (`text-xs` à `text-5xl`) + `text-[10px]` pour les micro-labels. ❌ Rien sous 10 px, pas de `text-[11px]`…`text-[19px]`, pas de `text-[clamp(...)]` : une taille qui grandit avec l'écran s'écrit `text-2xl md:text-4xl`.
+Tailles : **uniquement l'échelle Tailwind** (`text-xs` à `text-5xl`). Deux planchers :
+- **12 px (`text-xs`)** : réservé à ce qui est en capitales (micro-labels, boutons `uppercase`) et aux badges (`rounded-full`).
+- **14 px (`text-sm`)** : minimum pour tout texte en casse normale (métadonnées, aides, sous-titres, dates…).
+
+❌ Plus de `text-[10px]` ni aucune taille arbitraire en `px`, pas de `text-[clamp(...)]` : une taille qui grandit avec l'écran s'écrit `text-2xl md:text-4xl`.
 Police : celle du thème (`font-sans`, définie une seule fois dans le layout). ❌ Pas de police locale à une page.
 
 ### 3.2 Graisses : 3 niveaux, pas plus
@@ -191,7 +196,7 @@ Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de 
 | Badge d'en-tête | géré par `PageHeader` (§5.2) |
 | Badge accent (« Conseillé », « En cours ») | `rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white` |
 | Badge neutre (niveau, format, compteur) | `rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-600` |
-| Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
+| Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-xs font-black uppercase tracking-widest` |
 | Badge d'état | `bg-emerald-50 text-emerald-700`, `bg-amber-50 text-amber-700` ou `bg-red-50 text-red-600` |
 
 Badges de carte (format + niveau) :
@@ -291,7 +296,7 @@ Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:
 | **Barre de parcours** (`ParcoursTopBar`) | Version compacte empilée. | Version complète sur une ligne. |
 | **Marges de page** | `p-4` (16 px) sur les côtés. | `lg:p-12` (48 px), contenu centré `max-w-5xl`. |
 | **En-tête de page** (`PageHeader`) | Titre 36 px ; élément `aside` **sous** la description. | Titre 48 px ; `aside` **à droite**, aligné en bas. |
-| **Texte** | Courant 14 px, description 16 px. Jamais sous 12 px (sauf micro-labels 10 px). | Courant 16 px, description 18 px. |
+| **Texte** | Courant 14 px, description 16 px. Casse normale jamais sous 14 px ; 12 px pour capitales et badges uniquement. | Courant 16 px, description 18 px. |
 | **Filtres** (section, niveau, format) | Empilés en pleine largeur, boutons ≥ 44 px de haut. | Côte à côte (`md:grid-cols-3`). |
 | **Grille de cartes** | 1 colonne. | 3 colonnes (2 en tablette). |
 | **Carte mise en avant** (« Reprendre ») | Pleine largeur, bouton principal **en pleine largeur sous** le texte. | Pleine largeur, bouton **à droite** du texte. |
