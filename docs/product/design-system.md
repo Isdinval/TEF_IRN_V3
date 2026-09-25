@@ -254,6 +254,18 @@ Chaque bloc qui charge des données gère ses 3 états :
 | Quota journalier CE/CO | `src/components/shared/ComprehensionDailyQuotaBadge.tsx` |
 | Composants de base | `src/components/ui/*` (shadcn, **ne pas modifier**) |
 
+
+### 6.8 Écran d'exercice (pendant la question)
+
+S'applique à QCM, Chasse aux erreurs, Vocabulaire, CE/CO et à tout futur exercice :
+
+- Barre du haut : `ExerciseLayout` variante `compact` (badge indigo, bouton retour 44 px).
+- Contexte : `ExerciseContextHeader` (fil d'Ariane, badges niveau indigo + catégorie et difficulté **neutres**).
+- Carte de question : `rounded-3xl border border-zinc-100 bg-white shadow-sm`, **sans halo**.
+- Réponses cliquables : 44 px minimum, `rounded-2xl` ; sélection = indigo ; après validation : bonne réponse `emerald`, mauvaise `red`.
+- Une seule action principale à la fois (« Vérifier », puis « Question suivante ») : bouton indigo `font-black uppercase tracking-widest`.
+- Retour après réponse : carte d'état claire (`emerald-50`/`emerald-700` ou `red-50`/`red-700`, bordure `-200`), explication en texte courant, **sans italique ni guillemets**.
+
 ---
 
 ## 7. Ordinateur vs Mobile ⭐
@@ -348,6 +360,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/comprehension-ecrite/[scenarioId]`, `/tef-irn/comprehension-orale/[scenarioId]` | `apply_ligne_directrice_design` (lot 3) |
 | `/tef-irn/practice`, `/tef-irn/grammar-check`, `/tef-irn/vocab` | `apply_ligne_directrice_design` (lot 3) |
 | `/tef-irn/correction` | `apply_ligne_directrice_design` (lot 3) |
+| Écrans d'exercice QCM, Chasse aux erreurs, Vocabulaire, CE, CO | `apply_ligne_directrice_design` (lot 3 ter) |
 
 ---
 
