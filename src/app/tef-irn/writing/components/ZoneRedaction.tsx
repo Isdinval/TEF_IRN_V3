@@ -123,11 +123,7 @@ export const ZoneRedaction = ({
           className={`cursor-pointer rounded-sm border-b-2 px-0.5 transition-all duration-200 ${
             activeErrorIndex === error.originalIndex
               ? "border-indigo-600 bg-indigo-200 shadow-sm"
-              : error.type_erreur === "grammaire"
-              ? "border-rose-400 bg-rose-100/50 hover:bg-rose-200"
-              : error.type_erreur === "orthographe"
-              ? "border-amber-400 bg-amber-100/50 hover:bg-amber-200"
-              : "border-blue-400 bg-blue-100/50 hover:bg-blue-200"
+              : "border-amber-400 bg-amber-100/50 hover:bg-amber-200"
           }`}
         >
           {fragment}
@@ -146,7 +142,7 @@ export const ZoneRedaction = ({
 
   return (
     <Card
-      className={`flex flex-col overflow-hidden rounded-[2.5rem] border-2 border-indigo-50 bg-[#FAFAFA] shadow-2xl shadow-indigo-100/30 md:h-full ${
+      className={`flex flex-col overflow-hidden rounded-3xl border-2 border-indigo-50 bg-zinc-50 shadow-xl shadow-indigo-100/30 md:h-full ${
         // Le même assouplissement de hauteur que main/page.tsx pour mobile :
         // hauteur libre pendant la rédaction (grandit avec le texte), hauteur
         // fixe + scroll interne d'origine une fois le feedback affiché.
@@ -168,7 +164,7 @@ export const ZoneRedaction = ({
                 {wordCount}{minWords ? ` / ${minWords}` : ""} mot{wordCount > 1 ? "s" : ""}
               </Badge>
             </div>
-            <p className="text-[10px] font-bold text-zinc-400">
+            <p className="text-[10px] font-bold text-zinc-500">
               {wordCountStatus === "over"
                 ? "Texte plutôt long par rapport à la consigne"
                 : "Exprimez-vous librement"}
@@ -238,7 +234,7 @@ export const ZoneRedaction = ({
             <Button
               onClick={onAnalyze}
               disabled={isAnalyzing || wordCount < 5}
-              className="h-12 md:h-16 w-full rounded-2xl bg-zinc-900 text-sm md:text-lg font-black text-white shadow-2xl shadow-zinc-300 transition-all hover:bg-indigo-600 active:scale-95 border-none"
+              className="h-12 md:h-16 w-full rounded-2xl bg-zinc-900 text-sm md:text-lg font-black text-white shadow-xl shadow-zinc-300 transition-all hover:bg-indigo-600 active:scale-95 border-none"
             >
               {isAnalyzing ? (
                 <>

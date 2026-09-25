@@ -142,7 +142,7 @@ export function WritingScenarioCatalogue({
             <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-white border-none">
               {section === "all" ? "Toutes sections" : `Section ${section}`}
             </Badge>
-            <span className="text-zinc-400">•</span>
+            <span className="text-zinc-500">•</span>
             <span className="capitalize text-zinc-500">Niveau {level === "all" ? "Tous" : level}</span>
           </h2>
           <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">

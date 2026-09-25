@@ -53,7 +53,7 @@ export const FeedbackIA = ({
   }, [activeErrorIndex]);
 
   return (
-    <Card className="flex h-full flex-1 shrink-0 flex-col overflow-hidden rounded-[2.5rem] border-none bg-[#111827] shadow-2xl shadow-indigo-900/20">
+    <Card className="flex h-full flex-1 shrink-0 flex-col overflow-hidden rounded-3xl border-none bg-zinc-900 shadow-xl shadow-indigo-900/20">
       <CardHeader className="shrink-0 bg-zinc-900/50 backdrop-blur-md border-b border-white/5 px-8 py-6 text-white">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase tracking-tighter">
@@ -88,7 +88,7 @@ export const FeedbackIA = ({
                       "Deux métriques distinctes"). Absent sur les tentatives antérieures à
                       l'introduction de ce champ -- fallback "—" plutôt que de retomber sur
                       l'ancien recalcul biaisé. */}
-                  <div className="flex flex-col items-center gap-3 rounded-[2rem] bg-black/30 p-8 text-center">
+                  <div className="flex flex-col items-center gap-3 rounded-3xl bg-black/30 p-8 text-center">
                     <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">
                       Niveau apparent
                     </Badge>
@@ -110,7 +110,7 @@ export const FeedbackIA = ({
                     <h3 className="px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                       Détail par critère
                     </h3>
-                    <div className="flex flex-col gap-4 rounded-[2rem] border border-white/5 bg-white/5 p-6">
+                    <div className="flex flex-col gap-4 rounded-3xl border border-white/5 bg-white/5 p-6">
                       {(Object.keys(WRITING_CRITERIA_LABELS) as (keyof WritingScores)[]).map((key) => (
                         <div key={key} className="flex flex-col gap-1.5">
                           <div className="flex items-center justify-between text-sm">
@@ -126,7 +126,7 @@ export const FeedbackIA = ({
                   </div>
 
                   {/* General Counsel */}
-                  <div className="relative rounded-[2rem] border border-white/5 bg-white/5 p-6 text-sm font-medium italic leading-relaxed text-zinc-300">
+                  <div className="relative rounded-3xl border border-white/5 bg-white/5 p-6 text-sm font-medium italic leading-relaxed text-zinc-300">
                     <Quote className="absolute -top-3 left-6 text-white/10" size={24} fill="currentColor" />
                     “{feedback.conseil_general}”
                   </div>
@@ -159,14 +159,8 @@ export const FeedbackIA = ({
                         >
                           <div className="flex flex-col gap-4 p-5">
                             <div className="flex items-start gap-4">
-                              <div className={`mt-1.5 shrink-0 ${
-                                error.type_erreur === "grammaire" ? "text-rose-400" :
-                                error.type_erreur === "orthographe" ? "text-amber-400" :
-                                error.type_erreur === "conjugaison" ? "text-orange-400" :
-                                error.type_erreur === "syntaxe" ? "text-blue-400" :
-                                "text-zinc-400"
-                              }`}>
-                                {error.type_erreur === "conjugaison" ? <AlertCircle size={20} className="text-orange-400" /> : <Info size={20} />}
+                              <div className="mt-1.5 shrink-0 text-amber-400">
+                                {error.type_erreur === "conjugaison" ? <AlertCircle size={20} /> : <Info size={20} />}
                               </div>
                               <div className="space-y-2 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -183,7 +177,7 @@ export const FeedbackIA = ({
                                 </p>
                                 <div className="flex items-center justify-between">
                                   <Badge variant="outline" className={`text-[8px] uppercase tracking-tighter py-0 border-white/10 ${
-                                    error.type_erreur === "conjugaison" ? "text-orange-400 border-orange-400/20" : "text-zinc-500"
+                                    "text-zinc-400"
                                   }`}>
                                     {error.type_erreur}
                                   </Badge>
@@ -201,7 +195,7 @@ export const FeedbackIA = ({
                     <h3 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 px-2">
                         <GraduationCap size={14} className="text-emerald-400" /> Texte corrigé complet
                       </h3>
-                      <div className="rounded-[2rem] border border-emerald-500/10 bg-emerald-500/5 p-6 text-sm font-medium leading-relaxed text-zinc-300 whitespace-pre-wrap">
+                      <div className="rounded-3xl border border-emerald-500/10 bg-emerald-500/5 p-6 text-sm font-medium leading-relaxed text-zinc-300 whitespace-pre-wrap">
                         {feedback.texte_corrige_complet}
                       </div>
                   </div>
