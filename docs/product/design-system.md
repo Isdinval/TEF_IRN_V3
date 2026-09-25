@@ -206,7 +206,7 @@ Un badge doit être **compréhensible sans explication**. Exemple : « Conseill�
 - Fond `bg-white`, `rounded-3xl`, `p-6`, bordure `border-zinc-100` ou ombre (pas les deux fortes).
 - Structure interne : micro-label → titre → 1 à 2 lignes d'info → action. Maximum **4 informations** visibles par carte.
 - Carte mise en avant (ex. « Reprendre ») : **une seule par page**, `border-2 border-indigo-600 bg-indigo-50/60`.
-- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3. La navigation se fait par un `<Link>` Next.js (clavier, préchargement, nouvel onglet), jamais par `onClick` + `router.push` sur une `div`. Pas de `<Button>` dans un lien : l'action visible est une simple étiquette (`<span>`).
+- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3. La navigation se fait par un `<Link>` Next.js (clavier, préchargement, nouvel onglet), jamais par `onClick` + `router.push` sur une `div`. Pas de `<Button>` dans un lien : l'action visible est une simple étiquette (`<span>`). Si la carte **déclenche une action** sans changer de page (ex. démarrer une session EE/EO), le bouton d'action de la carte est le seul élément interactif et il est étendu à toute la carte (`relative` sur la carte, `after:absolute after:inset-0` sur le bouton) : jamais d'`onClick` sur la carte elle-même.
 
 ### 6.4 Progression
 
@@ -236,7 +236,7 @@ Chaque bloc qui charge des données gère ses 3 états :
 |---|---|
 | En-tête de page (badge + titre + description) | `src/components/shared/PageHeader.tsx` |
 | Bandeau KPI d'une page admin | `src/components/shared/AdminKpiBand.tsx` |
-| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` ⚠️ non conforme (couleur par page rose/bleu/vert, pas d'`aria`) : à mettre en conformité avant toute nouvelle réutilisation |
+| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` |
 | Pagination de catalogue | `src/components/shared/CataloguePagination.tsx` |
 | Badge de quota d'exercices | `src/components/shared/ExerciseQuotaBadge.tsx` |
 | Quota journalier CE/CO | `src/components/shared/ComprehensionDailyQuotaBadge.tsx` |
@@ -328,6 +328,9 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 |---|---|
 | `/tef-irn/parcours` | `apply_ligne_directrice_design` |
 | `/tef-irn/comprehension-ecrite` | `apply_ligne_directrice_design` |
+| `/tef-irn/comprehension-orale` | `apply_ligne_directrice_design_lot2` |
+| `/tef-irn/writing` (catalogue de sujets) | `apply_ligne_directrice_design_lot2` |
+| `/tef-irn/oral` (catalogue de scénarios) | `apply_ligne_directrice_design_lot2` |
 
 ---
 
