@@ -12,6 +12,8 @@ import { useCoachContext } from "@/contexts/CoachContext";
 interface ProgressionInteractiveProps {
   levels: LevelProgression[];
   currentLevel: string;
+  /** Niveau demandé via ?niveau= (onglet à rouvrir au retour sur la page). */
+  requestedLevel?: string;
 }
 
 interface LessonItem {
@@ -294,8 +296,9 @@ function LevelMap({
   );
 }
 
-export default function ProgressionInteractive({ levels, currentLevel }: ProgressionInteractiveProps) {
-  const initialLevel = levels.some((l) => l.level === currentLevel) ? currentLevel : levels[0]?.level ?? "";
+export default function ProgressionInteractive({ levels, currentLevel, requestedLevel }: ProgressionInteractiveProps) {
+  const initialLevel =
+    [requestedLevel, currentLevel].find((lvl) => levels.some((l) => l.level === lvl)) ?? levels[0]?.level ?? "";
   const [activeLevel, setActiveLevel] = useState<string>(initialLevel);
   const [selectedId, setSelectedId] = useState<string | null>(
     currentParcoursId(levels.find((l) => l.level === initialLevel))
@@ -350,6 +353,9 @@ export default function ProgressionInteractive({ levels, currentLevel }: Progres
 
   const handleLevelChange = (value: string) => {
     setActiveLevel(value);
+    // replaceState plutôt que router.replace : pas de nouveau rendu serveur,
+    // mais l'URL garde l'onglet (bouton retour depuis un exercice, lien partagé).
+    window.history.replaceState(null, "", `?niveau=${value}`);
     setSelectedId(currentParcoursId(levels.find((l) => l.level === value)));
   };
 
