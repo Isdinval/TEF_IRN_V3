@@ -221,8 +221,9 @@ export function WritingCoachContent() {
   }, [allScenarios]);
 
   // Lancement direct depuis /tef-irn/progression (?start=1) : un sujet du
-  // niveau et de la section de l'étape est ouvert au hasard, sans passer par
-  // le catalogue -- une seule fois, dès que les sujets sont chargés.
+  // niveau et de la section de l'étape, jamais fait par l'apprenant (repli sur
+  // tous les sujets s'il les a tous faits), est ouvert sans passer par le
+  // catalogue -- une seule fois, dès que les sujets sont chargés.
   const autoStartedRef = useRef(false);
   useEffect(() => {
     if (autoStartedRef.current || searchParams.get("start") !== "1" || allScenarios.length === 0) return;
@@ -233,8 +234,17 @@ export function WritingCoachContent() {
       (s) => (!levelParam || s.level === levelParam) && (!sectionParam || s.section === sectionParam)
     );
     if (matching.length === 0) return;
-    handleSelectScenario(matching[Math.floor(Math.random() * matching.length)].id);
-  }, [allScenarios, searchParams, handleSelectScenario]);
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: attempts } = user
+        ? await supabase.from("writing_scenario_attempts").select("scenario_id").eq("user_id", user.id)
+        : { data: [] };
+      const done = new Set((attempts ?? []).map((a: { scenario_id: string | null }) => a.scenario_id));
+      const neverDone = matching.filter((s) => !done.has(s.id));
+      const pool = neverDone.length > 0 ? neverDone : matching;
+      handleSelectScenario(pool[Math.floor(Math.random() * pool.length)].id);
+    })();
+  }, [allScenarios, searchParams, handleSelectScenario, supabase]);
 
   const handleSurpriseMe = useCallback(() => {
     const filtered = allScenarios.filter(

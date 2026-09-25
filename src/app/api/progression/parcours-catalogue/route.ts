@@ -65,6 +65,7 @@ export async function GET(req: Request) {
       return {
         id: lesson.id,
         title: lesson.title,
+        url: `/tef-irn/lessons/${lesson.slug}?parcoursId=${parcours.id}`,
         orderIndex: lesson.order_index,
         isCompleted: completedSet.has(lesson.id),
         unlocked: isUnlocked,

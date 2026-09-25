@@ -21,6 +21,7 @@ interface ProgressionInteractiveProps {
 interface LessonItem {
   id: string;
   title: string;
+  url: string;
   orderIndex: number;
   isCompleted: boolean;
   unlocked: boolean;
@@ -154,14 +155,22 @@ function ExerciseDots({ exercises }: { exercises: LessonItem["exercises"] }) {
  */
 function splitTitle(title: string): { main: string; hook: string | null } {
   const [main, ...rest] = title.split(" | ");
-  return { main, hook: rest.length > 0 ? rest.join(" | ") : null };
+  // "au TEF IRN" est répété dans tous les titres (SEO) : retiré à l'affichage
+  // seulement, le titre en base ne change pas.
+  return { main: main.replace(/\s+au TEF IRN$/i, ""), hook: rest.length > 0 ? rest.join(" | ") : null };
 }
 
-function LessonTitle({ title, muted }: { title: string; muted?: boolean }) {
+function LessonTitle({ title, href, muted }: { title: string; href?: string; muted?: boolean }) {
   const { main, hook } = splitTitle(title);
   return (
     <div className="flex-1 min-w-0">
-      <p className={cn("text-sm font-medium", muted ? "text-zinc-400" : "text-zinc-900")}>{main}</p>
+      {href ? (
+        <Link href={href} className="text-sm font-medium text-zinc-900 hover:text-indigo-600 hover:underline underline-offset-2">
+          {main}
+        </Link>
+      ) : (
+        <p className={cn("text-sm font-medium", muted ? "text-zinc-400" : "text-zinc-900")}>{main}</p>
+      )}
       {hook && <p className={cn("text-xs", muted ? "text-zinc-300" : "text-zinc-400")}>{hook}</p>}
     </div>
   );
@@ -199,7 +208,7 @@ function LessonRow({ lesson, isNext }: { lesson: LessonItem; isNext: boolean }) 
       )}
     >
       <span className="mt-0.5"><StatusIcon state={state} size={14} /></span>
-      <LessonTitle title={lesson.title} />
+      <LessonTitle title={lesson.title} href={lesson.url} />
       <div className="flex items-center gap-3">
         {lesson.exercises.length > 0 ? (
           <ExerciseDots exercises={lesson.exercises} />
@@ -441,6 +450,11 @@ export default function ProgressionInteractive({ levels, currentLevel, requested
           {levels.map((l) => (
             <TabsTrigger key={l.level} value={l.level}>
               {l.level}
+              {l.steps.length > 0 && (
+                <span className="text-xs font-normal text-zinc-400">
+                  {l.steps.filter(isStepDone).length}/{l.steps.length}
+                </span>
+              )}
               {l.isLevelComplete && <CheckCircle2 className="text-emerald-500" />}
             </TabsTrigger>
           ))}
