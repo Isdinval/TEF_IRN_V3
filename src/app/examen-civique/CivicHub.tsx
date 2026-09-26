@@ -39,7 +39,6 @@ import {
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import {
   Loader2,
-  Brain,
   Clock,
   ArrowRight,
   BookOpen,
@@ -226,6 +225,27 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     return () => clearInterval(interval);
   }, [resumableExam]);
 
+  const nextStep = resumableExam
+    ? {
+        href: "/examen-civique/examen-blanc?resume=1",
+        title: `Reprendre votre examen blanc — ${mentionLabel(resumableExam.mention)}`,
+        description: `Il reste ${formatTime(Math.max(0, Math.round((resumableExam.examEndAt - now) / 1000)))} avant la fin du temps imparti.`,
+        cta: "Reprendre",
+      }
+    : hasDue
+      ? {
+          href: buildHref("/examen-civique/entrainement", { mode: "memoriser" }),
+          title: `Mémoriser : ${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`,
+          description: "Ces questions déjà vues arrivent à leur date de révision : c'est le meilleur moment pour les ancrer durablement.",
+          cta: "Réviser",
+        }
+      : {
+          href: buildHref("/examen-civique/entrainement", { mode: "apprendre" }),
+          title: hasSeenQuestions ? "Apprendre de nouvelles questions" : "Commencez votre entraînement",
+          description: "Une question à la fois, avec correction immédiate et explication.",
+          cta: hasSeenQuestions ? "Continuer" : "Commencer",
+        };
+
   const relevantGuides = civicGuides
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
@@ -327,25 +347,30 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </ExerciseLayout>
 
-        {/* Bannière examen interrompu */}
-        {resumableExam && (
-          <div className="p-5 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-sm font-black text-amber-900">Examen blanc en cours — {mentionLabel(resumableExam.mention)}</p>
-              <p className="text-sm text-amber-700 font-medium">
-                Il reste {formatTime(Math.max(0, Math.round((resumableExam.examEndAt - now) / 1000)))} avant la fin du temps imparti.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={abandonResumableExam} className="h-11 bg-white text-amber-700 font-bold rounded-2xl text-sm border border-amber-200">
-                Abandonner
-              </Button>
-              <Link href="/examen-civique/examen-blanc?resume=1">
-                <Button className="h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm">Reprendre</Button>
-              </Link>
-            </div>
+        {/* Prochaine étape — une seule carte mise en avant (design system §6.3), qui dépend
+            de l'état de l'apprenant : examen blanc interrompu > révisions dues > nouvelles
+            questions. Fusionne l'ancienne bannière de reprise et l'ancienne carte « Apprendre /
+            Mémoriser » de la section Se préparer. */}
+        <section aria-labelledby="prochaine-etape" className="rounded-3xl border-2 border-indigo-600 bg-indigo-50/60 p-6 space-y-4">
+          <div className="space-y-1">
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-700">Prochaine étape</p>
+            <h2 id="prochaine-etape" className="text-lg font-black text-zinc-900">{nextStep.title}</h2>
+            <p className="text-sm text-zinc-600 font-medium leading-relaxed">{nextStep.description}</p>
           </div>
-        )}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={nextStep.href}
+              className="inline-flex h-11 items-center rounded-full bg-indigo-600 px-8 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+            >
+              {nextStep.cta} <ArrowRight className="ml-2" size={14} />
+            </Link>
+            {resumableExam && (
+              <Button variant="outline" onClick={abandonResumableExam} className="h-11 rounded-2xl font-bold bg-white">
+                Abandonner cet examen
+              </Button>
+            )}
+          </div>
+        </section>
 
         {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
         <div className="space-y-2">
@@ -454,36 +479,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               consulter, se tester), celle que le produit recommande activement. */}
           <div className="space-y-2">
             <p className="px-1 text-xs font-black uppercase tracking-widest text-zinc-500">Entraînement</p>
-
-            {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre.
-                Pleine largeur pour porter le vrai poids visuel de la section. */}
-            <Link
-              href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-              className="relative bg-indigo-600 rounded-3xl p-5 flex items-center gap-3 overflow-hidden shadow-lg shadow-indigo-100 hover:-translate-y-1 hover:bg-indigo-700 transition-all"
-            >
-              <div className="w-9 h-9 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
-                <Brain size={17} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="flex items-center gap-1.5 text-sm font-black text-white">
-                  {hasDue ? "Mémoriser" : "Apprendre"}
-                  <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                    <InfoTooltip
-                      className="text-indigo-200 hover:text-white"
-                      text={hasDue
-                        ? "Révise les questions déjà vues dont la date de rappel (répétition espacée) est arrivée — le meilleur moment pour les ancrer durablement."
-                        : "Découvre de nouvelles questions, une par une, avec correction immédiate et explication."}
-                    />
-                  </span>
-                </p>
-                <p className="text-sm text-indigo-200 font-medium mt-0.5 leading-relaxed">
-                  {hasDue
-                    ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`
-                    : "Nouvelles questions, réponse testée immédiatement."}
-                </p>
-              </div>
-              <ArrowRight size={15} className="text-indigo-200 shrink-0 transition-colors" />
-            </Link>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Parcourir — neutre, utilitaire */}
