@@ -7,6 +7,8 @@ import { execSync } from "node:child_process";
 
 const base = process.argv[2] ?? "origin/main";
 const PATHS = ["src/app/tef-irn", "src/app/examen-civique", "src/components/shared"];
+// Mode examen (design system §2.7) : style volontairement distinct, non contrôlé.
+const EXAM_MODE = ["src/app/tef-irn/exam/", "src/app/tef-irn/exercice-gratuit/", "src/app/examen-civique/examen-blanc/"];
 const RULES = [
   // Couleurs d'identification (§2.6) autorisées uniquement dans les fichiers qui portent la palette d'identification.
   [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx"]],
@@ -34,7 +36,7 @@ let line = 0;
 for (const l of diff.split("\n")) {
   if (l.startsWith("+++ ")) file = l.slice(6);
   else if (l.startsWith("@@")) line = Number(/\+(\d+)/.exec(l)?.[1] ?? 0);
-  else if (l.startsWith("+")) {
+  else if (l.startsWith("+") && !EXAM_MODE.some((d) => file.startsWith(d))) {
     for (const [re, msg, allowed = []] of RULES) if (re.test(l) && !allowed.includes(file)) errors.push(`${file}:${line}  ${msg}`);
     if (smallLowercase(l)) errors.push(`${file}:${line}  text-xs sur du texte en casse normale : text-sm minimum (§3.1)`);
     line++;

@@ -105,6 +105,21 @@ Une couleur d'identification ne dit rien de l'état : un état (« Terminé », 
 
 `design:check` n'autorise ces couleurs que dans les fichiers qui portent une palette d'identification (liste dans `scripts/design-check.mjs` ; `src/lib/` n'est pas contrôlé).
 
+
+### 2.7 Mode examen ⭐
+
+Les écrans qui simulent l'épreuve ont un style **volontairement distinct** de LlamaKusi : papier crème (`--exam-paper`), filets (`--exam-line`), mise en page proche de l'examen réel. Objectif : l'apprenant sent qu'il change de mode et « passe en mode sérieux ».
+
+| Écran | Chemin |
+|---|---|
+| Examen blanc TEF IRN (accueil et passage) | `src/app/tef-irn/exam/` |
+| Mini-test TEF IRN gratuit | `src/app/tef-irn/exercice-gratuit/` |
+| Examen blanc civique | `src/app/examen-civique/examen-blanc/` |
+
+- On **n'applique pas** la ligne directrice LlamaKusi à ces écrans (couleurs, en-tête, cartes, typographie).
+- Seules des corrections d'accessibilité bloquantes (contraste, clavier) peuvent y être faites, au cas par cas et validées avant.
+- `design:check` ignore ces chemins.
+
 ---
 
 ## 3. Typographie
@@ -409,6 +424,8 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/progression` | `apply_ligne_directrice_design` (lot 4) |
 | `/tef-irn/lessons` (catalogue refait : filtres compacts, cartes identifiées par catégorie), `/tef-irn/lessons/[slug]` (+ fin de leçon) | `apply_ligne_directrice_design` (lot 4 bis) |
 | `/tef-irn/parcours/[slug]` (+ fin de parcours) | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/settings` | `apply_ligne_directrice_design` (lot 5) |
+| `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
 
 ---
 
