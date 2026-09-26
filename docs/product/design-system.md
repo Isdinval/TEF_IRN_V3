@@ -5,7 +5,7 @@
 > Ce document fixe des règles déjà tranchées. En cas de doute, on reproduit la **page de référence** : le catalogue Expression Orale (`/tef-irn/oral`), jugé idéal par le fondateur.
 
 Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
-- la landing page ;
+- la landing page et les pages vitrine qui en reprennent le style (« Notre histoire » : jetons `brand-blue` / `brand-gold`, mode sombre, pied de page public) ;
 - les **guides** (catalogue et détail : héros éditorial, en-tête `GuideDetail` / `CivicGuideDetail`, couleur d'accent propre — bleu pour les guides TEF IRN, indigo pour les guides civiques). Seules les règles de gris, typographie (§3), rayons/ombres (§4), tactile et contraste s'y appliquent ;
 - le simulateur d'examen blanc (tokens `--exam-*` de `globals.css`, esthétique « copie d'examen »).
 
@@ -432,6 +432,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
 | `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
 | `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
+| `/tef-irn/coach`, `/tef-irn/cookies` | `apply_ligne_directrice_design` (lot 8) |
 
 ---
 
