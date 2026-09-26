@@ -53,7 +53,7 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
       case 'thematique': return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'astuces': return 'bg-amber-100 text-amber-700 border-amber-200';
       case 'methodologie': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      default: return 'bg-zinc-100 text-zinc-700 border-zinc-200';
     }
   };
 
@@ -75,18 +75,18 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
       rel={target === '_blank' ? 'noopener noreferrer' : undefined}
       className="block h-full"
     >
-      <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-gray-100 overflow-hidden group rounded-[2rem] pt-0">
+      <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-zinc-100 overflow-hidden group rounded-3xl pt-0">
         {guide.image_url ? (
           <div className="h-48 overflow-hidden">
             <img
               src={guide.image_url}
               alt={guide.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-cover transition-transform duration-300"
             />
           </div>
         ) : (
           <div className={`h-48 flex items-center justify-center ${getCategoryIconColor(guide.category)}`}>
-            <IconComponent size={64} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-300" />
+            <IconComponent size={64} strokeWidth={1.5} className=" transition-transform duration-300" />
           </div>
         )}
         <CardHeader className="space-y-1">
@@ -95,7 +95,7 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
               {guide.type}
             </Badge>
             {guide.level && (
-               <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+               <span className="text-sm font-medium text-zinc-500 bg-zinc-100 px-2 py-1 rounded">
                  {guide.level}
                </span>
             )}
@@ -105,12 +105,12 @@ const GuideCard: React.FC<GuideCardProps> = ({ guide, hrefBase = '/tef-irn/guide
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow">
-          <CardDescription className="text-gray-600 line-clamp-3 font-medium">
+          <CardDescription className="text-zinc-600 line-clamp-3 font-medium">
             {guide.description}
           </CardDescription>
         </CardContent>
-        <CardFooter className="flex justify-between items-center pt-4 border-t border-gray-50">
-          <div className="flex items-center text-sm text-gray-500">
+        <CardFooter className="flex justify-between items-center pt-4 border-t border-zinc-50">
+          <div className="flex items-center text-sm text-zinc-500">
             <Clock size={14} className="mr-1" />
             {guide.reading_time} min
           </div>
