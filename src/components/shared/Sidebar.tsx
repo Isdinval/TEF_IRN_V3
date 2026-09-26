@@ -214,7 +214,7 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
       </div>
 
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3 mt-4">Menu</p>
+        <p className="px-4 text-xs font-black uppercase tracking-widest text-zinc-500 mb-3 mt-4">Menu</p>
         {menuGroups.map((group) => {
           const isGroupActive =
             (pathname?.startsWith(group.activePrefix) ?? false) &&
@@ -231,11 +231,11 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
               <button
                 onClick={() => toggleGroup(group.key)}
                 aria-expanded={isOpen}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${isGroupActive ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+                className={`w-full flex min-h-11 items-center gap-3 px-4 py-2.5 text-sm font-bold rounded-2xl transition-all ${isGroupActive ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
               >
-                <group.icon size={18} className={isGroupActive ? theme.icon : "text-zinc-400"} />
+                <group.icon size={18} className={isGroupActive ? theme.icon : "text-zinc-500"} />
                 <span className="flex-1 text-left">{group.label}</span>
-                <ChevronDown size={16} className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""} ${isGroupActive ? theme.icon : "text-zinc-400"}`} />
+                <ChevronDown size={16} className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""} ${isGroupActive ? theme.icon : "text-zinc-500"}`} />
               </button>
               {isOpen && (
                 <div className="pl-4 space-y-0.5">
@@ -254,9 +254,9 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
                         <Link
                           key={key}
                           href={buildItemHref(it.href)}
-                          className={`flex items-center gap-3 px-4 py-2 text-[13px] font-bold rounded-xl transition-all ${isActive(it.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
+                          className={`flex min-h-11 items-center gap-3 px-4 py-2 text-sm font-bold rounded-2xl transition-all ${isActive(it.href) ? `${theme.bg} ${theme.text} border ${theme.border} shadow-sm` : "text-zinc-500 hover:bg-zinc-50"}`}
                         >
-                          <it.icon size={16} className={isActive(it.href) ? theme.icon : "text-zinc-400"} />
+                          <it.icon size={16} className={isActive(it.href) ? theme.icon : "text-zinc-500"} />
                           {it.label}
                         </Link>
                       );
@@ -277,7 +277,7 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
                       rendered.push(
                         <div key={`section-${section}`} className="my-2 rounded-2xl border border-blue-100 bg-blue-50/60 p-1.5 space-y-0.5">
                           {sectionMeta && (
-                            <p className="px-3 pt-1 pb-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-500/80 flex items-center gap-1.5">
+                            <p className="px-3 pt-1 pb-1.5 text-xs font-black uppercase tracking-widest text-blue-700 flex items-center gap-1.5">
                               <sectionMeta.icon size={11} />
                               {sectionMeta.label}
                             </p>
@@ -296,14 +296,14 @@ export function SidebarContent({ variant = "desktop" }: SidebarContentProps = {}
       </nav>
 
       <div className="p-4 mt-auto border-t border-zinc-100 space-y-3 bg-zinc-50/30">
-        <div className="px-4 py-2 flex items-center justify-between text-xs font-bold bg-white border border-zinc-100 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-2 text-orange-600"><Flame size={16} fill="currentColor" /><span>{profile?.streak_count || 0}d</span></div>
+        <div className="px-4 py-2 flex items-center justify-between text-sm font-bold bg-white border border-zinc-100 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-2 text-amber-600"><Flame size={16} fill="currentColor" /><span>{profile?.streak_count || 0}d</span></div>
           <div className="w-px h-4 bg-zinc-100" />
-          <div className="flex items-center gap-2 text-indigo-600 uppercase text-[10px] font-black tracking-widest"><Shield size={14} /> {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}</div>
+          <div className="flex items-center gap-2 text-indigo-600 uppercase text-xs font-black tracking-widest"><Shield size={14} /> {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}</div>
         </div>
         <div className="flex flex-col gap-1">
-          <Link href={getHrefWithContext("/tef-irn/settings")} className={`flex items-center gap-3 px-4 py-2 text-[11px] font-black uppercase tracking-widest ${isActive("/tef-irn/settings") ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
-          <button onClick={handleSignOut} className="flex items-center gap-3 w-full px-4 py-2 text-[11px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-all"><LogOut size={16} />Déconnexion</button>
+          <Link href={getHrefWithContext("/tef-irn/settings")} className={`flex items-center gap-3 min-h-11 px-4 py-2 text-xs font-black uppercase tracking-widest ${isActive("/tef-irn/settings") ? "text-zinc-900" : "text-zinc-500 hover:text-zinc-900"}`}><Settings size={16} />Paramètres</Link>
+          <button onClick={handleSignOut} className="flex items-center gap-3 w-full min-h-11 px-4 py-2 text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-red-600 transition-all"><LogOut size={16} />Déconnexion</button>
         </div>
       </div>
     </div>

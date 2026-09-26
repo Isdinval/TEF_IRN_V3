@@ -75,14 +75,14 @@ export function ParcoursTopBar() {
             onClick={dismissHint}
           >
             <div className="min-w-0">
-              <span className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-0.5 block group-hover:text-indigo-500 transition-colors">
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-0.5 block group-hover:text-indigo-600 transition-colors">
                 Parcours en cours
               </span>
-              <h4 className="text-sm font-black text-slate-900 capitalize truncate max-w-[220px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
+              <h4 className="text-sm font-black text-zinc-900 capitalize truncate max-w-[220px] sm:max-w-[200px] group-hover:text-indigo-600 transition-colors">
                 {activeParcours.category} {activeParcours.level}
               </h4>
             </div>
-            <ChevronRight size={16} className="shrink-0 text-zinc-300 group-hover:text-indigo-500 transition-colors md:hidden" />
+            <ChevronRight size={16} className="shrink-0 text-zinc-500 group-hover:text-indigo-600 transition-colors md:hidden" />
           </Link>
 
           {/* Barre de progression détaillée : uniquement à partir de md:,
@@ -90,7 +90,7 @@ export function ParcoursTopBar() {
               puis retour terrain) n'est pas réintroduit ici. */}
           <div className="hidden md:block md:flex-1 md:max-w-md">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">
+              <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">
                 {progress?.completed} / {progress?.total} leçons
               </span>
               <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">
@@ -116,7 +116,7 @@ export function ParcoursTopBar() {
                 disabled={isResolving || vocabFullyMastered}
                 variant="outline"
                 size="sm"
-                className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                className={`w-full sm:w-auto h-11 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95 ${
                   vocabFullyMastered
                     ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                     : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -145,7 +145,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.qcm === 0}
               variant="outline"
               size="sm"
-              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-11 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95 ${
                 exerciseCounts?.qcm === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -164,7 +164,7 @@ export function ParcoursTopBar() {
               disabled={isResolving || exerciseCounts?.trous === 0}
               variant="outline"
               size="sm"
-              className={`w-full sm:w-auto h-10 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+              className={`w-full sm:w-auto h-11 px-3 sm:px-4 font-black text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95 ${
                 exerciseCounts?.trous === 0
                   ? "border-emerald-200 text-emerald-600 bg-emerald-50 disabled:opacity-100"
                   : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
@@ -186,7 +186,7 @@ export function ParcoursTopBar() {
                 onClick={() => handleNext(nextLesson)}
                 disabled={isResolving}
                 size="sm"
-                className="w-full sm:w-auto col-span-2 sm:col-span-1 h-10 px-4 bg-zinc-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-zinc-200 transition-all active:scale-95"
+                className="w-full sm:w-auto col-span-2 sm:col-span-1 h-11 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-95"
               >
                 <span>Leçon suivante</span>
                 <ChevronRight size={14} className="ml-1" />

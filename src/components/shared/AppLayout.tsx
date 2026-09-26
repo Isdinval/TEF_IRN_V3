@@ -78,7 +78,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Case 2: Anonymous visitor on any non-public route (includes 404 / unmatched URLs)
   if (!user) {
     return (
-      <div className="flex flex-col h-full bg-slate-50/30">
+      <div className="flex flex-col h-full bg-zinc-50/50">
         <header className="h-20 border-b bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
           <Logo />
           <div className="flex items-center gap-4">
@@ -86,7 +86,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" className="font-bold">Connexion</Button>
             </Link>
             <Link href="/tef-irn/login?mode=signup">
-              <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
+              <Button className="h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-xs px-6 rounded-2xl shadow-lg shadow-indigo-200">
                 Essai Gratuit
               </Button>
             </Link>
