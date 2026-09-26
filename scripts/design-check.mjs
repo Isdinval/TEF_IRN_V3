@@ -11,7 +11,7 @@ const PATHS = ["src/app/tef-irn", "src/app/examen-civique", "src/components/shar
 const EXAM_MODE = ["src/app/tef-irn/exam/", "src/app/tef-irn/exercice-gratuit/", "src/app/examen-civique/examen-blanc/"];
 const RULES = [
   // Couleurs d'identification (§2.6) autorisées uniquement dans les fichiers qui portent la palette d'identification.
-  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/examen-civique/CivicHub.tsx", "src/app/examen-civique/livret/LivretReader.tsx", "src/app/tef-irn/guides/GuidesList.tsx", "src/app/tef-irn/guides/[slug]/GuideDetail.tsx", "src/app/tef-irn/admin/profiles/page.tsx"]],
+  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/examen-civique/CivicHub.tsx", "src/app/examen-civique/livret/LivretReader.tsx", "src/app/tef-irn/guides/GuidesList.tsx", "src/app/tef-irn/guides/[slug]/GuideDetail.tsx", "src/app/tef-irn/admin/profiles/page.tsx", "src/components/shared/Sidebar.tsx", "src/components/shared/MobileBottomNav.tsx"]],
   [/\bfont-(?:semibold|extrabold)\b/, "graisse interdite (§3.2)"],
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
   // Éditeur EE : max-md: toléré (design system §2.5).
@@ -38,7 +38,8 @@ for (const l of diff.split("\n")) {
   else if (l.startsWith("@@")) line = Number(/\+(\d+)/.exec(l)?.[1] ?? 0);
   else if (l.startsWith("+") && !EXAM_MODE.some((d) => file.startsWith(d))) {
     for (const [re, msg, allowed = []] of RULES) if (re.test(l) && !allowed.includes(file)) errors.push(`${file}:${line}  ${msg}`);
-    if (smallLowercase(l)) errors.push(`${file}:${line}  text-xs sur du texte en casse normale : text-sm minimum (§3.1)`);
+    // Barre de navigation mobile : libellés 12px tolérés faute de place (§2.5).
+    if (smallLowercase(l) && file !== "src/components/shared/MobileBottomNav.tsx") errors.push(`${file}:${line}  text-xs sur du texte en casse normale : text-sm minimum (§3.1)`);
     line++;
   }
 }

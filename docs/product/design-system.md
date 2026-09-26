@@ -67,6 +67,7 @@ Le token shadcn `--primary` de `globals.css` vaut `#002395` (bleu de marque hist
 ### 2.5 Écarts tolérés
 
 - Éditeur Expression Écrite (`writing/page.tsx`, `ZoneRedaction.tsx`) : ses panneaux redimensionnables utilisent `max-md:` pour forcer la pleine largeur sur mobile. Toléré tant que la mise en page n'est pas refondue ; ne pas reproduire ailleurs.
+- Barre de navigation mobile (`MobileBottomNav`) : libellés en casse normale à 12 px (`text-xs`), faute de place pour 5 onglets.
 - Panneaux sombres (analyse orale, feedback EE) : sur fond `zinc-900`/`zinc-950`, le texte secondaire reste en `zinc-400` (le `zinc-500` y serait moins lisible).
 
 
@@ -99,6 +100,8 @@ Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une
 **Compétences (tableau de bord)** : Parcours `violet`, QCM `purple`, Chasse aux erreurs `indigo`, Vocabulaire `emerald`, Expression Écrite `sky`, Expression Orale `rose`, Examen (compte à rebours) `rose`.
 
 **Sections du tableau de bord** : Aujourd'hui `amber`, Ma progression `violet`, Analyse détaillée `zinc-900`.
+
+**Espaces de navigation** : l'espace Examen Civique est en `blue` dans la barre latérale et la navigation mobile (groupe de menu, section, onglet actif), l'espace TEF IRN en `indigo`.
 
 **Examen Civique** : sections de l'accueil civique — Progression `emerald`, Démarche `violet`, Étapes `indigo`, Historique `zinc-900` ; parties du Livret du citoyen — une couleur par partie (`PART_THEME` de `LivretReader.tsx`), libellés en `-600`/`-700` pour le contraste.
 
@@ -435,6 +438,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
 | `/tef-irn/coach`, `/tef-irn/cookies` | `apply_ligne_directrice_design` (lot 8) |
 | `/tef-irn/admin/*` (règles transverses, en-tête « Zone admin » conservé) | `apply_ligne_directrice_design` (lot 9) |
+| Navigation commune : barre du haut (`ParcoursTopBar`), barre latérale (`Sidebar`), navigation et menu mobiles, `AppLayout` | `apply_ligne_directrice_design` (lot 10) |
 
 ---
 
