@@ -4,9 +4,10 @@
 > Vitrine visuelle (Claude Design, privée) : https://claude.ai/artifact/U6NuuHqLuDxidH6F9nfXyG — elle reflète ce document, qui fait foi en cas d'écart.
 > Ce document fixe des règles déjà tranchées. En cas de doute, on reproduit la **page de référence** : le catalogue Expression Orale (`/tef-irn/oral`), jugé idéal par le fondateur.
 
-Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
+Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Quatre univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
 - la landing page et les pages vitrine qui en reprennent le style (« Notre histoire » : jetons `brand-blue` / `brand-gold`, mode sombre, pied de page public) ;
 - les **guides** (catalogue et détail : héros éditorial, en-tête `GuideDetail` / `CivicGuideDetail`, couleur d'accent propre — bleu pour les guides TEF IRN, indigo pour les guides civiques). Seules les règles de gris, typographie (§3), rayons/ombres (§4), tactile et contraste s'y appliquent ;
+- l'**admin** (`/tef-irn/admin/*`, outil interne) : il garde son en-tête compact « Zone admin » (badge sombre = marqueur de zone), sa densité de tableaux et les couleurs de ses visualisations (graphe des guides) ; seules les règles de gris, états (rouge = suppression / inactif), typographie, rayons et contraste s'y appliquent ;
 - le simulateur d'examen blanc (tokens `--exam-*` de `globals.css`, esthétique « copie d'examen »).
 
 ---
@@ -433,6 +434,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
 | `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
 | `/tef-irn/coach`, `/tef-irn/cookies` | `apply_ligne_directrice_design` (lot 8) |
+| `/tef-irn/admin/*` (règles transverses, en-tête « Zone admin » conservé) | `apply_ligne_directrice_design` (lot 9) |
 
 ---
 

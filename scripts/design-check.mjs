@@ -11,7 +11,7 @@ const PATHS = ["src/app/tef-irn", "src/app/examen-civique", "src/components/shar
 const EXAM_MODE = ["src/app/tef-irn/exam/", "src/app/tef-irn/exercice-gratuit/", "src/app/examen-civique/examen-blanc/"];
 const RULES = [
   // Couleurs d'identification (§2.6) autorisées uniquement dans les fichiers qui portent la palette d'identification.
-  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/examen-civique/CivicHub.tsx", "src/app/examen-civique/livret/LivretReader.tsx", "src/app/tef-irn/guides/GuidesList.tsx", "src/app/tef-irn/guides/[slug]/GuideDetail.tsx"]],
+  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/examen-civique/CivicHub.tsx", "src/app/examen-civique/livret/LivretReader.tsx", "src/app/tef-irn/guides/GuidesList.tsx", "src/app/tef-irn/guides/[slug]/GuideDetail.tsx", "src/app/tef-irn/admin/profiles/page.tsx"]],
   [/\bfont-(?:semibold|extrabold)\b/, "graisse interdite (§3.2)"],
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
   // Éditeur EE : max-md: toléré (design system §2.5).
