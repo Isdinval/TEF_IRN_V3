@@ -35,7 +35,7 @@ import {
 const CentresMap = dynamic(() => import("./CentresMap").then((m) => m.CentresMap), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[65vh] min-h-[420px] items-center justify-center rounded-[2rem] border border-zinc-100 bg-white text-xs font-bold text-zinc-400">
+    <div className="flex h-[65vh] min-h-[420px] items-center justify-center rounded-3xl border border-zinc-100 bg-white text-sm font-bold text-zinc-500">
       Chargement de la carte…
     </div>
   ),
@@ -262,7 +262,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
               aria-controls="centres-search-listbox"
               aria-autocomplete="list"
               aria-activedescendant={highlightedIndex >= 0 ? `centres-suggestion-${highlightedIndex}` : undefined}
-              className="h-9 w-full rounded-xl border border-zinc-200 bg-white px-3 pr-8 text-sm font-medium text-zinc-800 outline-none placeholder:text-zinc-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-3 pr-8 text-sm font-medium text-zinc-800 outline-none placeholder:text-zinc-500 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
             />
             {query && (
               <button
@@ -270,7 +270,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={clearSearch}
                 aria-label="Effacer la recherche"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-600"
               >
                 <X size={14} />
               </button>
@@ -280,15 +280,15 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
               <ul
                 id="centres-search-listbox"
                 role="listbox"
-                className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg"
+                className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg"
               >
                 {geoLoading && (
-                  <li className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-zinc-400">
+                  <li className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-zinc-500">
                     <Loader2 size={12} className="animate-spin" /> Recherche…
                   </li>
                 )}
                 {!geoLoading && suggestions.length === 0 && geoNotFound && (
-                  <li className="px-3 py-2 text-xs font-bold text-amber-500">
+                  <li className="px-3 py-2 text-sm font-bold text-amber-500">
                     Aucun lieu trouvé — essayez une ville proche ou choisissez-en une ci-dessous.
                   </li>
                 )}
@@ -302,12 +302,12 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => selectSuggestion(s)}
                       onMouseEnter={() => setHighlightedIndex(i)}
-                      className={`cursor-pointer px-3 py-2 text-xs ${
+                      className={`cursor-pointer px-3 py-2 text-sm ${
                         i === highlightedIndex ? "bg-indigo-50" : "hover:bg-zinc-50"
                       }`}
                     >
                       <p className="font-bold text-zinc-800">{s.label}</p>
-                      {s.context && <p className="text-zinc-400">{s.context}</p>}
+                      {s.context && <p className="text-zinc-500">{s.context}</p>}
                     </li>
                   ))}
               </ul>
@@ -318,19 +318,19 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
             type="button"
             onClick={useMyLocation}
             disabled={locating}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
+            className="flex h-11 items-center gap-1.5 rounded-2xl border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-600 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
           >
             {locating ? <Loader2 size={13} className="animate-spin" /> : <LocateFixed size={13} />}
             Ma position
           </button>
 
           {geoMatches !== null && (
-            <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
+            <label className="flex items-center gap-1.5 text-sm font-bold text-zinc-500">
               Rayon
               <select
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="h-9 rounded-xl border border-zinc-200 bg-white px-2 text-sm font-bold text-zinc-700 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                className="h-11 rounded-2xl border border-zinc-200 bg-white px-2 text-sm font-bold text-zinc-700 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
               >
                 {RADIUS_OPTIONS_KM.map((r) => (
                   <option key={r} value={r}>
@@ -343,13 +343,13 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
         </div>
 
         {locateDenied && (
-          <p className="mt-2 px-1 text-[10px] font-black uppercase tracking-widest text-amber-500">
+          <p className="mt-2 px-1 text-xs font-black uppercase tracking-widest text-amber-500">
             Position non disponible — vérifiez l&apos;autorisation de géolocalisation de votre navigateur.
           </p>
         )}
 
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Villes principales :</span>
+          <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Villes principales :</span>
           {MAJOR_CITIES.map((city) => (
             <button
               key={city.label}
@@ -363,22 +363,22 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
         </div>
 
         {!geoLoading && geoMatches !== null && !geoNotFound && (
-          <p className="mt-3 px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400" aria-live="polite">
+          <p className="mt-3 px-1 text-xs font-black uppercase tracking-widest text-zinc-500" aria-live="polite">
             {filtered.length} centre{filtered.length > 1 ? "s" : ""} à moins de {radiusKm} km de {activeGeo?.label}
           </p>
         )}
         {!geoLoading && geoMatches === null && (
-          <p className="mt-3 px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400" aria-live="polite">
+          <p className="mt-3 px-1 text-xs font-black uppercase tracking-widest text-zinc-500" aria-live="polite">
             {filtered.length} centre{filtered.length > 1 ? "s" : ""} trouvé{filtered.length > 1 ? "s" : ""}
           </p>
         )}
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4 flex-col">
           <TabsList className="grid w-full grid-cols-2 p-1 bg-zinc-100 rounded-2xl h-11 sm:w-64">
-            <TabsTrigger value="map" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
+            <TabsTrigger value="map" className="gap-1.5 rounded-2xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
               <MapIcon size={14} /> Carte
             </TabsTrigger>
-            <TabsTrigger value="liste" className="gap-1.5 rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
+            <TabsTrigger value="liste" className="gap-1.5 rounded-2xl font-bold data-[active]:bg-white data-[active]:shadow-sm">
               <ListIcon size={14} /> Liste
             </TabsTrigger>
           </TabsList>
@@ -399,7 +399,7 @@ export function CivicCentres({ initialCentres }: { initialCentres: Centre[] }) {
 function CentresList({ centres }: { centres: CentreWithDistance[] }) {
   if (centres.length === 0) {
     return (
-      <div className="p-12 text-center border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-zinc-400 font-bold text-sm">
+      <div className="p-12 text-center border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-500 font-bold text-sm">
         Aucun centre ne correspond à cette recherche.
       </div>
     );
@@ -410,12 +410,12 @@ function CentresList({ centres }: { centres: CentreWithDistance[] }) {
       {centres.map((centre) => (
         <li
           key={centre.id}
-          className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5"
+          className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5"
         >
           <h2 className="text-sm font-black text-zinc-900">{centre.nom}</h2>
-          <p className="mt-1 text-xs text-zinc-500 leading-relaxed">{centre.adresse}</p>
+          <p className="mt-1 text-sm text-zinc-500 leading-relaxed">{centre.adresse}</p>
           {centre.distanceKm !== undefined && (
-            <p className="mt-1 flex items-center gap-1 text-[11px] font-bold text-indigo-500">
+            <p className="mt-1 flex items-center gap-1 text-sm font-bold text-indigo-500">
               <MapPin size={11} /> à {Math.round(centre.distanceKm)} km
             </p>
           )}
@@ -424,14 +424,14 @@ function CentresList({ centres }: { centres: CentreWithDistance[] }) {
             {centre.produits.map((p) => (
               <Badge
                 key={p}
-                className="border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase bg-zinc-100 text-zinc-500"
+                className="border-none rounded-full px-2.5 py-0.5 text-xs font-black uppercase bg-zinc-100 text-zinc-500"
               >
                 {PRODUIT_LABELS[p] ?? p}
               </Badge>
             ))}
           </div>
 
-          <div className="mt-4 space-y-1.5 text-xs font-bold text-zinc-600">
+          <div className="mt-4 space-y-1.5 text-sm font-bold text-zinc-600">
             {centre.telephone && (
               <a href={`tel:${centre.telephone}`} className="flex items-center gap-1.5 hover:text-indigo-600">
                 <Phone size={12} /> {centre.telephone}
