@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { BookOpen, Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Sparkles, Target } from "lucide-react";
+import { BookOpen, BookText, Brain, Calendar, CheckCircle2, ChevronRight, Clock, GraduationCap, Languages, LayoutGrid, ListTree, SpellCheck, Target, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { splitTitle, parseObjective } from "@/lib/lessons";
 import { useCoachContext } from "@/contexts/CoachContext";
@@ -20,13 +17,22 @@ interface Lesson {
   order_index: number;
 }
 
-const CATEGORY_COLORS: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string, cardShadow: string }> = {
-  conjugaison: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", cardShadow: "shadow-indigo-500/20" },
-  syntaxe: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", cardShadow: "shadow-indigo-500/20" },
-  vocabulaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", cardShadow: "shadow-indigo-500/20" },
-  grammaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", cardShadow: "shadow-indigo-500/20" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100", cardShadow: "shadow-zinc-500/20" },
+// Couleurs d'identification des catégories de leçon (design system §2.6) :
+// barre latérale, pastille d'icône, badge et puce de filtre. Jamais pour un bouton.
+const CATEGORY_IDENTITY: Record<string, { bar: string; soft: string; text: string; dot: string; icon: LucideIcon }> = {
+  grammaire: { bar: "border-l-emerald-500", soft: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", icon: BookText },
+  conjugaison: { bar: "border-l-blue-500", soft: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500", icon: Clock },
+  syntaxe: { bar: "border-l-violet-500", soft: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500", icon: ListTree },
+  vocabulaire: { bar: "border-l-amber-500", soft: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", icon: Languages },
+  orthographe: { bar: "border-l-rose-500", soft: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500", icon: SpellCheck },
+  default: { bar: "border-l-zinc-300", soft: "bg-zinc-100", text: "text-zinc-600", dot: "bg-zinc-400", icon: BookOpen },
 };
+const identityOf = (category: string) => CATEGORY_IDENTITY[category.toLowerCase()] || CATEGORY_IDENTITY.default;
+
+const chipClass = (active: boolean) =>
+  `inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-black capitalize transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 ${
+    active ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-600 hover:bg-zinc-100"
+  }`;
 
 export default function LessonsList({ lessons, completedLessonIds }: { lessons: Lesson[], completedLessonIds: Set<string> }) {
   const { setPageContext } = useCoachContext();
@@ -64,55 +70,43 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
     const { main: mainTitle } = splitTitle(lesson.title);
     const { description } = parseObjective(lesson.objective);
     const isCompleted = completedLessonIds.has(lesson.id);
-    const colors = CATEGORY_COLORS[lesson.category.toLowerCase()] || CATEGORY_COLORS.default;
+    const id = identityOf(lesson.category);
+    const Icon = id.icon;
 
     return (
-      <Link href={`/tef-irn/lessons/${lesson.slug}`} key={lesson.id} className="h-full rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2">
-        <Card className={`relative border border-zinc-100 shadow-sm hover:-translate-y-1 hover:shadow-xl transition-all group cursor-pointer h-full rounded-3xl overflow-hidden flex flex-col bg-white border-t-4 ${colors.border}`}>
-          <div className="absolute top-0 right-4 text-8xl font-black text-zinc-100/40 pointer-events-none z-0 select-none">
-            {lesson.order_index}
-          </div>
-
-          <CardHeader className="relative z-10 flex flex-row items-start justify-between space-y-0 p-7 pb-4">
-            <div className="space-y-3 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className={`${colors.bg} ${colors.text} hover:bg-opacity-80 text-xs px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider`}>
-                  {lesson.category}
-                </Badge>
-                {isCompleted && (
-                  <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider">
-                    Terminé
-                  </Badge>
-                )}
-              </div>
-              <CardTitle className={`text-base font-black ${colors.hoverText} transition-colors leading-tight`}>
-                {mainTitle}
-              </CardTitle>
-            </div>
-            <div className={`p-3 rounded-2xl transition-colors shrink-0 bg-zinc-50 ${colors.hoverIconBg} relative z-10`}>
-              {isCompleted ? (
-                <CheckCircle2 size={20} className={`${colors.text} group-hover:text-white`} />
-              ) : (
-                <BookOpen size={20} className="text-zinc-500 group-hover:text-white" />
-              )}
-            </div>
-          </CardHeader>
-
-          <CardContent className="relative z-10 px-7 pb-6 flex-1">
-            {description && (
-              <p className="text-sm font-medium text-zinc-500 line-clamp-3 leading-relaxed">
-                {description}
-              </p>
+      <Link
+        href={`/tef-irn/lessons/${lesson.slug}`}
+        key={lesson.id}
+        className={`group flex h-full flex-col gap-4 rounded-3xl border border-zinc-100 border-l-4 ${id.bar} bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${id.soft} ${id.text}`}>
+              <Icon size={20} aria-hidden />
+            </span>
+            <span className={`rounded-full ${id.soft} ${id.text} px-2.5 py-0.5 text-xs font-black uppercase tracking-widest`}>
+              {lesson.category}
+            </span>
+            {isCompleted && (
+              <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-white">
+                Terminé
+              </span>
             )}
-          </CardContent>
-
-          <div className="mt-auto p-4 pt-0 relative z-10">
-            <Button className={`w-full h-12 rounded-2xl font-black text-sm gap-2 transition-all shadow-lg ${colors.button} ${colors.shadow}`}>
-              {isCompleted ? "Revoir la leçon" : "Commencer la leçon"}
-              <ChevronRight size={18} />
-            </Button>
           </div>
-        </Card>
+          <span className="shrink-0 text-xs font-black uppercase tracking-widest text-zinc-500">#{lesson.order_index}</span>
+        </div>
+
+        <h3 className="text-base font-black leading-tight text-zinc-900 transition-colors group-hover:text-indigo-600">
+          {mainTitle}
+        </h3>
+        {description && (
+          <p className="line-clamp-2 text-sm font-medium leading-relaxed text-zinc-500">{description}</p>
+        )}
+
+        <span className="mt-auto inline-flex items-center gap-1 pt-2 text-xs font-black uppercase tracking-widest text-indigo-600">
+          {isCompleted ? "Revoir la leçon" : "Commencer la leçon"}
+          <ChevronRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
+        </span>
       </Link>
     );
   };
@@ -122,9 +116,9 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
     return (
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <Badge className={`${badgeBg} text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border-none shadow-lg shadow-zinc-100`}>
+          <span className={`${badgeBg} text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest`}>
             {title}
-          </Badge>
+          </span>
           <div className="h-px bg-zinc-100 flex-1" />
           <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">{items.length} leçon{items.length > 1 ? "s" : ""}</span>
         </div>
@@ -147,105 +141,77 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        <Card className="md:col-span-2 border border-zinc-100 shadow-sm rounded-3xl p-6 md:p-10 bg-white">
-          <div className="space-y-10">
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                  <GraduationCap size={24} />
-                </div>
-                <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Choisir mon niveau</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {levels.map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setSelectedLevel(level)}
-                    className={`
-                      h-12 rounded-2xl font-black transition-all
-                      ${selectedLevel === level ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}
-                    `}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                  <LayoutGrid size={24} />
-                </div>
-                <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Catégorie</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`
-                      h-12 px-5 rounded-2xl text-left font-black transition-all flex items-center justify-between capitalize
-                      ${selectedCategory === category ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}
-                    `}
-                  >
-                    {category}
-                    {selectedCategory === category && <div className="w-2 h-2 bg-white rounded-full" />}
-                  </button>
-                ))}
-              </div>
-            </section>
+      <div className="mb-6 space-y-4 rounded-3xl border border-zinc-100 bg-white p-4 shadow-sm md:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <span className="flex w-44 shrink-0 items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500">
+            <GraduationCap size={16} className="text-indigo-600" aria-hidden /> Choisir mon niveau
+          </span>
+          <div role="group" aria-label="Choisir mon niveau" className="flex flex-wrap gap-2">
+            {levels.map((level) => (
+              <button key={level} type="button" aria-pressed={selectedLevel === level} onClick={() => setSelectedLevel(level)} className={`${chipClass(selectedLevel === level)} min-w-14 justify-center`}>
+                {level}
+              </button>
+            ))}
           </div>
-        </Card>
+        </div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <span className="flex w-44 shrink-0 items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500">
+            <LayoutGrid size={16} className="text-indigo-600" aria-hidden /> Catégorie
+          </span>
+          <div role="group" aria-label="Catégorie" className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button key={category} type="button" aria-pressed={selectedCategory === category} onClick={() => setSelectedCategory(category)} className={chipClass(selectedCategory === category)}>
+                {category !== "Toutes" && <span className={`h-2.5 w-2.5 rounded-full ${identityOf(category).dot}`} aria-hidden />}
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-        <div className="space-y-6">
-          <Card className="border-none shadow-lg shadow-indigo-100 rounded-3xl p-8 bg-indigo-600 text-white relative overflow-hidden">
-            <div className="relative z-10">
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
-                <Brain size={28} />
-              </div>
-              <h3 className="text-lg font-black mb-2 tracking-tight">Parcours recommandé</h3>
-              <p className="text-indigo-100 text-sm font-medium mb-8 leading-relaxed">
-                Commencez par la première leçon disponible pour ce filtre, puis enchaînez progressivement.
-              </p>
-              {nextLesson ? (
-                <Link href={`/tef-irn/lessons/${nextLesson.slug}`} className="block">
-                  <Button className="w-full h-12 bg-white text-indigo-600 hover:bg-indigo-50 font-black uppercase tracking-widest text-sm rounded-2xl border-none">
-                    Continuer
-                  </Button>
-                </Link>
-              ) : (
-                <Button disabled className="w-full h-12 bg-white/20 text-white font-black uppercase tracking-widest text-sm rounded-2xl border-none">
-                  Aucune leçon
-                </Button>
-              )}
-            </div>
-            <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12" />
-          </Card>
+      <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="flex flex-col gap-4 rounded-3xl bg-indigo-600 p-6 text-white shadow-lg shadow-indigo-100 md:col-span-2 md:flex-row md:items-center">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/20">
+            <Brain size={22} aria-hidden />
+          </span>
+          <div className="flex-1 space-y-1">
+            <h3 className="text-lg font-black uppercase tracking-tight">Parcours recommandé</h3>
+            <p className="text-sm font-medium leading-relaxed text-indigo-100">
+              Commencez par la première leçon disponible pour ce filtre, puis enchaînez progressivement.
+            </p>
+          </div>
+          {nextLesson ? (
+            <Link
+              href={`/tef-irn/lessons/${nextLesson.slug}`}
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-2xl bg-white px-6 text-sm font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50"
+            >
+              Continuer
+            </Link>
+          ) : (
+            <span className="inline-flex h-11 shrink-0 items-center justify-center rounded-2xl bg-white/20 px-6 text-sm font-black uppercase tracking-widest text-white">
+              Aucune leçon
+            </span>
+          )}
+        </div>
 
-          <Card className="border border-zinc-100 shadow-sm rounded-3xl p-8 bg-white">
-            <div className="flex items-center gap-3 mb-4">
-              <Calendar className="text-zinc-500" size={20} />
-              <h4 className="text-sm font-black text-zinc-900 uppercase tracking-widest">Guide rapide</h4>
-            </div>
-            <div className="space-y-4">
-              <p className="text-sm text-zinc-500 font-medium leading-relaxed">
-                Les leçons sont classées par niveau CECRL et catégorie. Choisissez un filtre, puis ouvrez la carte qui correspond à votre objectif du jour.
-              </p>
-              <div className="h-px bg-zinc-200 w-full" />
-              <div className="flex items-center gap-2 text-xs font-black text-zinc-500 uppercase">
-                <Target size={14} className="text-indigo-600" /> {filteredLessons.length} leçon{filteredLessons.length > 1 ? "s" : ""} disponible{filteredLessons.length > 1 ? "s" : ""}
-              </div>
-            </div>
-          </Card>
+        <div className="space-y-3 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Calendar className="text-zinc-500" size={18} aria-hidden />
+            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-900">Guide rapide</h4>
+          </div>
+          <p className="text-sm font-medium leading-relaxed text-zinc-500">
+            Les leçons sont classées par niveau CECRL et catégorie. Choisissez un filtre, puis ouvrez la carte qui correspond à votre objectif du jour.
+          </p>
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500">
+            <Target size={14} className="text-indigo-600" aria-hidden /> {filteredLessons.length} leçon{filteredLessons.length > 1 ? "s" : ""} disponible{filteredLessons.length > 1 ? "s" : ""}
+          </div>
         </div>
       </div>
 
       <section>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
-            <Badge className="bg-indigo-600 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white border-none">Niveau {selectedLevel}</Badge>
+            <span className="bg-indigo-600 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Niveau {selectedLevel}</span>
             <span className="text-zinc-500">•</span>
             <span className="capitalize">{selectedCategory}</span>
           </h2>
@@ -257,13 +223,18 @@ export default function LessonsList({ lessons, completedLessonIds }: { lessons: 
         {filteredLessons.length > 0 ? (
           <>
             {renderSection("À découvrir", àDécouvrir, "bg-indigo-600")}
-            {renderSection("Terminées", terminées, "bg-emerald-500")}
+            {renderSection("Terminées", terminées, "bg-emerald-600")}
           </>
         ) : (
-          <Card className="border-dashed border-2 border-zinc-200 rounded-3xl p-10 text-center bg-zinc-50">
-            <CheckCircle2 className="mx-auto mb-4 text-zinc-500" size={40} />
-            <p className="font-bold text-zinc-500">Aucune leçon ne correspond encore à cette sélection.</p>
-          </Card>
+          <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-zinc-200 p-10 text-center">
+            <CheckCircle2 className="text-zinc-500" size={40} aria-hidden />
+            <p className="text-sm font-medium text-zinc-500">Aucune leçon ne correspond encore à cette sélection.</p>
+            {selectedCategory !== "Toutes" && (
+              <button type="button" onClick={() => setSelectedCategory("Toutes")} className="inline-flex h-11 items-center rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-bold text-zinc-900 hover:bg-zinc-50">
+                Réinitialiser les filtres
+              </button>
+            )}
+          </div>
         )}
       </section>
     </div>
