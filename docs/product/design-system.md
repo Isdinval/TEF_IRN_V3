@@ -99,6 +99,8 @@ Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une
 
 **Sections du tableau de bord** : Aujourd'hui `amber`, Ma progression `violet`, Analyse détaillée `zinc-900`.
 
+**Examen Civique** : sections de l'accueil civique — Progression `emerald`, Démarche `violet`, Étapes `indigo`, Historique `zinc-900` ; parties du Livret du citoyen — une couleur par partie (`PART_THEME` de `LivretReader.tsx`), libellés en `-600`/`-700` pour le contraste.
+
 **Carte sombre de mise en avant** : une seule par page, `bg-zinc-900` (dégradé `from-zinc-900 via-zinc-800` et halos tolérés), texte blanc, libellés `zinc-400`. Exemples : en-tête du tableau de bord, carte « Besoin d'aide ? » d'un parcours.
 
 Une couleur d'identification ne dit rien de l'état : un état (« Terminé », « À revoir ») porte toujours son libellé et sa couleur d'état (§2.1).
@@ -115,6 +117,8 @@ Les écrans qui simulent l'épreuve ont un style **volontairement distinct** de 
 | Examen blanc TEF IRN (accueil et passage) | `src/app/tef-irn/exam/` |
 | Mini-test TEF IRN gratuit | `src/app/tef-irn/exercice-gratuit/` |
 | Examen blanc civique | `src/app/examen-civique/examen-blanc/` |
+
+L'écran de configuration de l'examen blanc civique (avant le départ du chronomètre) utilise l'en-tête commun `ExerciseLayout` : c'est encore un écran LlamaKusi, le mode examen commence au lancement de l'épreuve.
 
 - On **n'applique pas** la ligne directrice LlamaKusi à ces écrans (couleurs, en-tête, cartes, typographie).
 - Seules des corrections d'accessibilité bloquantes (contraste, clavier) peuvent y être faites, au cas par cas et validées avant.
@@ -426,6 +430,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/parcours/[slug]` (+ fin de parcours) | `apply_ligne_directrice_design` (lot 4) |
 | `/tef-irn/settings` | `apply_ligne_directrice_design` (lot 5) |
 | `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
+| `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
 
 ---
 
