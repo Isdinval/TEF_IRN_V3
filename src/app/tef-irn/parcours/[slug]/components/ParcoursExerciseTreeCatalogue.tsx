@@ -8,6 +8,7 @@ import { completionCardStyles, CompletionBadge } from "@/components/ui/Completio
 import { ChevronRight, HelpCircle, Type } from "lucide-react";
 import { splitTitle } from "@/lib/lessons";
 import { Exercise } from "@/lib/parcours";
+import { identityOf } from "@/lib/category-identity";
 
 // Adapté de GrammarCheckTreeCatalogue.tsx / PracticeTreeCatalogue.tsx (item #6
 // du plan "Verrouillage exercices topbar/parcours") -- même structure arbre
@@ -41,16 +42,8 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   completed: { label: "Terminé", className: "bg-emerald-50 text-emerald-700" },
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  grammaire: "bg-zinc-100 text-zinc-600",
-  conjugaison: "bg-zinc-100 text-zinc-600",
-  syntaxe: "bg-zinc-100 text-zinc-600",
-  orthographe: "bg-zinc-100 text-zinc-600",
-  default: "bg-zinc-100 text-zinc-500",
-};
-
 function getCategoryColor(category?: string): string {
-  return CATEGORY_COLORS[category?.toLowerCase() || ""] || CATEGORY_COLORS.default;
+  return identityOf(category).badge;
 }
 
 // Catalogue mixte (qcm + trous) contrairement aux 2 catalogues mono-type

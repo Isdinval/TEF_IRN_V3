@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Target, ChevronRight, BookOpen, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { identityOf } from "@/lib/category-identity";
 
 interface ExerciseContextHeaderProps {
   category?: string;
@@ -97,7 +98,7 @@ export function ExerciseContextHeader({
             </Badge>
           )}
           {category && (
-            <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest">
+            <Badge className={`rounded-full border-none px-3 py-0.5 text-xs font-black uppercase tracking-widest ${identityOf(category).badge}`}>
               {category}
             </Badge>
           )}

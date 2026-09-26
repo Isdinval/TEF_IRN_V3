@@ -31,12 +31,12 @@ export default function VocabThemeCard({ lessonId, theme, level }: VocabThemeCar
       animate={{ opacity: 1, y: 0 }}
     >
       <Link href={href} target="_blank" rel="noopener noreferrer" className="group block">
-        <div className="bg-white rounded-3xl p-6 border border-zinc-100 hover:border-indigo-200 shadow-sm hover:shadow-xl transition-all flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-50 group-hover:bg-indigo-600 flex items-center justify-center text-indigo-600 group-hover:text-white transition-all shrink-0">
+        <div className="bg-white rounded-3xl p-6 border border-zinc-100 border-l-4 border-l-amber-500 shadow-sm hover:shadow-xl transition-all flex items-center gap-5">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-amber-600 flex items-center justify-center text-amber-700 group-hover:text-white transition-all shrink-0">
             <BookOpen size={26} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-1">
+            <p className="text-xs font-black text-amber-700 uppercase tracking-widest mb-1">
               Réviser le vocabulaire de ce thème
             </p>
             <h4 className="text-base font-black text-zinc-900 truncate">{theme}</h4>

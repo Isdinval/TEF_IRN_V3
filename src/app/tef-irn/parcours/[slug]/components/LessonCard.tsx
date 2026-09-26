@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Lesson } from "@/lib/parcours";
 import { splitTitle, parseObjective } from "@/lib/lessons";
+import { CATEGORY_IDENTITY, identityOf } from "@/lib/category-identity";
 
 interface LessonCardProps {
   lesson: Lesson & { isCompleted?: boolean; status?: 'completed' | 'next' | 'locked' | 'open' };
@@ -17,13 +18,11 @@ interface LessonCardProps {
   parcoursId: string;
 }
 
-const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string, gradient: string }> = {
-  conjugaison: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", gradient: "from-indigo-50 to-white" },
-  syntaxe: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", gradient: "from-indigo-50 to-white" },
-  vocabulaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", gradient: "from-indigo-50 to-white" },
-  grammaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100", gradient: "from-indigo-50 to-white" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100", gradient: "from-zinc-50 to-white" },
-};
+// Thème de carte : couleurs d'identification de la catégorie (§2.6), action toujours indigo.
+function themeOf(category?: string | null) {
+  const id = identityOf(category);
+  return { border: id.top, bg: id.soft, text: id.text, hoverText: "group-hover:text-indigo-600", hoverIconBg: id.hoverIconBg, button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" };
+}
 
 const categoryIcons: Record<string, any> = {
   conjugaison: BookText,
@@ -46,11 +45,11 @@ const difficultyColors: Record<string, string> = {
 export default function LessonCard({ lesson, index, isNext, category, parcoursId }: LessonCardProps) {
   const { main: mainTitle } = splitTitle(lesson.title);
   const { description } = parseObjective(lesson.objective || "");
-  const Icon = categoryIcons[category.toLowerCase()] || BookOpen;
+  const Icon = CATEGORY_IDENTITY[category.toLowerCase()]?.icon ?? categoryIcons[category.toLowerCase()] ?? BookOpen;
   const lessonUrl = `/tef-irn/lessons/${lesson.slug}?parcoursId=${parcoursId}`;
   const difficulty = lesson.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
-  const theme = CATEGORY_THEMES[category.toLowerCase()] || CATEGORY_THEMES.default;
+  const theme = themeOf(category);
 
   const status = lesson.status || (lesson.isCompleted ? 'completed' : isNext ? 'next' : 'open');
   const isLocked = status === 'locked';

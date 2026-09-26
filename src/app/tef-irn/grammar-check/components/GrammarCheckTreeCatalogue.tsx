@@ -7,6 +7,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { completionCardStyles, CompletionBadge } from "@/components/ui/CompletionVisuals";
 import { ChevronRight } from "lucide-react";
 import { splitTitle } from "@/lib/lessons";
+import { identityOf } from "@/lib/category-identity";
 
 export type TreeExerciseStatus = "new" | "in_progress" | "completed";
 
@@ -40,16 +41,8 @@ const STATUS_CONFIG: Record<TreeExerciseStatus, { label: string; className: stri
 // dès que le filtre "Toutes" mélange plusieurs catégories sous une même leçon
 // (exercises.category diverge parfois de lessons.category, par design). Couvre les
 // 4 boutons de filtre du catalogue (Grammaire, Conjugaison, Syntaxe, Orthographe).
-const CATEGORY_COLORS: Record<string, string> = {
-  grammaire: "bg-zinc-100 text-zinc-600",
-  conjugaison: "bg-zinc-100 text-zinc-600",
-  syntaxe: "bg-zinc-100 text-zinc-600",
-  orthographe: "bg-zinc-100 text-zinc-600",
-  default: "bg-zinc-100 text-zinc-600",
-};
-
 function getCategoryColor(category?: string): string {
-  return CATEGORY_COLORS[category?.toLowerCase() || ""] || CATEGORY_COLORS.default;
+  return identityOf(category).badge;
 }
 
 const NO_LESSON_KEY = "__sans_lecon__";

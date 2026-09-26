@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Play, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Exercise, getExerciseUrl as resolveExerciseUrl } from "@/lib/parcours";
+import { identityOf } from "@/lib/category-identity";
 
 interface ExerciseCardProps {
   exercise: Exercise & { is_completed?: boolean; is_ai_generated?: boolean; recommendation_reason?: string };
@@ -44,20 +45,18 @@ const difficultyColors: Record<string, string> = {
   difficile: "bg-zinc-100 text-zinc-600",
 };
 
-const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string }> = {
-  conjugaison: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" },
-  syntaxe: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" },
-  vocabulaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" },
-  grammaire: { border: "border-indigo-500", bg: "bg-indigo-50", text: "text-indigo-600", hoverText: "group-hover:text-indigo-600", hoverIconBg: "group-hover:bg-indigo-600", button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
-};
+// Thème de carte : couleurs d'identification de la catégorie (§2.6), action toujours indigo.
+function themeOf(category?: string | null) {
+  const id = identityOf(category);
+  return { border: id.top, bg: id.soft, text: id.text, hoverText: "group-hover:text-indigo-600", hoverIconBg: id.hoverIconBg, button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" };
+}
 
 export default function ExerciseCard({ exercise, parcoursId, variant = 'default' }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
   const isCompleted = exercise.is_completed;
-  const theme = CATEGORY_THEMES[exercise.category?.toLowerCase()] || CATEGORY_THEMES.default;
+  const theme = themeOf(exercise.category);
 
   const getExerciseUrl = () => resolveExerciseUrl(exercise, parcoursId);
 
@@ -178,7 +177,7 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
                 carte laissait croire qu'elle était cliquable alors que seul
                 le bouton du bas l'était). Score/tentatives retirés (logique
                 de tableau de bord, pas de recommandation) sur demande d'Olivier. */}
-            <div className={`flex items-center justify-between mt-2 pt-5 border-t border-zinc-50 font-black text-sm transition-colors ${theme.text}`}>
+            <div className={`flex items-center justify-between mt-2 pt-5 border-t border-zinc-100 font-black uppercase tracking-widest text-xs text-indigo-600 transition-colors`}>
               <span>{isCompleted ? 'Revoir' : 'Commencer'}</span>
               <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
             </div>

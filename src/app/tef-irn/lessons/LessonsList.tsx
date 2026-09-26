@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { BookOpen, BookText, Brain, Calendar, CheckCircle2, ChevronRight, Clock, GraduationCap, Languages, LayoutGrid, ListTree, SpellCheck, Target, type LucideIcon } from "lucide-react";
+import { Brain, Calendar, CheckCircle2, ChevronRight, GraduationCap, LayoutGrid, Target } from "lucide-react";
 import Link from "next/link";
 import { splitTitle, parseObjective } from "@/lib/lessons";
 import { useCoachContext } from "@/contexts/CoachContext";
+import { identityOf } from "@/lib/category-identity";
 
 interface Lesson {
   slug: string;
@@ -16,18 +17,6 @@ interface Lesson {
   category: string;
   order_index: number;
 }
-
-// Couleurs d'identification des catégories de leçon (design system §2.6) :
-// barre latérale, pastille d'icône, badge et puce de filtre. Jamais pour un bouton.
-const CATEGORY_IDENTITY: Record<string, { bar: string; soft: string; text: string; dot: string; icon: LucideIcon }> = {
-  grammaire: { bar: "border-l-emerald-500", soft: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", icon: BookText },
-  conjugaison: { bar: "border-l-blue-500", soft: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500", icon: Clock },
-  syntaxe: { bar: "border-l-violet-500", soft: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500", icon: ListTree },
-  vocabulaire: { bar: "border-l-amber-500", soft: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", icon: Languages },
-  orthographe: { bar: "border-l-rose-500", soft: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500", icon: SpellCheck },
-  default: { bar: "border-l-zinc-300", soft: "bg-zinc-100", text: "text-zinc-600", dot: "bg-zinc-400", icon: BookOpen },
-};
-const identityOf = (category: string) => CATEGORY_IDENTITY[category.toLowerCase()] || CATEGORY_IDENTITY.default;
 
 const chipClass = (active: boolean) =>
   `inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-black capitalize transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 ${
