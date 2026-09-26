@@ -20,10 +20,10 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
 
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-sky-500 flex items-center gap-2">
               <PenTool size={14} /> Écrit (EE)
             </h3>
             <p className="text-xl font-black text-zinc-900 tracking-tight">0 session pratiquée</p>
@@ -50,11 +50,11 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
   const delta = lastScore != null && successRate != null ? lastScore - successRate : null;
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-sky-500 flex items-center gap-2">
               <PenTool size={14} /> Écrit (EE)
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -63,7 +63,7 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
             </p>
           </div>
           {successRate != null && (
-            <div className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-indigo-600">
+            <div className="flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-sky-600">
               Score moyen : {successRate}%
             </div>
           )}

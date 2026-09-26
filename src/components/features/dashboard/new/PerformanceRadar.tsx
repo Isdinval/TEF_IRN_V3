@@ -25,7 +25,7 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
   const practicedCount = data?.length ?? 0;
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-8 flex items-center justify-between">
           <div className="space-y-1">
@@ -50,6 +50,7 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
         </div>
 
         <div className="h-[320px] w-full relative">
+          <div className="absolute inset-0 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none" />
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
               <PolarGrid stroke="#f1f1f1" />
@@ -83,7 +84,7 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
            </div>
         </div>
         {practicedCount < SUBJECTS.length && (
-          <p className="mt-4 text-center text-sm font-bold text-zinc-500">
+          <p className="mt-4 text-center text-sm font-bold text-zinc-500 italic">
             {practicedCount === 0
               ? "Pratiquez des exercices pour faire apparaître votre radar."
               : "Certaines compétences n'ont pas encore été pratiquées (affichées à 0)."}

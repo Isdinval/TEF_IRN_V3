@@ -14,7 +14,7 @@ export function XPChart({ data }: { data: XPChartData[] }) {
   const hasActivity = data.some((d) => d.xp > 0);
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-8 space-y-1">
           <h3 className="text-xs font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">

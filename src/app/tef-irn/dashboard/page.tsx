@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
   if (!isMounted || isLoading || data?.profile?.onboarding_completed === false) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50/30">
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50/50">
         <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
         <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Chargement...</p>
       </div>
@@ -156,9 +156,9 @@ export default function DashboardPage() {
   if (error || !data) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center p-8 text-center bg-zinc-50/50">
-        <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900 mb-2">Oups !</h2>
-        <p className="text-sm font-medium text-zinc-500 mb-8">Impossible de charger vos données.</p>
-        <Button variant="outline" className="h-11 rounded-2xl font-bold" onClick={() => window.location.reload()}>Réessayer</Button>
+        <h2 className="text-2xl font-black text-zinc-900 mb-2">Oups !</h2>
+        <p className="text-zinc-500 mb-8 italic">Impossible de charger vos données.</p>
+        <Button onClick={() => window.location.reload()}>Réessayer</Button>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-20">
-      <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12">
+      <div className="mx-auto max-w-7xl p-4 md:p-10 lg:p-12">
         <DashboardHeader
           fullName={profile.full_name || "Aventurier"}
           streak={profile.streak_count || 0}
@@ -231,9 +231,9 @@ export default function DashboardPage() {
         <div ref={sectionsTopRef} className="scroll-mt-24" />
 
         {activeSection === "today" && (
-        <section className="mt-12 space-y-8 rounded-3xl bg-zinc-100/60 p-6 md:p-10">
-          <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
-            <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Aujourd'hui</Badge>
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
+            <Badge className="bg-amber-500 text-white rounded-full">Aujourd'hui</Badge>
             Aujourd'hui
           </h2>
 
@@ -264,8 +264,8 @@ export default function DashboardPage() {
             )}
 
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
-                <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest text-white">En cours</Badge>
+              <h3 className="text-lg font-black uppercase tracking-tight text-zinc-700 flex items-center gap-2">
+                <Badge className="bg-violet-600 text-white rounded-full">En cours</Badge>
                 Mes parcours
                 <InfoTooltip text="Vos parcours de leçons en cours, classés par dernière activité. Un parcours regroupe les leçons d'un même niveau et d'une même catégorie." />
               </h3>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-zinc-500 mt-1 mb-4">Laissez-vous porter : une leçon, ses exercices, puis la suivante.</p>
                 <Link
                   href="/tef-irn/parcours"
-                  className="inline-flex h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-black transition-all"
                 >
                   Découvrir les parcours
                 </Link>
@@ -312,9 +312,9 @@ export default function DashboardPage() {
         )}
 
         {activeSection === "progress" && (
-        <section className="mt-12 space-y-8 rounded-3xl bg-zinc-100/60 p-6 md:p-10">
-          <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
-            <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Progression</Badge>
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
+            <Badge className="bg-violet-600 text-white rounded-full">Progression</Badge>
             Ma progression
           </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
@@ -369,9 +369,9 @@ export default function DashboardPage() {
         )}
 
         {activeSection === "analysis" && (
-        <section className="mt-12 space-y-8 rounded-3xl bg-zinc-100/60 p-6 md:p-10">
-          <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
-            <Badge className="rounded-full border-none bg-indigo-600 px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Analyse</Badge>
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
+            <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée
             <InfoTooltip text="Vue approfondie de votre progression : radar de compétences, maîtrise par thématique et corrections récentes." />
           </h2>

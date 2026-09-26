@@ -34,7 +34,7 @@ function SubSkillBarChart({ data }: { data: SubSkillData[] }) {
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="rounded-2xl bg-zinc-900 p-3 text-sm font-black text-white shadow-xl">
+                  <div className="rounded-xl bg-zinc-900 p-3 text-sm font-black text-white shadow-xl">
                     {payload[0].value}% de réussite
                   </div>
                 );
@@ -65,10 +65,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
   // grille 2 colonnes de l'onglet "Analyse détaillée" (page.tsx).
   if (!data || data.length === 0) {
     return (
-      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-8 space-y-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-violet-500 flex items-center gap-2">
               <Layers size={14} /> Maîtrise par thématique
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -100,10 +100,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
   const oral = data.filter((d) => d.group_name === "ORAL");
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-8 space-y-1">
-          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-violet-500 flex items-center gap-2">
             <Layers size={14} /> Maîtrise par thématique
           </h3>
           <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">

@@ -23,7 +23,7 @@ const LEVEL_COLORS: Record<string, string> = {
   A1: "bg-emerald-400",
   A2: "bg-emerald-600",
   B1: "bg-indigo-500",
-  B2: "bg-indigo-600",
+  B2: "bg-violet-600",
 };
 
 export function TrousStatsCard({ total, totalAvailable, levels, levelsAvailable, successRate }: TrousStatsCardProps) {
@@ -33,7 +33,7 @@ export function TrousStatsCard({ total, totalAvailable, levels, levelsAvailable,
   // normal (compte neuf ou reset) à afficher explicitement plutôt qu'à masquer.
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
             <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
@@ -64,7 +64,7 @@ export function TrousStatsCard({ total, totalAvailable, levels, levelsAvailable,
   }
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">

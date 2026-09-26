@@ -68,10 +68,10 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
   const remaining = overview.in_progress + overview.not_started;
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 space-y-1">
-          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-violet-500 flex items-center gap-2">
             <Compass size={14} /> Parcours
           </h3>
           <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -101,9 +101,9 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
             <p className="text-lg font-black text-emerald-600">{overview.completed}</p>
             <p className="text-xs font-black uppercase tracking-widest text-emerald-500">Terminés</p>
           </div>
-          <div className="text-center p-3 rounded-2xl bg-indigo-50">
-            <p className="text-lg font-black text-indigo-600">{overview.in_progress}</p>
-            <p className="text-xs font-black uppercase tracking-widest text-indigo-500">En cours</p>
+          <div className="text-center p-3 rounded-2xl bg-violet-50">
+            <p className="text-lg font-black text-violet-600">{overview.in_progress}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-violet-500">En cours</p>
           </div>
           <div className="text-center p-3 rounded-2xl bg-zinc-50">
             <p className="text-lg font-black text-zinc-500">{overview.not_started}</p>
@@ -123,8 +123,8 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
                 {p.current_lesson ? (
                   <Link href={`/tef-irn/lessons/${p.current_lesson.slug}`} className="block space-y-2 group">
                     <div className="flex items-start gap-2">
-                      <BookOpen size={14} className="text-indigo-500 mt-0.5 shrink-0" />
-                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                      <BookOpen size={14} className="text-violet-500 mt-0.5 shrink-0" />
+                      <p className="text-sm font-bold text-zinc-800 leading-snug line-clamp-2 group-hover:text-violet-600 transition-colors">
                         {p.current_lesson.title}
                       </p>
                     </div>
@@ -135,7 +135,7 @@ export function ParcoursOverviewCard({ overview, inProgressParcours, learningMod
                     </p>
                   </Link>
                 ) : (
-                  <p className="text-sm font-medium text-zinc-500">Toutes les leçons sont complétées.</p>
+                  <p className="text-sm font-medium text-zinc-500 italic">Toutes les leçons sont complétées.</p>
                 )}
               </div>
             ))}

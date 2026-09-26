@@ -1,9 +1,9 @@
 "use client";
 
 export const DASHBOARD_SECTIONS = [
-  { id: "today", label: "Aujourd'hui", activeClass: "bg-indigo-600 text-white" },
-  { id: "progress", label: "Ma progression", activeClass: "bg-indigo-600 text-white" },
-  { id: "analysis", label: "Analyse détaillée", activeClass: "bg-indigo-600 text-white" },
+  { id: "today", label: "Aujourd'hui", activeClass: "bg-amber-500 text-white" },
+  { id: "progress", label: "Ma progression", activeClass: "bg-violet-600 text-white" },
+  { id: "analysis", label: "Analyse détaillée", activeClass: "bg-zinc-900 text-white" },
 ] as const;
 
 export type DashboardSectionId = typeof DASHBOARD_SECTIONS[number]["id"];

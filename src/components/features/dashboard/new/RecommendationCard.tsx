@@ -80,7 +80,7 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
   };
 
   return (
-    <Card className="group relative rounded-3xl border border-zinc-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-100">
+    <Card className="group relative rounded-3xl border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100">
       <button
         onClick={handleDismiss}
         disabled={isDismissing}
@@ -99,10 +99,10 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
               {cardTitle}
             </h3>
             {typeof frequency === 'number' && (
-              <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-black text-red-600">×{frequency}</span>
+              <span className="shrink-0 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-black text-rose-500">×{frequency}</span>
             )}
           </div>
-          <p className="text-sm font-medium leading-relaxed text-zinc-500">
+          <p className="text-sm font-medium italic leading-relaxed text-zinc-500">
             {reason}
           </p>
           <button

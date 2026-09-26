@@ -155,7 +155,7 @@ export function RecentCorrectionsList({
                     <Badge
                       key={idx}
                       variant="outline"
-                      className="text-xs uppercase tracking-widest border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+                      className="text-xs uppercase tracking-tighter border-zinc-200 text-zinc-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Le badge affiche "Grammaire (Comparatifs)" (item 10.12) -- category
@@ -186,23 +186,23 @@ export function RecentCorrectionsList({
                     </Badge>
                   ))}
                   {notions.length === 0 && score < 80 && (
-                     <Badge variant="outline" className="text-xs uppercase tracking-widest border-zinc-100 text-zinc-500">
+                     <Badge variant="outline" className="text-xs uppercase tracking-tighter border-zinc-100 text-zinc-500">
                        Notions à renforcer
                      </Badge>
                   )}
                 </div>
               )}
 
-              <p className="text-sm text-zinc-500 leading-relaxed mb-4">
+              <p className="text-sm text-zinc-500 italic leading-relaxed mb-4">
                 {item.ai_feedback?.global_comment || (score >= 80 ? "Excellent travail ! Continuez ainsi." : "Analyse terminée. Identifiez vos points faibles.") }
               </p>
 
               <div className="flex items-center justify-between pt-3 border-t border-zinc-50">
-                <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${score >= 50 ? "text-emerald-500" : "text-red-600"}`}>
+                <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-widest ${score >= 50 ? "text-emerald-500" : "text-rose-500"}`}>
                   <CheckCircle2 size={12} />
                   {score >= 50 ? 'Validé' : 'À refaire'}
                 </div>
-                <div className={`text-xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                <div className={`text-xl font-black ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
                   {score}<span className="text-sm text-zinc-500 ml-0.5">/100</span>
                 </div>
               </div>

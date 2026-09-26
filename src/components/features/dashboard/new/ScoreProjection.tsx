@@ -57,7 +57,8 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
     : 0;
 
   return (
-    <Card className="overflow-hidden border-none bg-indigo-600 text-white shadow-lg shadow-indigo-100 rounded-3xl relative">
+    <Card className="overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-200/50 rounded-3xl relative">
+      <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <CardContent className="p-8">
         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-100 mb-6">
           <TrendingUp size={14} /> Projection de Score TEF
@@ -74,7 +75,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
                 {globalEstimate !== null ? globalEstimate : "-"}
                 <span className="text-lg opacity-60 ml-1">pts</span>
               </p>
-              <p className="text-sm font-bold text-indigo-100">
+              <p className="text-sm font-bold text-indigo-100 italic">
                 {globalEstimate !== null ? "Estimation actuelle" : "Pratiquez pour voir votre estimation"}
               </p>
             </div>
@@ -96,7 +97,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
                <motion.div
                  initial={{ width: 0 }}
                  animate={{ width: `${progressPercent}%` }}
-                 className="h-full bg-white"
+                 className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                />
             </div>
           </div>
@@ -118,7 +119,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
                   ) : hasData ? (
                     <span className="font-black">{points} pts</span>
                   ) : (
-                    <span className="text-indigo-200/70 font-bold">Pas encore de données</span>
+                    <span className="text-indigo-200/70 font-bold italic">Pas encore de données</span>
                   )}
                 </div>
               );
@@ -130,7 +131,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
             className="flex w-full items-center justify-between rounded-2xl bg-white/10 p-4 transition-all hover:bg-white/20 group"
           >
              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-white/20">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
                    <Target size={16} />
                 </div>
                 <span className="text-xs font-black uppercase tracking-wider">Passer un examen blanc</span>

@@ -54,7 +54,7 @@ export function CivicExamCard() {
   if (loading) return null;
 
   return (
-    <Card className="overflow-hidden border border-zinc-100 bg-white shadow-sm rounded-3xl">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8 space-y-6">
         <div className="space-y-1">
           <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
@@ -71,7 +71,7 @@ export function CivicExamCard() {
 
         {lastAttempt && (
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50">
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${lastAttempt.passed ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${lastAttempt.passed ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
               {lastAttempt.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             </div>
             <div>
