@@ -292,9 +292,9 @@ export default function VocabularyAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Vocabulaire</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Vocabulaire</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {totalCount} mot{totalCount > 1 ? "s" : ""} au total
           </p>
         </div>
@@ -303,7 +303,7 @@ export default function VocabularyAdmin() {
             onClick={handleExportAndClean}
             disabled={exporting || !kpi || kpi.flaggedBad === 0}
             variant="secondary"
-            className="h-12 px-6 rounded-2xl font-black border border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+            className="h-12 px-6 rounded-2xl font-black border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
           >
             {exporting ? <Loader2 className="animate-spin mr-2" size={16} /> : <Download className="mr-2" size={18} />}
             Exporter + nettoyer ({kpi?.flaggedBad ?? 0})
@@ -322,20 +322,20 @@ export default function VocabularyAdmin() {
         <div className="mb-8 space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-              <p className="text-[10px] font-black uppercase text-zinc-400">Total mots</p>
+              <p className="text-xs font-black uppercase text-zinc-500">Total mots</p>
               <p className="text-2xl font-black text-zinc-800">{kpi.total}</p>
             </div>
             <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-              <p className="text-[10px] font-black uppercase text-zinc-400">Sans audio</p>
+              <p className="text-xs font-black uppercase text-zinc-500">Sans audio</p>
               <p className="text-2xl font-black text-zinc-800">{kpi.withoutAudio}</p>
             </div>
             <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-              <p className="text-[10px] font-black uppercase text-zinc-400">Audios signalés</p>
-              <p className="text-2xl font-black text-rose-600">{kpi.flaggedBad}</p>
+              <p className="text-xs font-black uppercase text-zinc-500">Audios signalés</p>
+              <p className="text-2xl font-black text-red-600">{kpi.flaggedBad}</p>
             </div>
             {LEVELS.map((l) => (
               <div key={l} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-                <p className="text-[10px] font-black uppercase text-zinc-400">Niveau {l}</p>
+                <p className="text-xs font-black uppercase text-zinc-500">Niveau {l}</p>
                 <p className="text-2xl font-black text-zinc-800">{kpi.byLevel[l] || 0}</p>
               </div>
             ))}
@@ -343,7 +343,7 @@ export default function VocabularyAdmin() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {CATEGORIES.map((c) => (
               <div key={c} className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-4 py-3 flex items-center justify-between gap-2">
-                <span className="text-xs font-bold text-zinc-500 truncate">{c}</span>
+                <span className="text-sm font-bold text-zinc-500 truncate">{c}</span>
                 <span className="text-sm font-black text-zinc-800 shrink-0">{kpi.byCategory[c] || 0}</span>
               </div>
             ))}
@@ -352,16 +352,16 @@ export default function VocabularyAdmin() {
       )}
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={levelFilter} onChange={(e) => updateLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => updateLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
-        <select value={categoryFilter} onChange={(e) => updateCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={categoryFilter} onChange={(e) => updateCategoryFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les catégories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <Input placeholder="Rechercher un mot..." value={search} onChange={(e) => updateSearch(e.target.value)} className="h-10 max-w-xs" />
-        <label className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold flex items-center gap-2 cursor-pointer">
+        <label className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={flaggedOnly} onChange={(e) => updateFlaggedOnly(e.target.checked)} />
           Audios signalés uniquement
         </label>
@@ -370,34 +370,34 @@ export default function VocabularyAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {items.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun mot ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun mot ne correspond à ces filtres.</p>
           )}
           {items.map((v) => (
             <div key={v.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {v.level && <Badge variant="outline" className="text-[10px] font-black uppercase">{v.level}</Badge>}
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{v.category}</Badge>
+                  {v.level && <Badge variant="outline" className="text-xs font-black uppercase">{v.level}</Badge>}
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{v.category}</Badge>
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{v.word}</p>
-                <p className="text-xs text-zinc-400 truncate">{v.definition}</p>
+                <p className="text-sm text-zinc-500 truncate">{v.definition}</p>
                 <div className="flex items-center gap-2 pt-1">
                   {v.audio_url ? (
                     <>
-                      <Badge variant="outline" className="text-[9px] font-black uppercase gap-1 text-emerald-600 border-emerald-100">
+                      <Badge variant="outline" className="text-xs font-black uppercase gap-1 text-emerald-600 border-emerald-100">
                         <Volume2 size={10} /> Audio prêt
                       </Badge>
                       <audio controls src={v.audio_url} className="h-7" style={{ maxWidth: 180 }} />
                     </>
                   ) : (
-                    <Badge variant="outline" className="text-[9px] font-black uppercase text-zinc-400 border-zinc-200">
+                    <Badge variant="outline" className="text-xs font-black uppercase text-zinc-500 border-zinc-200">
                       Pas d'audio
                     </Badge>
                   )}
                   {v.audio_flagged_bad && (
-                    <Badge variant="outline" className="text-[9px] font-black uppercase gap-1 text-rose-600 border-rose-200 bg-rose-50">
+                    <Badge variant="outline" className="text-xs font-black uppercase gap-1 text-red-600 border-red-200 bg-red-50">
                       <Flag size={10} /> Audio signalé
                     </Badge>
                   )}
@@ -407,19 +407,19 @@ export default function VocabularyAdmin() {
                 <button
                   onClick={() => handleToggleFlag(v)}
                   title={v.audio_flagged_bad ? "Retirer le signalement" : "Signaler cet audio comme mauvais"}
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${v.audio_flagged_bad ? "bg-rose-50 text-rose-600" : "bg-zinc-50 text-zinc-400 hover:text-rose-600"}`}
+                  className={`w-9 h-9 rounded-2xl flex items-center justify-center ${v.audio_flagged_bad ? "bg-red-50 text-red-600" : "bg-zinc-50 text-zinc-500 hover:text-red-600"}`}
                 >
                   <Flag size={15} />
                 </button>
                 {v.audio_url && (
-                  <button onClick={() => handleClearAudio(v.id)} title="Marquer pour régénération audio" className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-amber-600">
+                  <button onClick={() => handleClearAudio(v.id)} title="Marquer pour régénération audio" className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-amber-600">
                     <RotateCcw size={15} />
                   </button>
                 )}
-                <button onClick={() => openEditDialog(v)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(v)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(v.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(v.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -437,11 +437,11 @@ export default function VocabularyAdmin() {
               setPage((p) => p - 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="rounded-xl font-black text-sm"
+            className="rounded-2xl font-black text-sm"
           >
             Précédent
           </Button>
-          <span className="text-sm text-zinc-400 font-bold">
+          <span className="text-sm text-zinc-500 font-bold">
             Page {page} / {totalPages}
           </span>
           <Button
@@ -451,7 +451,7 @@ export default function VocabularyAdmin() {
               setPage((p) => p + 1);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="rounded-xl font-black text-sm"
+            className="rounded-2xl font-black text-sm"
           >
             Suivant
           </Button>
@@ -465,33 +465,33 @@ export default function VocabularyAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Mot</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Mot</Label>
               <Input value={form.word} onChange={(e) => setForm((f) => ({ ...f, word: e.target.value }))} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Définition</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Définition</Label>
               <Textarea value={form.definition} onChange={(e) => setForm((f) => ({ ...f, definition: e.target.value }))} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Exemple (optionnel)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Exemple (optionnel)</Label>
               <Textarea value={form.example} onChange={(e) => setForm((f) => ({ ...f, example: e.target.value }))} className="mt-1" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
-                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
+                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Catégorie</Label>
-                <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Catégorie</Label>
+                <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>

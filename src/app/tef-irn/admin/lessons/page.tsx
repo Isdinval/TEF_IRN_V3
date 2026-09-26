@@ -230,9 +230,9 @@ export default function LessonsAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Leçons</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Leçons</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {lessons.length} leçon{lessons.length > 1 ? "s" : ""} affichée{lessons.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -256,11 +256,11 @@ export default function LessonsAdmin() {
       )}
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les catégories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -270,18 +270,18 @@ export default function LessonsAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {lessons.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucune leçon ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucune leçon ne correspond à ces filtres.</p>
           )}
           {lessons.map((lesson) => (
             <div key={lesson.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{lesson.level}</Badge>
-                  {lesson.category && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{lesson.category}</Badge>}
-                  <Badge variant="outline" className="text-[10px] font-black">#{lesson.order_index}</Badge>
-                  <span className="text-[10px] font-mono text-zinc-400 truncate">{lesson.slug}</span>
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{lesson.level}</Badge>
+                  {lesson.category && <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{lesson.category}</Badge>}
+                  <Badge variant="outline" className="text-sm font-black">#{lesson.order_index}</Badge>
+                  <span className="text-sm font-mono text-zinc-500 truncate">{lesson.slug}</span>
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{lesson.title}</p>
               </div>
@@ -290,14 +290,14 @@ export default function LessonsAdmin() {
                   href={`${SITE_URL}/tef-irn/lessons/${lesson.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-emerald-600"
+                  className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-emerald-600"
                 >
                   <ExternalLink size={15} />
                 </a>
-                <button onClick={() => openEditDialog(lesson)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(lesson)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(lesson)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(lesson)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -313,15 +313,15 @@ export default function LessonsAdmin() {
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-1">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Titre</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Titre</Label>
               <Input value={form.title} onChange={(e) => handleTitleChange(e.target.value)} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Slug</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Slug</Label>
               <Input
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value), slugTouched: true }))}
@@ -331,20 +331,20 @@ export default function LessonsAdmin() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
-                <select value={form.level} onChange={(e) => handleLevelOrCategoryChange({ level: e.target.value })} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
+                <select value={form.level} onChange={(e) => handleLevelOrCategoryChange({ level: e.target.value })} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Catégorie</Label>
-                <select value={form.category} onChange={(e) => handleLevelOrCategoryChange({ category: e.target.value })} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Catégorie</Label>
+                <select value={form.category} onChange={(e) => handleLevelOrCategoryChange({ category: e.target.value })} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">
-                  Ordre {!editingId && <span className="normal-case font-normal text-zinc-300">(auto)</span>}
+                <Label className="text-xs font-black uppercase text-zinc-500">
+                  Ordre {!editingId && <span className="normal-case font-normal text-zinc-500">(auto)</span>}
                 </Label>
                 <Input
                   type="number"
@@ -357,32 +357,32 @@ export default function LessonsAdmin() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Difficulté</Label>
-                <select value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Difficulté</Label>
+                <select value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Durée estimée (minutes)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Durée estimée (minutes)</Label>
                 <Input type="number" value={form.duration} onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Objectif pédagogique</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Objectif pédagogique</Label>
               <Textarea value={form.objective} onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))} className="mt-1" placeholder="Ce que l'apprenant doit savoir faire à la fin de la leçon" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Contenu (markdown)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Contenu (markdown)</Label>
               <div className="mt-1 grid grid-cols-2 gap-3">
                 <Textarea
                   value={form.content}
                   onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  className="h-96 font-mono text-xs"
+                  className="h-96 font-mono text-sm"
                   placeholder={"## Introduction\n\nVotre contenu markdown ici..."}
                 />
-                <div className="h-96 overflow-y-auto p-4 rounded-xl border border-zinc-200 bg-zinc-50">
+                <div className="h-96 overflow-y-auto p-4 rounded-2xl border border-zinc-200 bg-zinc-50">
                   <div className="prose prose-sm prose-slate max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content || "*Aperçu du rendu markdown*"}</ReactMarkdown>
                   </div>
@@ -391,7 +391,7 @@ export default function LessonsAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Tags (séparés par des virgules)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Tags (séparés par des virgules)</Label>
               <Input value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} className="mt-1" placeholder="subjonctif, passé composé..." />
             </div>
           </div>

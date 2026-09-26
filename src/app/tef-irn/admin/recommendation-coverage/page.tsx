@@ -164,11 +164,11 @@ export default function RecommendationCoverageAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Couverture leçon → exercice</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Couverture leçon → exercice</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {rows.length} combinaison{rows.length > 1 ? "s" : ""} catégorie/niveau/tag —{" "}
-            <span className={totalGaps > 0 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold"}>
+            <span className={totalGaps > 0 ? "text-red-600 font-bold" : "text-emerald-600 font-bold"}>
               {totalGaps} trou{totalGaps > 1 ? "s" : ""} détecté{totalGaps > 1 ? "s" : ""}
             </span>{" "}
             ({coveragePct}% couvert)
@@ -181,11 +181,11 @@ export default function RecommendationCoverageAdmin() {
       </header>
 
       <div className="flex flex-wrap gap-3 mb-6 items-center">
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les catégories</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
@@ -199,14 +199,14 @@ export default function RecommendationCoverageAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden">
           {filteredRows.length === 0 ? (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">
               {gapsOnly ? "Aucun trou pour ces filtres — bien joué." : "Aucune combinaison ne correspond à ces filtres."}
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-zinc-50 text-[10px] uppercase tracking-widest text-zinc-400 font-black">
+              <thead className="bg-zinc-50 text-xs uppercase tracking-widest text-zinc-500 font-black">
                 <tr>
                   <th className="text-left px-5 py-3">Catégorie</th>
                   <th className="text-left px-5 py-3">Niveau</th>
@@ -217,10 +217,10 @@ export default function RecommendationCoverageAdmin() {
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {filteredRows.map((r) => (
-                  <tr key={`${r.category}|${r.level}|${r.tag}`} className={!r.hasExercise ? "bg-rose-50/40" : undefined}>
+                  <tr key={`${r.category}|${r.level}|${r.tag}`} className={!r.hasExercise ? "bg-red-50/40" : undefined}>
                     <td className="px-5 py-3 capitalize font-bold text-zinc-700">{r.category}</td>
                     <td className="px-5 py-3">
-                      <Badge variant="outline" className="text-[10px] font-black">{r.level}</Badge>
+                      <Badge variant="outline" className="text-sm font-black">{r.level}</Badge>
                     </td>
                     <td className="px-5 py-3 text-zinc-600">{r.tag}</td>
                     <td className="px-5 py-3">
@@ -230,7 +230,7 @@ export default function RecommendationCoverageAdmin() {
                       {r.hasExercise ? (
                         <CheckCircle2 size={16} className="text-emerald-500" />
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-rose-600 font-bold">
+                        <span className="inline-flex items-center gap-1 text-red-600 font-bold">
                           <XCircle size={16} /> Manquant
                         </span>
                       )}

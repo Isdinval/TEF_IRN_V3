@@ -162,9 +162,9 @@ export default function OralScenariosAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Scénarios examen oral (EO)</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Scénarios examen oral (EO)</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {scenarios.length} scénario{scenarios.length > 1 ? "s" : ""} affiché{scenarios.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -183,11 +183,11 @@ export default function OralScenariosAdmin() {
       />
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les sections</option>
           {SECTIONS.map((s) => <option key={s} value={s}>Section {s}</option>)}
         </select>
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
@@ -197,26 +197,26 @@ export default function OralScenariosAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {scenarios.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun scénario ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun scénario ne correspond à ces filtres.</p>
           )}
           {scenarios.map((s) => (
             <div key={s.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">Section {s.section}</Badge>
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{s.level}</Badge>
-                  {!s.is_active && <Badge className="text-[10px] font-black uppercase bg-rose-50 text-rose-600 border-none">Inactif</Badge>}
+                  <Badge variant="outline" className="text-xs font-black uppercase">Section {s.section}</Badge>
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{s.level}</Badge>
+                  {!s.is_active && <Badge className="text-xs font-black uppercase bg-red-50 text-red-600 border-none">Inactif</Badge>}
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{s.title}</p>
-                <p className="text-xs text-zinc-400 truncate">{s.role_interlocuteur}</p>
+                <p className="text-sm text-zinc-500 truncate">{s.role_interlocuteur}</p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(s)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(s)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(s.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(s.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -232,57 +232,57 @@ export default function OralScenariosAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Section</Label>
-                <select value={form.section} onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Section</Label>
+                <select value={form.section} onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {SECTIONS.map((s) => <option key={s} value={s}>Section {s}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
-                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
+                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Titre</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Titre</Label>
               <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="mt-1" placeholder="Ex: Recherche appartement à louer" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Rôle de l'interlocuteur (IA)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Rôle de l'interlocuteur (IA)</Label>
               <Input value={form.role_interlocuteur} onChange={(e) => setForm((f) => ({ ...f, role_interlocuteur: e.target.value }))} className="mt-1" placeholder="Ex: Agent immobilier" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Sujet / mise en situation</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Sujet / mise en situation</Label>
               <Textarea value={form.sujet} onChange={(e) => setForm((f) => ({ ...f, sujet: e.target.value }))} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Objectifs (un par ligne)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Objectifs (un par ligne)</Label>
               <Textarea value={form.objectifs} onChange={(e) => setForm((f) => ({ ...f, objectifs: e.target.value }))} className="mt-1" rows={5} placeholder={"Comprendre le besoin\nIdentifier le budget\n..."} />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Contraintes (optionnel, une par ligne)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Contraintes (optionnel, une par ligne)</Label>
               <Textarea value={form.contraintes} onChange={(e) => setForm((f) => ({ ...f, contraintes: e.target.value }))} className="mt-1" rows={3} />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Voix Realtime API</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Voix Realtime API</Label>
               <Input value={form.voice} onChange={(e) => setForm((f) => ({ ...f, voice: e.target.value }))} className="mt-1" placeholder="marin" />
             </div>
 
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl">
               <div>
                 <p className="text-sm font-black text-zinc-900">Actif</p>
-                <p className="text-xs text-zinc-400">Un scénario inactif n'apparaît plus dans la simulation d'examen.</p>
+                <p className="text-sm text-zinc-500">Un scénario inactif n'apparaît plus dans la simulation d'examen.</p>
               </div>
               <Switch checked={form.is_active} onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))} />
             </div>

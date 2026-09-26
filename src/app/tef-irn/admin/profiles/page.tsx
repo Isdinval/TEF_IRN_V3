@@ -362,16 +362,16 @@ export default function ProfilesAdmin() {
       <div className="space-y-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           {profile.is_admin ? (
-            <Badge className="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border-none">Admin</Badge>
+            <Badge className="text-xs font-black uppercase bg-amber-50 text-amber-700 border-none">Admin</Badge>
           ) : (
-            <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">Compte normal</Badge>
+            <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">Compte normal</Badge>
           )}
           <Select
             value={profile.subscription_tier ?? "gratuit"}
             onValueChange={(val) => { if (val) changeSubscriptionTier(profile, val); }}
             disabled={tierChangingId === profile.id}
           >
-            <SelectTrigger size="sm" className="w-auto gap-1 rounded-md border-none bg-zinc-100 px-2 text-[10px] font-black uppercase text-zinc-600 [&_svg]:size-3">
+            <SelectTrigger size="sm" className="w-auto gap-1 rounded-md border-none bg-zinc-100 px-2 text-xs font-black uppercase text-zinc-600 [&_svg]:size-3">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -382,7 +382,7 @@ export default function ProfilesAdmin() {
               ))}
             </SelectContent>
           </Select>
-          {profile.current_level && <Badge variant="outline" className="text-[10px] font-black uppercase">{profile.current_level}</Badge>}
+          {profile.current_level && <Badge variant="outline" className="text-xs font-black uppercase">{profile.current_level}</Badge>}
           <button
             type="button"
             disabled={testTogglingId === profile.id}
@@ -390,20 +390,20 @@ export default function ProfilesAdmin() {
             title="Marquer/démarquer comme compte de test"
           >
             <Badge
-              className={`text-[10px] font-black uppercase border-none cursor-pointer ${
-                profile.is_test_account ? "bg-violet-100 text-violet-700" : "bg-zinc-50 text-zinc-300 hover:text-zinc-400"
+              className={`text-xs font-black uppercase border-none cursor-pointer ${
+                profile.is_test_account ? "bg-violet-100 text-violet-700" : "bg-zinc-50 text-zinc-500 hover:text-zinc-400"
               }`}
             >
               <FlaskConical size={10} className="mr-1" /> Test
             </Badge>
           </button>
-          {pinned && <span className="text-[10px] font-black text-indigo-500 uppercase">(vous)</span>}
+          {pinned && <span className="text-xs font-black text-indigo-500 uppercase">(vous)</span>}
         </div>
         <p className="text-sm font-bold text-zinc-800 truncate">{profile.email}</p>
         {(profile.full_name || profile.username) && (
-          <p className="text-xs text-zinc-400 truncate">{profile.full_name || profile.username}</p>
+          <p className="text-sm text-zinc-500 truncate">{profile.full_name || profile.username}</p>
         )}
-        <p className="text-[11px] text-zinc-400">
+        <p className="text-sm text-zinc-500">
           {profile.total_xp} XP · actif {formatRelative(profile.last_activity_at)} · créé le{" "}
           {new Date(profile.created_at).toLocaleDateString("fr-FR")}
         </p>
@@ -412,7 +412,7 @@ export default function ProfilesAdmin() {
         <Button
           variant="outline"
           onClick={() => openDetail(profile)}
-          className="rounded-2xl font-black text-xs h-10 px-4 text-zinc-500 border-zinc-200 hover:bg-zinc-50"
+          className="rounded-2xl font-black text-sm h-10 px-4 text-zinc-500 border-zinc-200 hover:bg-zinc-50"
         >
           <Eye size={14} className="mr-1.5" /> Détails
         </Button>
@@ -420,7 +420,7 @@ export default function ProfilesAdmin() {
           variant="outline"
           disabled={resetPendingId === profile.id}
           onClick={() => { setResetConfirmText(""); setResetTarget(profile); }}
-          className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50"
+          className="rounded-2xl font-black text-sm h-10 px-4 text-red-600 border-red-200 hover:bg-red-50"
         >
           {resetPendingId === profile.id ? (
             <Loader2 className="animate-spin" size={14} />
@@ -443,7 +443,7 @@ export default function ProfilesAdmin() {
               ? "Abonnement actif : annulez-le côté Stripe avant de supprimer le compte."
               : undefined
           }
-          className="rounded-2xl font-black text-xs h-10 px-4 text-rose-600 border-rose-200 hover:bg-rose-50 disabled:opacity-40"
+          className="rounded-2xl font-black text-sm h-10 px-4 text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-40"
         >
           {deletePendingId === profile.id ? (
             <Loader2 className="animate-spin" size={14} />
@@ -455,7 +455,7 @@ export default function ProfilesAdmin() {
           variant={profile.is_admin ? "secondary" : "default"}
           disabled={pendingId === profile.id}
           onClick={() => handleToggleClick(profile)}
-          className={`rounded-2xl font-black text-xs h-10 px-4 ${profile.is_admin ? "" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
+          className={`rounded-2xl font-black text-sm h-10 px-4 ${profile.is_admin ? "" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}
         >
           {pendingId === profile.id ? (
             <Loader2 className="animate-spin" size={14} />
@@ -473,9 +473,9 @@ export default function ProfilesAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Profils</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Profils</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {profiles.length} compte{profiles.length > 1 ? "s" : ""} au total
           </p>
         </div>
@@ -499,69 +499,69 @@ export default function ProfilesAdmin() {
 
       <div className="flex flex-wrap gap-3 mb-6">
         <Input placeholder="Rechercher par email, username ou nom..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 max-w-xs" />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="all">Tous les statuts</option>
           <option value="admin">Admins uniquement</option>
           <option value="normal">Comptes normaux uniquement</option>
         </select>
-        <select value={testFilter} onChange={(e) => setTestFilter(e.target.value as TestFilter)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={testFilter} onChange={(e) => setTestFilter(e.target.value as TestFilter)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="all">Comptes de test inclus</option>
           <option value="hide_test">Masquer les comptes de test</option>
           <option value="test_only">Comptes de test uniquement</option>
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="last_activity">Trier : dernière activité</option>
           <option value="created_at">Trier : date de création</option>
           <option value="xp">Trier : XP</option>
         </select>
       </div>
 
-      {errorMsg && <div className="mb-4 p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
-      {resetResultMsg && <div className="mb-4 p-3 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold">{resetResultMsg}</div>}
+      {errorMsg && <div className="mb-4 p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
+      {resetResultMsg && <div className="mb-4 p-3 rounded-2xl bg-emerald-50 text-emerald-700 text-sm font-bold">{resetResultMsg}</div>}
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
         <>
           {myProfile && (
-            <div className="mb-6 rounded-[2rem] border-2 border-indigo-100 shadow-sm overflow-hidden">
-              <p className="px-5 pt-4 text-[10px] font-black uppercase text-indigo-400">Mon compte</p>
+            <div className="mb-6 rounded-3xl border-2 border-indigo-100 shadow-sm overflow-hidden">
+              <p className="px-5 pt-4 text-xs font-black uppercase text-indigo-400">Mon compte</p>
               {renderProfileCard(myProfile, true)}
             </div>
           )}
 
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
             {displayedProfiles.length === 0 && (
-              <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun compte ne correspond à cette recherche.</p>
+              <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun compte ne correspond à cette recherche.</p>
             )}
             {displayedProfiles.map((profile) => renderProfileCard(profile))}
           </div>
 
-          <div className="mt-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm overflow-hidden">
+          <div className="mt-6 bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden">
             <button
               onClick={() => setLogExpanded((v) => !v)}
               className="w-full flex items-center justify-between p-5 text-left"
             >
               <span className="text-sm font-black text-zinc-700">Historique des actions admin</span>
-              <span className="text-xs font-bold text-zinc-400">{logExpanded ? "Masquer" : "Afficher"}</span>
+              <span className="text-sm font-bold text-zinc-500">{logExpanded ? "Masquer" : "Afficher"}</span>
             </button>
             {logExpanded && (
               <div className="divide-y divide-zinc-50 border-t border-zinc-50">
                 {actionsLog.length === 0 && (
-                  <p className="p-5 text-center text-zinc-400 font-bold text-sm">Aucune action enregistrée.</p>
+                  <p className="p-5 text-center text-zinc-500 font-bold text-sm">Aucune action enregistrée.</p>
                 )}
                 {actionsLog.map((entry) => (
-                  <div key={entry.id} className="p-4 text-xs text-zinc-600">
+                  <div key={entry.id} className="p-4 text-sm text-zinc-600">
                     <span className="font-bold text-zinc-800">{entry.admin_email}</span>{" "}
                     {ACTION_LABELS[entry.action]}{" "}
                     <span className="font-bold text-zinc-800">{entry.target_email}</span>
                     {entry.action === "reset_progress" && entry.details?.deletedCount !== undefined && (
-                      <span className="text-zinc-400"> ({entry.details.deletedCount} enregistrements supprimés)</span>
+                      <span className="text-zinc-500"> ({entry.details.deletedCount} enregistrements supprimés)</span>
                     )}
                     {entry.action === "change_subscription_tier" && entry.details?.from && entry.details?.to && (
-                      <span className="text-zinc-400"> ({entry.details.from} → {entry.details.to})</span>
+                      <span className="text-zinc-500"> ({entry.details.from} → {entry.details.to})</span>
                     )}
-                    <span className="text-zinc-400"> · {formatRelative(entry.created_at)}</span>
+                    <span className="text-zinc-500"> · {formatRelative(entry.created_at)}</span>
                   </div>
                 ))}
               </div>
@@ -581,7 +581,7 @@ export default function ProfilesAdmin() {
               l'accès à cette zone. Pour confirmer, tapez <strong>{CONFIRM_PHRASE}</strong> ci-dessous.
             </p>
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Confirmation</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Confirmation</Label>
               <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="mt-1" placeholder={CONFIRM_PHRASE} />
             </div>
           </div>
@@ -592,7 +592,7 @@ export default function ProfilesAdmin() {
             <Button
               onClick={confirmSelfDemote}
               disabled={confirmText !== CONFIRM_PHRASE || pendingId === selfDemoteTarget?.id}
-              className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
+              className="bg-red-600 text-white hover:bg-red-700 rounded-2xl font-black text-sm"
             >
               {pendingId === selfDemoteTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la rétrogradation"}
             </Button>
@@ -613,7 +613,7 @@ export default function ProfilesAdmin() {
               Cette action est irréversible. Pour confirmer, tapez <strong>{RESET_CONFIRM_PHRASE}</strong> ci-dessous.
             </p>
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Confirmation</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Confirmation</Label>
               <Input value={resetConfirmText} onChange={(e) => setResetConfirmText(e.target.value)} className="mt-1" placeholder={RESET_CONFIRM_PHRASE} />
             </div>
           </div>
@@ -624,7 +624,7 @@ export default function ProfilesAdmin() {
             <Button
               onClick={confirmReset}
               disabled={resetConfirmText !== RESET_CONFIRM_PHRASE || resetPendingId === resetTarget?.id}
-              className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
+              className="bg-red-600 text-white hover:bg-red-700 rounded-2xl font-black text-sm"
             >
               {resetPendingId === resetTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la réinitialisation"}
             </Button>
@@ -645,7 +645,7 @@ export default function ProfilesAdmin() {
               Pour confirmer, tapez <strong>{DELETE_CONFIRM_PHRASE}</strong> ci-dessous.
             </p>
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Confirmation</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Confirmation</Label>
               <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} className="mt-1" placeholder={DELETE_CONFIRM_PHRASE} />
             </div>
           </div>
@@ -656,7 +656,7 @@ export default function ProfilesAdmin() {
             <Button
               onClick={confirmDelete}
               disabled={deleteConfirmText !== DELETE_CONFIRM_PHRASE || deletePendingId === deleteTarget?.id}
-              className="bg-rose-600 text-white hover:bg-rose-700 rounded-2xl font-black text-sm"
+              className="bg-red-600 text-white hover:bg-red-700 rounded-2xl font-black text-sm"
             >
               {deletePendingId === deleteTarget?.id ? <Loader2 className="animate-spin" size={16} /> : "Confirmer la suppression"}
             </Button>
@@ -721,7 +721,7 @@ export default function ProfilesAdmin() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-zinc-400">Aucune donnée disponible.</p>
+            <p className="text-sm text-zinc-500">Aucune donnée disponible.</p>
           )}
           <DialogFooter>
             <Button variant="secondary" onClick={() => setDetailTarget(null)} className="rounded-2xl font-black text-sm">

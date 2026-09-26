@@ -154,9 +154,9 @@ export default function ParcoursAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Parcours</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Parcours</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {items.length} parcours affiché{items.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -174,11 +174,11 @@ export default function ParcoursAdmin() {
       />
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les catégories</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -188,26 +188,26 @@ export default function ParcoursAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {items.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun parcours ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun parcours ne correspond à ces filtres.</p>
           )}
           {items.map((p) => (
             <div key={p.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">{p.level}</Badge>
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{p.category}</Badge>
-                  <span className="text-[10px] text-zinc-300 font-mono">{p.slug}</span>
+                  <Badge variant="outline" className="text-xs font-black uppercase">{p.level}</Badge>
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{p.category}</Badge>
+                  <span className="text-sm text-zinc-500 font-mono">{p.slug}</span>
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{p.nom_parcours || "(sans nom)"}</p>
-                {p.objective && <p className="text-xs text-zinc-400 truncate">{p.objective}</p>}
+                {p.objective && <p className="text-sm text-zinc-500 truncate">{p.objective}</p>}
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(p)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(p)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(p)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(p)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -223,40 +223,40 @@ export default function ParcoursAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Slug</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Slug</Label>
                 <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="mt-1" placeholder="relier-idees-syn-a2" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
-                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
+                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Nom du parcours</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Nom du parcours</Label>
               <Input value={form.nom_parcours} onChange={(e) => setForm((f) => ({ ...f, nom_parcours: e.target.value }))} className="mt-1" placeholder="Relier ses idées pour se faire comprendre" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Catégorie</Label>
-              <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+              <Label className="text-xs font-black uppercase text-zinc-500">Catégorie</Label>
+              <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                 {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Objectif</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Objectif</Label>
               <Textarea value={form.objective} onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Justification / référence au référentiel</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Justification / référence au référentiel</Label>
               <Textarea value={form.justification} onChange={(e) => setForm((f) => ({ ...f, justification: e.target.value }))} className="mt-1" rows={3} />
             </div>
           </div>
