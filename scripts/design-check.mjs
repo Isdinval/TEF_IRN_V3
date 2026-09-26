@@ -9,7 +9,7 @@ const base = process.argv[2] ?? "origin/main";
 const PATHS = ["src/app/tef-irn", "src/app/examen-civique", "src/components/shared"];
 const RULES = [
   // Couleurs d'identification (§2.6) autorisées uniquement dans les fichiers qui portent la palette d'identification.
-  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/tef-irn/lessons/LessonsList.tsx"]],
+  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx"]],
   [/\bfont-(?:semibold|extrabold)\b/, "graisse interdite (§3.2)"],
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
   // Éditeur EE : max-md: toléré (design system §2.5).

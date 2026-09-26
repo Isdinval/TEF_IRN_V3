@@ -85,7 +85,7 @@ Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une
 
 ❌ Jamais sur un bouton, un titre, du texte courant ou le fond plein d'une carte. Le bouton d'action reste indigo.
 
-**Catégories de leçon** (icône associée) :
+**Catégories de leçon et d'exercice** — source unique : `src/lib/category-identity.ts` (`identityOf(category)` renvoie barre, pastille, badge, puce et icône). Ne jamais recopier ces classes dans un composant : une catégorie a la même couleur et la même icône sur tout le site (catalogue des leçons, catalogues QCM / Chasse aux erreurs, bandeau d'exercice, cartes du détail de parcours).
 
 | Catégorie | Couleur | Icône |
 |---|---|---|
@@ -103,7 +103,7 @@ Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une
 
 Une couleur d'identification ne dit rien de l'état : un état (« Terminé », « À revoir ») porte toujours son libellé et sa couleur d'état (§2.1).
 
-`design:check` n'autorise ces couleurs que dans les fichiers qui portent une palette d'identification (liste dans `scripts/design-check.mjs`).
+`design:check` n'autorise ces couleurs que dans les fichiers qui portent une palette d'identification (liste dans `scripts/design-check.mjs` ; `src/lib/` n'est pas contrôlé).
 
 ---
 
