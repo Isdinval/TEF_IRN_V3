@@ -6,7 +6,7 @@
 
 Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
 - la landing page ;
-- les pages de détail de guide (en-tête éditorial `GuideDetail` / `CivicGuideDetail`) ;
+- les **guides** (catalogue et détail : héros éditorial, en-tête `GuideDetail` / `CivicGuideDetail`, couleur d'accent propre — bleu pour les guides TEF IRN, indigo pour les guides civiques). Seules les règles de gris, typographie (§3), rayons/ombres (§4), tactile et contraste s'y appliquent ;
 - le simulateur d'examen blanc (tokens `--exam-*` de `globals.css`, esthétique « copie d'examen »).
 
 ---
@@ -431,6 +431,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/settings` | `apply_ligne_directrice_design` (lot 5) |
 | `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
 | `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
+| `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
 
 ---
 
