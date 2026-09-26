@@ -110,7 +110,7 @@ export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: Writ
             <TimerIcon size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Chronomètre TEF</p>
+            <p className="text-xs font-black uppercase tracking-widest text-indigo-400">Chronomètre TEF</p>
             <p className="text-sm font-bold text-indigo-900">{duration / 60}:00 min disponibles</p>
           </div>
         </div>
@@ -129,14 +129,14 @@ export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: Writ
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
-            isLowTime ? "bg-rose-500 text-white" : "bg-zinc-900 text-white"
+            isLowTime ? "bg-red-600 text-white" : "bg-zinc-900 text-white"
           }`}>
             <TimerIcon size={20} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Temps restant</p>
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Temps restant</p>
             <p className={`text-2xl font-black tabular-nums tracking-tighter ${
-              isLowTime ? "text-rose-600 animate-pulse" : "text-zinc-900"
+              isLowTime ? "text-red-600 animate-pulse" : "text-zinc-900"
             }`}>
               {formatTime(timeLeft)}
             </p>
@@ -156,7 +156,7 @@ export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: Writ
             variant="ghost"
             size="icon"
             onClick={handleReset}
-            className="h-10 w-10 rounded-xl text-zinc-400 hover:text-rose-500"
+            className="h-10 w-10 rounded-xl text-zinc-500 hover:text-red-600"
           >
             <RotateCcw size={18} />
           </Button>
@@ -166,10 +166,10 @@ export const WritingTimer = ({ exerciseId, instructions, durationSeconds }: Writ
       <div className="space-y-1">
          <Progress
            value={progress}
-           className={`h-2 transition-all ${isLowTime ? "[&>div]:bg-rose-500" : "[&>div]:bg-indigo-600"}`}
+           className={`h-2 transition-all ${isLowTime ? "[&>div]:bg-red-600" : "[&>div]:bg-indigo-600"}`}
          />
          {timeLeft === 0 && (
-           <p className="text-center text-[10px] font-black uppercase tracking-widest text-rose-600 animate-bounce mt-2">
+           <p className="text-center text-xs font-black uppercase tracking-widest text-red-600 animate-bounce mt-2">
              Temps écoulé pour cette section !
            </p>
          )}

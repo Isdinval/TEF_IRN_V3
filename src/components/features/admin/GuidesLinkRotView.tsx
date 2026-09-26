@@ -128,7 +128,7 @@ export default function GuidesLinkRotView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 text-zinc-400">
+      <div className="flex items-center justify-center h-96 text-zinc-500">
         <Loader2 className="animate-spin mr-2" size={20} /> Chargement des guides...
       </div>
     );
@@ -146,12 +146,12 @@ export default function GuidesLinkRotView() {
         <button
           onClick={runCheck}
           disabled={checking || externalLinks.length === 0}
-          className="h-10 px-4 rounded-xl bg-indigo-600 text-white text-sm font-black flex items-center gap-2 disabled:opacity-40"
+          className="h-10 px-4 rounded-2xl bg-indigo-600 text-white text-sm font-black flex items-center gap-2 disabled:opacity-40"
         >
           {checking ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
           {checking ? `Vérification... (${checked}/${externalLinks.length})` : "Lancer la vérification"}
         </button>
-        <p className="text-xs text-zinc-400">
+        <p className="text-sm text-zinc-500">
           {externalLinks.length} URL{externalLinks.length > 1 ? "s" : ""} externe{externalLinks.length > 1 ? "s" : ""}{" "}
           citée{externalLinks.length > 1 ? "s" : ""} dans les guides publiés.
           {checkedCount > 0 && !checking && (
@@ -167,7 +167,7 @@ export default function GuidesLinkRotView() {
         <select
           value={productFilter}
           onChange={(e) => setProductFilter(e.target.value as "Tous" | GuideProduct)}
-          className="h-9 px-3 rounded-xl border border-zinc-200 text-xs font-bold"
+          className="h-9 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
         >
           <option value="Tous">Tous les produits</option>
           <option value="tef-irn">TEF IRN</option>
@@ -177,30 +177,30 @@ export default function GuidesLinkRotView() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filtrer par domaine ou URL..."
-          className="h-9 max-w-xs text-xs"
+          className="h-9 max-w-xs text-sm"
         />
-        <label className="flex items-center gap-1.5 text-xs font-bold text-zinc-500">
+        <label className="flex items-center gap-1.5 text-sm font-bold text-zinc-500">
           <input type="checkbox" checked={onlyErrors} onChange={(e) => setOnlyErrors(e.target.checked)} />
           Afficher seulement les erreurs
         </label>
       </div>
 
-      <p className="text-xs text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
+      <p className="text-sm text-amber-700 bg-amber-50 rounded-2xl px-3 py-2">
         ⚠️ 403 et « fetch failed » ne sont pas des preuves fiables de lien mort — beaucoup de sites bloquent les
         requêtes automatisées sans navigateur alors qu&apos;un humain voit la page normalement. Vérifie
         manuellement avant de remplacer un lien sur ce seul signal. 404 et 500+ persistants sont plus fiables.
       </p>
 
-      <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-        {filteredLinks.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun lien externe ne correspond.</p>}
+      <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        {filteredLinks.length === 0 && <p className="p-8 text-center text-zinc-500">Aucun lien externe ne correspond.</p>}
         {filteredLinks.map((entry) => {
           const result = results[entry.url];
           return (
             <div key={entry.url} className="p-4 flex items-center gap-4">
               <span
-                className={`shrink-0 w-16 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
+                className={`shrink-0 w-16 h-8 rounded-2xl flex items-center justify-center text-sm font-black ${
                   !result
-                    ? "bg-zinc-100 text-zinc-400"
+                    ? "bg-zinc-100 text-zinc-500"
                     : result.ok
                       ? "bg-emerald-50 text-emerald-700"
                       : "bg-red-50 text-red-700"
@@ -217,10 +217,10 @@ export default function GuidesLinkRotView() {
                 >
                   {entry.url} <ExternalLink size={12} className="shrink-0" />
                 </a>
-                <p className="text-xs text-zinc-400 truncate">
+                <p className="text-sm text-zinc-500 truncate">
                   cité par : {entry.referencedBy.map((g) => g.slug).join(", ")}
                 </p>
-                {result?.error && <p className="text-xs text-red-500">{result.error}</p>}
+                {result?.error && <p className="text-sm text-red-500">{result.error}</p>}
               </div>
             </div>
           );

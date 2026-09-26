@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Play, HelpCircle, AlignLeft, Edit3, Type, Headphones, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Exercise, getExerciseUrl as resolveExerciseUrl } from "@/lib/parcours";
+import { identityOf } from "@/lib/category-identity";
 
 interface ExerciseCardProps {
   exercise: Exercise & { is_completed?: boolean; is_ai_generated?: boolean; recommendation_reason?: string };
@@ -39,25 +40,23 @@ const typeLabels: Record<string, string> = {
 };
 
 const difficultyColors: Record<string, string> = {
-  facile: "bg-emerald-100 text-emerald-700",
-  moyen: "bg-amber-100 text-amber-700",
-  difficile: "bg-rose-100 text-rose-700",
+  facile: "bg-zinc-100 text-zinc-600",
+  moyen: "bg-zinc-100 text-zinc-600",
+  difficile: "bg-zinc-100 text-zinc-600",
 };
 
-const CATEGORY_THEMES: Record<string, { border: string, bg: string, text: string, hoverText: string, hoverIconBg: string, button: string, shadow: string }> = {
-  conjugaison: { border: "border-blue-500", bg: "bg-blue-50", text: "text-blue-600", hoverText: "group-hover:text-blue-600", hoverIconBg: "group-hover:bg-blue-600", button: "bg-blue-600 hover:bg-blue-700", shadow: "shadow-blue-100" },
-  syntaxe: { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-600", hoverText: "group-hover:text-violet-600", hoverIconBg: "group-hover:bg-violet-600", button: "bg-violet-600 hover:bg-violet-700", shadow: "shadow-violet-100" },
-  vocabulaire: { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-600", hoverText: "group-hover:text-amber-600", hoverIconBg: "group-hover:bg-amber-600", button: "bg-amber-600 hover:bg-amber-700", shadow: "shadow-amber-100" },
-  grammaire: { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-600", hoverText: "group-hover:text-emerald-600", hoverIconBg: "group-hover:bg-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", shadow: "shadow-emerald-100" },
-  default: { border: "border-zinc-500", bg: "bg-zinc-50", text: "text-zinc-600", hoverText: "group-hover:text-zinc-600", hoverIconBg: "group-hover:bg-zinc-600", button: "bg-zinc-600 hover:bg-zinc-700", shadow: "shadow-zinc-100" },
-};
+// Thème de carte : couleurs d'identification de la catégorie (§2.6), action toujours indigo.
+function themeOf(category?: string | null) {
+  const id = identityOf(category);
+  return { border: id.top, bg: id.soft, text: id.text, hoverText: "group-hover:text-indigo-600", hoverIconBg: id.hoverIconBg, button: "bg-indigo-600 hover:bg-indigo-700", shadow: "shadow-indigo-100" };
+}
 
 export default function ExerciseCard({ exercise, parcoursId, variant = 'default' }: ExerciseCardProps) {
   const Icon = typeIcons[exercise.type] || HelpCircle;
   const difficulty = exercise.difficulty || "facile";
   const difficultyColor = difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.facile;
   const isCompleted = exercise.is_completed;
-  const theme = CATEGORY_THEMES[exercise.category?.toLowerCase()] || CATEGORY_THEMES.default;
+  const theme = themeOf(exercise.category);
 
   const getExerciseUrl = () => resolveExerciseUrl(exercise, parcoursId);
 
@@ -67,24 +66,23 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
         layout
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ scale: 1.01 }}
+        whileHover={{ y: -4 }}
         className="relative"
       >
-        <div className={`absolute -inset-3 rounded-[3.5rem] ${theme.bg} opacity-70 blur-2xl -z-10`} />
-        <Card className={`relative overflow-hidden border-none shadow-2xl ${theme.shadow} rounded-[3rem] bg-white`}>
+        <Card className="relative overflow-hidden border border-zinc-100 shadow-sm rounded-3xl bg-white">
           <div className="flex items-stretch">
             <div className={`w-3 shrink-0 ${theme.button}`} />
             <CardContent className="p-8 md:p-10 flex-1 flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
-              <div className={`w-20 h-20 rounded-[1.75rem] flex items-center justify-center shrink-0 shadow-inner ${theme.bg} ${theme.text}`}>
+              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shrink-0 shadow-inner ${theme.bg} ${theme.text}`}>
                 <Icon size={36} />
               </div>
 
               <div className="flex-1 space-y-3 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${theme.text}`}>
+                  <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>
                     {typeLabels[exercise.type] || exercise.type}
                   </span>
-                  <Badge variant="outline" className={`rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
+                  <Badge variant="outline" className={`rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-wider border-none ${difficultyColor}`}>
                     {difficulty}
                   </Badge>
                 </div>
@@ -95,7 +93,7 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
                   </p>
                 )}
 
-                <h3 className="text-2xl font-black text-slate-900 leading-tight">
+                <h3 className="text-2xl font-black text-zinc-900 leading-tight">
                   {exercise.instructions}
                 </h3>
 
@@ -103,14 +101,14 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
                     (cf. TIER_REASONS + pointCleLabel dans recommendation-resolver.ts) --
                     évite de répéter deux fois la même information sur la carte. */}
                 {!exercise.recommendation_reason && (exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
-                  <p className="text-sm text-slate-400 font-medium italic leading-snug">
+                  <p className="text-sm text-zinc-500 font-medium leading-snug">
                     🎯 {exercise.point_cle_pedagogique || exercise.point_cles_lesson}
                   </p>
                 )}
               </div>
 
               <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto shrink-0">
-                <Button className={`w-full md:w-auto h-16 px-10 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl ${theme.button} ${theme.shadow}`}>
+                <Button className={`w-full md:w-auto h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95 shadow-lg ${theme.button} ${theme.shadow}`}>
                   {isCompleted ? 'REVOIR' : 'COMMENCER'}
                   <ChevronRight size={20} className="ml-2" />
                 </Button>
@@ -126,21 +124,21 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
     <Link href={getExerciseUrl()} target="_blank" rel="noopener noreferrer" className="h-full block">
       <motion.div
         layout
-        whileHover={{ y: -6, scale: 1.02 }}
+        whileHover={{ y: -4 }}
         className="h-full"
       >
-        <Card className={`group h-full border-none shadow-sm hover:shadow-2xl transition-all duration-300 rounded-[2.5rem] flex flex-col bg-white border-t-4 ${theme.border}`}>
+        <Card className={`group h-full border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl flex flex-col bg-white border-t-4 ${theme.border}`}>
           <CardContent className="p-8 flex flex-col h-full gap-5">
             <div className="flex justify-between items-start">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm ${theme.hoverIconBg} ${isCompleted ? 'bg-emerald-50 text-emerald-600' : `${theme.bg} ${theme.text}`}`}>
                 <Icon size={28} className="group-hover:text-white" />
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Badge variant="outline" className={`rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-wider border-none ${difficultyColor}`}>
+                <Badge variant="outline" className={`rounded-full px-4 py-1 text-xs font-black uppercase tracking-wider border-none ${difficultyColor}`}>
                   {difficulty}
                 </Badge>
                 {isCompleted && (
-                  <Badge className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider">
+                  <Badge className="bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full border-none font-bold uppercase tracking-wider">
                     Complété
                   </Badge>
                 )}
@@ -149,26 +147,26 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
 
             <div className="space-y-3 flex-1">
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-black uppercase tracking-widest ${theme.text}`}>
+                <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>
                   {typeLabels[exercise.type] || exercise.type}
                 </span>
                 {exercise.is_ai_generated && (
-                  <Badge className="bg-amber-50 text-amber-600 border-none text-[8px] font-black px-1.5 h-4 uppercase">AI</Badge>
+                  <Badge className="bg-zinc-100 text-zinc-600 border-none text-xs font-black px-2 py-0.5 rounded-full uppercase">AI</Badge>
                 )}
               </div>
               {exercise.recommendation_reason && (
-                <p className={`text-[9px] font-black uppercase tracking-widest ${theme.text} flex items-center gap-1`}>
+                <p className={`text-xs font-black uppercase tracking-widest ${theme.text} flex items-center gap-1`}>
                   <span aria-hidden="true">✦</span> {exercise.recommendation_reason}
                 </p>
               )}
-              <h4 className={`text-lg font-black text-slate-900 leading-tight ${theme.hoverText} transition-colors`}>
+              <h4 className={`text-lg font-black text-zinc-900 leading-tight ${theme.hoverText} transition-colors`}>
                 {exercise.instructions}
               </h4>
               {/* Point-clé affiché seulement si recommendation_reason ne l'inclut pas déjà
                   (cf. TIER_REASONS + pointCleLabel dans recommendation-resolver.ts) --
                   évite de répéter deux fois la même information sur la carte. */}
               {!exercise.recommendation_reason && (exercise.point_cle_pedagogique || exercise.point_cles_lesson) && (
-                <p className="text-xs text-slate-400 font-medium italic leading-snug line-clamp-2">
+                <p className="text-sm text-zinc-500 font-medium leading-snug line-clamp-2">
                   🎯 {exercise.point_cle_pedagogique || exercise.point_cles_lesson}
                 </p>
               )}
@@ -179,7 +177,7 @@ export default function ExerciseCard({ exercise, parcoursId, variant = 'default'
                 carte laissait croire qu'elle était cliquable alors que seul
                 le bouton du bas l'était). Score/tentatives retirés (logique
                 de tableau de bord, pas de recommandation) sur demande d'Olivier. */}
-            <div className={`flex items-center justify-between mt-2 pt-5 border-t border-slate-50 font-black text-sm transition-colors ${theme.text}`}>
+            <div className={`flex items-center justify-between mt-2 pt-5 border-t border-zinc-100 font-black uppercase tracking-widest text-xs text-indigo-600 transition-colors`}>
               <span>{isCompleted ? 'Revoir' : 'Commencer'}</span>
               <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
             </div>

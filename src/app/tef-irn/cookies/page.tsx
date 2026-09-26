@@ -50,17 +50,17 @@ export default function CookiesPage() {
           {cookieCategories.map((cat) => (
             <div
               key={cat.name}
-              className="rounded-2xl border border-slate-200 dark:border-white/10 p-6"
+              className="rounded-2xl border border-zinc-200 dark:border-white/10 p-6"
             >
               <div className="flex items-center justify-between gap-4 mb-2">
-                <span className="font-black text-slate-900 dark:text-white">
+                <span className="font-black text-zinc-900 dark:text-white">
                   {cat.name}
                 </span>
                 <span className="text-xs font-bold uppercase tracking-widest text-brand-blue dark:text-brand-gold whitespace-nowrap">
                   {cat.consent}
                 </span>
               </div>
-              <p className="text-slate-600 dark:text-slate-300">{cat.description}</p>
+              <p className="text-zinc-600 dark:text-zinc-300">{cat.description}</p>
             </div>
           ))}
         </div>

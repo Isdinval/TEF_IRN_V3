@@ -34,7 +34,7 @@ function SubSkillBarChart({ data }: { data: SubSkillData[] }) {
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="rounded-xl bg-zinc-900 p-3 text-[10px] font-black text-white shadow-xl">
+                  <div className="rounded-xl bg-zinc-900 p-3 text-sm font-black text-white shadow-xl">
                     {payload[0].value}% de réussite
                   </div>
                 );
@@ -65,10 +65,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
   // grille 2 colonnes de l'onglet "Analyse détaillée" (page.tsx).
   if (!data || data.length === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-8 space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-violet-500 flex items-center gap-2">
               <Layers size={14} /> Maîtrise par thématique
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -77,10 +77,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
             </p>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-dashed border-zinc-100">
             <Layers size={40} className="text-zinc-200 mb-3" />
-            <p className="text-sm font-bold text-zinc-400">Pas encore assez de données.</p>
-            <p className="text-xs text-zinc-300 mt-1">Faites quelques exercices pour voir votre maîtrise par thématique.</p>
+            <p className="text-sm font-bold text-zinc-500">Pas encore assez de données.</p>
+            <p className="text-sm text-zinc-500 mt-1">Faites quelques exercices pour voir votre maîtrise par thématique.</p>
           </div>
 
           <button
@@ -100,10 +100,10 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
   const oral = data.filter((d) => d.group_name === "ORAL");
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-8 space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-violet-500 flex items-center gap-2">
             <Layers size={14} /> Maîtrise par thématique
           </h3>
           <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -115,13 +115,13 @@ export function SubSkillHeatmap({ data }: { data: SubSkillData[] }) {
         <div className="flex flex-col gap-8">
           {ecrit.length > 0 && (
             <div>
-              <p className="mb-3 text-[9px] font-black uppercase tracking-widest text-zinc-400">Écrit</p>
+              <p className="mb-3 text-xs font-black uppercase tracking-widest text-zinc-500">Écrit</p>
               <SubSkillBarChart data={ecrit} />
             </div>
           )}
           {oral.length > 0 && (
             <div>
-              <p className="mb-3 text-[9px] font-black uppercase tracking-widest text-zinc-400">Oral</p>
+              <p className="mb-3 text-xs font-black uppercase tracking-widest text-zinc-500">Oral</p>
               <SubSkillBarChart data={oral} />
             </div>
           )}

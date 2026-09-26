@@ -46,8 +46,8 @@ export default function VocabAudioButton({ audioUrl, className = "", variant = "
 
   const colors =
     variant === "dark"
-      ? "bg-white/10 text-white hover:bg-emerald-500 hover:text-white"
-      : "bg-zinc-50 text-zinc-900 hover:bg-emerald-600 hover:text-white";
+      ? "bg-white/10 text-white hover:bg-indigo-500 hover:text-white"
+      : "bg-zinc-50 text-zinc-900 hover:bg-indigo-600 hover:text-white";
 
   return (
     <>

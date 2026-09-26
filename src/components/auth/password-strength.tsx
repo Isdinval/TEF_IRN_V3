@@ -18,7 +18,7 @@ function computeStrength(password: string): { score: number; label: string; colo
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
   const labels = ["", "Faible", "Moyen", "Fort", "Très fort"];
-  const colors = ["bg-zinc-200", "bg-orange-500", "bg-amber-500", "bg-emerald-500", "bg-emerald-600"];
+  const colors = ["bg-zinc-200", "bg-amber-500", "bg-amber-500", "bg-emerald-500", "bg-emerald-600"];
   return { score, label: labels[score], color: colors[score] };
 }
 
@@ -39,7 +39,7 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
           />
         ))}
       </div>
-      <p className="text-[11px] font-bold text-zinc-500">{label}</p>
+      <p className="text-sm font-bold text-zinc-500">{label}</p>
     </div>
   );
 }

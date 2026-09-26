@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Target, ChevronRight, BookOpen, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { identityOf } from "@/lib/category-identity";
 
 interface ExerciseContextHeaderProps {
   category?: string;
@@ -22,7 +22,6 @@ interface ExerciseContextHeaderProps {
   /** Lien vers la page de la leçon (/tef-irn/lessons/[slug]). Sans lien
    *  fourni, le titre reste affiché mais non cliquable. */
   lessonHref?: string | null;
-  accentColor?: "indigo" | "purple";
   /** Item 2 du plan "Refonte matching Leçon -> Exercices" : message affiché
    *  quand aucun exercice ciblé sur la notion précise n'a pu être trouvé et
    *  que l'exercice proposé vient d'un pool plus large (catégorie entière),
@@ -31,16 +30,6 @@ interface ExerciseContextHeaderProps {
   degradedMatchNotice?: string | null;
 }
 
-const difficultyColors: Record<string, string> = {
-  facile: "bg-emerald-100 text-emerald-700",
-  moyen: "bg-amber-100 text-amber-700",
-  difficile: "bg-rose-100 text-rose-700",
-};
-
-const accentClasses: Record<"indigo" | "purple", string> = {
-  indigo: "bg-indigo-600 text-white",
-  purple: "bg-purple-600 text-white",
-};
 
 /**
  * Bandeau de contexte pédagogique affiché en tête d'un exercice en cours
@@ -58,7 +47,6 @@ export function ExerciseContextHeader({
   parcoursHref,
   lessonTitle,
   lessonHref,
-  accentColor = "indigo",
   degradedMatchNotice,
 }: ExerciseContextHeaderProps) {
   const hasMeta = category || level || difficulty;
@@ -66,9 +54,9 @@ export function ExerciseContextHeader({
   if (!hasMeta && !instructions && !pointCle && !hasBreadcrumb && !degradedMatchNotice) return null;
 
   return (
-    <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
+    <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm px-5 py-4 space-y-2">
       {hasBreadcrumb && (
-        <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+        <div className="flex items-center gap-1.5 text-xs font-black text-zinc-500 uppercase tracking-widest">
           <BookOpen size={12} className="shrink-0" />
           {parcoursLabel && (
             parcoursHref ? (
@@ -96,7 +84,7 @@ export function ExerciseContextHeader({
       )}
 
       {degradedMatchNotice && (
-        <div className="flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+        <div className="flex items-start gap-1.5 rounded-2xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
           <AlertTriangle size={13} className="mt-0.5 shrink-0" />
           <span>{degradedMatchNotice}</span>
         </div>
@@ -105,17 +93,17 @@ export function ExerciseContextHeader({
       {hasMeta && (
         <div className="flex flex-wrap items-center gap-2">
           {level && (
-            <Badge className={cn("rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none", accentClasses[accentColor])}>
+            <Badge className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
               {level}
             </Badge>
           )}
           {category && (
-            <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+            <Badge className={`rounded-full border-none px-3 py-0.5 text-xs font-black uppercase tracking-widest ${identityOf(category).badge}`}>
               {category}
             </Badge>
           )}
           {difficulty && (
-            <Badge className={cn("rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none", difficultyColors[difficulty] || difficultyColors.facile)}>
+            <Badge className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none bg-zinc-100 text-zinc-600">
               {difficulty}
             </Badge>
           )}
@@ -127,7 +115,7 @@ export function ExerciseContextHeader({
       )}
 
       {pointCle && (
-        <div className="text-xs text-zinc-500 italic flex items-start gap-1.5">
+        <div className="text-sm text-zinc-500 italic flex items-start gap-1.5">
           <Target size={13} className="mt-0.5 shrink-0 text-zinc-400" />
           <span>{pointCle}</span>
         </div>

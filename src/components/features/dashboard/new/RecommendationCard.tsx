@@ -80,12 +80,12 @@ export function RecommendationCard({ id, type, reason, referenceId, slug, freque
   };
 
   return (
-    <Card className="group relative rounded-[2rem] border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100">
+    <Card className="group relative rounded-3xl border-none bg-white shadow-xl shadow-zinc-100 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100">
       <button
         onClick={handleDismiss}
         disabled={isDismissing}
         aria-label="Ignorer cette recommandation"
-        className="absolute right-4 top-4 rounded-full p-1.5 text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-500 disabled:opacity-50"
+        className="absolute right-4 top-4 rounded-full p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-500 disabled:opacity-50"
       >
         <X size={16} />
       </button>

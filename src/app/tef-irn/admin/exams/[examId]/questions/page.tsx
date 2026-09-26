@@ -302,20 +302,20 @@ export default function ExamQuestionsAdmin() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 pt-12">
-      <Link href="/tef-irn/admin/exams" className="inline-flex items-center gap-1.5 text-xs font-black text-zinc-400 hover:text-indigo-600 mb-4">
+      <Link href="/tef-irn/admin/exams" className="inline-flex items-center gap-1.5 text-sm font-black text-zinc-500 hover:text-indigo-600 mb-4">
         <ArrowLeft size={14} /> Retour aux examens
       </Link>
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Questions — {examLabel || "..."}</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Questions — {examLabel || "..."}</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {questions.length} question{questions.length > 1 ? "s" : ""} affichée{questions.length > 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           {SECTIONS.map((s) => (
-            <Button key={s} variant="secondary" onClick={() => openCreateDialog(s)} className="h-10 px-4 rounded-2xl font-black text-xs">
+            <Button key={s} variant="secondary" onClick={() => openCreateDialog(s)} className="h-10 px-4 rounded-2xl font-black text-sm">
               <Plus className="mr-1.5" size={14} /> {s}
             </Button>
           ))}
@@ -323,7 +323,7 @@ export default function ExamQuestionsAdmin() {
       </header>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value as Section | "Toutes")} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value as Section | "Toutes")} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Toutes les sections</option>
           {SECTIONS.map((s) => <option key={s} value={s}>{s} — {SECTION_LABEL[s]}</option>)}
         </select>
@@ -332,18 +332,18 @@ export default function ExamQuestionsAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {questions.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucune question ne correspond à ce filtre.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucune question ne correspond à ce filtre.</p>
           )}
           {questions.map((q) => (
             <div key={q.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">{q.section} #{q.order_index}</Badge>
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{q.type}</Badge>
+                  <Badge variant="outline" className="text-xs font-black uppercase">{q.section} #{q.order_index}</Badge>
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{q.type}</Badge>
                   {q.section === "CE" && q.ce_format && (
-                    <Badge className="text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border-none">
+                    <Badge className="text-xs font-black uppercase bg-indigo-50 text-indigo-600 border-none">
                       {CE_FORMAT_LABEL[q.ce_format]}
                     </Badge>
                   )}
@@ -353,10 +353,10 @@ export default function ExamQuestionsAdmin() {
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(q)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(q)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(q.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(q.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -372,46 +372,46 @@ export default function ExamQuestionsAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Section</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Section</Label>
                 <select
                   value={form.section}
                   disabled={!!editingId}
                   onChange={(e) => setForm((f) => ({ ...f, section: e.target.value as Section }))}
-                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold disabled:opacity-50"
+                  className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold disabled:opacity-50"
                 >
                   {SECTIONS.map((s) => <option key={s} value={s}>{s} — {SECTION_LABEL[s]}</option>)}
                 </select>
-                {editingId && <p className="text-[10px] text-zinc-400 mt-1">La section ne peut pas être changée après création.</p>}
+                {editingId && <p className="text-sm text-zinc-500 mt-1">La section ne peut pas être changée après création.</p>}
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Ordre dans la section</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Ordre dans la section</Label>
                 <Input type="number" value={form.orderIndex} onChange={(e) => setForm((f) => ({ ...f, orderIndex: parseInt(e.target.value, 10) || 1 }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Consignes</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Consignes</Label>
               <Textarea value={form.instructions} onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} className="mt-1" placeholder="Consigne affichée au candidat" />
             </div>
 
             {(form.section === "CO" || form.section === "CE") && (
               <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl">
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Question</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Question</Label>
                   <Input value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} className="mt-1 bg-white" />
                 </div>
                 {form.section === "CE" && (
                   <div className="space-y-3">
                     <div>
-                      <Label className="text-xs font-black uppercase text-zinc-400">Format CE</Label>
+                      <Label className="text-xs font-black uppercase text-zinc-500">Format CE</Label>
                       <select
                         value={form.ceFormat}
                         onChange={(e) => setForm((f) => ({ ...f, ceFormat: e.target.value as CEFormat }))}
-                        className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold bg-white"
+                        className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold bg-white"
                       >
                         {CE_FORMATS.map((fmt) => (
                           <option key={fmt} value={fmt}>{CE_FORMAT_LABEL[fmt]}</option>
@@ -421,9 +421,9 @@ export default function ExamQuestionsAdmin() {
 
                     {form.ceFormat === "multi_texte" ? (
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-zinc-400">Sous-textes (grille)</Label>
+                        <Label className="text-xs font-black uppercase text-zinc-500">Sous-textes (grille)</Label>
                         {form.subTexts.map((st, i) => (
-                          <div key={i} className="p-3 bg-white rounded-xl border border-zinc-200 space-y-2">
+                          <div key={i} className="p-3 bg-white rounded-2xl border border-zinc-200 space-y-2">
                             <div className="flex items-center gap-2">
                               <Input
                                 value={st.label}
@@ -438,7 +438,7 @@ export default function ExamQuestionsAdmin() {
                                 <button
                                   type="button"
                                   onClick={() => setForm((f) => ({ ...f, subTexts: f.subTexts.filter((_, idx) => idx !== i) }))}
-                                  className="w-9 h-9 shrink-0 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600"
+                                  className="w-9 h-9 shrink-0 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -460,14 +460,14 @@ export default function ExamQuestionsAdmin() {
                           type="button"
                           variant="secondary"
                           onClick={() => setForm((f) => ({ ...f, subTexts: [...f.subTexts, { label: "", content: "" }] }))}
-                          className="h-9 px-3 rounded-xl font-black text-xs"
+                          className="h-9 px-3 rounded-2xl font-black text-sm"
                         >
                           <Plus className="mr-1" size={12} /> Ajouter un sous-texte
                         </Button>
                       </div>
                     ) : (
                       <div>
-                        <Label className="text-xs font-black uppercase text-zinc-400">
+                        <Label className="text-xs font-black uppercase text-zinc-500">
                           {form.ceFormat === "trous" ? "Texte à trous" : "Texte de lecture"}
                         </Label>
                         <Textarea
@@ -478,13 +478,13 @@ export default function ExamQuestionsAdmin() {
                           placeholder={form.ceFormat === "trous" ? "Ex: ...des spectateurs du monde entier autour de créations ___________ (1) qui permettent..." : undefined}
                         />
                         {form.ceFormat === "trous" && (
-                          <p className="text-[10px] text-zinc-400 mt-1">
+                          <p className="text-sm text-zinc-500 mt-1">
                             Numérotez chaque lacune avec le format <code>___________ (1)</code>, <code>___________ (2)</code>, etc.
                             Créez une question distincte par lacune (même texte, "Numéro de la lacune active" différent sur chacune).
                           </p>
                         )}
                         {(form.ceFormat === "long_admin" || form.ceFormat === "article_presse") && (
-                          <p className="text-[10px] text-zinc-400 mt-1">
+                          <p className="text-sm text-zinc-500 mt-1">
                             Séparez les paragraphes par un saut de ligne — ils seront affichés distinctement au candidat.
                           </p>
                         )}
@@ -493,7 +493,7 @@ export default function ExamQuestionsAdmin() {
 
                     {form.ceFormat === "trous" && (
                       <div>
-                        <Label className="text-xs font-black uppercase text-zinc-400">Numéro de la lacune active pour cette question</Label>
+                        <Label className="text-xs font-black uppercase text-zinc-500">Numéro de la lacune active pour cette question</Label>
                         <Input
                           type="number"
                           min={1}
@@ -508,23 +508,23 @@ export default function ExamQuestionsAdmin() {
                 {form.section === "CO" && (
                   <>
                     <div>
-                      <Label className="text-xs font-black uppercase text-zinc-400">URL audio</Label>
+                      <Label className="text-xs font-black uppercase text-zinc-500">URL audio</Label>
                       <Input value={form.audioUrl} onChange={(e) => setForm((f) => ({ ...f, audioUrl: e.target.value }))} className="mt-1 bg-white" placeholder="/audio/exam-1/co-01.mp3" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-xs font-black uppercase text-zinc-400">Écoutes max</Label>
+                        <Label className="text-xs font-black uppercase text-zinc-500">Écoutes max</Label>
                         <Input type="number" value={form.maxPlays} onChange={(e) => setForm((f) => ({ ...f, maxPlays: parseInt(e.target.value, 10) || 1 }))} className="mt-1 bg-white" />
                       </div>
                     </div>
                     <div>
-                      <Label className="text-xs font-black uppercase text-zinc-400">Transcription (optionnel, usage interne)</Label>
+                      <Label className="text-xs font-black uppercase text-zinc-500">Transcription (optionnel, usage interne)</Label>
                       <Textarea value={form.transcription} onChange={(e) => setForm((f) => ({ ...f, transcription: e.target.value }))} className="mt-1 bg-white" rows={3} />
                     </div>
                   </>
                 )}
                 <div className="space-y-1">
-                  <Label className="text-xs font-black uppercase text-zinc-400">Options (la sélection radio indique la bonne réponse)</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Options (la sélection radio indique la bonne réponse)</Label>
                   {form.qcmOptions.map((opt, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <input
@@ -533,7 +533,7 @@ export default function ExamQuestionsAdmin() {
                         checked={form.correctIndex === i}
                         onChange={() => setForm((f) => ({ ...f, correctIndex: i }))}
                       />
-                      <span className="text-xs font-black text-zinc-400 w-4">{LETTERS[i]}</span>
+                      <span className="text-sm font-black text-zinc-500 w-4">{LETTERS[i]}</span>
                       <Input
                         value={opt}
                         onChange={(e) => setForm((f) => ({ ...f, qcmOptions: f.qcmOptions.map((o, idx) => (idx === i ? e.target.value : o)) }))}
@@ -549,16 +549,16 @@ export default function ExamQuestionsAdmin() {
             {form.section === "EE" && (
               <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl">
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Sujet</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Sujet</Label>
                   <Textarea value={form.prompt} onChange={(e) => setForm((f) => ({ ...f, prompt: e.target.value }))} className="mt-1 bg-white" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Mots minimum</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Mots minimum</Label>
                     <Input type="number" value={form.minWords} onChange={(e) => setForm((f) => ({ ...f, minWords: parseInt(e.target.value, 10) || 0 }))} className="mt-1 bg-white" />
                   </div>
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Durée (minutes)</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Durée (minutes)</Label>
                     <Input type="number" value={form.maxTime} onChange={(e) => setForm((f) => ({ ...f, maxTime: parseInt(e.target.value, 10) || 0 }))} className="mt-1 bg-white" />
                   </div>
                 </div>
@@ -568,32 +568,32 @@ export default function ExamQuestionsAdmin() {
             {form.section === "EO" && (
               <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl">
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Sujet / mise en situation</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Sujet / mise en situation</Label>
                   <Textarea value={form.prompt} onChange={(e) => setForm((f) => ({ ...f, prompt: e.target.value }))} className="mt-1 bg-white" />
                 </div>
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Scénario oral associé</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Scénario oral associé</Label>
                   <select
                     value={form.oralScenarioId}
                     onChange={(e) => setForm((f) => ({ ...f, oralScenarioId: e.target.value }))}
-                    className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold bg-white"
+                    className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold bg-white"
                   >
                     <option value="">— Sélectionner —</option>
                     {oralScenarios.map((s) => (
                       <option key={s.id} value={s.id}>{s.title} (Section {s.section}, {s.level})</option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-zinc-400 mt-1">
+                  <p className="text-sm text-zinc-500 mt-1">
                     Gérés sur <Link href="/tef-irn/admin/oral-scenarios" className="underline">/tef-irn/admin/oral-scenarios</Link>.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Préparation (minutes)</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Préparation (minutes)</Label>
                     <Input type="number" value={form.prepTime} onChange={(e) => setForm((f) => ({ ...f, prepTime: parseInt(e.target.value, 10) || 0 }))} className="mt-1 bg-white" />
                   </div>
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Prise de parole (minutes)</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Prise de parole (minutes)</Label>
                     <Input type="number" value={form.speakTime} onChange={(e) => setForm((f) => ({ ...f, speakTime: parseInt(e.target.value, 10) || 0 }))} className="mt-1 bg-white" />
                   </div>
                 </div>

@@ -54,10 +54,10 @@ export function CivicExamCard() {
   if (loading) return null;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8 space-y-6">
         <div className="space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
             <Landmark size={14} /> Examen Civique
           </h3>
           <p className="text-xl font-black text-zinc-900 tracking-tight">
@@ -75,10 +75,10 @@ export function CivicExamCard() {
               {lastAttempt.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             </div>
             <div>
-              <p className="text-xs font-black text-zinc-900">
+              <p className="text-sm font-black text-zinc-900">
                 Dernier examen blanc : {lastAttempt.score}/{lastAttempt.total_questions}
               </p>
-              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+              <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-zinc-500">
                 {mentionLabel(lastAttempt.mention)}
                 <InfoTooltip text={`Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT} questions. Le libellé ci-contre indique la démarche visée (CSP/CR/Naturalisation), pas une mention scolaire.`} />
               </p>

@@ -254,7 +254,7 @@ function CorrectionHistoryPageContent() {
           <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-20 animate-pulse" />
           <Loader2 className="relative animate-spin text-indigo-600 mb-6" size={48} />
         </div>
-        <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
+        <p className="animate-pulse text-sm font-black uppercase tracking-[0.3em] text-zinc-500">
           {resolvingDeepLink ? "Ouverture de la correction..." : "Chargement de votre réussite..."}
         </p>
       </div>
@@ -275,7 +275,7 @@ function CorrectionHistoryPageContent() {
             >
               <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div className="space-y-2">
-                  <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 text-white">
+                  <Badge className="rounded-full border-none bg-indigo-600 px-4 py-1.5 text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 text-white">
                     Progression
                   </Badge>
                   <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-zinc-900 leading-tight uppercase">

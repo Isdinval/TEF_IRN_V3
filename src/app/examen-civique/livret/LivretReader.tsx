@@ -43,13 +43,13 @@ const ICONS: Record<LivretIcon, React.ElementType> = {
 // Classes Tailwind écrites en toutes lettres (le JIT de Tailwind ne résout pas les
 // classes construites dynamiquement du type `bg-${color}-600`).
 const PART_THEME: Record<number, { badge: string; kicker: string; heading: string; dot: string; tocActive: string; callout: string }> = {
-  0: { badge: "bg-slate-600 shadow-slate-100", kicker: "text-slate-400", heading: "text-slate-600", dot: "bg-slate-400", tocActive: "bg-slate-100 text-slate-700", callout: "bg-slate-50 border-slate-100 text-slate-900" },
-  1: { badge: "bg-indigo-600 shadow-indigo-100", kicker: "text-indigo-400", heading: "text-indigo-600", dot: "bg-indigo-400", tocActive: "bg-indigo-50 text-indigo-700", callout: "bg-indigo-50 border-indigo-100 text-indigo-900" },
-  2: { badge: "bg-blue-600 shadow-blue-100", kicker: "text-blue-400", heading: "text-blue-600", dot: "bg-blue-400", tocActive: "bg-blue-50 text-blue-700", callout: "bg-blue-50 border-blue-100 text-blue-900" },
-  3: { badge: "bg-violet-600 shadow-violet-100", kicker: "text-violet-400", heading: "text-violet-600", dot: "bg-violet-400", tocActive: "bg-violet-50 text-violet-700", callout: "bg-violet-50 border-violet-100 text-violet-900" },
-  4: { badge: "bg-amber-600 shadow-amber-100", kicker: "text-amber-500", heading: "text-amber-600", dot: "bg-amber-400", tocActive: "bg-amber-50 text-amber-700", callout: "bg-amber-50 border-amber-100 text-amber-900" },
-  5: { badge: "bg-emerald-600 shadow-emerald-100", kicker: "text-emerald-500", heading: "text-emerald-600", dot: "bg-emerald-400", tocActive: "bg-emerald-50 text-emerald-700", callout: "bg-emerald-50 border-emerald-100 text-emerald-900" },
-  6: { badge: "bg-zinc-600 shadow-zinc-100", kicker: "text-zinc-400", heading: "text-zinc-600", dot: "bg-zinc-400", tocActive: "bg-zinc-100 text-zinc-700", callout: "bg-zinc-50 border-zinc-100 text-zinc-900" },
+  0: { badge: "bg-zinc-600 shadow-zinc-100", kicker: "text-zinc-500", heading: "text-zinc-600", dot: "bg-zinc-400", tocActive: "bg-zinc-100 text-zinc-700", callout: "bg-zinc-50 border-zinc-100 text-zinc-900" },
+  1: { badge: "bg-indigo-600 shadow-indigo-100", kicker: "text-indigo-600", heading: "text-indigo-600", dot: "bg-indigo-400", tocActive: "bg-indigo-50 text-indigo-700", callout: "bg-indigo-50 border-indigo-100 text-indigo-900" },
+  2: { badge: "bg-blue-600 shadow-blue-100", kicker: "text-blue-600", heading: "text-blue-600", dot: "bg-blue-400", tocActive: "bg-blue-50 text-blue-700", callout: "bg-blue-50 border-blue-100 text-blue-900" },
+  3: { badge: "bg-violet-600 shadow-violet-100", kicker: "text-violet-600", heading: "text-violet-600", dot: "bg-violet-400", tocActive: "bg-violet-50 text-violet-700", callout: "bg-violet-50 border-violet-100 text-violet-900" },
+  4: { badge: "bg-amber-600 shadow-amber-100", kicker: "text-amber-700", heading: "text-amber-600", dot: "bg-amber-400", tocActive: "bg-amber-50 text-amber-700", callout: "bg-amber-50 border-amber-100 text-amber-900" },
+  5: { badge: "bg-emerald-600 shadow-emerald-100", kicker: "text-emerald-700", heading: "text-emerald-600", dot: "bg-emerald-400", tocActive: "bg-emerald-50 text-emerald-700", callout: "bg-emerald-50 border-emerald-100 text-emerald-900" },
+  6: { badge: "bg-zinc-600 shadow-zinc-100", kicker: "text-zinc-500", heading: "text-zinc-600", dot: "bg-zinc-400", tocActive: "bg-zinc-100 text-zinc-700", callout: "bg-zinc-50 border-zinc-100 text-zinc-900" },
 };
 
 const PDF_HREF = "/documents/livret-du-citoyen-2026.pdf";
@@ -62,7 +62,7 @@ function renderRich(text: string) {
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={i} className="font-bold text-slate-900">
+        <strong key={i} className="font-bold text-zinc-900">
           {part.slice(2, -2)}
         </strong>
       );
@@ -80,7 +80,7 @@ function renderListItem(text: string) {
   const [, label, rest] = match;
   return (
     <>
-      <strong className="font-bold text-slate-900">{label}</strong>
+      <strong className="font-bold text-zinc-900">{label}</strong>
       {" : "}
       {renderRich(rest)}
     </>
@@ -94,7 +94,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
         switch (block.type) {
           case "lead":
             return (
-              <p key={i} className="text-lg sm:text-xl font-semibold text-slate-800 leading-relaxed">
+              <p key={i} className="text-lg sm:text-xl font-bold text-zinc-800 leading-relaxed">
                 {renderRich(block.text)}
               </p>
             );
@@ -106,7 +106,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
             );
           case "paragraph":
             return (
-              <p key={i} className="text-[15px] sm:text-base text-slate-600 leading-relaxed">
+              <p key={i} className="text-base sm:text-base text-zinc-600 leading-relaxed">
                 {renderRich(block.text)}
               </p>
             );
@@ -123,7 +123,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
                   <motion.li
                     key={j}
                     variants={{ hidden: { opacity: 0, x: -6 }, show: { opacity: 1, x: 0 } }}
-                    className="flex gap-3 text-[15px] sm:text-base text-slate-600 leading-relaxed"
+                    className="flex gap-3 text-base sm:text-base text-zinc-600 leading-relaxed"
                   >
                     <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${theme.dot}`} />
                     <span>{renderListItem(item)}</span>
@@ -135,7 +135,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
             return (
               <div
                 key={i}
-                className={`rounded-2xl border px-5 py-4 text-[15px] leading-relaxed transition-transform hover:-translate-y-0.5 ${theme.callout}`}
+                className={`rounded-2xl border px-5 py-4 text-base leading-relaxed transition-transform hover:-translate-y-0.5 ${theme.callout}`}
               >
                 <Badge className={`mb-2 text-white border-none ${theme.badge}`}>
                   <Sparkles size={11} />
@@ -146,11 +146,11 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
             );
           case "quote":
             return (
-              <blockquote key={i} className="border-l-4 border-slate-200 pl-4 italic text-slate-700">
+              <blockquote key={i} className="border-l-4 border-zinc-200 pl-4 text-zinc-700">
                 « {renderRich(block.text)} »
                 {block.source && (
-                  <footer className="mt-2 not-italic">
-                    <Badge variant="outline" className="text-slate-500 font-bold uppercase tracking-wide text-[10px]">
+                  <footer className="mt-2 not-">
+                    <Badge variant="outline" className="text-zinc-500 font-bold uppercase tracking-wide text-xs">
                       {block.source}
                     </Badge>
                   </footer>
@@ -167,8 +167,8 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
                 rel={block.download ? undefined : "noopener noreferrer"}
                 className={`flex items-center justify-between gap-3 rounded-2xl border px-5 py-4 transition-transform hover:-translate-y-0.5 ${theme.callout}`}
               >
-                <span className="text-[15px] leading-relaxed">{renderRich(block.text)}</span>
-                <Button size="sm" className={`rounded-xl font-black gap-1.5 shrink-0 text-white border-none ${theme.badge}`}>
+                <span className="text-base leading-relaxed">{renderRich(block.text)}</span>
+                <Button size="sm" className={`rounded-2xl font-black gap-1.5 shrink-0 text-white border-none ${theme.badge}`}>
                   {block.download ? <Download size={14} /> : <ChevronRight size={14} />}
                   {block.label}
                 </Button>
@@ -177,7 +177,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
           case "image":
             return (
               <figure key={i} className="my-2">
-                <div className="relative w-full overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-slate-50">
+                <div className="relative w-full overflow-hidden rounded-2xl border border-zinc-100 shadow-sm bg-zinc-50">
                   <Image
                     src={block.src}
                     alt={block.alt}
@@ -187,7 +187,7 @@ function PageBlocks({ page, theme }: { page: LivretPage; theme: typeof PART_THEM
                   />
                 </div>
                 {block.caption && (
-                  <figcaption className="mt-2 text-xs text-slate-400 text-center italic">
+                  <figcaption className="mt-2 text-sm text-zinc-500 text-center">
                     {block.caption}
                   </figcaption>
                 )}
@@ -231,11 +231,11 @@ export default function LivretReader() {
     <div className="min-h-screen flex flex-col bg-white selection:bg-indigo-100">
       <div ref={topRef} />
       {/* Nav sticky */}
-      <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-gray-50">
+      <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-zinc-50">
         <div className="max-w-3xl mx-auto px-5 py-3.5 flex items-center justify-between gap-3">
           <Link
             href="/examen-civique"
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold transition-colors shrink-0"
+            className="flex items-center gap-2 text-zinc-500 hover:text-indigo-600 font-bold transition-colors shrink-0"
           >
             <ArrowLeft size={18} />
             <span className="text-sm hidden sm:inline">Examen civique</span>
@@ -245,7 +245,7 @@ export default function LivretReader() {
             aria-label="Aller à la page"
             value={index}
             onChange={(e) => goTo(Number(e.target.value))}
-            className="text-sm font-bold text-slate-600 border border-gray-200 rounded-lg px-2 py-1.5 bg-white hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 max-w-[9rem] sm:max-w-[20rem] truncate"
+            className="text-sm font-bold text-zinc-600 border border-zinc-200 rounded-2xl px-2 py-1.5 bg-white hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 max-w-[9rem] sm:max-w-[20rem] truncate"
           >
             {pagesByPart.map(({ part, pages }) => (
               <optgroup key={part.index} label={part.title}>
@@ -259,11 +259,11 @@ export default function LivretReader() {
           </select>
 
           <a href={PDF_HREF} download className="shrink-0">
-            <Button size="sm" variant="outline" className="rounded-xl font-bold gap-1.5 hidden sm:flex">
+            <Button size="sm" variant="outline" className="rounded-2xl font-bold gap-1.5 hidden sm:flex">
               <Download size={15} />
               PDF
             </Button>
-            <Button size="icon" variant="outline" className="rounded-xl sm:hidden">
+            <Button size="icon" variant="outline" className="rounded-2xl sm:hidden">
               <Download size={16} />
             </Button>
           </a>
@@ -295,9 +295,9 @@ export default function LivretReader() {
                   <Badge className={`text-white border-none ${theme.badge}`}>
                     {page.part === 0 ? "Avant-propos" : page.part === 6 ? "Annexes" : `Partie ${page.part}`}
                   </Badge>
-                  <span className="text-xs font-black text-slate-400">{index + 1}/{total}</span>
+                  <span className="text-sm font-black text-zinc-500">{index + 1}/{total}</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 leading-tight">
                   {page.title}
                 </h1>
               </div>
@@ -312,13 +312,13 @@ export default function LivretReader() {
           même contexte de largeur que le contenu : avec `fixed`, la barre se centrait sur
           tout le viewport et ignorait le décalage introduit par la sidebar en mode authentifié.
           `mt-auto` la plaque en bas même quand le contenu est plus court que l'écran. */}
-      <div className="sticky bottom-0 z-50 mt-auto bg-white/90 backdrop-blur-md border-t border-gray-100">
+      <div className="sticky bottom-0 z-50 mt-auto bg-white/90 backdrop-blur-md border-t border-zinc-100">
         <div className="max-w-3xl mx-auto px-5 py-3 flex items-center justify-between gap-3">
           <Button
             variant="ghost"
             onClick={() => goTo(index - 1)}
             disabled={index === 0}
-            className="rounded-xl font-bold gap-1.5 text-slate-600 disabled:opacity-30"
+            className="rounded-2xl font-bold gap-1.5 text-zinc-600 disabled:opacity-30"
           >
             <ChevronLeft size={16} />
             Précédent
@@ -326,7 +326,7 @@ export default function LivretReader() {
           <Button
             onClick={() => goTo(index + 1)}
             disabled={index === total - 1}
-            className={`rounded-xl font-black gap-1.5 shadow-lg disabled:opacity-30 ${theme.badge}`}
+            className={`rounded-2xl font-black gap-1.5 shadow-lg disabled:opacity-30 ${theme.badge}`}
           >
             Suivant
             <ChevronRight size={16} />

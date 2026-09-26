@@ -203,9 +203,9 @@ export default function CivicQuestionsAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Questions — Examen Civique</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Questions — Examen Civique</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {questions.length} question{questions.length > 1 ? "s" : ""} affichée{questions.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -232,7 +232,7 @@ export default function CivicQuestionsAdmin() {
         <select
           value={themeFilter}
           onChange={(e) => setThemeFilter(e.target.value)}
-          className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+          className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
         >
           <option value="Toutes">Toutes les thématiques</option>
           {THEMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -248,35 +248,35 @@ export default function CivicQuestionsAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {questions.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucune question ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucune question ne correspond à ces filtres.</p>
           )}
           {questions.map((q) => (
             <div key={q.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">
+                  <Badge variant="outline" className="text-xs font-black uppercase">
                     {THEMES.find((t) => t.value === q.theme)?.label || q.theme}
                   </Badge>
                   {q.mentions.map((m) => (
-                    <Badge key={m} className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{m}</Badge>
+                    <Badge key={m} className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{m}</Badge>
                   ))}
                   <button
                     onClick={() => handleToggleReviewed(q)}
-                    className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${q.reviewed ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
+                    className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${q.reviewed ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
                   >
                     {q.reviewed ? "Publiée" : "Brouillon"}
                   </button>
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{q.question}</p>
-                <p className="text-xs text-zinc-400 truncate">Réponse : {q.correct_answer}</p>
+                <p className="text-sm text-zinc-500 truncate">Réponse : {q.correct_answer}</p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(q)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(q)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(q.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(q.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -292,27 +292,27 @@ export default function CivicQuestionsAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Thématique</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Thématique</Label>
               <select
                 value={form.theme}
                 onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value }))}
-                className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
               >
                 {THEMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Mentions concernées</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Mentions concernées</Label>
               <div className="flex gap-2 mt-1">
                 {MENTIONS.map((m) => (
                   <button
                     key={m}
                     onClick={() => toggleMention(m)}
-                    className={`px-4 h-9 rounded-xl text-xs font-black uppercase transition-all ${form.mentions.includes(m) ? 'bg-indigo-600 text-white' : 'bg-zinc-50 text-zinc-400'}`}
+                    className={`px-4 h-9 rounded-2xl text-xs font-black uppercase transition-all ${form.mentions.includes(m) ? 'bg-indigo-600 text-white' : 'bg-zinc-50 text-zinc-500'}`}
                   >
                     {m}
                   </button>
@@ -321,12 +321,12 @@ export default function CivicQuestionsAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Question</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Question</Label>
               <Textarea value={form.question} onChange={(e) => setForm((f) => ({ ...f, question: e.target.value }))} className="mt-1" />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase text-zinc-400">4 options (cochez la bonne réponse)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">4 options (cochez la bonne réponse)</Label>
               {form.options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <input
@@ -350,17 +350,17 @@ export default function CivicQuestionsAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Explication</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Explication</Label>
               <Textarea value={form.explanation} onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))} className="mt-1" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Source (libellé)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Source (libellé)</Label>
                 <Input value={form.source_ref} onChange={(e) => setForm((f) => ({ ...f, source_ref: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Source (URL)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Source (URL)</Label>
                 <Input value={form.source_url} onChange={(e) => setForm((f) => ({ ...f, source_url: e.target.value }))} className="mt-1" />
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function CivicQuestionsAdmin() {
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl">
               <div>
                 <p className="text-sm font-black text-zinc-900">Publiée (visible des utilisateurs)</p>
-                <p className="text-xs text-zinc-400">Une question non publiée reste invisible côté révision/examen.</p>
+                <p className="text-sm text-zinc-500">Une question non publiée reste invisible côté révision/examen.</p>
               </div>
               <Switch checked={form.reviewed} onCheckedChange={(v) => setForm((f) => ({ ...f, reviewed: v }))} />
             </div>

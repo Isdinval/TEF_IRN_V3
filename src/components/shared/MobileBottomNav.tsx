@@ -63,7 +63,7 @@ export function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${isActive ? activeColor : "text-zinc-400"}`}
+              className={`flex flex-col items-center justify-center gap-0.5 text-xs font-bold ${isActive ? activeColor : "text-zinc-500"}`}
             >
               <item.icon size={20} />
               {item.label}
@@ -73,7 +73,7 @@ export function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
         <button
           type="button"
           onClick={onOpenMenu}
-          className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-zinc-400"
+          className="flex flex-col items-center justify-center gap-0.5 text-xs font-bold text-zinc-500"
         >
           <MenuIcon size={20} />
           Menu

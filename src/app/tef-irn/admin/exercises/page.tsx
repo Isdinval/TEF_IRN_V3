@@ -260,9 +260,9 @@ export default function ExercisesAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Exercices TEF</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Exercices TEF</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {exercises.length} exercice{exercises.length > 1 ? "s" : ""} affiché{exercises.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -290,11 +290,11 @@ export default function ExercisesAdmin() {
       )}
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Tous les types</option>
           {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
-        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Toutes">Tous les niveaux</option>
           {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
@@ -304,28 +304,28 @@ export default function ExercisesAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {exercises.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun exercice ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun exercice ne correspond à ces filtres.</p>
           )}
           {exercises.map((ex) => (
             <div key={ex.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">
+                  <Badge variant="outline" className="text-xs font-black uppercase">
                     {TYPES.find((t) => t.value === ex.type)?.label || ex.type}
                   </Badge>
-                  <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.level}</Badge>
-                  {ex.category && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.category}</Badge>}
-                  {ex.is_ai_generated && <Badge className="text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 border-none">IA</Badge>}
+                  <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.level}</Badge>
+                  {ex.category && <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.category}</Badge>}
+                  {ex.is_ai_generated && <Badge className="text-xs font-black uppercase bg-indigo-50 text-indigo-600 border-none">IA</Badge>}
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{ex.instructions}</p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(ex)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(ex)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(ex.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(ex.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -341,70 +341,70 @@ export default function ExercisesAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Type d'exercice</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Type d'exercice</Label>
               <select
                 value={form.type}
                 disabled={!!editingId}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as ExerciseType }))}
-                className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold disabled:opacity-50"
+                className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold disabled:opacity-50"
               >
                 {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
-              {editingId && <p className="text-[10px] text-zinc-400 mt-1">Le type ne peut pas être changé après création.</p>}
+              {editingId && <p className="text-sm text-zinc-500 mt-1">Le type ne peut pas être changé après création.</p>}
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
-                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
+                <select value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Catégorie</Label>
-                <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Catégorie</Label>
+                <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Difficulté</Label>
-                <select value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Difficulté</Label>
+                <select value={form.difficulty} onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {DIFFICULTIES.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Consignes</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Consignes</Label>
               <Textarea value={form.instructions} onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))} className="mt-1" placeholder="Consigne affichée à l'utilisateur" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Tags (séparés par des virgules)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Tags (séparés par des virgules)</Label>
               <Input value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} className="mt-1" placeholder="subjonctif, passé composé..." />
             </div>
 
             {form.type === "trous" && (
               <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl">
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Phrase (mettez la réponse entre crochets, ex: [devriez])</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Phrase (mettez la réponse entre crochets, ex: [devriez])</Label>
                   <Textarea value={form.sentence} onChange={(e) => setForm((f) => ({ ...f, sentence: e.target.value }))} className="mt-1 bg-white" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Réponse correcte</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Réponse correcte</Label>
                     <Input value={form.correctAnswer} onChange={(e) => setForm((f) => ({ ...f, correctAnswer: e.target.value }))} className="mt-1 bg-white" />
                   </div>
                   <div>
-                    <Label className="text-xs font-black uppercase text-zinc-400">Fragment affiché (optionnel)</Label>
+                    <Label className="text-xs font-black uppercase text-zinc-500">Fragment affiché (optionnel)</Label>
                     <Input value={form.errorFragment} onChange={(e) => setForm((f) => ({ ...f, errorFragment: e.target.value }))} className="mt-1 bg-white" />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs font-black uppercase text-zinc-400">Explication</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Explication</Label>
                   <Textarea value={form.explanation} onChange={(e) => setForm((f) => ({ ...f, explanation: e.target.value }))} className="mt-1 bg-white" />
                 </div>
               </div>
@@ -412,7 +412,7 @@ export default function ExercisesAdmin() {
 
             {form.type === "ecrit" && (
               <div className="p-4 bg-zinc-50 rounded-2xl">
-                <Label className="text-xs font-black uppercase text-zinc-400">Sujet de production écrite</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Sujet de production écrite</Label>
                 <Textarea value={form.prompt} onChange={(e) => setForm((f) => ({ ...f, prompt: e.target.value }))} className="mt-1 bg-white" />
               </div>
             )}
@@ -420,15 +420,15 @@ export default function ExercisesAdmin() {
             {form.type === "qcm" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-black uppercase text-zinc-400">Questions ({form.qcmItems.length})</Label>
-                  <Button variant="secondary" onClick={addQcmItem} className="h-8 px-3 rounded-xl text-xs font-black">
+                  <Label className="text-xs font-black uppercase text-zinc-500">Questions ({form.qcmItems.length})</Label>
+                  <Button variant="secondary" onClick={addQcmItem} className="h-8 px-3 rounded-2xl text-sm font-black">
                     <Plus size={14} className="mr-1" /> Ajouter une question
                   </Button>
                 </div>
                 {form.qcmItems.map((item, i) => (
                   <div key={i} className="p-4 bg-zinc-50 rounded-2xl space-y-2 relative">
                     {form.qcmItems.length > 1 && (
-                      <button onClick={() => removeQcmItem(i)} className="absolute top-3 right-3 text-zinc-300 hover:text-rose-500">
+                      <button onClick={() => removeQcmItem(i)} className="absolute top-3 right-3 text-zinc-500 hover:text-red-600">
                         <X size={16} />
                       </button>
                     )}
@@ -459,7 +459,7 @@ export default function ExercisesAdmin() {
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl opacity-60">
               <div>
                 <p className="text-sm font-black text-zinc-900">Généré par IA</p>
-                <p className="text-xs text-zinc-400">Toujours désactivé pour un exercice créé manuellement.</p>
+                <p className="text-sm text-zinc-500">Toujours désactivé pour un exercice créé manuellement.</p>
               </div>
               <Switch checked={false} disabled />
             </div>

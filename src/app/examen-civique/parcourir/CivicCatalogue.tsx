@@ -76,7 +76,7 @@ function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQu
             <button
               key={val}
               onClick={() => setTheme(val)}
-              className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"}`}
+              className={`px-4 h-11 rounded-full font-black text-sm transition-all ${theme === val ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-zinc-50 text-zinc-600 hover:bg-zinc-100"}`}
             >
               {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
             </button>
@@ -84,7 +84,7 @@ function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQu
         </div>
 
         {questions.length === 0 && (
-          <div className="mt-8 p-12 text-center border-2 border-dashed border-zinc-200 rounded-[2.5rem] text-zinc-400 font-bold text-sm">
+          <div className="mt-8 p-12 text-center border-2 border-dashed border-zinc-200 rounded-3xl text-zinc-500 font-bold text-sm">
             Aucune question ne correspond à ces filtres.
           </div>
         )}
@@ -95,18 +95,18 @@ function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQu
               <section key={group.theme.value}>
                 <div className="flex items-center justify-between mb-3 px-1">
                   <h2 className="text-sm font-black uppercase tracking-tight text-zinc-900">{group.theme.label}</h2>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  <span className="text-xs font-black uppercase tracking-widest text-zinc-500">
                     {group.items.length} question{group.items.length > 1 ? "s" : ""}
                   </span>
                 </div>
-                <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
+                <Accordion className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50 px-6">
                   {group.items.map((q) => {
                     const qStatus = status[q.id] || "new";
                     return (
                       <AccordionItem key={q.id} value={q.id} className="border-none">
                         <AccordionTrigger className="hover:no-underline py-4 gap-4">
                           <div className="flex items-center gap-3 text-left flex-1">
-                            <Badge className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${STATUS_CONFIG[qStatus].className}`}>
+                            <Badge className={`shrink-0 border-none rounded-full px-2.5 py-0.5 text-xs font-black uppercase ${STATUS_CONFIG[qStatus].className}`}>
                               {STATUS_CONFIG[qStatus].label}
                             </Badge>
                             <span className="text-sm font-bold text-zinc-800">{q.question}</span>
@@ -116,12 +116,12 @@ function CivicCatalogueContent({ initialQuestions }: { initialQuestions: CivicQu
                             garde la réponse/explication dans le HTML même repliée — visible par les
                             crawlers qui n'exécutent pas de JS, et compatible avec le Ctrl+F du navigateur. */}
                         <AccordionContent className="pb-5 space-y-3 pl-1" hiddenUntilFound>
-                          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-sm">
+                          <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-800 font-bold text-sm">
                             {q.correct_answer}
                           </div>
-                          {q.explanation && <p className="text-xs text-zinc-500 italic leading-relaxed">{q.explanation}</p>}
+                          {q.explanation && <p className="text-sm text-zinc-500 leading-relaxed">{q.explanation}</p>}
                           {q.source_url && (
-                            <a href={q.source_url} target="_blank" rel="noopener noreferrer" className="inline-block text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                            <a href={q.source_url} target="_blank" rel="noopener noreferrer" className="inline-block text-xs font-black uppercase tracking-widest text-indigo-500 hover:underline">
                               Source officielle →
                             </a>
                           )}

@@ -100,10 +100,10 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
         {children}
       </blockquote>
     ),
-    ul: ({ children }: any) => <ul className="list-disc pl-6 space-y-2 my-4 text-slate-600 dark:text-slate-400">{children}</ul>,
-    ol: ({ children }: any) => <ol className="list-decimal pl-6 space-y-2 my-4 text-slate-600 dark:text-slate-400">{children}</ol>,
+    ul: ({ children }: any) => <ul className="list-disc pl-6 space-y-2 my-4 text-zinc-600 dark:text-zinc-400">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal pl-6 space-y-2 my-4 text-zinc-600 dark:text-zinc-400">{children}</ol>,
     li: ({ children }: any) => <li className="text-lg leading-relaxed">{children}</li>,
-    p: ({ children }: any) => <p className="text-lg leading-relaxed text-slate-600 my-4 dark:text-slate-400">{children}</p>,
+    p: ({ children }: any) => <p className="text-lg leading-relaxed text-zinc-600 my-4 dark:text-zinc-400">{children}</p>,
     strong: ({ children }: any) => <strong className="font-bold text-zinc-900 dark:text-zinc-100">{children}</strong>,
     a: ({ href, children }: any) => (
       <a href={href ? withGuideUtm(href, guide.slug) : href}>{children}</a>
@@ -116,14 +116,14 @@ const GuideContent: React.FC<GuideContentProps> = ({ guide }) => {
       {headings.length > 0 && (
         <aside className="hidden lg:block w-64 flex-shrink-0">
           <div className="sticky top-24">
-            <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Sommaire</h4>
+            <h4 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Sommaire</h4>
             <nav className="space-y-2">
               {headings.map((heading) => (
                 <a
                   key={heading.id}
                   href={`#${heading.id}`}
                   className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
-                    heading.level === 3 ? 'pl-4 text-slate-400' : 'text-slate-500'
+                    heading.level === 3 ? 'pl-4 text-zinc-500' : 'text-zinc-500'
                   }`}
                 >
                   {heading.text}

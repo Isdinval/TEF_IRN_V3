@@ -221,7 +221,7 @@ export default function ComprehensionEcriteScenarioPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
         <AlertTriangle className="text-red-300" size={40} />
         <p className="font-bold text-zinc-600">Sujet introuvable.</p>
-        <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} className="rounded-xl bg-zinc-900 font-black">
+        <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} variant="outline" className="h-11 rounded-2xl font-bold">
           Retour au catalogue
         </Button>
       </div>
@@ -238,33 +238,33 @@ export default function ComprehensionEcriteScenarioPage() {
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
           <img src={resultMascotUrl} alt="Mascotte LlamaKusi célébrant la réussite du sujet" className="w-40 h-40 mx-auto object-contain drop-shadow-xl" />
           <div className="space-y-2">
-            <h2 className="text-xl font-black text-zinc-900 uppercase tracking-tighter">Sujet terminé !</h2>
+            <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Sujet terminé !</h2>
             <p className="text-sm text-zinc-500 font-medium">Vous progressez vers votre objectif.</p>
             <div className="flex items-center justify-center gap-2 pt-1">
-              <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none">
+              <Badge className="bg-indigo-600 text-white rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none">
                 Niveau {scenario.level}
               </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest">
                 {FORMAT_LABELS[scenario.format]}
               </Badge>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-zinc-100 flex items-center justify-around">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex items-center justify-around">
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Score</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Score</div>
               <div className="text-2xl font-black text-zinc-900">{finalPercent}%</div>
             </div>
             <div className="w-px h-10 bg-zinc-100" />
             <div className="text-center">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Réponses</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Réponses</div>
               <div className="text-2xl font-black text-indigo-600">{score} / {totalQuestions}</div>
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} className="h-12 bg-zinc-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all">
+            <Button onClick={() => router.push('/tef-irn/comprehension-ecrite')} className="h-12 rounded-2xl border border-zinc-200 bg-white text-zinc-900 font-bold text-sm hover:bg-zinc-50 transition-all">
               Retourner au catalogue
             </Button>
-            <Button variant="ghost" onClick={restartExercise} className="h-12 text-zinc-400 font-black uppercase tracking-widest text-[10px] hover:text-zinc-900">
+            <Button variant="ghost" onClick={restartExercise} className="h-12 text-zinc-500 font-black uppercase tracking-widest text-xs hover:text-zinc-900">
               <RotateCcw size={14} className="mr-2" /> Recommencer le sujet
             </Button>
           </div>
@@ -279,24 +279,22 @@ export default function ComprehensionEcriteScenarioPage() {
   const headerBlock = (
     // Retour Olivier (2026-09-21) : badges + question réunis dans UN seul
     // rectangle (au lieu de 2 blocs séparés).
-    <div className="bg-white p-4 lg:p-5 rounded-[2rem] shadow-xl shadow-zinc-200/30 text-center relative overflow-hidden border-4 border-white ring-1 ring-zinc-100">
+    <div className="bg-white p-4 lg:p-5 rounded-3xl border border-zinc-100 shadow-sm text-center relative overflow-hidden">
       <div className="flex flex-wrap items-center justify-center gap-2 mb-3 relative z-10">
-        <Badge className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
+        <Badge className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest border-none bg-indigo-600 text-white">
           {scenario.level}
         </Badge>
-        <Badge variant="outline" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+        <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-widest">
           {FORMAT_LABELS[scenario.format]}
         </Badge>
       </div>
-      <p className="text-xs font-semibold text-zinc-500 mb-2 relative z-10">
+      <p className="text-sm font-bold text-zinc-500 mb-2 relative z-10">
         {FORMAT_CONSIGNES[scenario.format]}
       </p>
       <h3 className="text-base lg:text-lg font-black text-zinc-900 leading-tight tracking-tight relative z-10">
         {currentQuestion?.highlight_gap ? `Lacune n°${currentQuestion.highlight_gap} — ` : `Question ${currentIdx + 1} — `}
         {currentQuestion?.question}
       </h3>
-      <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 blur-3xl opacity-30" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-zinc-50 rounded-full -ml-40 -mb-40 blur-3xl opacity-30" />
     </div>
   );
 
@@ -309,13 +307,13 @@ export default function ComprehensionEcriteScenarioPage() {
         <div className={`grid grid-cols-1 gap-3 ${isLongFormat ? '' : 'sm:grid-cols-2'}`}>
           {scenario.sub_texts.map((t, i) => (
             <div key={i} className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">{t.label}</p>
+              <p className="text-xs font-black uppercase tracking-widest text-indigo-600 mb-1.5">{t.label}</p>
               <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{t.content}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5">
           <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-line">{scenario.texte}</p>
         </div>
       )}
@@ -324,7 +322,7 @@ export default function ComprehensionEcriteScenarioPage() {
 
   const optionsBlock = (
     <div className="grid grid-cols-1 gap-2">
-      <p className="text-center text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
+      <p className="text-center text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">Sélectionnez la bonne réponse</p>
       {shuffledOptions.map((opt) => {
         const isSelected = selected === opt.original;
         const isCorrectOpt = !!checkedResult && opt.originalLetter === checkedResult.correctAnswer;
@@ -332,9 +330,9 @@ export default function ComprehensionEcriteScenarioPage() {
         let buttonStyle = 'border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 shadow-sm';
         if (checkedResult) {
           if (isCorrectOpt) buttonStyle = 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-none ring-4 ring-emerald-500/10';
-          else if (isSelected) buttonStyle = 'border-rose-500 bg-rose-50 text-rose-900 shadow-none ring-4 ring-rose-500/10';
+          else if (isSelected) buttonStyle = 'border-red-600 bg-red-50 text-red-700 shadow-none ring-4 ring-red-600/10';
         } else if (isSelected) {
-          buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-xl ring-4 ring-indigo-600/5';
+          buttonStyle = 'border-indigo-600 bg-indigo-50 text-indigo-900 shadow-sm ring-2 ring-indigo-600/10';
         }
 
         return (
@@ -344,16 +342,16 @@ export default function ComprehensionEcriteScenarioPage() {
             whileTap={!checkedResult ? { scale: 0.98 } : {}}
             onClick={() => setSelected(opt.original)}
             disabled={!!checkedResult}
-            className={`w-full p-2.5 rounded-xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
+            className={`w-full min-h-11 p-3 rounded-2xl border-2 transition-all text-left font-bold text-sm flex items-center justify-between group ${buttonStyle}`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200'}`}>
+              <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-sm transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-zinc-100 text-zinc-500 group-hover:bg-zinc-200'}`}>
                 {opt.display.charAt(0)}
               </div>
               {opt.display.slice(3)}
             </div>
-            {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-500" size={18} />}
-            {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-rose-500" size={18} />}
+            {checkedResult && isCorrectOpt && <CheckCircle2 className="text-emerald-600" size={18} />}
+            {checkedResult && isSelected && !isCorrectOpt && <XCircle className="text-red-600" size={18} />}
           </motion.button>
         );
       })}
@@ -366,23 +364,23 @@ export default function ComprehensionEcriteScenarioPage() {
         <Button
           onClick={handleCheck}
           disabled={selected === null || checking}
-          className="w-full h-12 bg-zinc-900 hover:bg-black text-white font-bold rounded-2xl text-sm shadow-xl shadow-zinc-200 transition-all active:scale-95 disabled:opacity-50"
+          className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
         >
           {checking ? <Loader2 className="animate-spin" size={18} /> : 'VÉRIFIER MA RÉPONSE'}
         </Button>
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
           {checkedResult.explanation && (
-            <Card className={`p-4 rounded-2xl border-none shadow-lg ${checkedResult.isCorrect ? 'bg-emerald-600 text-white' : 'bg-zinc-900 text-white'}`}>
-              <div className="flex items-center gap-2 mb-1 opacity-80 text-[9px] font-black uppercase tracking-widest">
+            <Card className={`p-4 rounded-2xl border shadow-sm ${checkedResult.isCorrect ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
+              <div className="flex items-center gap-2 mb-1 opacity-80 text-xs font-black uppercase tracking-widest">
                 <Sparkles size={14} /> Explication
               </div>
-              <p className="text-xs font-bold leading-relaxed italic">&quot;{checkedResult.explanation}&quot;</p>
+              <p className="text-sm font-medium leading-relaxed">{checkedResult.explanation}</p>
             </Card>
           )}
           <Button
             onClick={handleNext}
-            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3"
           >
             {currentIdx < totalQuestions - 1 ? 'QUESTION SUIVANTE' : 'VOIR MON RÉSULTAT'}
             <ArrowRight size={20} />
@@ -399,25 +397,24 @@ export default function ComprehensionEcriteScenarioPage() {
       <DestinationLandmarkDecoration variant="comprehension" />
       <ExerciseLayout
         variant="compact"
-        title="COMPRÉHENSION ÉCRITE"
+        title="Compréhension écrite"
         badge="Coach CE"
-        badgeColor="indigo"
         onBack={() => router.push('/tef-irn/comprehension-ecrite')}
         rightElement={
           <div className="hidden md:flex items-center gap-6">
             <div className="text-right">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Précision</div>
+              <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Précision</div>
               <div className="text-2xl font-black text-zinc-900">{score} / {totalQuestions}</div>
             </div>
             <div className="h-12 w-px bg-zinc-100" />
             <div className="flex flex-col gap-2">
-              <div className="w-48 h-3 bg-zinc-100 rounded-full overflow-hidden border border-zinc-50 shadow-inner">
+              <div className="w-48 h-2 bg-indigo-100 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-indigo-600" />
               </div>
-              <div className="flex justify-between text-[8px] font-black text-zinc-300 uppercase tracking-widest">
-                <span>DÉBUT</span>
+              <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
+                <span>Début</span>
                 <span>{Math.round(progress)}%</span>
-                <span>FIN</span>
+                <span>Fin</span>
               </div>
             </div>
           </div>

@@ -7,23 +7,39 @@ import { execSync } from "node:child_process";
 
 const base = process.argv[2] ?? "origin/main";
 const PATHS = ["src/app/tef-irn", "src/app/examen-civique", "src/components/shared"];
+// Mode examen (design system §2.7) : style volontairement distinct, non contrôlé.
+const EXAM_MODE = ["src/app/tef-irn/exam/", "src/app/tef-irn/exercice-gratuit/", "src/app/examen-civique/examen-blanc/"];
 const RULES = [
-  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2)"],
+  // Couleurs d'identification (§2.6) autorisées uniquement dans les fichiers qui portent la palette d'identification.
+  [/\b(?:slate|gray|violet|purple|rose|orange|blue|green)-\d{2,3}\b/, "couleur hors palette (§2.2 ; identification : §2.6)", ["src/app/tef-irn/dashboard/page.tsx", "src/app/examen-civique/CivicHub.tsx", "src/app/examen-civique/livret/LivretReader.tsx", "src/app/tef-irn/guides/GuidesList.tsx", "src/app/tef-irn/guides/[slug]/GuideDetail.tsx", "src/app/tef-irn/admin/profiles/page.tsx", "src/components/shared/Sidebar.tsx", "src/components/shared/MobileBottomNav.tsx"]],
   [/\bfont-(?:semibold|extrabold)\b/, "graisse interdite (§3.2)"],
   [/\brounded-\[/, "rayon arbitraire (§4.2)"],
-  [/\bmax-md:/, "préfixe max-md: (§7.1)"],
+  // Éditeur EE : max-md: toléré (design system §2.5).
+  [/\bmax-md:/, "préfixe max-md: (§7.1)", ["src/app/tef-irn/writing/page.tsx", "src/app/tef-irn/writing/components/ZoneRedaction.tsx"]],
+  [/\btext-\[(?:[0-9]|1[0-9])(?:\.\d+)?px\]/, "taille hors échelle : text-xs (12px) minimum, capitales et badges uniquement (§3.1)"],
+  [/\btext-\[clamp/, "taille fluide hors échelle : utiliser text-* + md: (§3.1)"],
+  [/>[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ' ’!]{4,}</, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
+  [/"[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ’ ]{7,}"/, "texte saisi en capitales : saisir normalement + classe uppercase (§3.3)"],
   [/\b100vh\b/, "100vh → 100dvh (§7.3)"],
 ];
 
 const diff = execSync(`git diff -U0 ${base}...HEAD -- ${PATHS.join(" ")}`, { encoding: "utf8" });
 const errors = [];
+// Texte en casse normale : 14px minimum. text-xs (12px) seulement si la même chaîne de classes
+// porte uppercase (micro-label, bouton) ou rounded-full (badge).
+const smallLowercase = (l) =>
+  (l.match(/"[^"]*"|'[^']*'|`[^`]*`/g) ?? []).some(
+    (t) => /(?<![\w:-])text-xs\b/.test(t) && !/uppercase|rounded-full/.test(t)
+  );
 let file = "";
 let line = 0;
 for (const l of diff.split("\n")) {
   if (l.startsWith("+++ ")) file = l.slice(6);
   else if (l.startsWith("@@")) line = Number(/\+(\d+)/.exec(l)?.[1] ?? 0);
-  else if (l.startsWith("+")) {
-    for (const [re, msg] of RULES) if (re.test(l)) errors.push(`${file}:${line}  ${msg}`);
+  else if (l.startsWith("+") && !EXAM_MODE.some((d) => file.startsWith(d))) {
+    for (const [re, msg, allowed = []] of RULES) if (re.test(l) && !allowed.includes(file)) errors.push(`${file}:${line}  ${msg}`);
+    // Barre de navigation mobile : libellés 12px tolérés faute de place (§2.5).
+    if (smallLowercase(l) && file !== "src/components/shared/MobileBottomNav.tsx") errors.push(`${file}:${line}  text-xs sur du texte en casse normale : text-sm minimum (§3.1)`);
     line++;
   }
 }

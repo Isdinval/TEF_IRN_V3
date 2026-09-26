@@ -70,18 +70,18 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
               <Button variant="ghost" className="font-bold">Connexion</Button>
             </Link>
             <Link href="/tef-irn/login?mode=signup">
-              <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-xl shadow-lg shadow-brand-blue/20">
+              <Button className="bg-brand-blue hover:bg-brand-blue/90 text-white font-black px-6 rounded-2xl shadow-lg shadow-brand-blue/20">
                 Essai Gratuit
               </Button>
             </Link>
           </div>
         </header>
       )}
-      <div className="min-h-screen bg-[#FAFAFA] selection:bg-blue-100 pb-24">
+      <div className="min-h-screen bg-zinc-50 selection:bg-blue-100 pb-24">
       {/* Hero Section — bannière encadrée + verre dépoli premium */}
       <section className="px-6 pt-8 md:pt-12">
         <div className="max-w-7xl mx-auto relative">
-          <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl">
+          <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-3xl md:rounded-3xl overflow-hidden shadow-xl">
             <Image
               src={TEF_IRN_GUIDES_BANNER_URL}
               alt="Illustration aquarelle de la préparation au TEF IRN, univers visuel LlamaKusi"
@@ -93,7 +93,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center px-5 py-6 md:px-12 md:py-10">
-            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-[1.75rem] md:rounded-[2.25rem] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
+            <div className="w-full max-w-2xl text-center space-y-4 md:space-y-5 bg-white/20 backdrop-blur-lg backdrop-saturate-150 border border-white/40 ring-1 ring-white/15 rounded-3xl md:rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.45)] px-6 py-6 md:px-10 md:py-8">
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -115,7 +115,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-base md:text-lg text-slate-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
+                className="text-base md:text-lg text-zinc-700 font-medium max-w-2xl mx-auto [text-shadow:0_1px_16px_rgba(255,255,255,0.75)]"
               >
                 Guides gratuits, méthodologies d'examen, listes de vocabulaire et astuces de coach pour une préparation complète.
               </motion.p>
@@ -126,12 +126,12 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                 transition={{ delay: 0.3 }}
                 className="max-w-xl mx-auto relative group pt-1"
               >
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-600 transition-colors" size={18} />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher un guide, un sujet, une règle..."
-                  className="w-full h-14 pl-12 pr-6 bg-white border-2 border-gray-100 rounded-[1.5rem] text-sm md:text-base font-bold shadow-xl shadow-gray-100 focus:border-blue-600 focus:ring-0 transition-all"
+                  className="w-full h-14 pl-12 pr-6 bg-white border-2 border-zinc-100 rounded-3xl text-sm md:text-base font-bold shadow-xl shadow-zinc-100 focus:border-blue-600 focus:ring-0 transition-all"
                 />
               </motion.div>
             </div>
@@ -141,8 +141,8 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Filters Bar */}
-        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-sm mb-10">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-6">
+        <div className="bg-white p-6 md:p-8 rounded-3xl border border-zinc-100 shadow-sm mb-10">
+          <h3 className="text-xs font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2 mb-6">
             <Filter size={14} /> Filtres
           </h3>
 
@@ -155,10 +155,10 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                   <button
                     key={level}
                     onClick={() => setActiveLevel(activeLevel === level ? null : level)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${
+                    className={`px-3 py-1.5 rounded-2xl text-sm font-bold border-2 transition-all ${
                       activeLevel === level
                         ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                        : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-200'
                     }`}
                   >
                     {level}
@@ -175,10 +175,10 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
+                    className={`px-3 py-1.5 rounded-2xl text-sm font-bold border-2 transition-all capitalize ${
                       activeCategory === cat
                         ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                        : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-200'
                     }`}
                   >
                     {cat.replace('-', ' ')}
@@ -195,10 +195,10 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                   <button
                     key={type}
                     onClick={() => setActiveType(activeType === type ? null : type)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
+                    className={`px-3 py-1.5 rounded-2xl text-sm font-bold border-2 transition-all capitalize ${
                       activeType === type
                         ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                        : 'bg-white border-gray-100 text-slate-600 hover:border-gray-200'
+                        : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-200'
                     }`}
                   >
                     {type}
@@ -212,7 +212,7 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="text-slate-400 hover:text-red-500 font-bold md:ml-auto md:self-center"
+                className="text-zinc-500 hover:text-red-500 font-bold md:ml-auto md:self-center"
               >
                 Réinitialiser
               </Button>
@@ -247,14 +247,14 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100"
+              className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-3xl border-2 border-dashed border-zinc-100"
             >
-              <div className="p-6 bg-gray-50 rounded-full text-gray-300 mb-6">
+              <div className="p-6 bg-zinc-50 rounded-full text-zinc-500 mb-6">
                 <Search size={48} />
               </div>
               <h3 className="text-xl font-bold text-zinc-900 mb-2">Aucun guide trouvé</h3>
-              <p className="text-slate-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
-              <Button onClick={clearFilters} className="rounded-xl font-bold">Voir tous les guides</Button>
+              <p className="text-zinc-500 mb-8">Essayez de modifier vos filtres ou votre recherche.</p>
+              <Button onClick={clearFilters} className="rounded-2xl font-bold">Voir tous les guides</Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -265,20 +265,20 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
         <section className="max-w-7xl mx-auto px-6 py-20">
           <div className="flex items-center gap-4 mb-10">
             <h2 className="text-3xl font-black text-zinc-900">Nouveautés</h2>
-            <div className="h-[2px] flex-grow bg-gray-100"></div>
+            <div className="h-[2px] flex-grow bg-zinc-100"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {initialGuides.slice(0, 4).map(guide => (
               <Link href={`/tef-irn/guides/${guide.slug}`} key={guide.id} className="group">
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 hover:border-blue-600 transition-all group-hover:shadow-lg group-hover:shadow-blue-50">
+                <div className="bg-white p-6 rounded-3xl border border-zinc-100 hover:border-blue-600 transition-all group-hover:shadow-lg group-hover:shadow-blue-50">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                       <BookOpen size={16} />
                     </div>
-                    <Badge variant="outline" className="text-[10px]">{guide.type}</Badge>
+                    <Badge variant="outline" className="text-sm">{guide.type}</Badge>
                   </div>
                   <h4 className="font-bold text-zinc-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">{guide.title}</h4>
-                  <div className="flex items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  <div className="flex items-center text-xs text-zinc-500 font-bold uppercase tracking-wider">
                     <Clock size={12} className="mr-1" /> {guide.reading_time} min
                   </div>
                 </div>
@@ -290,13 +290,13 @@ export default function GuidesList({ initialGuides }: { initialGuides: Guide[] }
 
       {/* Final CTA */}
       <section className="mt-20 max-w-7xl mx-auto px-6">
-        <div className="bg-zinc-900 rounded-[3.5rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl">
+        <div className="bg-zinc-900 rounded-3xl p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 p-12 opacity-10">
             <Sparkles size={160} className="text-blue-400" />
           </div>
 
           <div className="relative z-10 max-w-3xl mx-auto space-y-8">
-            <Badge className="bg-blue-600/20 text-blue-300 border-none font-black text-[10px] uppercase tracking-widest px-4 py-1">
+            <Badge className="bg-blue-600/20 text-blue-300 border-none font-black text-xs uppercase tracking-widest px-4 py-1">
               Prêt pour l'examen ?
             </Badge>
             <h2 className="text-4xl lg:text-6xl font-black tracking-tight">

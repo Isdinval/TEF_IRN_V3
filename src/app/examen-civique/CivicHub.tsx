@@ -234,9 +234,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     <>
       {/* Pont LlamaKusi */}
       {showCTATef && (
-        <div className="p-6 rounded-[2rem] bg-indigo-600 space-y-3">
+        <div className="p-6 rounded-3xl bg-indigo-600 space-y-3">
           <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
-          <p className="text-xs text-indigo-200 font-medium leading-relaxed">
+          <p className="text-sm text-indigo-200 font-medium leading-relaxed">
             Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
             LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 32,90 €/mois.
           </p>
@@ -244,7 +244,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}
             onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "hub", cta: "decouvrir_llamakusi" })}
           >
-            <Button className="h-10 px-4 bg-white text-indigo-700 rounded-2xl font-black text-xs hover:bg-indigo-50">
+            <Button className="h-11 px-4 bg-white text-indigo-700 rounded-2xl font-black text-sm hover:bg-indigo-50">
               Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
             </Button>
           </Link>
@@ -256,7 +256,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-black text-zinc-900">Guides</h3>
-            <Link href="/examen-civique/guides" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+            <Link href="/examen-civique/guides" className="text-xs font-black uppercase tracking-widest text-indigo-500 hover:underline">
               Tous les guides →
             </Link>
           </div>
@@ -270,8 +270,8 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-4 hover:border-indigo-200 transition-all block"
               >
                 <p className="text-sm font-black text-zinc-900 leading-tight">{g.title}</p>
-                {g.description && <p className="text-xs text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
-                {g.reading_time && <p className="text-[10px] font-bold text-zinc-400 mt-2">{g.reading_time} min de lecture</p>}
+                {g.description && <p className="text-sm text-zinc-500 font-medium mt-1 line-clamp-2 leading-relaxed">{g.description}</p>}
+                {g.reading_time && <p className="text-sm font-bold text-zinc-500 mt-2">{g.reading_time} min de lecture</p>}
               </Link>
             ))}
           </div>
@@ -281,14 +281,14 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
       {/* FAQ */}
       <div className="space-y-2">
         <h3 className="text-sm font-black text-zinc-900 px-1">Questions fréquentes</h3>
-        <Accordion className="bg-zinc-50 rounded-[2rem] border border-zinc-100 divide-y divide-zinc-100 px-6">
+        <Accordion className="bg-zinc-50 rounded-3xl border border-zinc-100 divide-y divide-zinc-100 px-6">
           {faq.map((item) => (
             <AccordionItem key={item.q} value={item.q} className="border-none">
               <AccordionTrigger className="hover:no-underline py-4 gap-4">
                 <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
               </AccordionTrigger>
               <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
-                <p className="text-xs text-zinc-500 leading-relaxed">{item.a}</p>
+                <p className="text-sm text-zinc-500 leading-relaxed">{item.a}</p>
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -311,37 +311,37 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
               <p className="text-lg">🆓</p>
-              <p className="text-[10px] font-black text-zinc-700 leading-tight">100 % gratuit</p>
-              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Sans inscription requise</p>
+              <p className="text-sm font-black text-zinc-700 leading-tight">100 % gratuit</p>
+              <p className="text-sm text-zinc-500 font-medium leading-tight">Sans inscription requise</p>
             </div>
             <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
               <p className="text-lg">🏛️</p>
-              <p className="text-[10px] font-black text-zinc-700 leading-tight">Source officielle</p>
-              <p className="text-[9px] text-zinc-400 font-medium leading-tight">Ministère de l'Intérieur</p>
+              <p className="text-sm font-black text-zinc-700 leading-tight">Source officielle</p>
+              <p className="text-sm text-zinc-500 font-medium leading-tight">Ministère de l'Intérieur</p>
             </div>
             <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
               <p className="text-lg">🧠</p>
-              <p className="text-[10px] font-black text-zinc-700 leading-tight">Révision adaptative</p>
-              <p className="text-[9px] text-zinc-400 font-medium leading-tight">L'algo s'adapte à vous</p>
+              <p className="text-sm font-black text-zinc-700 leading-tight">Révision adaptative</p>
+              <p className="text-sm text-zinc-500 font-medium leading-tight">L'algo s'adapte à vous</p>
             </div>
           </div>
         </ExerciseLayout>
 
         {/* Bannière examen interrompu */}
         {resumableExam && (
-          <div className="p-5 rounded-[2rem] bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
+          <div className="p-5 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center justify-between gap-4 flex-wrap">
             <div>
               <p className="text-sm font-black text-amber-900">Examen blanc en cours — {mentionLabel(resumableExam.mention)}</p>
-              <p className="text-xs text-amber-700 font-medium">
+              <p className="text-sm text-amber-700 font-medium">
                 Il reste {formatTime(Math.max(0, Math.round((resumableExam.examEndAt - now) / 1000)))} avant la fin du temps imparti.
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="secondary" onClick={abandonResumableExam} className="h-10 bg-white text-amber-700 font-black rounded-xl text-xs border border-amber-200">
+              <Button variant="secondary" onClick={abandonResumableExam} className="h-11 bg-white text-amber-700 font-bold rounded-2xl text-sm border border-amber-200">
                 Abandonner
               </Button>
               <Link href="/examen-civique/examen-blanc?resume=1">
-                <Button className="h-10 bg-amber-600 text-white font-black rounded-xl text-xs">Reprendre</Button>
+                <Button className="h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm">Reprendre</Button>
               </Link>
             </div>
           </div>
@@ -352,7 +352,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
             <Badge className="bg-emerald-600 text-white rounded-full">Progression</Badge> Votre progression
           </h2>
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 space-y-5">
+          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 space-y-5">
             {filteredCount !== null && filteredCount > 0 && (
               <div className="space-y-1.5">
                 <div className="flex items-baseline justify-between">
@@ -360,7 +360,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                     {localStats.mastered} / {filteredCount} questions maîtrisées
                     <InfoTooltip text="Une question est « maîtrisée » après plusieurs révisions consécutives réussies (méthode de répétition espacée). Le total dépend de votre démarche et thématique actuelles." />
                   </p>
-                  <p className="text-xs font-black text-emerald-600">
+                  <p className="text-sm font-black text-emerald-600">
                     {Math.round((localStats.mastered / filteredCount) * 100)}%
                   </p>
                 </div>
@@ -374,8 +374,8 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             )}
             <div className="grid grid-cols-3 divide-x divide-zinc-100">
               <div className="text-center px-1">
-                <p className="text-lg font-black text-orange-600">🔥 {civicStreak}</p>
-                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                <p className="text-lg font-black text-amber-600">🔥 {civicStreak}</p>
+                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
                   Jour{civicStreak > 1 ? "s" : ""} de suite
                   <InfoTooltip text="Nombre de jours consécutifs où vous avez pratiqué au moins une question (entraînement ou examen blanc)." />
                 </p>
@@ -383,16 +383,16 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               <div className="text-center px-1">
                 <p className="text-lg font-black text-zinc-900">
                   {bestScore !== null ? bestScore : "—"}
-                  {bestScore !== null && <span className="text-xs text-zinc-400 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+                  {bestScore !== null && <span className="text-sm text-zinc-500 font-bold">/{EXAM_QUESTION_COUNT}</span>}
                 </p>
-                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
                   Meilleur score
                   <InfoTooltip text={`Votre meilleur résultat parmi tous vos examens blancs passés, sur ${EXAM_QUESTION_COUNT} questions. Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`} />
                 </p>
               </div>
               <div className="text-center px-1">
-                <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-300"}`}>{dueCount ?? 0}</p>
-                <p className="flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 mt-0.5">
+                <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-500"}`}>{dueCount ?? 0}</p>
+                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
                   À réviser
                   <InfoTooltip text="Questions déjà vues dont la date de révision (répétition espacée) est arrivée aujourd'hui. Les revoir maintenant les ancre plus durablement en mémoire." />
                 </p>
@@ -405,7 +405,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                   <p className={`text-sm font-black ${isExamReady ? "text-emerald-700" : "text-amber-700"}`}>
                     {isExamReady ? "Vous êtes prêt pour l'examen 🎉" : "Continuez à vous entraîner"}
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                  <p className="text-sm text-zinc-500 font-medium mt-0.5">
                     Moyenne sur {last5Count === 1 ? "votre dernier examen blanc" : `vos ${last5Count} derniers examens blancs`} : {last5Average}/{EXAM_QUESTION_COUNT}
                   </p>
                 </div>
@@ -424,17 +424,17 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
             <Badge className="bg-violet-600 text-white rounded-full">Démarche</Badge> Votre démarche
           </h2>
-          <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 flex items-center justify-between gap-4 flex-wrap">
             <p className="text-sm text-zinc-600 font-medium">
               Démarche actuelle : <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
             </p>
             <div className="flex items-center gap-4">
               <Link href="/examen-civique/eligibilite">
-                <Button className="h-10 px-4 bg-indigo-600 text-white rounded-2xl font-black text-xs hover:bg-indigo-700">
+                <Button className="h-11 px-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700">
                   Suis-je concerné ? <ArrowRight className="ml-2" size={14} />
                 </Button>
               </Link>
-              <button onClick={() => setMentionHelpOpen(true)} className="text-xs font-black uppercase tracking-widest text-zinc-400 hover:underline">
+              <button onClick={() => setMentionHelpOpen(true)} className="text-xs font-black uppercase tracking-widest text-zinc-500 hover:underline">
                 Cas particuliers / exemptions
               </button>
             </div>
@@ -453,16 +453,15 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           {/* Sous-section : Entraînement — la boucle testée (apprendre/mémoriser,
               consulter, se tester), celle que le produit recommande activement. */}
           <div className="space-y-2">
-            <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">Entraînement</p>
+            <p className="px-1 text-xs font-black uppercase tracking-widest text-zinc-500">Entraînement</p>
 
             {/* Action recommandée : Mémoriser si des révisions sont dues, sinon Apprendre.
                 Pleine largeur pour porter le vrai poids visuel de la section. */}
             <Link
               href={buildHref("/examen-civique/entrainement", { mode: hasDue ? "memoriser" : "apprendre" })}
-              className="relative bg-indigo-600 rounded-[2rem] p-5 flex items-center gap-3 overflow-hidden hover:scale-[1.005] active:scale-[0.99] transition-transform"
+              className="relative bg-indigo-600 rounded-3xl p-5 flex items-center gap-3 overflow-hidden shadow-lg shadow-indigo-100 hover:-translate-y-1 hover:bg-indigo-700 transition-all"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
                 <Brain size={17} className="text-white" />
               </div>
               <div className="flex-1">
@@ -477,7 +476,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                     />
                   </span>
                 </p>
-                <p className="text-xs text-indigo-200 font-medium mt-0.5 leading-relaxed">
+                <p className="text-sm text-indigo-200 font-medium mt-0.5 leading-relaxed">
                   {hasDue
                     ? `${dueCount} révision${dueCount! > 1 ? "s" : ""} prévue${dueCount! > 1 ? "s" : ""}`
                     : "Nouvelles questions, réponse testée immédiatement."}
@@ -490,13 +489,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               {/* Parcourir — neutre, utilitaire */}
               <Link
                 href={buildHref("/examen-civique/parcourir")}
-                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-2xl bg-zinc-100 flex items-center justify-center shrink-0">
                     <BookOpen size={15} className="text-zinc-500" />
                   </div>
-                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
@@ -505,7 +504,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                       <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
                     </span>
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
                     Toutes les Q&amp;R avec explication et source.
                   </p>
                 </div>
@@ -514,13 +513,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               {/* Examen blanc — icône sombre pour signaler le format formel/chronométré */}
               <Link
                 href={buildHref("/examen-civique/examen-blanc")}
-                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-2xl bg-zinc-900 flex items-center justify-center shrink-0">
                     <Clock size={15} className="text-white" />
                   </div>
-                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
@@ -529,7 +528,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                       <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
                     </span>
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
                     {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
                   </p>
                 </div>
@@ -540,18 +539,18 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           {/* Sous-section : Ressources complémentaires — pertinentes mais non
               indispensables pour se préparer (lecture de fond, logistique du jour J). */}
           <div className="space-y-2">
-            <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">Ressources complémentaires</p>
+            <p className="px-1 text-xs font-black uppercase tracking-widest text-zinc-500">Ressources complémentaires</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Livret du citoyen — lecture de fond recommandée, pas une étape obligatoire */}
               <Link
                 href="/examen-civique/livret"
-                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
                     <BookOpen size={15} className="text-indigo-600" />
                   </div>
-                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
@@ -560,7 +559,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                       <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. Une lecture utile, mais pas indispensable pour commencer à vous entraîner." />
                     </span>
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
                     Référentiel officiel du Ministère de l&apos;Intérieur. Gratuit, PDF téléchargeable.
                   </p>
                 </div>
@@ -569,13 +568,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               {/* Centres d'examen — logistique du jour J, pas de contexte démarche/thème à propager */}
               <Link
                 href="/examen-civique/centres"
-                className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-2xl bg-zinc-100 flex items-center justify-center shrink-0">
                     <MapPin size={15} className="text-zinc-500" />
                   </div>
-                  <ArrowRight size={14} className="text-zinc-300 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
@@ -584,7 +583,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                       <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
                     </span>
                   </p>
-                  <p className="text-xs text-zinc-500 font-medium mt-1 leading-snug">
+                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
                     Centres agréés CCI, adresse et contact.
                   </p>
                 </div>
@@ -603,35 +602,35 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             {attempts.length > 3 && (
               <button
                 onClick={() => setShowAllAttempts((prev) => !prev)}
-                className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline"
+                className="text-xs font-black uppercase tracking-widest text-indigo-500 hover:underline"
               >
                 {showAllAttempts ? "Voir moins" : "Voir l'historique complet"} →
               </button>
             )}
           </div>
           {attempts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[2rem] border-2 border-dashed border-zinc-200 bg-white p-10 text-center">
-              <Clock size={32} className="text-zinc-300" />
+            <div className="flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-zinc-200 bg-white p-10 text-center">
+              <Clock size={32} className="text-zinc-500" />
               <p className="text-sm font-bold text-zinc-500">Aucun examen blanc pour l'instant.</p>
-              <p className="text-xs text-zinc-400">Vos résultats apparaîtront ici après votre premier examen blanc.</p>
+              <p className="text-sm text-zinc-500">Vos résultats apparaîtront ici après votre premier examen blanc.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+            <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
               {(showAllAttempts ? attempts : attempts.slice(0, 3)).map((a) => (
                 <div key={a.id} className="flex items-center justify-between px-5 py-3.5">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${a.passed ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
                       {a.passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                     </div>
                     <div>
                       <p className="text-sm font-black text-zinc-900">
                         {a.score}/{a.total_questions}
-                        <span className="ml-2 text-zinc-400 font-bold text-xs">{mentionLabel(a.mention)}</span>
+                        <span className="ml-2 text-zinc-500 font-bold text-sm">{mentionLabel(a.mention)}</span>
                       </p>
-                      <p className="text-[10px] font-bold text-zinc-400">{formatAttemptDate(a.created_at)}</p>
+                      <p className="text-sm font-bold text-zinc-500">{formatAttemptDate(a.created_at)}</p>
                     </div>
                   </div>
-                  <Badge className={`border-none rounded-full px-3 py-1 text-[10px] font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-500"}`}>
+                  <Badge className={`border-none rounded-full px-3 py-1 text-xs font-black uppercase ${a.passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
                     {a.passed ? "Réussi" : "Échoué"}
                   </Badge>
                 </div>
@@ -646,7 +645,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             voir plus bas, hors de cette colonne principale. */}
         <div className="pt-2 border-t border-zinc-200 lg:hidden" />
 
-        <Accordion className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm px-6 lg:hidden">
+        <Accordion className="bg-white rounded-3xl border border-zinc-100 shadow-sm px-6 lg:hidden">
           <AccordionItem value="plus-loin" className="border-none">
             <AccordionTrigger className="hover:no-underline py-4 gap-4">
               <span className="flex items-center gap-2 text-sm font-black text-zinc-900">
@@ -664,7 +663,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             par la colonne principale sur grand écran avec du contenu réel plutôt que
             du padding. Même contenu que l'accordéon mobile ci-dessus, toujours visible
             ici puisque l'espace ne manque pas. */}
-        <div className="hidden lg:block lg:sticky lg:top-8 space-y-6 bg-white rounded-[2rem] border border-zinc-100 shadow-sm p-6">
+        <div className="hidden lg:block lg:sticky lg:top-8 space-y-6 bg-white rounded-3xl border border-zinc-100 shadow-sm p-6">
           <h3 className="flex items-center gap-2 text-sm font-black text-zinc-900">
             <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
           </h3>
@@ -686,7 +685,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             </DialogHeader>
             <div className="space-y-3">
               <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la CSP</p>
+                <p className="text-lg font-bold text-zinc-900 leading-none tracking-tight">Pour la CSP</p>
                 <ul className="text-sm text-zinc-500 leading-relaxed space-y-1.5 list-disc pl-4">
                   <li>Titres non soumis au contrat d'intégration républicaine, bénéficiaires de la protection subsidiaire et apatrides (avec leur famille) : hors champ de l'examen.</li>
                   <li>65 ans ou plus à la date de la demande : dispense.</li>
@@ -694,13 +693,13 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 </ul>
               </div>
               <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la carte de résident</p>
+                <p className="text-lg font-bold text-zinc-900 leading-none tracking-tight">Pour la carte de résident</p>
                 <p className="text-sm text-zinc-500 leading-relaxed">
                   65 ans ou plus, ou situation médicale/handicap (mêmes règles que pour la CSP). Attention : contrairement à la CSP, les bénéficiaires d'une carte de réfugié ou de protection subsidiaire demandant une carte de résident longue durée-UE sont concernés par l'examen, pas dispensés.
                 </p>
               </div>
               <div className="p-4 rounded-2xl bg-zinc-50 space-y-2">
-                <p className="text-lg font-semibold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
+                <p className="text-lg font-bold text-zinc-900 leading-none tracking-tight">Pour la naturalisation</p>
                 <p className="text-sm text-zinc-500 leading-relaxed">
                   Aucune dispense d'âge ni liée à un accord bilatéral : seule la dispense médicale/handicap s'applique. L'examen civique ne remplace pas l'entretien en préfecture, qui reste nécessaire.
                 </p>
@@ -718,7 +717,7 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
             </Link>
           </div>
           <DialogFooter className="p-6 pt-4 border-t border-zinc-100">
-            <Button onClick={() => setMentionHelpOpen(false)} className="bg-zinc-900 text-white rounded-2xl font-black text-sm">
+            <Button onClick={() => setMentionHelpOpen(false)} className="h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200">
               Compris
             </Button>
           </DialogFooter>

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -145,9 +146,10 @@ function SettingsContent() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-10 space-y-8 selection:bg-indigo-100 min-h-screen">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
+    <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12 space-y-8 selection:bg-indigo-100">
       {/* Breadcrumb Section */}
-      <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+      <nav className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-zinc-500">
         <Link href="/tef-irn/dashboard" className="hover:text-indigo-600 transition-colors flex items-center gap-1">
           <Home size={12} />
         </Link>
@@ -159,19 +161,21 @@ function SettingsContent() {
         </span>
       </nav>
 
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-zinc-900">Paramètres</h1>
-          <p className="text-muted-foreground font-medium mt-1">Gérez votre compte et vos préférences d&apos;apprentissage.</p>
-        </div>
-        <Button
-          variant="outline"
-          className="md:hidden rounded-[1.25rem] h-14 w-14 p-0 border-slate-200 bg-white shadow-sm"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X /> : <Menu />}
-        </Button>
-      </div>
+      <PageHeader
+        badge={sidebarItems.find(i => i.id === activeSection)?.label ?? "Paramètres"}
+        title="Paramètres"
+        description="Gérez votre compte et vos préférences d'apprentissage."
+        aside={
+          <Button
+            variant="outline"
+            aria-label={mobileMenuOpen ? "Fermer le menu des paramètres" : "Ouvrir le menu des paramètres"}
+            className="md:hidden rounded-2xl h-12 w-12 p-0 border-zinc-200 bg-white shadow-sm"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X aria-hidden /> : <Menu aria-hidden />}
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 relative">
         {/* Sidebar Desktop */}
@@ -181,21 +185,21 @@ function SettingsContent() {
               key={item.id}
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-4 h-14 rounded-[1.5rem] font-bold transition-all duration-300",
+                "w-full justify-start gap-4 h-14 rounded-3xl font-bold transition-all duration-300",
                 activeSection === item.id
-                  ? "bg-zinc-900 text-white shadow-xl shadow-zinc-100 hover:bg-zinc-800 hover:text-white scale-[1.02]"
-                  : "text-slate-500 hover:bg-zinc-50 hover:text-zinc-900"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:text-white"
+                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
               )}
               onClick={() => setActiveSection(item.id as SettingsSection)}
             >
-              <item.icon size={20} className={activeSection === item.id ? "text-indigo-400" : "text-slate-400"} />
+              <item.icon size={20} className={activeSection === item.id ? "text-white" : "text-zinc-500"} />
               {item.label}
             </Button>
           ))}
-          <div className="pt-6 mt-6 border-t border-slate-100">
+          <div className="pt-6 mt-6 border-t border-zinc-100">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-4 h-14 rounded-[1.5rem] text-red-500 hover:text-red-700 hover:bg-red-50 font-bold transition-all"
+              className="w-full justify-start gap-4 h-14 rounded-3xl text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition-all"
               onClick={handleSignOut}
             >
               <LogOut size={20} /> Déconnexion
@@ -218,15 +222,15 @@ function SettingsContent() {
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className="absolute z-50 top-0 left-0 right-0 md:hidden bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-6 space-y-2 mx-4"
+                className="absolute z-50 top-0 left-0 right-0 md:hidden bg-white rounded-3xl shadow-xl border border-zinc-100 p-6 space-y-2 mx-4"
               >
                 {sidebarItems.map((item) => (
                   <Button
                     key={item.id}
                     variant="ghost"
                     className={cn(
-                      "w-full justify-start gap-4 h-14 rounded-[1.25rem] font-bold transition-all",
-                      activeSection === item.id ? "bg-indigo-50 text-indigo-600" : "text-slate-500"
+                      "w-full justify-start gap-4 h-14 rounded-3xl font-bold transition-all",
+                      activeSection === item.id ? "bg-indigo-50 text-indigo-600" : "text-zinc-500"
                     )}
                     onClick={() => {
                       setActiveSection(item.id as SettingsSection);
@@ -237,10 +241,10 @@ function SettingsContent() {
                     {item.label}
                   </Button>
                 ))}
-                <div className="pt-4 mt-4 border-t border-slate-100">
+                <div className="pt-4 mt-4 border-t border-zinc-100">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-4 h-14 rounded-[1.25rem] text-red-500 font-bold"
+                    className="w-full justify-start gap-4 h-14 rounded-3xl text-red-500 font-bold"
                     onClick={handleSignOut}
                   >
                     <LogOut size={20} /> Déconnexion
@@ -293,6 +297,7 @@ function SettingsContent() {
         </main>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -343,15 +348,15 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
   };
 
   return (
-    <Card className="rounded-[2.5rem] border-slate-100 shadow-sm overflow-hidden bg-white">
+    <Card className="rounded-3xl border-zinc-100 shadow-sm overflow-hidden bg-white">
       <CardHeader className="p-8 md:p-12">
-        <CardTitle className="text-3xl font-black">Informations Personnelles</CardTitle>
-        <CardDescription className="font-medium text-lg text-slate-500 mt-1">Mettez à jour vos informations publiques et vos objectifs d&apos;apprentissage.</CardDescription>
+        <CardTitle className="text-lg font-black uppercase tracking-tight">Informations Personnelles</CardTitle>
+        <CardDescription className="font-medium text-lg text-zinc-500 mt-1">Mettez à jour vos informations publiques et vos objectifs d&apos;apprentissage.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 md:p-12 pt-0 space-y-12">
         <div className="flex flex-col md:flex-row gap-10 items-center md:items-start">
           <div className="relative group">
-            <div className="h-40 w-40 rounded-[2.5rem] bg-indigo-50 flex items-center justify-center overflow-hidden border-4 border-white shadow-2xl transition-transform duration-500 group-hover:scale-105">
+            <div className="h-40 w-40 rounded-3xl bg-indigo-50 flex items-center justify-center overflow-hidden border-4 border-white shadow-xl transition-transform duration-500 group-">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
@@ -363,23 +368,23 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                 </div>
               )}
             </div>
-            <label className="absolute -bottom-2 -right-2 h-12 w-12 bg-zinc-900 text-white rounded-2xl flex items-center justify-center cursor-pointer hover:bg-indigo-600 transition-all shadow-xl group-hover:scale-110 duration-300">
+            <label className="absolute -bottom-2 -right-2 h-12 w-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-all shadow-xl group-hover:scale-110 duration-300">
               <Camera size={20} />
               <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
             </label>
           </div>
           <div className="flex-1 space-y-2 text-center md:text-left pt-4">
-            <h3 className="text-2xl font-black text-zinc-900">{profile?.full_name || "Utilisateur"}</h3>
-            <p className="text-slate-500 font-bold text-lg">{profile?.email}</p>
+            <h3 className="text-lg font-black text-zinc-900">{profile?.full_name || "Utilisateur"}</h3>
+            <p className="text-zinc-500 font-bold text-lg">{profile?.email}</p>
             <div className="flex flex-wrap gap-2 justify-center md:justify-start mt-4">
               <Badge className={cn(
-                "border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full",
-                profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-500'
+                "border-none px-4 py-1.5 font-black uppercase tracking-widest text-xs rounded-full",
+                profile?.subscription_tier && profile.subscription_tier !== 'gratuit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-zinc-100 text-zinc-500'
               )}>
                 {TIER_LABELS[normalizeTier(profile?.subscription_tier)]}
               </Badge>
               {profile?.current_level && (
-                <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">
+                <Badge className="bg-emerald-50 text-emerald-700 border-none px-4 py-1.5 font-black uppercase tracking-widest text-xs rounded-full">
                   Niveau {profile.current_level}
                 </Badge>
               )}
@@ -390,21 +395,21 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
         <form onSubmit={updateProfile} className="space-y-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <Label htmlFor="name" className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Nom complet</Label>
+              <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Nom complet</Label>
               <Input
                 id="name"
-                className="h-16 rounded-[1.25rem] border-slate-200 focus:border-indigo-500 focus:ring-8 focus:ring-indigo-50 transition-all font-bold text-lg px-6"
+                className="h-12 rounded-2xl border-zinc-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all font-medium text-base px-4"
                 value={profile?.full_name || ""}
                 onChange={e => setProfile((p: any) => p ? {...p, full_name: e.target.value} : null)}
               />
             </div>
             <div className="space-y-3">
-              <Label htmlFor="username" className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Nom d&apos;utilisateur</Label>
+              <Label htmlFor="username" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Nom d&apos;utilisateur</Label>
               <div className="relative">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">@</span>
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-lg">@</span>
                 <Input
                   id="username"
-                  className="h-16 rounded-[1.25rem] border-slate-200 focus:border-indigo-500 focus:ring-8 focus:ring-indigo-50 transition-all font-bold text-lg pl-12 pr-6"
+                  className="h-12 rounded-2xl border-zinc-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 transition-all font-medium text-base pl-12 pr-4"
                   value={profile?.username || ""}
                   placeholder="nomutilisateur"
                   onChange={e => setProfile((p: any) => p ? {...p, username: e.target.value} : null)}
@@ -412,45 +417,45 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
               </div>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="level" className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Niveau actuel de français</Label>
+              <Label htmlFor="level" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Niveau actuel de français</Label>
               <Select
                 value={profile?.current_level || ""}
                 onValueChange={(val: any) => setProfile((p: any) => p ? {...p, current_level: val} : null)}
               >
-                <SelectTrigger className="h-16 rounded-[1.25rem] border-slate-200 font-bold text-lg px-6 focus:ring-8 focus:ring-indigo-50">
+                <SelectTrigger className="h-12 rounded-2xl border-zinc-200 font-medium text-base px-4 focus:ring-4 focus:ring-indigo-50">
                   <SelectValue placeholder="Votre niveau actuel" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border rounded-[1.5rem] shadow-2xl z-50 p-2">
+                <SelectContent className="bg-white border rounded-3xl shadow-xl z-50 p-2">
                   {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(lvl => (
-                    <SelectItem key={lvl} value={lvl} className="font-bold rounded-xl h-12">{lvl}</SelectItem>
+                    <SelectItem key={lvl} value={lvl} className="font-bold rounded-2xl h-12">{lvl}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="goal" className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Objectif TEF IRN</Label>
+              <Label htmlFor="goal" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Objectif TEF IRN</Label>
               <Select
                 value={profile?.goal_level || ""}
                 onValueChange={(val: any) => setProfile((p: any) => p ? {...p, goal_level: val} : null)}
               >
-                <SelectTrigger className="h-16 rounded-[1.25rem] border-slate-200 font-bold text-lg px-6 focus:ring-8 focus:ring-indigo-50">
+                <SelectTrigger className="h-12 rounded-2xl border-zinc-200 font-medium text-base px-4 focus:ring-4 focus:ring-indigo-50">
                   <SelectValue placeholder="Choisir un objectif" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border rounded-[1.5rem] shadow-2xl z-50 p-2">
-                  <SelectItem value="A2" className="font-bold rounded-xl h-12">Carte de séjour (A2)</SelectItem>
-                  <SelectItem value="B1" className="font-bold rounded-xl h-12">Carte de résident (B1)</SelectItem>
-                  <SelectItem value="B2" className="font-bold rounded-xl h-12">Nationalité française (B2)</SelectItem>
+                <SelectContent className="bg-white border rounded-3xl shadow-xl z-50 p-2">
+                  <SelectItem value="A2" className="font-bold rounded-2xl h-12">Carte de séjour (A2)</SelectItem>
+                  <SelectItem value="B1" className="font-bold rounded-2xl h-12">Carte de résident (B1)</SelectItem>
+                  <SelectItem value="B2" className="font-bold rounded-2xl h-12">Nationalité française (B2)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-6 border border-slate-200 rounded-[1.25rem]">
+            <div className="flex items-center justify-between p-6 border border-zinc-200 rounded-3xl">
               <div className="space-y-1 pr-6">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Mode d'apprentissage</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Mode d'apprentissage</p>
                 <p className="font-black text-lg text-zinc-900">
                   {profile?.learning_mode === "academique" ? "Parcours guidé" : "Entraînement libre"}
                 </p>
-                <p className="text-sm text-slate-500 font-medium leading-snug">
+                <p className="text-sm text-zinc-500 font-medium leading-snug">
                   {profile?.learning_mode === "academique"
                     ? "Vos leçons se débloquent dans l'ordre, une à la fois."
                     : "Vous choisissez vous-même vos leçons, exercices et examens blancs."}
@@ -474,7 +479,7 @@ function ProfileSection({ profile, setProfile, updateProfile, saving, message }:
                 )}
               </AnimatePresence>
             </div>
-            <Button type="submit" disabled={saving} className="bg-zinc-900 hover:bg-zinc-800 text-white font-black h-16 px-12 rounded-[1.5rem] shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.03] active:scale-[0.97]">
+            <Button type="submit" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm h-12 px-8 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.97]">
               {saving ? <Loader2 className="animate-spin mr-2" /> : "Sauvegarder"}
             </Button>
           </div>
@@ -520,7 +525,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
 
   return (
     <div className="space-y-8">
-      <Card className="border-indigo-100 bg-indigo-50/20 overflow-hidden relative rounded-[3rem] border-2 shadow-sm">
+      <Card className="border-indigo-100 bg-indigo-50/20 overflow-hidden relative rounded-3xl border-2 shadow-sm">
         <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
           <Sparkles size={160} className="text-indigo-600" />
         </div>
@@ -528,15 +533,15 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
           <div className="flex justify-between items-start">
             <div>
               <Badge className={cn(
-                "px-5 py-2 font-black uppercase tracking-[0.3em] text-[10px] rounded-full mb-6",
-                isGratuit ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
+                "px-5 py-2 font-black uppercase tracking-[0.3em] text-xs rounded-full mb-6",
+                isGratuit ? 'bg-zinc-200 text-zinc-600' : 'bg-indigo-600 text-white shadow-xl shadow-indigo-100'
               )}>
                 {TIER_LABELS[tier]}
               </Badge>
-              <CardTitle className="text-4xl md:text-5xl font-black text-zinc-900 leading-tight">
+              <CardTitle className="text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-900 leading-tight">
                 {copy.title}
               </CardTitle>
-              <CardDescription className="text-indigo-900/60 font-bold mt-4 text-xl leading-relaxed max-w-xl">
+              <CardDescription className="text-indigo-900/60 font-medium mt-4 text-base leading-relaxed max-w-xl">
                 {copy.description}
               </CardDescription>
             </div>
@@ -557,7 +562,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
         <CardFooter className="bg-white/80 backdrop-blur-md border-t border-indigo-100 p-10 md:p-12 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="text-center md:text-left">
             <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className={cn("h-3 w-3 rounded-full", isGratuit ? "bg-slate-300" : "bg-emerald-500 animate-pulse")} />
+              <div className={cn("h-3 w-3 rounded-full", isGratuit ? "bg-zinc-300" : "bg-emerald-500 animate-pulse")} />
               <p className="text-lg font-black text-zinc-900 uppercase tracking-widest">
                 {isGratuit ? "Palier : Gratuit" : <>Statut: <span className="text-emerald-600">ACTIF</span></>}
               </p>
@@ -567,7 +572,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
             {!isGratuit && (
               <Button
                 variant="outline"
-                className="h-16 px-10 rounded-[1.5rem] font-black border-slate-200 hover:bg-slate-50 transition-all text-lg shadow-sm"
+                className="h-12 px-8 rounded-2xl font-bold border-zinc-200 hover:bg-zinc-50 transition-all text-sm shadow-sm"
                 onClick={openPortal}
                 disabled={saving}
               >
@@ -577,7 +582,7 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
             )}
             {!isTopTier && (
               <Button
-                className="h-16 px-10 rounded-[1.5rem] font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-100 transition-all hover:scale-105 active:scale-95 text-lg"
+                className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all active:scale-95 text-sm"
                 onClick={() => router.push('/tef-irn/pricing')}
               >
                 {CTA_LABEL[tier]}
@@ -587,13 +592,13 @@ function SubscriptionSection({ profile, openPortal, saving }: any) {
         </CardFooter>
       </Card>
 
-      <Card className="rounded-[2.5rem] border-slate-100 bg-white">
+      <Card className="rounded-3xl border-zinc-100 bg-white">
         <CardHeader className="p-10">
-          <CardTitle className="text-2xl font-black">Historique des transactions</CardTitle>
+          <CardTitle className="text-lg font-black uppercase tracking-tight">Historique des transactions</CardTitle>
           <CardDescription className="font-medium text-lg">Consultez et téléchargez vos justificatifs de paiement.</CardDescription>
         </CardHeader>
-        <CardContent className="p-10 pt-0 flex flex-col items-center justify-center py-20 text-slate-300">
-          <div className="h-20 w-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6">
+        <CardContent className="p-10 pt-0 flex flex-col items-center justify-center py-20 text-zinc-500">
+          <div className="h-20 w-20 bg-zinc-50 rounded-3xl flex items-center justify-center mb-6">
             <CreditCard size={40} className="opacity-20" />
           </div>
           <p className="font-black text-lg">Aucun historique de facturation trouvé.</p>
@@ -615,39 +620,39 @@ function NotificationsSection({ preferences, updatePreferences }: any) {
   ];
 
   return (
-    <Card className="rounded-[2.5rem] border-slate-100 shadow-sm overflow-hidden bg-white">
+    <Card className="rounded-3xl border-zinc-100 shadow-sm overflow-hidden bg-white">
       <CardHeader className="p-8 md:p-12">
-        <CardTitle className="text-3xl font-black">Préférences de Notification</CardTitle>
-        <CardDescription className="font-medium text-lg text-slate-500 mt-1">Personnalisez votre expérience pour rester concentré sur vos objectifs.</CardDescription>
+        <CardTitle className="text-lg font-black uppercase tracking-tight">Préférences de Notification</CardTitle>
+        <CardDescription className="font-medium text-lg text-zinc-500 mt-1">Personnalisez votre expérience pour rester concentré sur vos objectifs.</CardDescription>
       </CardHeader>
       <CardContent className="p-8 md:p-12 pt-0 space-y-12">
         <div className="space-y-8">
-          <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-zinc-50 rounded-[2rem] border border-zinc-100 gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-zinc-50 rounded-3xl border border-zinc-100 gap-6">
             <div className="text-center md:text-left">
-              <p className="font-black text-xl text-zinc-900">Fréquence du résumé</p>
-              <p className="text-slate-500 font-bold mt-1">À quel rythme souhaitez-vous être contacté ?</p>
+              <p className="font-black text-base text-zinc-900">Fréquence du résumé</p>
+              <p className="text-zinc-500 font-bold mt-1">À quel rythme souhaitez-vous être contacté ?</p>
             </div>
             <Select
               value={preferences.frequency}
               onValueChange={(val) => updatePreferences({ frequency: val })}
             >
-              <SelectTrigger className="w-56 h-16 rounded-[1.25rem] border-slate-200 font-black text-lg bg-white px-6 focus:ring-8 focus:ring-indigo-50 shadow-sm">
+              <SelectTrigger className="w-56 h-12 rounded-2xl border-zinc-200 font-bold text-base bg-white px-4 focus:ring-4 focus:ring-indigo-50 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border rounded-[1.5rem] shadow-2xl p-2">
-                <SelectItem value="immediate" className="font-bold h-12 rounded-xl">Instantané</SelectItem>
-                <SelectItem value="daily" className="font-bold h-12 rounded-xl">Quotidien</SelectItem>
-                <SelectItem value="weekly" className="font-bold h-12 rounded-xl">Hebdomadaire</SelectItem>
+              <SelectContent className="bg-white border rounded-3xl shadow-xl p-2">
+                <SelectItem value="immediate" className="font-bold h-12 rounded-2xl">Instantané</SelectItem>
+                <SelectItem value="daily" className="font-bold h-12 rounded-2xl">Quotidien</SelectItem>
+                <SelectItem value="weekly" className="font-bold h-12 rounded-2xl">Hebdomadaire</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-1 gap-2">
             {notificationOptions.map((opt) => (
-              <div key={opt.key} className="flex items-center justify-between p-8 hover:bg-slate-50 transition-all rounded-[2rem] group">
+              <div key={opt.key} className="flex items-center justify-between p-8 hover:bg-zinc-50 transition-all rounded-3xl group">
                 <div className="space-y-1 pr-10">
-                  <p className="font-black text-xl text-zinc-900 group-hover:text-indigo-600 transition-colors">{opt.label}</p>
-                  <p className="text-lg text-slate-500 font-medium leading-snug">{opt.desc}</p>
+                  <p className="font-black text-base text-zinc-900 group-hover:text-indigo-600 transition-colors">{opt.label}</p>
+                  <p className="text-lg text-zinc-500 font-medium leading-snug">{opt.desc}</p>
                 </div>
                 <Switch
                   checked={preferences[opt.key as keyof UserPreferences] as boolean}
@@ -659,7 +664,7 @@ function NotificationsSection({ preferences, updatePreferences }: any) {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-100 flex justify-end">
+        <div className="pt-8 border-t border-zinc-100 flex justify-end">
           <Button
             variant="ghost"
             className="text-red-500 font-black hover:bg-red-50 rounded-2xl h-14 px-8 text-lg"
@@ -732,23 +737,23 @@ function SecuritySection({ supabase, showToast }: any) {
   return (
     <div className="space-y-10">
       {/* Change Password */}
-      <Card className="rounded-[2.5rem] border-slate-100 shadow-sm bg-white">
+      <Card className="rounded-3xl border-zinc-100 shadow-sm bg-white">
         <CardHeader className="p-8 md:p-12">
           <div className="flex items-center gap-4 mb-2">
             <div className="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
               <Key size={28} />
             </div>
-            <CardTitle className="text-3xl font-black">Sécurité du compte</CardTitle>
+            <CardTitle className="text-lg font-black uppercase tracking-tight">Sécurité du compte</CardTitle>
           </div>
-          <CardDescription className="font-medium text-lg text-slate-500">Mettez régulièrement à jour votre mot de passe pour protéger votre accès.</CardDescription>
+          <CardDescription className="font-medium text-lg text-zinc-500">Mettez régulièrement à jour votre mot de passe pour protéger votre accès.</CardDescription>
         </CardHeader>
         <CardContent className="p-8 md:p-12 pt-0">
           <form onSubmit={handlePasswordChange} className="space-y-8 max-w-lg">
             <div className="space-y-3">
-              <Label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Nouveau mot de passe</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Nouveau mot de passe</Label>
               <Input
                 type="password"
-                className="h-16 rounded-[1.25rem] border-slate-200 font-bold text-lg px-6 focus:ring-8 focus:ring-indigo-50 transition-all"
+                className="h-12 rounded-2xl border-zinc-200 font-medium text-base px-4 focus:ring-4 focus:ring-indigo-50 transition-all"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="••••••••••••"
@@ -756,17 +761,17 @@ function SecuritySection({ supabase, showToast }: any) {
               />
             </div>
             <div className="space-y-3">
-              <Label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Confirmer le mot de passe</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Confirmer le mot de passe</Label>
               <Input
                 type="password"
-                className="h-16 rounded-[1.25rem] border-slate-200 font-bold text-lg px-6 focus:ring-8 focus:ring-indigo-50 transition-all"
+                className="h-12 rounded-2xl border-zinc-200 font-medium text-base px-4 focus:ring-4 focus:ring-indigo-50 transition-all"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••••••"
                 required
               />
             </div>
-            <Button disabled={saving} className="bg-zinc-900 hover:bg-zinc-800 text-white font-black h-16 px-12 rounded-[1.5rem] shadow-2xl shadow-zinc-200 transition-all hover:scale-[1.03]">
+            <Button disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm h-12 px-8 rounded-2xl shadow-lg shadow-indigo-200 transition-all">
               {saving ? <Loader2 className="animate-spin mr-2" /> : "Mettre à jour mon mot de passe"}
             </Button>
           </form>
@@ -774,24 +779,24 @@ function SecuritySection({ supabase, showToast }: any) {
       </Card>
 
       {/* Active Sessions */}
-      <Card className="rounded-[2.5rem] border-slate-100 shadow-sm bg-white">
+      <Card className="rounded-3xl border-zinc-100 shadow-sm bg-white">
         <CardHeader className="p-8 md:p-12">
           <div className="flex items-center gap-4 mb-2">
             <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
               <Smartphone size={28} />
             </div>
-            <CardTitle className="text-3xl font-black">Sessions actives</CardTitle>
+            <CardTitle className="text-lg font-black uppercase tracking-tight">Sessions actives</CardTitle>
           </div>
-          <CardDescription className="font-medium text-lg text-slate-500">Gérez vos connexions actives sur vos différents appareils.</CardDescription>
+          <CardDescription className="font-medium text-lg text-zinc-500">Gérez vos connexions actives sur vos différents appareils.</CardDescription>
         </CardHeader>
         <CardContent className="p-8 md:p-12 pt-0">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8 bg-zinc-50 p-10 rounded-[2.5rem] border border-zinc-100">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 bg-zinc-50 p-10 rounded-3xl border border-zinc-100">
             <div className="flex items-center gap-6">
-              <div className="h-16 w-16 bg-white text-emerald-500 rounded-[1.25rem] flex items-center justify-center shadow-xl shadow-zinc-100">
+              <div className="h-16 w-16 bg-white text-emerald-600 rounded-3xl flex items-center justify-center shadow-xl shadow-zinc-100">
                 <Smartphone size={32} />
               </div>
               <div>
-                <p className="font-black text-xl text-zinc-900">Appareil actuel</p>
+                <p className="font-black text-base text-zinc-900">Appareil actuel</p>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="h-2 w-2 bg-emerald-500 rounded-full" />
                   <p className="text-sm text-emerald-600 font-black uppercase tracking-widest">En ligne</p>
@@ -800,7 +805,7 @@ function SecuritySection({ supabase, showToast }: any) {
             </div>
             <Button
               variant="outline"
-              className="rounded-[1.25rem] font-black border-red-100 text-red-500 hover:bg-red-50 h-14 px-8 text-lg"
+              className="rounded-3xl font-black border-red-100 text-red-500 hover:bg-red-50 h-14 px-8 text-lg"
               onClick={handleSignOutAll}
             >
               Déconnecter les autres sessions
@@ -810,25 +815,25 @@ function SecuritySection({ supabase, showToast }: any) {
       </Card>
 
       {/* 2FA */}
-      <Card className="rounded-[2.5rem] border-slate-100 shadow-sm bg-white overflow-hidden">
+      <Card className="rounded-3xl border-zinc-100 shadow-sm bg-white overflow-hidden">
         <CardHeader className="p-8 md:p-12">
           <div className="flex items-center gap-4 mb-2">
-            <div className="h-14 w-14 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center shadow-inner">
+            <div className="h-14 w-14 bg-zinc-50 text-zinc-500 rounded-2xl flex items-center justify-center shadow-inner">
               <Shield size={28} />
             </div>
-            <CardTitle className="text-3xl font-black">Authentification à deux facteurs</CardTitle>
+            <CardTitle className="text-lg font-black uppercase tracking-tight">Authentification à deux facteurs</CardTitle>
           </div>
-          <CardDescription className="font-medium text-lg text-slate-500">Ajoutez une couche de protection ultime pour sécuriser votre compte.</CardDescription>
+          <CardDescription className="font-medium text-lg text-zinc-500">Ajoutez une couche de protection ultime pour sécuriser votre compte.</CardDescription>
         </CardHeader>
         <CardContent className="p-8 md:p-12 pt-0">
-          <div className="flex flex-col md:flex-row items-center justify-between p-10 border-4 border-dashed border-slate-50 rounded-[3rem] bg-slate-50/30 gap-8">
+          <div className="flex flex-col md:flex-row items-center justify-between p-10 border-4 border-dashed border-zinc-50 rounded-3xl bg-zinc-50/30 gap-8">
             <div className="flex items-center gap-6 text-center md:text-left">
-              <div className="h-12 w-12 bg-white text-slate-300 rounded-full flex items-center justify-center shadow-sm">
+              <div className="h-12 w-12 bg-white text-zinc-500 rounded-full flex items-center justify-center shadow-sm">
                 <Shield size={24} />
               </div>
-              <p className="font-bold text-xl text-slate-400 italic">La 2FA n&apos;est pas encore activée sur votre compte.</p>
+              <p className="font-medium text-base text-zinc-500">La 2FA n&apos;est pas encore activée sur votre compte.</p>
             </div>
-            <Button variant="ghost" className="font-black text-indigo-400 bg-white shadow-xl shadow-slate-100 rounded-[1.25rem] h-14 px-8 text-lg cursor-not-allowed" disabled>
+            <Button variant="ghost" className="font-black text-indigo-400 bg-white shadow-xl shadow-zinc-100 rounded-3xl h-14 px-8 text-lg cursor-not-allowed" disabled>
               Arrive très bientôt
             </Button>
           </div>
@@ -836,20 +841,20 @@ function SecuritySection({ supabase, showToast }: any) {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="rounded-[2.5rem] border-red-100 bg-red-50/10 overflow-hidden mt-16">
+      <Card className="rounded-3xl border-red-100 bg-red-50/10 overflow-hidden mt-16">
         <CardHeader className="p-10 md:p-14">
           <div className="flex items-center gap-4 mb-4">
             <div className="h-12 w-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center shadow-sm">
               <AlertTriangle size={24} />
             </div>
-            <CardTitle className="text-3xl font-black text-red-600">Zone de danger</CardTitle>
+            <CardTitle className="text-lg font-black uppercase tracking-tight text-red-600">Zone de danger</CardTitle>
           </div>
-          <CardDescription className="text-red-900/60 font-bold text-xl leading-relaxed">Attention, ces actions sont définitives et entraîneront la perte de toute votre progression.</CardDescription>
+          <CardDescription className="text-red-700 font-medium text-base leading-relaxed">Attention, ces actions sont définitives et entraîneront la perte de toute votre progression.</CardDescription>
         </CardHeader>
         <CardFooter className="p-10 md:p-14 pt-0">
           <Button
             variant="ghost"
-            className="bg-red-50 text-red-600 hover:bg-red-100 font-black h-16 px-10 rounded-[1.5rem] w-full md:w-auto text-lg transition-all"
+            className="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold h-12 px-8 rounded-2xl w-full md:w-auto text-sm transition-all"
             onClick={() => setDeleteConfirmOpen(true)}
           >
             Supprimer mon compte LlamaKusi définitivement
@@ -872,18 +877,18 @@ function SecuritySection({ supabase, showToast }: any) {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative z-10 bg-white rounded-[3rem] p-10 md:p-12 max-w-xl w-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] space-y-10 border border-slate-100"
+              className="relative z-10 bg-white rounded-3xl p-10 md:p-12 max-w-xl w-full shadow-xl space-y-10 border border-zinc-100"
             >
-              <div className="h-24 w-24 bg-red-50 text-red-600 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
+              <div className="h-24 w-24 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
                 <AlertTriangle size={48} />
               </div>
               <div className="text-center space-y-4">
-                <h3 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight">Confirmation requise</h3>
-                <p className="text-slate-500 font-bold text-xl leading-relaxed">Toutes vos leçons, notes, abonnements et résultats seront effacés de nos serveurs. Cette action est irréversible.</p>
+                <h3 className="text-lg font-black uppercase tracking-tight text-zinc-900 leading-tight">Confirmation requise</h3>
+                <p className="text-zinc-500 font-medium text-sm leading-relaxed">Toutes vos leçons, notes, abonnements et résultats seront effacés de nos serveurs. Cette action est irréversible.</p>
               </div>
               <div className="flex flex-col gap-4">
                 <Button
-                  className="bg-red-600 hover:bg-red-700 text-white font-black h-18 rounded-[1.5rem] shadow-2xl shadow-red-100 text-xl"
+                  className="bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest h-12 rounded-2xl text-sm"
                   onClick={handleDeleteAccount}
                   disabled={deleteLoading}
                 >
@@ -892,7 +897,7 @@ function SecuritySection({ supabase, showToast }: any) {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="font-black h-16 rounded-[1.5rem] text-lg text-slate-400 hover:text-zinc-900 hover:bg-zinc-50"
+                  className="font-bold h-12 rounded-2xl text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
                   onClick={() => setDeleteConfirmOpen(false)}
                 >
                   Je change d&apos;avis

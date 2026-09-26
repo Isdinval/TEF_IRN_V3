@@ -389,7 +389,7 @@ export function WritingCoachContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[100dvh] bg-slate-50">
+      <div className="flex items-center justify-center h-[100dvh] bg-zinc-50">
         <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
       </div>
     );
@@ -424,7 +424,7 @@ export function WritingCoachContent() {
   }
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+    <div className="h-[100dvh] overflow-hidden bg-zinc-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
       {/* Bascule mobile : mêmes panneaux, mêmes props/état -- seule leur
           visibilité change sous md, aucune logique dupliquée. */}
       <div className="md:hidden flex shrink-0 border-b border-zinc-200 bg-white">
@@ -432,7 +432,7 @@ export function WritingCoachContent() {
           type="button"
           onClick={() => setMobileTab("redaction")}
           className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
-            mobileTab === "redaction" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-400"
+            mobileTab === "redaction" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-500"
           }`}
         >
           Rédaction
@@ -441,7 +441,7 @@ export function WritingCoachContent() {
           type="button"
           onClick={() => setMobileTab("feedback")}
           className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
-            mobileTab === "feedback" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-400"
+            mobileTab === "feedback" ? "text-indigo-600 border-b-2 border-indigo-600" : "text-zinc-500"
           }`}
         >
           Feedback / Coach
@@ -464,7 +464,7 @@ export function WritingCoachContent() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleBack}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-900 mr-1"
+                className="p-2 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-900 mr-1"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -472,18 +472,18 @@ export function WritingCoachContent() {
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="font-bold text-slate-800 tracking-tight">Coach d'Expression Écrite</h1>
+                <h1 className="font-bold text-zinc-800 tracking-tight">Coach d'Expression Écrite</h1>
                 <div className="flex flex-wrap items-center gap-2 mt-0.5">
                   {exercise.section && (
-                    <Badge className="text-[10px] font-black uppercase tracking-wider text-white bg-indigo-600 border-none">
+                    <Badge className="text-xs font-black uppercase tracking-wider text-white bg-indigo-600 border-none">
                       Section {exercise.section}
                     </Badge>
                   )}
-                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
+                  <Badge variant="outline" className="text-xs font-bold uppercase tracking-wider text-indigo-600 border-indigo-100 bg-indigo-50/50">
                     Niveau {exercise.level}
                   </Badge>
                   {exercise.type_texte && (
-                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 border-zinc-200 bg-zinc-50">
+                    <Badge variant="outline" className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-zinc-200 bg-zinc-50">
                       {TYPE_TEXTE_LABELS[exercise.type_texte] ?? exercise.type_texte}
                     </Badge>
                   )}
@@ -502,15 +502,15 @@ export function WritingCoachContent() {
               autorise le scroll de la page sur mobile dans ce cas précis.
               Une fois le feedback affiché, on retrouve le comportement
               d'origine (hauteur fixe, scroll interne du panneau). */}
-          <main className={`flex-1 overflow-hidden p-6 lg:p-8 bg-[#FAFAFA] ${!feedback ? "max-md:overflow-y-auto" : ""}`}>
+          <main className={`flex-1 overflow-hidden p-6 lg:p-8 bg-zinc-50 ${!feedback ? "max-md:overflow-y-auto" : ""}`}>
             <div className={`max-w-3xl mx-auto h-full flex flex-col gap-6 ${!feedback ? "max-md:h-auto" : ""}`}>
               {correctionError ? (
-                <Card className="rounded-[2rem] border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
+                <Card className="rounded-3xl border-2 border-red-200 bg-red-50/50 p-6 flex items-center gap-4 shrink-0">
                   <AlertTriangle className="text-red-400 shrink-0" size={24} />
                   <p className="text-sm font-bold text-zinc-600">{correctionError}</p>
                 </Card>
               ) : freeCorrectionStatus === 'used' ? (
-                <Card className="rounded-[2rem] border-2 border-amber-200 bg-amber-50/50 p-6 flex items-center gap-4 shrink-0">
+                <Card className="rounded-3xl border-2 border-amber-200 bg-amber-50/50 p-6 flex items-center gap-4 shrink-0">
                   <Lock className="text-amber-500 shrink-0" size={24} />
                   <div className="flex-1 space-y-2">
                     <p className="text-sm font-bold text-zinc-600">
@@ -524,16 +524,16 @@ export function WritingCoachContent() {
                   </div>
                 </Card>
               ) : freeCorrectionStatus === 'available' ? (
-                <Card className="rounded-[2rem] border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
+                <Card className="rounded-3xl border border-indigo-100 bg-indigo-50/40 p-5 flex items-center gap-3 shrink-0">
                   <Lock className="text-indigo-400 shrink-0" size={18} />
-                  <p className="text-xs font-bold text-zinc-500">
+                  <p className="text-sm font-bold text-zinc-500">
                     Il s'agit de votre unique correction IA gratuite sur ce palier. Passez à Essentiel pour une correction illimitée.
                   </p>
                 </Card>
               ) : null}
               <Card className="p-5 border-indigo-100 shadow-sm bg-white shrink-0">
                 <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Sujet à traiter</h3>
-                <p className="text-slate-700 leading-relaxed font-medium">
+                <p className="text-zinc-700 leading-relaxed font-medium">
                   {exercise.instructions}
                 </p>
               </Card>
@@ -556,18 +556,18 @@ export function WritingCoachContent() {
 
         {/* Resizer -- inutile sur mobile (un seul panneau visible à la fois) */}
         <div
-          className="hidden md:block w-1 bg-slate-200 hover:bg-indigo-400 cursor-col-resize transition-colors relative z-20"
+          className="hidden md:block w-1 bg-zinc-200 hover:bg-indigo-400 cursor-col-resize transition-colors relative z-20"
           onMouseDown={startResize}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 bg-white border rounded-full flex items-center justify-center shadow-sm pointer-events-none">
-            <div className="w-0.5 h-4 bg-slate-300 rounded-full mx-0.5" />
-            <div className="w-0.5 h-4 bg-slate-300 rounded-full mx-0.5" />
+            <div className="w-0.5 h-4 bg-zinc-300 rounded-full mx-0.5" />
+            <div className="w-0.5 h-4 bg-zinc-300 rounded-full mx-0.5" />
           </div>
         </div>
 
         {/* Right Side: Feedback Zone */}
         <div
-          className={`h-full bg-[#111827] relative max-md:!w-full ${
+          className={`h-full bg-zinc-900 relative max-md:!w-full ${
             mobileTab === "feedback" ? "block" : "hidden"
           } md:block`}
           style={{ width: `${100 - leftWidth}%` }}
@@ -586,7 +586,7 @@ export function WritingCoachContent() {
 export default function WritingCoach() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-[100dvh] bg-slate-50">
+      <div className="flex items-center justify-center h-[100dvh] bg-zinc-50">
         <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
       </div>
     }>

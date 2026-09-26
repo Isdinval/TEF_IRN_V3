@@ -30,19 +30,19 @@ export function OralStatsCard({ total, levels, successRate, lastScore, weakestCr
 
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-rose-500 flex items-center gap-2">
               <Mic size={14} /> Oral
             </h3>
             <p className="text-xl font-black text-zinc-900 tracking-tight">0 session pratiquée</p>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-dashed border-zinc-100">
             <Mic size={40} className="text-zinc-200 mb-3" />
-            <p className="text-sm font-bold text-zinc-400">Aucune session orale pour l'instant.</p>
-            <p className="text-xs text-zinc-300 mt-1">L'oral se travaille par la pratique régulière, pas par QCM.</p>
+            <p className="text-sm font-bold text-zinc-500">Aucune session orale pour l'instant.</p>
+            <p className="text-sm text-zinc-500 mt-1">L'oral se travaille par la pratique régulière, pas par QCM.</p>
           </div>
 
           <Button
@@ -60,11 +60,11 @@ export function OralStatsCard({ total, levels, successRate, lastScore, weakestCr
   const delta = lastScore != null && successRate != null ? lastScore - successRate : null;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-rose-500 flex items-center gap-2">
               <Mic size={14} /> Oral
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -73,7 +73,7 @@ export function OralStatsCard({ total, levels, successRate, lastScore, weakestCr
             </p>
           </div>
           {successRate != null && (
-            <div className="flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-rose-600">
+            <div className="flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-rose-600">
               Score moyen : {successRate}%
             </div>
           )}
@@ -88,13 +88,13 @@ export function OralStatsCard({ total, levels, successRate, lastScore, weakestCr
         </div>
 
         {delta != null && (
-          <div className="flex items-center gap-2 mb-4 text-xs font-bold text-zinc-500">
+          <div className="flex items-center gap-2 mb-4 text-sm font-bold text-zinc-500">
             {delta > 0 ? (
               <TrendingUp size={14} className="text-emerald-500" />
             ) : delta < 0 ? (
               <TrendingDown size={14} className="text-amber-500" />
             ) : (
-              <Minus size={14} className="text-zinc-400" />
+              <Minus size={14} className="text-zinc-500" />
             )}
             Dernière session : {lastScore}% ({delta > 0 ? "+" : ""}{delta} vs moyenne)
           </div>
@@ -102,7 +102,7 @@ export function OralStatsCard({ total, levels, successRate, lastScore, weakestCr
 
         {weakestCriterion && (
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-rose-50/60 px-4 py-3 mb-6">
-            <p className="text-xs font-bold text-rose-600">
+            <p className="text-sm font-bold text-rose-600">
               Point à travailler : {weakestCriterion.label} ({weakestCriterion.score}%)
             </p>
             <InfoTooltip text={WEAKEST_TOOLTIP} />

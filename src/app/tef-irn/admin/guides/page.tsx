@@ -512,9 +512,9 @@ export default function GuidesAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Guides</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Guides</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {guides.length} guide{guides.length > 1 ? "s" : ""} affiché{guides.length > 1 ? "s" : ""} —{" "}
             <Link href="/tef-irn/guides" className="text-indigo-600 hover:underline font-bold">
               Voir /tef-irn/guides
@@ -533,31 +533,31 @@ export default function GuidesAdmin() {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab("liste")}
-          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "liste" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+          className={`h-9 px-4 rounded-2xl text-sm font-black ${activeTab === "liste" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
         >
           Liste
         </button>
         <button
           onClick={() => setActiveTab("graphe")}
-          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "graphe" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+          className={`h-9 px-4 rounded-2xl text-sm font-black ${activeTab === "graphe" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
         >
           Graphe
         </button>
         <button
           onClick={() => setActiveTab("sante")}
-          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "sante" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+          className={`h-9 px-4 rounded-2xl text-sm font-black ${activeTab === "sante" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
         >
           Santé
         </button>
         <button
           onClick={() => setActiveTab("cannibalisation")}
-          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "cannibalisation" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+          className={`h-9 px-4 rounded-2xl text-sm font-black ${activeTab === "cannibalisation" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
         >
           Cannibalisation
         </button>
         <button
           onClick={() => setActiveTab("liens-externes")}
-          className={`h-9 px-4 rounded-xl text-sm font-black ${activeTab === "liens-externes" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
+          className={`h-9 px-4 rounded-2xl text-sm font-black ${activeTab === "liens-externes" ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
         >
           Liens externes
         </button>
@@ -583,12 +583,12 @@ export default function GuidesAdmin() {
         />
       )}
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={productFilter} onChange={(e) => setProductFilter(e.target.value as any)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={productFilter} onChange={(e) => setProductFilter(e.target.value as any)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les produits</option>
           <option value="tef-irn">TEF IRN</option>
           <option value="examen-civique">Examen civique</option>
         </select>
-        <select value={publishedFilter} onChange={(e) => setPublishedFilter(e.target.value as any)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={publishedFilter} onChange={(e) => setPublishedFilter(e.target.value as any)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Publiés + brouillons</option>
           <option value="true">Publiés</option>
           <option value="false">Brouillons</option>
@@ -599,27 +599,27 @@ export default function GuidesAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {guides.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun guide ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun guide ne correspond à ces filtres.</p>
           )}
           {guides.map((g) => (
             <div key={g.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">
+                  <Badge variant="outline" className="text-xs font-black uppercase">
                     {g.product === "examen-civique" ? "Examen civique" : "TEF IRN"}
                   </Badge>
-                  {g.category && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.category}</Badge>}
-                  {g.level && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.level}</Badge>}
-                  <Badge className={`text-[10px] font-black uppercase border-none ${g.is_published ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+                  {g.category && <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.category}</Badge>}
+                  {g.level && <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{g.level}</Badge>}
+                  <Badge className={`text-xs font-black uppercase border-none ${g.is_published ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
                     {g.is_published ? "Publié" : "Brouillon"}
                   </Badge>
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{g.title}</p>
-                <p className="text-xs text-zinc-400 truncate">/{g.slug}</p>
+                <p className="text-sm text-zinc-500 truncate">/{g.slug}</p>
                 {g.mot_cle_principal && (
-                  <p className="text-[11px] text-indigo-400 truncate">🎯 {g.mot_cle_principal}</p>
+                  <p className="text-sm text-indigo-400 truncate">🎯 {g.mot_cle_principal}</p>
                 )}
               </div>
               <div className="flex gap-2 shrink-0">
@@ -627,23 +627,23 @@ export default function GuidesAdmin() {
                   <Link
                     href={`/${g.product}/guides/${g.slug}`}
                     target="_blank"
-                    className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600"
+                    className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600"
                     title="Voir sur le site"
                   >
                     <ExternalLink size={15} />
                   </Link>
                 ) : (
                   <span
-                    className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-200 cursor-not-allowed"
+                    className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-200 cursor-not-allowed"
                     title="Brouillon non publié : pas encore visible sur le site"
                   >
                     <ExternalLink size={15} />
                   </span>
                 )}
-                <button onClick={() => openEditDialog(g)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(g)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(g.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(g.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -661,52 +661,52 @@ export default function GuidesAdmin() {
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-1">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="p-4 bg-indigo-50 rounded-2xl space-y-2">
               <div className="flex items-center gap-2">
                 <UploadCloud size={16} className="text-indigo-600" />
                 <p className="text-sm font-black text-zinc-900">Importer depuis le skill (JSON + MD)</p>
               </div>
-              <p className="text-xs text-zinc-500">
+              <p className="text-sm text-zinc-500">
                 Sélectionnez le <code>*.json</code> (métadonnées) et le <code>*-content.md</code> (contenu) générés par le skill —
                 chaque fichier pré-remplit sa partie du formulaire, à vérifier avant d'enregistrer.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Métadonnées (.json)</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Métadonnées (.json)</Label>
                   <div
                     onDragOver={(e) => { e.preventDefault(); setJsonDragOver(true); }}
                     onDragLeave={() => setJsonDragOver(false)}
                     onDrop={handleJsonDrop}
-                    className={`mt-1 rounded-xl border-2 border-dashed p-3 text-center transition-colors ${
+                    className={`mt-1 rounded-2xl border-2 border-dashed p-3 text-center transition-colors ${
                       jsonDragOver ? "border-indigo-500 bg-indigo-100" : "border-indigo-200 bg-indigo-50/50"
                     }`}
                   >
-                    <p className="text-[11px] text-zinc-500 mb-1">Glissez le fichier ici ou</p>
-                    <input type="file" accept=".json,application/json" onChange={handleImportJson} className="w-full text-xs" />
+                    <p className="text-sm text-zinc-500 mb-1">Glissez le fichier ici ou</p>
+                    <input type="file" accept=".json,application/json" onChange={handleImportJson} className="w-full text-sm" />
                   </div>
                   {jsonImportStatus && (
-                    <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
+                    <p className="mt-1 flex items-center gap-1 text-sm font-bold text-emerald-600">
                       <CheckCircle2 size={14} /> {jsonImportStatus.name} importé
                     </p>
                   )}
                 </div>
                 <div>
-                  <Label className="text-[10px] font-black uppercase text-zinc-400">Contenu (.md)</Label>
+                  <Label className="text-xs font-black uppercase text-zinc-500">Contenu (.md)</Label>
                   <div
                     onDragOver={(e) => { e.preventDefault(); setMdDragOver(true); }}
                     onDragLeave={() => setMdDragOver(false)}
                     onDrop={handleMdDrop}
-                    className={`mt-1 rounded-xl border-2 border-dashed p-3 text-center transition-colors ${
+                    className={`mt-1 rounded-2xl border-2 border-dashed p-3 text-center transition-colors ${
                       mdDragOver ? "border-indigo-500 bg-indigo-100" : "border-indigo-200 bg-indigo-50/50"
                     }`}
                   >
-                    <p className="text-[11px] text-zinc-500 mb-1">Glissez le fichier ici ou</p>
-                    <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportMd} className="w-full text-xs" />
+                    <p className="text-sm text-zinc-500 mb-1">Glissez le fichier ici ou</p>
+                    <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportMd} className="w-full text-sm" />
                   </div>
                   {mdImportStatus && (
-                    <p className="mt-1 flex items-center gap-1 text-xs font-bold text-emerald-600">
+                    <p className="mt-1 flex items-center gap-1 text-sm font-bold text-emerald-600">
                       <CheckCircle2 size={14} /> {mdImportStatus.name} importé
                     </p>
                   )}
@@ -715,11 +715,11 @@ export default function GuidesAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Produit</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Produit</Label>
               <select
                 value={form.product}
                 onChange={(e) => handleProductChange(e.target.value as Product)}
-                className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
               >
                 <option value="tef-irn">TEF IRN</option>
                 <option value="examen-civique">Examen civique</option>
@@ -728,11 +728,11 @@ export default function GuidesAdmin() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Titre</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Titre</Label>
                 <Input value={form.title} onChange={(e) => handleTitleChange(e.target.value)} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Slug</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Slug</Label>
                 <Input
                   value={form.slug}
                   onChange={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value), slugTouched: true }))}
@@ -743,12 +743,12 @@ export default function GuidesAdmin() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Catégorie</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Catégorie</Label>
                 {form.product === "examen-civique" ? (
                   <select
                     value={form.category}
                     onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                    className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                    className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
                   >
                     <option value="">— Choisir —</option>
                     {CIVIC_GUIDE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -769,21 +769,21 @@ export default function GuidesAdmin() {
                 )}
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Niveau</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Niveau</Label>
                 <Input value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1" placeholder="ex: A2-B1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Type</Label>
-                <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as GuideType }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Type</Label>
+                <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as GuideType }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   {TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Rôle silo</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Rôle silo</Label>
                 <select
                   value={form.siloRole}
                   onChange={(e) => setForm((f) => ({ ...f, siloRole: e.target.value as GuideSiloRole, parentGuideId: "" }))}
-                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                  className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
                 >
                   {SILO_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
@@ -792,13 +792,13 @@ export default function GuidesAdmin() {
 
             {form.siloRole !== "hub" && (
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">
+                <Label className="text-xs font-black uppercase text-zinc-500">
                   Rattaché à ({form.siloRole === "pilier" ? "le hub" : "quel pilier ?"})
                 </Label>
                 <select
                   value={form.parentGuideId}
                   onChange={(e) => setForm((f) => ({ ...f, parentGuideId: e.target.value }))}
-                  className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+                  className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
                 >
                   <option value="">— Aucun (orphelin) —</option>
                   {parentOptionsForForm.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
@@ -808,7 +808,7 @@ export default function GuidesAdmin() {
 
             {editingId && form.siloRole !== "satellite" && (
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">
+                <Label className="text-xs font-black uppercase text-zinc-500">
                   {form.siloRole === "hub" ? "Piliers rattachés" : "Satellites rattachés"} ({selectedChildIds.size})
                 </Label>
                 <Input
@@ -817,15 +817,15 @@ export default function GuidesAdmin() {
                   className="mt-1"
                   placeholder="Filtrer par titre ou slug..."
                 />
-                <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-zinc-200 divide-y divide-zinc-100">
+                <div className="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-zinc-200 divide-y divide-zinc-100">
                   {filteredChildOptions.length === 0 && (
-                    <p className="p-3 text-xs text-zinc-400">Aucun {form.siloRole === "hub" ? "pilier" : "satellite (de ce produit)"} ne correspond.</p>
+                    <p className="p-3 text-sm text-zinc-500">Aucun {form.siloRole === "hub" ? "pilier" : "satellite (de ce produit)"} ne correspond.</p>
                   )}
                   {filteredChildOptions.map((o) => (
                     <label key={o.id} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50 cursor-pointer">
                       <input type="checkbox" checked={selectedChildIds.has(o.id)} onChange={() => toggleChild(o.id)} />
                       <span className="font-bold truncate">{o.title}</span>
-                      <span className="text-xs text-zinc-400 truncate">{o.slug}</span>
+                      <span className="text-sm text-zinc-500 truncate">{o.slug}</span>
                     </label>
                   ))}
                 </div>
@@ -833,22 +833,22 @@ export default function GuidesAdmin() {
             )}
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Description (résumé court)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Description (résumé court)</Label>
               <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="mt-1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">
+              <Label className="text-xs font-black uppercase text-zinc-500">
                 Contenu (markdown) — sections spéciales optionnelles : <code>## Comment LlamaKusi vous aide</code>, <code>## FAQ</code>
               </Label>
               <div className="mt-1 grid grid-cols-2 gap-3">
                 <Textarea
                   value={form.content}
                   onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  className="h-96 font-mono text-xs"
+                  className="h-96 font-mono text-sm"
                   placeholder={"## Introduction\n\nVotre contenu markdown ici..."}
                 />
-                <div className="h-96 overflow-y-auto p-4 rounded-xl border border-zinc-200 bg-zinc-50">
+                <div className="h-96 overflow-y-auto p-4 rounded-2xl border border-zinc-200 bg-zinc-50">
                   <div className="prose prose-sm prose-slate max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content || "*Aperçu du rendu markdown*"}</ReactMarkdown>
                   </div>
@@ -857,7 +857,7 @@ export default function GuidesAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Points clés (un par ligne, affichés en liste à puces)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Points clés (un par ligne, affichés en liste à puces)</Label>
               <Textarea
                 value={form.keyPoints}
                 onChange={(e) => setForm((f) => ({ ...f, keyPoints: e.target.value }))}
@@ -867,7 +867,7 @@ export default function GuidesAdmin() {
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Mot-clé principal (SEO, anti-cannibalisation)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Mot-clé principal (SEO, anti-cannibalisation)</Label>
               <Input
                 value={form.motClePrincipal}
                 onChange={(e) => setForm((f) => ({ ...f, motClePrincipal: e.target.value }))}
@@ -878,7 +878,7 @@ export default function GuidesAdmin() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Variante CTA doux</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Variante CTA doux</Label>
                 <Input
                   value={form.ctaDouxVariant}
                   onChange={(e) => setForm((f) => ({ ...f, ctaDouxVariant: e.target.value }))}
@@ -887,7 +887,7 @@ export default function GuidesAdmin() {
                 />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Variante CTA fort</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Variante CTA fort</Label>
                 <Input
                   value={form.ctaFortVariant}
                   onChange={(e) => setForm((f) => ({ ...f, ctaFortVariant: e.target.value }))}
@@ -896,7 +896,7 @@ export default function GuidesAdmin() {
                 />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Variante &quot;Comment LlamaKusi vous aide&quot;</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Variante &quot;Comment LlamaKusi vous aide&quot;</Label>
                 <Input
                   value={form.aideVariant}
                   onChange={(e) => setForm((f) => ({ ...f, aideVariant: e.target.value }))}
@@ -908,16 +908,16 @@ export default function GuidesAdmin() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Temps de lecture (min)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Temps de lecture (min)</Label>
                 <Input type="number" value={form.readingTime} onChange={(e) => setForm((f) => ({ ...f, readingTime: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Icône (nom lucide-react, optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Icône (nom lucide-react, optionnel)</Label>
                 <Input value={form.icon} onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))} className="mt-1" placeholder="ex: BookOpen" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Parcours lié (optionnel)</Label>
-                <select value={form.parcoursId} onChange={(e) => setForm((f) => ({ ...f, parcoursId: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+                <Label className="text-xs font-black uppercase text-zinc-500">Parcours lié (optionnel)</Label>
+                <select value={form.parcoursId} onChange={(e) => setForm((f) => ({ ...f, parcoursId: e.target.value }))} className="mt-1 w-full h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
                   <option value="">— Aucun —</option>
                   {parcoursOptions.map((p) => <option key={p.id} value={p.id}>{p.nom_parcours}</option>)}
                 </select>
@@ -926,11 +926,11 @@ export default function GuidesAdmin() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">URL image (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">URL image (optionnel)</Label>
                 <Input value={form.imageUrl} onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} className="mt-1" placeholder="https://..." />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Légende image (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Légende image (optionnel)</Label>
                 <Input value={form.imageCaption} onChange={(e) => setForm((f) => ({ ...f, imageCaption: e.target.value }))} className="mt-1" />
               </div>
             </div>
@@ -938,7 +938,7 @@ export default function GuidesAdmin() {
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl">
               <div>
                 <p className="text-sm font-black text-zinc-900">Publié</p>
-                <p className="text-xs text-zinc-400">Visible sur le site si activé, sinon brouillon interne.</p>
+                <p className="text-sm text-zinc-500">Visible sur le site si activé, sinon brouillon interne.</p>
               </div>
               <Switch checked={form.isPublished} onCheckedChange={(v) => setForm((f) => ({ ...f, isPublished: v }))} />
             </div>

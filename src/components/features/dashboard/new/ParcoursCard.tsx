@@ -21,11 +21,11 @@ export function ParcoursCard({ id, slug, level, category, progress }: ParcoursCa
   const router = useRouter();
 
   return (
-    <Card className="group overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl shadow-zinc-200/50 transition-all hover:-translate-y-1">
+    <Card className="group overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-zinc-200/50 transition-all hover:-translate-y-1">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{level} • {category}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">{level} • {category}</p>
             <h3 className="text-xl font-black text-zinc-900 capitalize">{category} {level}</h3>
           </div>
           <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white">
@@ -34,7 +34,7 @@ export function ParcoursCard({ id, slug, level, category, progress }: ParcoursCa
         </div>
 
         <div className="space-y-3">
-          <div className="flex justify-between text-xs font-bold text-zinc-500">
+          <div className="flex justify-between text-sm font-bold text-zinc-500">
             <span>Progression</span>
             <span>{progress.completed || 0}/{progress.total || 0} leçons</span>
           </div>

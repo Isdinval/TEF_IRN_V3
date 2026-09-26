@@ -19,7 +19,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
   const progress = Math.min((xpToday / xpGoal) * 100, 100);
 
   return (
-    <div className="relative mb-6 overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6 shadow-2xl md:p-8">
+    <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6 shadow-2xl md:p-8">
       {/* Decorative Elements */}
       <div className="absolute right-0 top-0 h-64 w-64 translate-x-1/4 -translate-y-1/4 rounded-full bg-indigo-500/10 blur-3xl" />
       <div className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/4 translate-y-1/4 rounded-full bg-violet-500/10 blur-3xl" />
@@ -31,11 +31,11 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2"
           >
-            <span className="rounded-full bg-indigo-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-400 border border-indigo-500/30">
+            <span className="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-black uppercase tracking-widest text-indigo-400 border border-indigo-500/30">
               Tableau de bord
             </span>
             <span className="h-1 w-1 rounded-full bg-zinc-700" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+            <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
               Niveau {level}
             </span>
           </motion.div>
@@ -73,7 +73,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
               </div>
               <div>
                 <div className="text-xl font-black text-white">{streak}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Jours</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-zinc-400">Jours</div>
               </div>
             </div>
 
@@ -84,14 +84,14 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
               </div>
               <div>
                 <div className="text-xl font-black text-white">{xpToday}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">XP du jour</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-zinc-400">XP du jour</div>
               </div>
             </div>
           </div>
 
           <Button
             onClick={() => router.push('/tef-irn/parcours')}
-            className="h-16 w-full rounded-[2rem] bg-indigo-600 px-8 text-base font-black text-white shadow-xl shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:shadow-indigo-600/40 md:w-auto"
+            className="h-16 w-full rounded-3xl bg-indigo-600 px-8 text-base font-black text-white shadow-xl shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:shadow-indigo-600/40 md:w-auto"
           >
             Commencer une session <Play size={18} fill="currentColor" className="ml-2" />
           </Button>
@@ -100,7 +100,7 @@ export function DashboardHeader({ fullName, streak, xpToday, xpGoal, level }: Da
 
       {/* Daily Progress Bar */}
       <div className="mt-8 space-y-3">
-        <div className="flex items-center justify-between px-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+        <div className="flex items-center justify-between px-1 text-xs font-black uppercase tracking-widest text-zinc-400">
           <span className="flex items-center gap-2"><Sparkles size={12} className="text-indigo-400" /> Objectif quotidien</span>
           <span>{xpToday} / {xpGoal} XP</span>
         </div>

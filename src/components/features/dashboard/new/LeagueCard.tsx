@@ -12,10 +12,10 @@ interface LeagueCardProps {
 
 export function LeagueCard({ leagueName, rank, totalMembers }: LeagueCardProps) {
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8 space-y-4">
         <div className="space-y-1">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 flex items-center gap-2">
+          <h3 className="text-xs font-black uppercase tracking-widest text-amber-500 flex items-center gap-2">
             <Trophy size={14} /> Classement
           </h3>
           <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -27,7 +27,7 @@ export function LeagueCard({ leagueName, rank, totalMembers }: LeagueCardProps) 
           <div className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center bg-amber-100 text-amber-600 font-black text-sm">
             #{rank}
           </div>
-          <p className="text-xs font-black text-zinc-900">
+          <p className="text-sm font-black text-zinc-900">
             sur {totalMembers} participant{totalMembers > 1 ? "s" : ""}
           </p>
         </div>

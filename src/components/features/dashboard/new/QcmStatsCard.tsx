@@ -34,10 +34,10 @@ export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, s
   // neuf ou reset) à afficher explicitement plutôt qu'à masquer.
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-purple-500 flex items-center gap-2">
               <ListChecks size={14} /> QCM
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -46,10 +46,10 @@ export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, s
             </p>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-dashed border-zinc-100">
             <ListChecks size={40} className="text-zinc-200 mb-3" />
-            <p className="text-sm font-bold text-zinc-400">Aucun QCM maîtrisé pour l'instant.</p>
-            <p className="text-xs text-zinc-300 mt-1">Entraînez-vous pour voir votre progression ici.</p>
+            <p className="text-sm font-bold text-zinc-500">Aucun QCM maîtrisé pour l'instant.</p>
+            <p className="text-sm text-zinc-500 mt-1">Entraînez-vous pour voir votre progression ici.</p>
           </div>
 
           <Button
@@ -65,11 +65,11 @@ export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, s
   }
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-purple-500 flex items-center gap-2">
               <ListChecks size={14} /> QCM
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -78,7 +78,7 @@ export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, s
             </p>
           </div>
           {successRate != null && (
-            <div className="flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600">
+            <div className="flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-purple-600">
               Score moyen : {successRate}%
               <InfoTooltip text="Moyenne de vos scores sur les exercices QCM que vous avez terminés (sur 100)." />
             </div>
@@ -92,7 +92,7 @@ export function QcmStatsCard({ total, totalAvailable, levels, levelsAvailable, s
             const percent = available > 0 ? Math.round((count / available) * 100) : 0;
             return (
               <div key={lvl} className="space-y-1">
-                <div className="flex justify-between text-xs font-bold text-zinc-500">
+                <div className="flex justify-between text-sm font-bold text-zinc-500">
                   <span>{lvl}</span>
                   <span>{count}{available > 0 ? ` / ${available}` : ""}</span>
                 </div>

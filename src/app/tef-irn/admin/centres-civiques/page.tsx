@@ -196,9 +196,9 @@ export default function CentresCiviquesAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Centres examen civique</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Centres examen civique</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {items.length} centre{items.length > 1 ? "s" : ""} affiché{items.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -222,12 +222,12 @@ export default function CentresCiviquesAdmin() {
       )}
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les statuts</option>
           <option value="actif">Actifs uniquement</option>
           <option value="inactif">Inactifs uniquement</option>
         </select>
-        <select value={produitFilter} onChange={(e) => setProduitFilter(e.target.value)} className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold">
+        <select value={produitFilter} onChange={(e) => setProduitFilter(e.target.value)} className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold">
           <option value="Tous">Tous les produits</option>
           {PRODUITS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
         </select>
@@ -237,30 +237,30 @@ export default function CentresCiviquesAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {items.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun centre ne correspond à ces filtres.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun centre ne correspond à ces filtres.</p>
           )}
           {items.map((c) => (
             <div key={c.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {c.ville && <Badge variant="outline" className="text-[10px] font-black uppercase">{c.ville}</Badge>}
+                  {c.ville && <Badge variant="outline" className="text-xs font-black uppercase">{c.ville}</Badge>}
                   {(c.produits || []).map((p) => (
-                    <Badge key={p} className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">
+                    <Badge key={p} className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">
                       {PRODUITS.find((x) => x.value === p)?.label || p}
                     </Badge>
                   ))}
-                  {!c.actif && <Badge className="text-[10px] font-black uppercase bg-rose-50 text-rose-600 border-none">Inactif</Badge>}
+                  {!c.actif && <Badge className="text-xs font-black uppercase bg-red-50 text-red-600 border-none">Inactif</Badge>}
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{c.nom}</p>
-                <p className="text-xs text-zinc-400 truncate">{c.adresse}</p>
+                <p className="text-sm text-zinc-500 truncate">{c.adresse}</p>
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEditDialog(c)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(c)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(c.id)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(c.id)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -276,48 +276,48 @@ export default function CentresCiviquesAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Identifiant TC (tc_id)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Identifiant TC (tc_id)</Label>
                 <Input type="number" value={form.tc_id} onChange={(e) => setForm((f) => ({ ...f, tc_id: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Nom</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Nom</Label>
                 <Input value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Adresse</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Adresse</Label>
               <Input value={form.adresse} onChange={(e) => setForm((f) => ({ ...f, adresse: e.target.value }))} className="mt-1" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Code postal</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Code postal</Label>
                 <Input value={form.code_postal} onChange={(e) => setForm((f) => ({ ...f, code_postal: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Ville</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Ville</Label>
                 <Input value={form.ville} onChange={(e) => setForm((f) => ({ ...f, ville: e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Latitude (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Latitude (optionnel)</Label>
                 <Input value={form.latitude} onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Longitude (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Longitude (optionnel)</Label>
                 <Input value={form.longitude} onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Produits proposés</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Produits proposés</Label>
               <div className="flex gap-4 mt-2">
                 {PRODUITS.map((p) => (
                   <label key={p.value} className="flex items-center gap-2 text-sm font-bold text-zinc-700">
@@ -330,24 +330,24 @@ export default function CentresCiviquesAdmin() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Email (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Email (optionnel)</Label>
                 <Input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Téléphone (optionnel)</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Téléphone (optionnel)</Label>
                 <Input value={form.telephone} onChange={(e) => setForm((f) => ({ ...f, telephone: e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">URL de contact / inscription</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">URL de contact / inscription</Label>
               <Input value={form.url_contact} onChange={(e) => setForm((f) => ({ ...f, url_contact: e.target.value }))} className="mt-1" />
             </div>
 
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl">
               <div>
                 <p className="text-sm font-black text-zinc-900">Actif</p>
-                <p className="text-xs text-zinc-400">Un centre inactif n'apparaît plus dans la recherche publique.</p>
+                <p className="text-sm text-zinc-500">Un centre inactif n'apparaît plus dans la recherche publique.</p>
               </div>
               <Switch checked={form.actif} onCheckedChange={(v) => setForm((f) => ({ ...f, actif: v }))} />
             </div>

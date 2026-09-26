@@ -25,9 +25,11 @@ export function DashboardSectionNav({ activeSection, onChange }: DashboardSectio
       {DASHBOARD_SECTIONS.map((s) => (
         <button
           key={s.id}
+          type="button"
           onClick={() => onChange(s.id)}
-          className={`shrink-0 rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
-            activeSection === s.id ? s.activeClass : "text-zinc-400 hover:text-zinc-700"
+          aria-pressed={activeSection === s.id}
+          className={`flex h-11 shrink-0 items-center rounded-full px-4 text-xs font-black uppercase tracking-widest transition-all ${
+            activeSection === s.id ? s.activeClass : "text-zinc-500 hover:text-zinc-700"
           }`}
         >
           {s.label}

@@ -279,17 +279,17 @@ function CivicTrainingContent() {
           >
             <div className="space-y-6">
               <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Votre démarche</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500 px-1">Votre démarche</p>
                 <div className="grid grid-cols-3 gap-2">
                   {MENTIONS.map((m) => (
                     <button
                       key={m.value}
                       onClick={() => setMention(m.value)}
-                      className={`py-3 px-2 rounded-2xl font-black text-xs transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                      className={`py-3 px-2 rounded-2xl font-black text-sm transition-all leading-tight text-center ${mention === m.value ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
                     >
                       <div>{m.label}</div>
                       {m.shortLabel && (
-                        <div className={`text-[9px] font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-400"}`}>({m.shortLabel})</div>
+                        <div className={`text-sm font-bold normal-case mt-0.5 ${mention === m.value ? "text-indigo-200" : "text-zinc-500"}`}>({m.shortLabel})</div>
                       )}
                     </button>
                   ))}
@@ -297,13 +297,13 @@ function CivicTrainingContent() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Thématique</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500 px-1">Thématique</p>
                 <div className="flex flex-wrap gap-1.5">
                   {[DEFAULT_THEME, ...THEMES.map((t) => t.value)].map((val) => (
                     <button
                       key={val}
                       onClick={() => setTheme(val)}
-                      className={`px-3 h-7 rounded-xl font-black text-[10px] transition-all ${theme === val ? "bg-zinc-900 text-white" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
+                      className={`px-4 h-11 rounded-full font-black text-sm transition-all ${theme === val ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"}`}
                     >
                       {val === DEFAULT_THEME ? "Toutes" : THEMES.find((t) => t.value === val)?.label}
                     </button>
@@ -312,7 +312,7 @@ function CivicTrainingContent() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Mode</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500 px-1">Mode</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setActiveMode("apprendre")}
@@ -324,7 +324,7 @@ function CivicTrainingContent() {
                     onClick={() => hasDue && setActiveMode("memoriser")}
                     disabled={!hasDue}
                     className={`h-11 rounded-2xl font-black text-sm transition-all ${
-                      !hasDue ? "bg-zinc-100 text-zinc-300 cursor-not-allowed" : activeMode === "memoriser" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"
+                      !hasDue ? "bg-zinc-100 text-zinc-500 cursor-not-allowed" : activeMode === "memoriser" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-white border border-zinc-100 text-zinc-500 hover:bg-zinc-50"
                     }`}
                   >
                     Mémoriser{hasDue ? ` (${dueCount})` : ""}
@@ -333,7 +333,7 @@ function CivicTrainingContent() {
               </div>
 
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{errorMsg}</div>
+                <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-bold">{errorMsg}</div>
               )}
 
               <div className="flex flex-col gap-3">
@@ -399,7 +399,7 @@ function CivicTrainingContent() {
     return (
       <div className="min-h-full bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-8 max-w-md w-full">
-          <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] mx-auto flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+          <div className="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-indigo-200">
             <Trophy size={36} />
           </div>
           <div className="space-y-2">
@@ -408,16 +408,16 @@ function CivicTrainingContent() {
           </div>
           {showCTATef && (
             <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-center space-y-2">
-              <p className="text-xs text-indigo-800 font-bold leading-relaxed">
+              <p className="text-sm text-indigo-800 font-bold leading-relaxed">
                 Créez un compte gratuit pour ne pas perdre cette progression.
               </p>
-              <p className="text-[11px] text-indigo-500 font-medium">
+              <p className="text-sm text-indigo-500 font-medium">
                 Vous préparez aussi le TEF IRN ? Découvrez LlamaKusi.
               </p>
               <Link
                 href="/tef-irn/login?from=examen_civique_srs"
                 onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "entrainement", cta: "creer_compte" })}
-                className="inline-block text-xs font-black text-indigo-600 hover:underline"
+                className="inline-block text-sm font-black text-indigo-600 hover:underline"
               >
                 Créer mon compte gratuitement →
               </Link>
@@ -460,11 +460,10 @@ function CivicTrainingContent() {
         variant="compact"
         title={activeMode === "memoriser" ? "Mémoriser" : activeMode === "erreurs" ? "Révision de vos erreurs" : "Apprendre"}
         badge={mentionLabel(mention)}
-        badgeColor="indigo"
         onBack={() => router.push("/examen-civique")}
         rightElement={
           <div className="text-right">
-            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Progression</div>
+            <div className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-1">Progression</div>
             <div className="text-lg font-black text-zinc-900">{index + 1} / {questions.length}</div>
           </div>
         }
@@ -474,19 +473,19 @@ function CivicTrainingContent() {
         <AnimatePresence mode="wait">
           {step === "learn" && (
             <motion.div key="learn" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full max-w-xl">
-              <Card className="p-8 rounded-[2.5rem] border-none shadow-2xl shadow-zinc-200 bg-white space-y-4">
-                <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-[10px] font-black uppercase">
+              <Card className="p-6 md:p-8 rounded-3xl border border-zinc-100 shadow-sm bg-white space-y-4">
+                <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full px-3 py-1 text-xs font-black uppercase">
                   {THEMES.find((t) => t.value === current?.theme)?.label || current?.theme}
                 </Badge>
                 <h2 className="text-lg font-black text-zinc-900 leading-snug">{current?.question}</h2>
-                <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-800 font-bold text-sm">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 font-bold text-sm">
                   {current?.correct_answer}
                 </div>
                 {current?.explanation && (
-                  <p className="text-sm text-zinc-500 italic leading-relaxed">{current.explanation}</p>
+                  <p className="text-sm text-zinc-500 leading-relaxed">{current.explanation}</p>
                 )}
                 {current?.source_url && (
-                  <a href={current.source_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:underline">
+                  <a href={current.source_url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:underline">
                     Source officielle →
                   </a>
                 )}
@@ -497,7 +496,7 @@ function CivicTrainingContent() {
           {step === "quiz" && (
             <motion.div key="quiz" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full max-w-xl space-y-6">
               <div className="text-center space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Sélectionnez la bonne réponse</p>
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Sélectionnez la bonne réponse</p>
                 <h2 className="text-lg font-black text-zinc-900 leading-snug">{current?.question}</h2>
               </div>
               <div className="grid grid-cols-1 gap-3">
@@ -506,10 +505,10 @@ function CivicTrainingContent() {
                     key={i}
                     disabled={checked}
                     onClick={() => setSelectedOption(opt)}
-                    className={`w-full p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all ${
+                    className={`w-full min-h-11 p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all ${
                       selectedOption === opt ? "border-indigo-600 bg-indigo-50 text-indigo-900" : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300"
                     } ${checked && opt === current?.correct_answer ? "border-emerald-500 bg-emerald-50 text-emerald-900" : ""}
-                      ${checked && selectedOption === opt && opt !== current?.correct_answer ? "border-rose-500 bg-rose-50 text-rose-900" : ""}`}
+                      ${checked && selectedOption === opt && opt !== current?.correct_answer ? "border-red-600 bg-red-50 text-red-700" : ""}`}
                   >
                     {opt}
                   </button>
@@ -518,12 +517,12 @@ function CivicTrainingContent() {
 
               {checked && (
                 <div className="space-y-3">
-                  <div className={`flex items-center gap-2 justify-center p-3 rounded-xl font-bold text-sm ${selectedOption === current?.correct_answer ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                  <div className={`flex items-center gap-2 justify-center p-3 rounded-2xl font-bold text-sm ${selectedOption === current?.correct_answer ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "border border-red-200 bg-red-50 text-red-700"}`}>
                     {selectedOption === current?.correct_answer ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
                     {selectedOption === current?.correct_answer ? "Bonne réponse !" : "Pas tout à fait"}
                   </div>
                   {current?.explanation && (
-                    <p className="text-xs text-zinc-500 italic text-center leading-relaxed px-4">{current.explanation}</p>
+                    <p className="text-sm text-zinc-500 text-center leading-relaxed px-4">{current.explanation}</p>
                   )}
                 </div>
               )}
@@ -542,21 +541,21 @@ function CivicTrainingContent() {
         <div className="max-w-xl mx-auto">
           {step === "learn" && (
             <div className="flex gap-4">
-              <Button onClick={handleSkip} variant="secondary" className="h-12 flex-1 bg-zinc-100 text-zinc-600 font-black rounded-2xl text-sm hover:bg-zinc-200">
+              <Button onClick={handleSkip} variant="secondary" className="h-12 flex-1 bg-white border border-zinc-200 text-zinc-900 font-bold rounded-2xl text-sm hover:bg-zinc-50">
                 Passer
               </Button>
-              <Button onClick={handleReadyForQuiz} className="h-12 flex-[2] bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 text-sm">
+              <Button onClick={handleReadyForQuiz} className="h-12 flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-200 text-sm">
                 Je suis prêt(e), tester ma mémoire <ArrowRight className="ml-2" size={16} />
               </Button>
             </div>
           )}
           {step === "quiz" && !checked && (
-            <Button disabled={!selectedOption} onClick={handleCheck} className="w-full h-12 bg-zinc-900 text-white font-black rounded-2xl text-sm">
+            <Button disabled={!selectedOption} onClick={handleCheck} className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl text-sm shadow-lg shadow-indigo-200 disabled:opacity-50">
               Vérifier
             </Button>
           )}
           {step === "quiz" && checked && (
-            <Button onClick={handleNext} className="w-full h-12 bg-indigo-600 text-white font-black rounded-2xl text-sm">
+            <Button onClick={handleNext} className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-indigo-200 text-sm">
               Continuer <ArrowRight className="ml-2" size={16} />
             </Button>
           )}

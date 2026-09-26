@@ -42,7 +42,7 @@ export default function GuidesCannibalizationView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 text-zinc-400">
+      <div className="flex items-center justify-center h-96 text-zinc-500">
         <Loader2 className="animate-spin mr-2" size={20} /> Recherche de doublons de mot-clé...
       </div>
     );
@@ -84,12 +84,12 @@ export default function GuidesCannibalizationView() {
               </div>
               <div className="space-y-1.5">
                 {group.guides.map((g) => (
-                  <div key={g.id} className="flex items-center gap-2 text-xs">
+                  <div key={g.id} className="flex items-center gap-2 text-sm">
                     <span className="px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500 shrink-0">
                       {g.product}
                     </span>
                     <span className="font-bold truncate">{g.title}</span>
-                    <span className="text-zinc-400 truncate">{g.slug}</span>
+                    <span className="text-zinc-500 truncate">{g.slug}</span>
                   </div>
                 ))}
               </div>
@@ -98,7 +98,7 @@ export default function GuidesCannibalizationView() {
         })}
       </div>
 
-      <p className="text-xs text-zinc-400">
+      <p className="text-sm text-zinc-500">
         Correspondance exacte sur mot_cle_principal (espaces/casse ignorés) uniquement — ne détecte pas les
         mots-clés proches mais non identiques (ex. synonymes, singulier/pluriel).
       </p>

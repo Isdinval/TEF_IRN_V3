@@ -57,10 +57,10 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
     : 0;
 
   return (
-    <Card className="overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-200/50 rounded-[2.5rem] relative">
+    <Card className="overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-200/50 rounded-3xl relative">
       <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <CardContent className="p-8">
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-6">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-100 mb-6">
           <TrendingUp size={14} /> Projection de Score TEF
           <InfoTooltip
             text="Estimation indicative en points TEF IRN (200-499), calculée à partir de la moyenne de vos scores en EE et EO. Ce n'est pas une note officielle."
@@ -81,7 +81,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
             </div>
             {globalEstimate !== null && (
               <div className="text-right">
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-black uppercase tracking-widest">
                   Niveau {levelFromScore(globalEstimate)}
                 </div>
               </div>
@@ -89,7 +89,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-100">
+            <div className="flex justify-between text-xs font-black uppercase tracking-widest text-indigo-100">
               <span>Niveau actuel: {currentLevel}</span>
               <span>Objectif: {goalLevel}</span>
             </div>
@@ -110,7 +110,7 @@ export function ScoreProjection({ currentLevel, goalLevel, skills }: ScoreProjec
               const points = hasData ? toEstimatedPoints(score) : null;
 
               return (
-                <div key={subj} className="flex items-center justify-between text-xs">
+                <div key={subj} className="flex items-center justify-between text-sm">
                   <span className="font-bold text-indigo-100">{SKILL_LABELS[subj]}</span>
                   {subj === "CO" ? (
                     <span className="flex items-center gap-1 text-indigo-200/70 font-bold">

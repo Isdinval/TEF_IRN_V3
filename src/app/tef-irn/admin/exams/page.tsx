@@ -154,9 +154,9 @@ export default function ExamsAdmin() {
     <div className="max-w-6xl mx-auto p-8 pt-12">
       <header className="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
-          <Badge className="bg-slate-900 mb-2">ZONE ADMIN</Badge>
-          <h1 className="text-3xl font-black tracking-tight">Examens blancs</h1>
-          <p className="text-muted-foreground">
+          <Badge className="bg-zinc-900 mb-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest text-white">Zone admin</Badge>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900">Examens blancs</h1>
+          <p className="text-sm font-medium text-zinc-500">
             {exams.length} examen{exams.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -176,36 +176,36 @@ export default function ExamsAdmin() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>
       ) : (
-        <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
           {exams.length === 0 && (
-            <p className="p-8 text-center text-zinc-400 font-bold text-sm">Aucun examen créé pour l'instant.</p>
+            <p className="p-8 text-center text-zinc-500 font-bold text-sm">Aucun examen créé pour l'instant.</p>
           )}
           {exams.map((ex) => (
             <div key={ex.id} className="flex items-start justify-between gap-4 p-5">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase">{ex.slug}</Badge>
-                  {ex.level && <Badge className="text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.level}</Badge>}
-                  {!ex.is_active && <Badge className="text-[10px] font-black uppercase bg-rose-50 text-rose-600 border-none">Inactif</Badge>}
+                  <Badge variant="outline" className="text-xs font-black uppercase">{ex.slug}</Badge>
+                  {ex.level && <Badge className="text-xs font-black uppercase bg-zinc-100 text-zinc-500 border-none">{ex.level}</Badge>}
+                  {!ex.is_active && <Badge className="text-xs font-black uppercase bg-red-50 text-red-600 border-none">Inactif</Badge>}
                 </div>
                 <p className="text-sm font-bold text-zinc-800 truncate">{ex.label}</p>
-                {ex.description && <p className="text-xs text-zinc-400 truncate">{ex.description}</p>}
-                <p className="text-[11px] text-zinc-400">
+                {ex.description && <p className="text-sm text-zinc-500 truncate">{ex.description}</p>}
+                <p className="text-sm text-zinc-500">
                   CO {ex.duration_co}min · CE {ex.duration_ce}min · EE {ex.duration_ee}min · EO {ex.duration_eo}min
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
                 <a
                   href={`/tef-irn/admin/exams/${ex.id}/questions`}
-                  className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600"
+                  className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600"
                   title="Gérer les questions"
                 >
                   <ListChecks size={15} />
                 </a>
-                <button onClick={() => openEditDialog(ex)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-indigo-600">
+                <button onClick={() => openEditDialog(ex)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-indigo-600">
                   <Pencil size={15} />
                 </button>
-                <button onClick={() => handleDelete(ex)} className="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 hover:text-rose-600">
+                <button onClick={() => handleDelete(ex)} className="w-9 h-9 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-red-600">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -221,46 +221,46 @@ export default function ExamsAdmin() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {errorMsg && <div className="p-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">{errorMsg}</div>}
+            {errorMsg && <div className="p-3 rounded-2xl bg-red-50 text-red-700 text-sm font-bold">{errorMsg}</div>}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Libellé</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Libellé</Label>
                 <Input value={form.label} onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))} className="mt-1" placeholder="Examen Blanc 4" />
               </div>
               <div>
-                <Label className="text-xs font-black uppercase text-zinc-400">Slug</Label>
+                <Label className="text-xs font-black uppercase text-zinc-500">Slug</Label>
                 <Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="mt-1" placeholder="exam-4" />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Description</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Description</Label>
               <Textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="mt-1" placeholder="Thématique de l'examen" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Niveau (libre, ex: A2-B1)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Niveau (libre, ex: A2-B1)</Label>
               <Input value={form.level} onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))} className="mt-1" placeholder="A2-B1" />
             </div>
 
             <div>
-              <Label className="text-xs font-black uppercase text-zinc-400">Durées (minutes)</Label>
+              <Label className="text-xs font-black uppercase text-zinc-500">Durées (minutes)</Label>
               <div className="grid grid-cols-4 gap-2 mt-1">
                 <div>
-                  <Label className="text-[10px] text-zinc-400">CO</Label>
+                  <Label className="text-sm text-zinc-500">CO</Label>
                   <Input type="number" value={form.duration_co} onChange={(e) => setForm((f) => ({ ...f, duration_co: parseInt(e.target.value, 10) || 0 }))} />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-400">CE</Label>
+                  <Label className="text-sm text-zinc-500">CE</Label>
                   <Input type="number" value={form.duration_ce} onChange={(e) => setForm((f) => ({ ...f, duration_ce: parseInt(e.target.value, 10) || 0 }))} />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-400">EE</Label>
+                  <Label className="text-sm text-zinc-500">EE</Label>
                   <Input type="number" value={form.duration_ee} onChange={(e) => setForm((f) => ({ ...f, duration_ee: parseInt(e.target.value, 10) || 0 }))} />
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-400">EO</Label>
+                  <Label className="text-sm text-zinc-500">EO</Label>
                   <Input type="number" value={form.duration_eo} onChange={(e) => setForm((f) => ({ ...f, duration_eo: parseInt(e.target.value, 10) || 0 }))} />
                 </div>
               </div>
@@ -269,13 +269,13 @@ export default function ExamsAdmin() {
             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl">
               <div>
                 <p className="text-sm font-black text-zinc-900">Actif</p>
-                <p className="text-xs text-zinc-400">Détermine l'examen proposé par défaut aux candidats.</p>
+                <p className="text-sm text-zinc-500">Détermine l'examen proposé par défaut aux candidats.</p>
               </div>
               <Switch checked={form.is_active} onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))} />
             </div>
 
             {!editingId && (
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-sm text-zinc-500">
                 Un nouvel examen est créé sans questions. Utilisez "Gérer les questions" après création pour en ajouter.
               </p>
             )}

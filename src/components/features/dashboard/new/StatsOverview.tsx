@@ -66,8 +66,8 @@ export function StatsOverview({ studyTime, completedExercises, avgScore, pending
             <div className="space-y-1">
               <p className="text-2xl font-black text-zinc-900">{stat.value}</p>
               <div className="flex flex-col">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{stat.label}</p>
-                 <p className="text-[8px] font-bold text-zinc-300 uppercase tracking-tighter mt-0.5">{stat.detail}</p>
+                 <p className="text-xs font-black uppercase tracking-widest text-zinc-500">{stat.label}</p>
+                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-tighter mt-0.5">{stat.detail}</p>
               </div>
             </div>
           </CardContent>

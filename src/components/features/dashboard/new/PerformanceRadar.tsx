@@ -25,11 +25,11 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
   const practicedCount = data?.length ?? 0;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-8 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-indigo-500 flex items-center gap-2">
               <RadarIcon size={14} /> Analyse de Performance
             </h3>
             <p className="text-xl font-black text-zinc-900 tracking-tight">Radar de Compétences</p>
@@ -38,7 +38,7 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
             <Tooltip>
               <TooltipTrigger
                 aria-label="Plus d'informations"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 transition-colors hover:text-zinc-600"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-500 transition-colors hover:text-zinc-600"
               >
                 <Info size={18} />
               </TooltipTrigger>
@@ -76,15 +76,15 @@ export function PerformanceRadar({ data }: { data?: CompetencyData[] }) {
         <div className="mt-6 flex items-center justify-center gap-6">
            <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-indigo-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Votre score moyen</span>
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Votre score moyen</span>
            </div>
            <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-zinc-200" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Objectif B2</span>
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Objectif B2</span>
            </div>
         </div>
         {practicedCount < SUBJECTS.length && (
-          <p className="mt-4 text-center text-[10px] font-bold text-zinc-400 italic">
+          <p className="mt-4 text-center text-sm font-bold text-zinc-500 italic">
             {practicedCount === 0
               ? "Pratiquez des exercices pour faire apparaître votre radar."
               : "Certaines compétences n'ont pas encore été pratiquées (affichées à 0)."}

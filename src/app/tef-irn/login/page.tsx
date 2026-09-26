@@ -185,7 +185,7 @@ function AuthForm() {
         <h1 className="text-3xl font-black tracking-tight text-zinc-900">
           {forgotPasswordMode ? "Mot de passe oublié" : "Bienvenue"}
         </h1>
-        <p className="text-zinc-500 font-medium italic">
+        <p className="text-zinc-500 font-medium">
           {forgotPasswordMode
             ? "Recevez un lien par email pour le réinitialiser."
             : "Le succès au TEF IRN commence ici."}
@@ -215,7 +215,7 @@ function AuthForm() {
       {forgotPasswordMode ? (
         <form onSubmit={handleForgotPassword} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="forgot-email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+            <Label htmlFor="forgot-email" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Email</Label>
             <Input
               id="forgot-email"
               type="email"
@@ -229,7 +229,7 @@ function AuthForm() {
           </div>
           <Button
             type="submit"
-            className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
+            className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
             disabled={loading}
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : "Envoyer le lien"}
@@ -240,7 +240,7 @@ function AuthForm() {
               setFormMessage(null);
               setForgotPasswordMode(false);
             }}
-            className="w-full text-center text-[11px] font-bold text-zinc-500 hover:text-zinc-700"
+            className="w-full text-center text-sm font-bold text-zinc-500 hover:text-zinc-700"
           >
             ← Retour à la connexion
           </button>
@@ -249,7 +249,7 @@ function AuthForm() {
         <>
           <Button
             variant="outline"
-            className="w-full h-14 bg-white border border-zinc-300 hover:bg-zinc-50 hover:shadow-md text-zinc-700 font-semibold text-[15px] rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
+            className="w-full h-14 bg-white border border-zinc-300 hover:bg-zinc-50 hover:shadow-md text-zinc-700 font-bold text-base rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3"
             onClick={handleGoogleSignIn}
             disabled={googleLoading}
           >
@@ -265,21 +265,21 @@ function AuthForm() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-zinc-100"></span>
             </div>
-            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300">
+            <div className="relative flex justify-center text-xs font-black uppercase tracking-widest text-zinc-500">
               <span className="bg-white px-4">OU</span>
             </div>
           </div>
 
           <Tabs defaultValue={initialTab} className="w-full flex flex-col gap-6">
             <TabsList className="grid w-full grid-cols-2 p-1.5 bg-zinc-100 rounded-2xl h-14">
-              <TabsTrigger value="login" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Connexion</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Inscription</TabsTrigger>
+              <TabsTrigger value="login" className="rounded-2xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Connexion</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-2xl font-bold data-[active]:bg-white data-[active]:shadow-sm">Inscription</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={(e) => handleAuth(e, "signin")} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+                  <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -293,14 +293,14 @@ function AuthForm() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
+                    <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Mot de passe</Label>
                     <button
                       type="button"
                       onClick={() => {
                         setFormMessage(null);
                         setForgotPasswordMode(true);
                       }}
-                      className="text-[10px] font-black text-indigo-600 hover:underline"
+                      className="text-sm font-black text-indigo-600 hover:underline"
                     >
                       Oublié ?
                     </button>
@@ -309,7 +309,7 @@ function AuthForm() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl shadow-xl shadow-zinc-200 transition-all active:scale-[0.98]"
+                  className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
                   disabled={loading}
                 >
                   {loading ? <Loader2 className="animate-spin" size={20} /> : "Se connecter"}
@@ -320,7 +320,7 @@ function AuthForm() {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={(e) => handleAuth(e, "signup")} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email</Label>
+                  <Label htmlFor="signup-email" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -333,20 +333,20 @@ function AuthForm() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Mot de passe</Label>
+                  <Label htmlFor="signup-password" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Mot de passe</Label>
                   <PasswordField id="signup-password" value={password} onChange={setPassword} autoComplete="new-password" />
                   <PasswordStrengthMeter password={password} />
-                  <p className="text-[11px] text-zinc-400 font-medium ml-1">Minimum 6 caractères.</p>
+                  <p className="text-sm text-zinc-500 font-medium ml-1">Minimum 6 caractères.</p>
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 flex items-center gap-3">
                   <ShieldCheck className="text-indigo-600 shrink-0" size={20} />
-                  <p className="text-[11px] text-indigo-700 font-bold leading-tight">
+                  <p className="text-sm text-indigo-700 font-bold leading-tight">
                     Accès immédiat à votre première session de coaching IA gratuite après inscription.
                   </p>
                 </div>
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+                  className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
                   disabled={loading}
                 >
                   {loading ? <Loader2 className="animate-spin" size={20} /> : "Créer mon compte"}
@@ -357,7 +357,7 @@ function AuthForm() {
         </>
       )}
 
-      <p className="text-center text-[10px] text-zinc-400 font-medium px-8 leading-relaxed">
+      <p className="text-center text-sm text-zinc-500 font-medium px-8 leading-relaxed">
         En continuant, vous acceptez nos{" "}
         <Link href="/tef-irn/conditions-utilisation" target="_blank" rel="noopener noreferrer" className="text-zinc-600 underline font-bold">Conditions</Link>{" "}
         et notre{" "}
@@ -427,7 +427,7 @@ export default function AuthPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-[2rem] shadow-2xl flex gap-4"
+              className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-3xl shadow-xl flex gap-4"
             >
               <div className="relative w-24 h-24 shrink-0">
                 <Image
@@ -439,12 +439,12 @@ export default function AuthPage() {
                 />
               </div>
               <div className="min-w-0">
-                <p className="text-white text-base font-bold leading-relaxed mb-2 italic">
+                <p className="text-white text-base font-bold leading-relaxed mb-2">
                   "{testimonial.loginQuote}"
                 </p>
                 <p className="text-white font-bold text-sm">{testimonial.name}</p>
-                <p className="text-zinc-400 text-xs font-medium">{testimonial.role}</p>
-                <p className="text-zinc-500 text-[10px] font-semibold uppercase tracking-wide mt-1">
+                <p className="text-zinc-400 text-sm font-medium">{testimonial.role}</p>
+                <p className="text-zinc-500 text-xs font-bold uppercase tracking-wide mt-1">
                   Profil illustratif
                 </p>
               </div>

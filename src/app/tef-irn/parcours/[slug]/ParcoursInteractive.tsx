@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -140,7 +141,7 @@ export default function ParcoursInteractive({
       </div>
 
       {showLockedBanner && (
-        <div className="max-w-6xl mx-auto px-6 pt-4">
+        <div className="mx-auto max-w-5xl px-4 pt-4 md:px-10 lg:px-12">
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl px-5 py-3.5">
             <Lock size={18} className="shrink-0" />
             <p className="flex-1 text-sm font-bold">
@@ -149,7 +150,7 @@ export default function ParcoursInteractive({
             <button
               onClick={() => setLockedBannerDismissed(true)}
               aria-label="Fermer"
-              className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-amber-700 hover:bg-amber-100 transition-colors"
             >
               <X size={16} />
             </button>
@@ -157,111 +158,66 @@ export default function ParcoursInteractive({
         </div>
       )}
 
-      <div className="relative overflow-hidden bg-zinc-900 py-12 lg:py-16">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-blue/20 rounded-full blur-[120px]" />
-        </div>
-
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-            <div className="flex-1 text-center lg:text-left space-y-8">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md"
-              >
-                <Badge className="bg-indigo-600 text-white border-none rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
-                  {parcours.level}
-                </Badge>
-                <span className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                  PARCOURS {parcours.category}
-                </span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-2xl lg:text-3xl font-black text-white tracking-tighter leading-tight"
-              >
-                {parcours.nom_parcours?.toUpperCase() || `${parcours.category.toUpperCase()} ${parcours.level}`}
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-sm text-zinc-400 max-w-2xl font-medium leading-relaxed italic"
-              >
-                {parcours.objective}
-              </motion.p>
-            </div>
-
-            {user ? (
-               <div className="shrink-0 w-full lg:w-auto">
-                <div className="bg-white/10 backdrop-blur-xl rounded-[3rem] p-10 border border-white/10 shadow-2xl space-y-8">
-                  <div className="text-center space-y-2">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Prêt pour la suite ?</p>
-                    <h3 className="text-lg font-black text-white">Continuez !</h3>
-                  </div>
-                  <Link
-                    href={`/tef-irn/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      size="lg"
-                      className="h-12 px-8 rounded-2xl bg-indigo-600 text-white font-black text-sm hover:bg-indigo-700 shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      Démarrer la leçon <ArrowRight className="ml-2" size={18} />
-                    </Button>
-                  </Link>
+      <div className="mx-auto max-w-5xl px-4 pt-4 md:px-10 md:pt-10 lg:px-12 lg:pt-12">
+        <PageHeader
+          badge={`${parcours.level} · Parcours ${parcours.category}`}
+          title={parcours.nom_parcours || `${parcours.category} ${parcours.level}`}
+          description={parcours.objective || undefined}
+          aside={
+            user ? (
+              <div className="w-full shrink-0 space-y-4 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm md:w-auto">
+                <div className="space-y-1">
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Prêt pour la suite ?</p>
+                  <h3 className="text-lg font-black uppercase tracking-tight text-zinc-900">Continuez !</h3>
                 </div>
-              </div>
-            ) : (
-              <div className="shrink-0 w-full lg:w-auto">
-                <Link href="/tef-irn/login">
-                  <Button
-                    size="lg"
-                    className="h-12 px-8 rounded-2xl bg-brand-blue text-white font-black text-sm hover:bg-brand-blue/90 shadow-2xl shadow-brand-blue/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Essai Gratuit
-                  </Button>
+                <Link
+                  href={`/tef-irn/lessons/${lessonsWithStatus.find(l => l.status === 'next')?.slug || lessonsWithStatus[0].slug}?parcoursId=${parcours.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-12 w-full items-center justify-center rounded-full bg-indigo-600 px-8 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 transition-colors hover:bg-indigo-700"
+                >
+                  Démarrer la leçon <ArrowRight className="ml-2" size={18} aria-hidden />
                 </Link>
               </div>
-            )}
-          </div>
-        </div>
+            ) : (
+              <Link
+                href="/tef-irn/login"
+                className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-indigo-600 px-8 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 transition-colors hover:bg-indigo-700 md:w-auto"
+              >
+                Essai Gratuit
+              </Link>
+            )
+          }
+        />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 mt-10">
+      <div className="mx-auto mt-8 max-w-5xl px-4 md:px-10 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <Card className="md:col-span-2 rounded-[3rem] border-none bg-white p-10 shadow-xl shadow-slate-200/40 border border-slate-50 relative overflow-hidden">
+          <Card className="md:col-span-2 rounded-3xl bg-white p-6 md:p-10 shadow-sm border border-zinc-100 relative overflow-hidden">
             {user ? (
               <div className="space-y-8">
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
-                    <span className="text-xs font-black uppercase tracking-widest text-slate-400">Votre Progression</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Votre Progression</span>
                     <motion.div
                       key={progress?.percent}
                       initial={{ opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="text-2xl font-black text-indigo-600 tracking-tighter"
+                      className="text-2xl font-black text-indigo-600 tracking-tight"
                     >
                       {progress?.percent}%
                     </motion.div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                    <p className="text-sm font-black text-zinc-900 uppercase tracking-tight">
                       {progress?.completed} / {progress?.total}
                     </p>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Leçons terminées</p>
+                    <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">Leçons terminées</p>
                   </div>
                 </div>
-                <div className="h-6 w-full overflow-hidden rounded-full bg-slate-100 p-1">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-indigo-100">
                   <motion.div
-                    className="h-full bg-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]"
+                    className="h-full bg-indigo-600 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${progress?.percent}%` }}
                     transition={{ duration: 1.2, ease: "circOut" }}
@@ -274,11 +230,11 @@ export default function ParcoursInteractive({
                   <Target size={32} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Suivez votre progression</h3>
-                  <p className="text-slate-500 font-medium max-w-sm">Connectez-vous pour enregistrer votre avancée et accéder aux exercices personnalisés.</p>
+                  <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Suivez votre progression</h3>
+                  <p className="text-zinc-500 font-medium max-w-sm">Connectez-vous pour enregistrer votre avancée et accéder aux exercices personnalisés.</p>
                 </div>
                 <Link href="/tef-irn/login">
-                  <Button className="rounded-full px-8 bg-indigo-600 hover:bg-indigo-700 font-bold">
+                  <Button className="h-12 rounded-full px-8 bg-indigo-600 hover:bg-indigo-700 font-black uppercase tracking-widest text-sm">
                     Se connecter
                   </Button>
                 </Link>
@@ -286,18 +242,18 @@ export default function ParcoursInteractive({
             )}
           </Card>
 
-          <Card className="rounded-[3rem] border-none bg-indigo-600 p-10 shadow-2xl shadow-indigo-200/50 flex flex-col justify-center text-white relative overflow-hidden group">
+          <Card className="rounded-3xl border-none bg-indigo-600 p-6 md:p-10 shadow-lg shadow-indigo-100 flex flex-col justify-center text-white relative overflow-hidden">
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-3 opacity-80">
                 <Target size={24} />
                 <span className="text-xs font-black uppercase tracking-widest">Niveau Visé</span>
               </div>
-              <div className="text-3xl font-black tracking-tighter mb-2">{parcours.level}</div>
+              <div className="text-3xl font-black tracking-tight mb-2">{parcours.level}</div>
               <p className="text-sm font-bold opacity-70 leading-tight">
                 Maîtrisez les concepts essentiels du {parcours.category}
               </p>
             </div>
-            <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
+            <div className="absolute -bottom-10 -right-10 opacity-10">
               <Sparkles size={200} />
             </div>
           </Card>
@@ -307,12 +263,12 @@ export default function ParcoursInteractive({
           <section className="space-y-10">
             <div className="flex items-center justify-between px-4">
               <div className="space-y-1">
-                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
                   Programme d'études
                 </h2>
-                <p className="text-slate-400 font-medium italic">Suivez l'ordre recommandé pour une progression optimale.</p>
+                <p className="text-zinc-500 font-medium">Suivez l'ordre recommandé pour une progression optimale.</p>
               </div>
-              <Badge variant="secondary" className="rounded-full font-black text-xs px-5 py-1.5 bg-slate-100 text-slate-600 border-none">
+              <Badge variant="secondary" className="rounded-full font-black text-xs px-5 py-1.5 bg-zinc-100 text-zinc-600 border-none">
                 {allLessons.length} LEÇONS AU TOTAL
               </Badge>
             </div>
@@ -334,10 +290,10 @@ export default function ParcoursInteractive({
           {user && currentVocabLesson && currentVocabLesson.vocab_theme_categories && currentVocabLesson.vocab_theme_categories.length > 0 && (
             <section className="space-y-6">
               <div className="px-4 space-y-1">
-                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
                   Vocabulaire à réviser
                 </h2>
-                <p className="text-slate-400 font-medium italic">Le lexique de votre leçon en cours, à consolider dans le module de révision.</p>
+                <p className="text-zinc-500 font-medium">Le lexique de votre leçon en cours, à consolider dans le module de révision.</p>
               </div>
               {/* Toujours grid-cols-2 (pas conditionné au nombre de thèmes) : une
                   carte seule garde la même largeur de cellule qu'à 2 cartes,
@@ -360,14 +316,14 @@ export default function ParcoursInteractive({
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-[1.25rem] bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-inner">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                       <Sparkles size={24} />
                     </div>
-                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                    <h2 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
                       Entraînement Recommandé
                     </h2>
                   </div>
-                  <p className="text-slate-400 font-medium italic max-w-xl">
+                  <p className="text-zinc-500 font-medium max-w-xl">
                     Des exercices personnalisés basés sur votre parcours et vos performances récentes.
                   </p>
                 </div>
@@ -398,13 +354,13 @@ export default function ParcoursInteractive({
                   )}
                 </div>
               ) : (
-                <div className="bg-white rounded-[3.5rem] p-20 text-center space-y-6 shadow-xl shadow-slate-200/20 border-4 border-dashed border-slate-50">
-                  <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
-                    <BookText size={48} className="text-slate-200" />
+                <div className="bg-white rounded-3xl p-10 md:p-20 text-center space-y-6 border-2 border-dashed border-zinc-200">
+                  <div className="w-24 h-24 rounded-full bg-zinc-50 flex items-center justify-center mx-auto mb-4">
+                    <BookText size={48} className="text-zinc-200" />
                   </div>
                   <div className="space-y-2">
-                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Pas encore de recommandations</h3>
-                     <p className="text-sm font-medium text-slate-400 max-w-md mx-auto">
+                     <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight">Pas encore de recommandations</h3>
+                     <p className="text-sm font-medium text-zinc-500 max-w-md mx-auto">
                       Terminez quelques leçons pour que notre IA puisse vous proposer des exercices adaptés !
                      </p>
                   </div>
@@ -414,30 +370,30 @@ export default function ParcoursInteractive({
           )}
 
           <section>
-            <Card className="rounded-[4rem] border-none bg-zinc-900 p-8 md:p-14 text-white overflow-hidden relative group">
+            <Card className="rounded-3xl border-none bg-zinc-900 p-8 md:p-14 text-white overflow-hidden relative group">
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                 <div className="space-y-8">
                   <Badge className="bg-white/10 text-white border-white/20 rounded-full px-6 py-2 text-xs font-black uppercase tracking-widest">
                     Ressource d'Expert
                   </Badge>
                   <div className="space-y-4">
-                    <h3 className="font-black text-2xl md:text-3xl leading-tight tracking-tighter">
+                    <h3 className="font-black text-2xl md:text-3xl leading-tight tracking-tight">
                       Besoin <br />
-                      <span className="text-indigo-500">d'aide ?</span>
+                      <span className="text-indigo-400">d'aide ?</span>
                     </h3>
                     <p className="text-sm text-zinc-400 leading-relaxed max-w-lg font-medium">
                       Accédez à notre guide complet sur la <span className="text-white underline decoration-indigo-500 underline-offset-4 capitalize">{parcours.category} {parcours.level}</span> pour maîtriser toutes les subtilités de l'examen.
                     </p>
                   </div>
                   <Link href={initialGuideSlug ? `/tef-irn/guides/${initialGuideSlug}` : "/tef-irn/guides"} className="block w-fit">
-                    <Button variant="outline" className="h-12 px-8 bg-white/10 border-zinc-700 text-white hover:bg-white hover:text-black rounded-2xl font-black text-sm transition-all group shadow-2xl">
+                    <Button variant="outline" className="h-12 px-8 bg-white/10 border-zinc-700 text-white hover:bg-white hover:text-zinc-900 rounded-2xl font-black uppercase tracking-widest text-sm transition-all group">
                       {initialGuideSlug ? "Voir le guide complet" : "Parcourir les guides"}
                       <ArrowRight className="ml-2 transition-transform group-hover:translate-x-2" size={18} />
                     </Button>
                   </Link>
                 </div>
                 <div className="hidden lg:flex justify-center relative">
-                    <div className="w-80 h-80 rounded-[3.5rem] bg-indigo-600 flex items-center justify-center rotate-6 shadow-2xl shadow-indigo-500/40 relative z-10 group-hover:rotate-3 transition-transform duration-500">
+                    <div className="w-80 h-80 rounded-3xl bg-indigo-600 flex items-center justify-center rotate-6 shadow-lg relative z-10 group-hover:rotate-3 transition-transform duration-500">
                       <BookText size={140} className="-rotate-6 group-hover:-rotate-3 transition-transform duration-500" />
                     </div>
                 </div>

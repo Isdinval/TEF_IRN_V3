@@ -20,19 +20,19 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
 
   if (!total || total === 0) {
     return (
-      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+      <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
         <CardContent className="p-8">
           <div className="mb-6 space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-sky-500 flex items-center gap-2">
               <PenTool size={14} /> Écrit (EE)
             </h3>
             <p className="text-xl font-black text-zinc-900 tracking-tight">0 session pratiquée</p>
           </div>
 
-          <div className="flex flex-col items-center justify-center p-8 text-center rounded-[2rem] border-2 border-dashed border-zinc-100">
+          <div className="flex flex-col items-center justify-center p-8 text-center rounded-3xl border-2 border-dashed border-zinc-100">
             <PenTool size={40} className="text-zinc-200 mb-3" />
-            <p className="text-sm font-bold text-zinc-400">Aucune session d'expression écrite pour l'instant.</p>
-            <p className="text-xs text-zinc-300 mt-1">Rédigez un texte pour voir votre progression ici.</p>
+            <p className="text-sm font-bold text-zinc-500">Aucune session d'expression écrite pour l'instant.</p>
+            <p className="text-sm text-zinc-500 mt-1">Rédigez un texte pour voir votre progression ici.</p>
           </div>
 
           <Button
@@ -50,11 +50,11 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
   const delta = lastScore != null && successRate != null ? lastScore - successRate : null;
 
   return (
-    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-[2.5rem]">
+    <Card className="overflow-hidden border-none bg-white shadow-xl shadow-zinc-200/50 rounded-3xl">
       <CardContent className="p-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 flex items-center gap-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-sky-500 flex items-center gap-2">
               <PenTool size={14} /> Écrit (EE)
             </h3>
             <p className="flex items-center gap-2 text-xl font-black text-zinc-900 tracking-tight">
@@ -63,20 +63,20 @@ export function EEStatsCard({ total, successRate, lastScore }: EEStatsCardProps)
             </p>
           </div>
           {successRate != null && (
-            <div className="flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sky-600">
+            <div className="flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-xs font-black uppercase tracking-widest text-sky-600">
               Score moyen : {successRate}%
             </div>
           )}
         </div>
 
         {delta != null && (
-          <div className="flex items-center gap-2 mb-6 text-xs font-bold text-zinc-500">
+          <div className="flex items-center gap-2 mb-6 text-sm font-bold text-zinc-500">
             {delta > 0 ? (
               <TrendingUp size={14} className="text-emerald-500" />
             ) : delta < 0 ? (
               <TrendingDown size={14} className="text-amber-500" />
             ) : (
-              <Minus size={14} className="text-zinc-400" />
+              <Minus size={14} className="text-zinc-500" />
             )}
             Dernière session : {lastScore}% ({delta > 0 ? "+" : ""}{delta} vs moyenne)
           </div>

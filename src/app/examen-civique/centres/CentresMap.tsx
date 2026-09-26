@@ -108,7 +108,7 @@ export function CentresMap({
        d'empilement dédié, ce 1000 rivalise directement avec les éléments applicatifs
        (ex. MobileDrawer à z-[110]/[120]) et passe au-dessus. `isolate` crée ce contexte
        ici : le 1000 interne à Leaflet reste plafonné à l'intérieur de ce conteneur. */
-    <div className="isolate h-[65vh] min-h-[420px] w-full overflow-hidden rounded-[2rem] border border-zinc-100 shadow-sm">
+    <div className="isolate h-[65vh] min-h-[420px] w-full overflow-hidden rounded-3xl border border-zinc-100 shadow-sm">
       <MapContainer center={FRANCE_CENTER} zoom={FRANCE_DEFAULT_ZOOM} scrollWheelZoom className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -124,7 +124,7 @@ export function CentresMap({
             />
             <Marker position={[activeGeo.lat, activeGeo.lon]} icon={searchOriginIcon} zIndexOffset={1000}>
               <Popup>
-                <p className="text-xs font-black text-zinc-900">{activeGeo.label}</p>
+                <p className="text-sm font-black text-zinc-900">{activeGeo.label}</p>
               </Popup>
             </Marker>
           </>
@@ -133,7 +133,7 @@ export function CentresMap({
           {markers.map((centre) => (
             <Marker key={centre.id} position={[centre.latitude as number, centre.longitude as number]} icon={markerIcon}>
               <Popup>
-                <div className="min-w-[200px] text-xs">
+                <div className="min-w-[200px] text-sm">
                   <p className="text-sm font-black text-zinc-900">{centre.nom}</p>
                   <p className="mt-1 text-zinc-500">{centre.adresse}</p>
                   {centre.distanceKm !== undefined && (
@@ -143,7 +143,7 @@ export function CentresMap({
                     {centre.produits.map((p) => (
                       <span
                         key={p}
-                        className="rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-black uppercase text-zinc-500"
+                        className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-black uppercase text-zinc-500"
                       >
                         {PRODUIT_LABELS[p] ?? p}
                       </span>

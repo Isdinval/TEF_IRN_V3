@@ -4,9 +4,10 @@
 > Vitrine visuelle (Claude Design, privée) : https://claude.ai/artifact/U6NuuHqLuDxidH6F9nfXyG — elle reflète ce document, qui fait foi en cas d'écart.
 > Ce document fixe des règles déjà tranchées. En cas de doute, on reproduit la **page de référence** : le catalogue Expression Orale (`/tef-irn/oral`), jugé idéal par le fondateur.
 
-Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
-- la landing page ;
-- les pages de détail de guide (en-tête éditorial `GuideDetail` / `CivicGuideDetail`) ;
+Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Quatre univers ont leur propre style et ne suivent **pas** ces règles d'en-tête :
+- la landing page et les pages vitrine qui en reprennent le style (« Notre histoire » : jetons `brand-blue` / `brand-gold`, mode sombre, pied de page public) ;
+- les **guides** (catalogue et détail : héros éditorial, en-tête `GuideDetail` / `CivicGuideDetail`, couleur d'accent propre — bleu pour les guides TEF IRN, indigo pour les guides civiques). Seules les règles de gris, typographie (§3), rayons/ombres (§4), tactile et contraste s'y appliquent ;
+- l'**admin** (`/tef-irn/admin/*`, outil interne) : il garde son en-tête compact « Zone admin » (badge sombre = marqueur de zone), sa densité de tableaux et les couleurs de ses visualisations (graphe des guides) ; seules les règles de gris, états (rouge = suppression / inactif), typographie, rayons et contraste s'y appliquent ;
 - le simulateur d'examen blanc (tokens `--exam-*` de `globals.css`, esthétique « copie d'examen »).
 
 ---
@@ -37,7 +38,7 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 | Fonds | `white`, `zinc-50` | Cartes (`white`) sur fond de page (`zinc-50/50`) |
 | **Succès** | `emerald-50` (fond) / `emerald-600` (icône, barre) / `emerald-700` (texte) | Terminé, réponse correcte, objectif atteint |
 | **Attention** | `amber-50` (fond) / `amber-600` (icône, barre) / `amber-700` (texte) | Quota bientôt atteint, point à revoir |
-| **Erreur** | `red-50` / `red-200` / `red-600` | Erreur de chargement, réponse fausse, action destructive |
+| **Erreur** | `red-50` / `red-200` / `red-600` (texte `red-700` sur fond `red-50`) | Erreur de chargement, réponse fausse, action destructive, **enregistrement micro en cours** (convention « REC »), chronomètre presque écoulé |
 
 ### 2.2 Interdits (nouveau code)
 
@@ -45,6 +46,10 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 - ❌ Couleurs décoratives : `violet`, `purple`, `rose`, `orange`, `blue`, `green`, etc. Une couleur doit **signifier** quelque chose (accent ou état).
 - ❌ Une couleur différente par compétence, par niveau ou par catégorie. Le niveau (A1–B2) et la compétence (CE/CO/EE/EO) s'affichent en **texte** (badge neutre ou indigo), pas en couleur.
 - ❌ Plus de 3 couleurs visibles dans un même écran, hors neutres.
+- ❌ Une couleur par type d'erreur (grammaire, conjugaison…). Les erreurs surlignées dans un texte de l'apprenant sont toutes en **attention** (`amber`), l'élément actif en indigo ; le type s'écrit dans la fiche de l'erreur.
+- ❌ `rose-*` pour un état : utiliser `red-*` (erreur) ou `amber-*` (attention).
+- ❌ Une couleur par section, compétence ou catégorie **en dehors de la palette d'identification du §2.6** (et de ses emplacements autorisés).
+- ❌ Dégradés décoratifs (`bg-gradient-*`) et lueurs (`shadow-[0_0_…]`), sauf la carte sombre de mise en avant (§2.6).
 
 > Règle 60-30-10 : ~60 % de fond neutre, ~30 % de texte et de gris, ~10 % d'indigo.
 
@@ -58,6 +63,70 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 ### 2.4 Écart connu à ne pas reproduire
 
 Le token shadcn `--primary` de `globals.css` vaut `#002395` (bleu de marque historique). Un `<Button>` sans classe de couleur s'affiche donc en bleu marine, pas en indigo. **Toujours** préciser `bg-indigo-600 hover:bg-indigo-700` sur un bouton principal.
+
+### 2.5 Écarts tolérés
+
+- Éditeur Expression Écrite (`writing/page.tsx`, `ZoneRedaction.tsx`) : ses panneaux redimensionnables utilisent `max-md:` pour forcer la pleine largeur sur mobile. Toléré tant que la mise en page n'est pas refondue ; ne pas reproduire ailleurs.
+- Barre de navigation mobile (`MobileBottomNav`) : libellés en casse normale à 12 px (`text-xs`), faute de place pour 5 onglets.
+- Panneaux sombres (analyse orale, feedback EE) : sur fond `zinc-900`/`zinc-950`, le texte secondaire reste en `zinc-400` (le `zinc-500` y serait moins lisible).
+
+
+### 2.6 Couleurs d'identification ⭐
+
+Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une compétence ou une section. Ce ne sont ni des accents ni des états.
+
+**Emplacements autorisés, et seulement ceux-là** :
+
+| Emplacement | Classes |
+|---|---|
+| Pastille d'icône | `bg-{c}-50 text-{c}-600` (ou `-700`) |
+| Barre de carte | `border-l-4 border-l-{c}-500` (ou `border-t-4`) |
+| Badge de catégorie | `rounded-full bg-{c}-50 text-{c}-700 text-xs font-black uppercase` |
+| Puce de filtre | `h-2.5 w-2.5 rounded-full bg-{c}-500` devant le libellé |
+| Volet de section (tableau de bord) | `border-l-8 border-{c} bg-{c}-50/40` + badge de section `bg-{c}` |
+
+❌ Jamais sur un bouton, un titre, du texte courant ou le fond plein d'une carte. Le bouton d'action reste indigo.
+
+**Catégories de leçon et d'exercice** — source unique : `src/lib/category-identity.ts` (`identityOf(category)` renvoie barre, pastille, badge, puce et icône). Ne jamais recopier ces classes dans un composant : une catégorie a la même couleur et la même icône sur tout le site (catalogue des leçons, catalogues QCM / Chasse aux erreurs, bandeau d'exercice, cartes du détail de parcours).
+
+| Catégorie | Couleur | Icône |
+|---|---|---|
+| Grammaire | `emerald` | `BookText` |
+| Conjugaison | `blue` | `Clock` |
+| Syntaxe | `violet` | `ListTree` |
+| Vocabulaire | `amber` | `Languages` |
+| Orthographe | `rose` | `SpellCheck` |
+
+**Compétences (tableau de bord)** : Parcours `violet`, QCM `purple`, Chasse aux erreurs `indigo`, Vocabulaire `emerald`, Expression Écrite `sky`, Expression Orale `rose`, Examen (compte à rebours) `rose`.
+
+**Sections du tableau de bord** : Aujourd'hui `amber`, Ma progression `violet`, Analyse détaillée `zinc-900`.
+
+**Espaces de navigation** : l'espace Examen Civique est en `blue` dans la barre latérale et la navigation mobile (groupe de menu, section, onglet actif), l'espace TEF IRN en `indigo`.
+
+**Examen Civique** : sections de l'accueil civique — Progression `emerald`, Démarche `violet`, Étapes `indigo`, Historique `zinc-900` ; parties du Livret du citoyen — une couleur par partie (`PART_THEME` de `LivretReader.tsx`), libellés en `-600`/`-700` pour le contraste.
+
+**Carte sombre de mise en avant** : une seule par page, `bg-zinc-900` (dégradé `from-zinc-900 via-zinc-800` et halos tolérés), texte blanc, libellés `zinc-400`. Exemples : en-tête du tableau de bord, carte « Besoin d'aide ? » d'un parcours.
+
+Une couleur d'identification ne dit rien de l'état : un état (« Terminé », « À revoir ») porte toujours son libellé et sa couleur d'état (§2.1).
+
+`design:check` n'autorise ces couleurs que dans les fichiers qui portent une palette d'identification (liste dans `scripts/design-check.mjs` ; `src/lib/` n'est pas contrôlé).
+
+
+### 2.7 Mode examen ⭐
+
+Les écrans qui simulent l'épreuve ont un style **volontairement distinct** de LlamaKusi : papier crème (`--exam-paper`), filets (`--exam-line`), mise en page proche de l'examen réel. Objectif : l'apprenant sent qu'il change de mode et « passe en mode sérieux ».
+
+| Écran | Chemin |
+|---|---|
+| Examen blanc TEF IRN (accueil et passage) | `src/app/tef-irn/exam/` |
+| Mini-test TEF IRN gratuit | `src/app/tef-irn/exercice-gratuit/` |
+| Examen blanc civique | `src/app/examen-civique/examen-blanc/` |
+
+L'écran de configuration de l'examen blanc civique (avant le départ du chronomètre) utilise l'en-tête commun `ExerciseLayout` : c'est encore un écran LlamaKusi, le mode examen commence au lancement de l'épreuve.
+
+- On **n'applique pas** la ligne directrice LlamaKusi à ces écrans (couleurs, en-tête, cartes, typographie).
+- Seules des corrections d'accessibilité bloquantes (contraste, clavier) peuvent y être faites, au cas par cas et validées avant.
+- `design:check` ignore ces chemins.
 
 ---
 
@@ -74,8 +143,16 @@ Polices déjà configurées : **Montserrat** (`font-heading`) et **Inter** (`fon
 | Titre de carte (H3) | `text-base md:text-lg font-bold text-zinc-900` (carte mise en avant : `text-2xl font-black tracking-tight`) | |
 | Description d'en-tête | `max-w-2xl text-base md:text-lg font-medium leading-relaxed text-zinc-500` | |
 | Texte courant | `text-sm md:text-base font-medium text-zinc-600` | |
-| Micro-label | `text-[10px] font-black uppercase tracking-widest text-zinc-500` | « Section », « Niveau », « Mise en situation »… |
+| Texte secondaire (métadonnées, aides, sous-titres) | `text-sm font-medium text-zinc-500` | 14 px : jamais plus petit pour du texte en casse normale. |
+| Micro-label | `text-xs font-black uppercase tracking-widest text-zinc-500` | 12 px, **toujours en capitales**. « Section », « Niveau », « Mise en situation »… |
 | Chiffre clé (KPI) | `text-3xl font-black text-zinc-900` | |
+
+Tailles : **uniquement l'échelle Tailwind** (`text-xs` à `text-5xl`). Deux planchers :
+- **12 px (`text-xs`)** : réservé à ce qui est en capitales (micro-labels, boutons `uppercase`) et aux badges (`rounded-full`).
+- **14 px (`text-sm`)** : minimum pour tout texte en casse normale (métadonnées, aides, sous-titres, dates…).
+
+❌ Plus de `text-[10px]` ni aucune taille arbitraire en `px`, pas de `text-[clamp(...)]` : une taille qui grandit avec l'écran s'écrit `text-2xl md:text-4xl`.
+Police : celle du thème (`font-sans`, définie une seule fois dans le layout). ❌ Pas de police locale à une page.
 
 ### 3.2 Graisses : 3 niveaux, pas plus
 
@@ -160,6 +237,8 @@ Prop optionnelle `aside` : élément affiché à droite sur desktop, en dessous 
 
 Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de taille et de couleur. Il n'a **pas de marge externe** : l'espace de 32 px sous l'en-tête est fourni par la page (conteneur `flex flex-col gap-8`, ou `mb-8` autour du composant). Pour changer l'en-tête de **toutes** les pages, on modifie ce fichier, jamais une page.
 
+`ExerciseLayout` (variante `full`, pages QCM, Chasse aux erreurs, Vocabulaire, Examen Civique) délègue à `PageHeader` : même rendu, props `title` + `highlight`. Sa variante `compact` est la barre collante **pendant** un exercice, pas un en-tête de page.
+
 ### 5.3 Règles
 
 - Badge : 1 à 3 mots, sans emoji, texte saisi normalement (la classe gère les majuscules).
@@ -179,7 +258,7 @@ Le composant (`src/components/shared/PageHeader.tsx`) porte seul les classes de 
 | Badge d'en-tête | géré par `PageHeader` (§5.2) |
 | Badge accent (« Conseillé », « En cours ») | `rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-bold text-white` |
 | Badge neutre (niveau, format, compteur) | `rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-600` |
-| Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-[10px] font-black uppercase tracking-widest` |
+| Badge contour (métadonnée sur fond coloré) | `variant="outline"` + `border-indigo-200 bg-white text-xs font-black uppercase tracking-widest` |
 | Badge d'état | `bg-emerald-50 text-emerald-700`, `bg-amber-50 text-amber-700` ou `bg-red-50 text-red-600` |
 
 Badges de carte (format + niveau) :
@@ -206,7 +285,7 @@ Un badge doit être **compréhensible sans explication**. Exemple : « Conseill�
 - Fond `bg-white`, `rounded-3xl`, `p-6`, bordure `border-zinc-100` ou ombre (pas les deux fortes).
 - Structure interne : micro-label → titre → 1 à 2 lignes d'info → action. Maximum **4 informations** visibles par carte.
 - Carte mise en avant (ex. « Reprendre ») : **une seule par page**, `border-2 border-indigo-600 bg-indigo-50/60`.
-- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3. La navigation se fait par un `<Link>` Next.js (clavier, préchargement, nouvel onglet), jamais par `onClick` + `router.push` sur une `div`. Pas de `<Button>` dans un lien : l'action visible est une simple étiquette (`<span>`).
+- Une carte cliquable l'est entièrement (toute la surface est le lien), avec l'effet de survol du §4.3. La navigation se fait par un `<Link>` Next.js (clavier, préchargement, nouvel onglet), jamais par `onClick` + `router.push` sur une `div`. Pas de `<Button>` dans un lien : l'action visible est une simple étiquette (`<span>`). Si la carte **déclenche une action** sans changer de page (ex. démarrer une session EE/EO), le bouton d'action de la carte est le seul élément interactif et il est étendu à toute la carte (`relative` sur la carte, `after:absolute after:inset-0` sur le bouton) : jamais d'`onClick` sur la carte elle-même.
 
 ### 6.4 Progression
 
@@ -236,11 +315,23 @@ Chaque bloc qui charge des données gère ses 3 états :
 |---|---|
 | En-tête de page (badge + titre + description) | `src/components/shared/PageHeader.tsx` |
 | Bandeau KPI d'une page admin | `src/components/shared/AdminKpiBand.tsx` |
-| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` ⚠️ non conforme (couleur par page rose/bleu/vert, pas d'`aria`) : à mettre en conformité avant toute nouvelle réutilisation |
+| Barre de progression parcours | `src/components/shared/ParcoursProgressBar.tsx` |
 | Pagination de catalogue | `src/components/shared/CataloguePagination.tsx` |
 | Badge de quota d'exercices | `src/components/shared/ExerciseQuotaBadge.tsx` |
 | Quota journalier CE/CO | `src/components/shared/ComprehensionDailyQuotaBadge.tsx` |
 | Composants de base | `src/components/ui/*` (shadcn, **ne pas modifier**) |
+
+
+### 6.8 Écran d'exercice (pendant la question)
+
+S'applique à QCM, Chasse aux erreurs, Vocabulaire, CE/CO et à tout futur exercice :
+
+- Barre du haut : `ExerciseLayout` variante `compact` (badge indigo, bouton retour 44 px).
+- Contexte : `ExerciseContextHeader` (fil d'Ariane, badges niveau indigo + catégorie et difficulté **neutres**).
+- Carte de question : `rounded-3xl border border-zinc-100 bg-white shadow-sm`, **sans halo**.
+- Réponses cliquables : 44 px minimum, `rounded-2xl` ; sélection = indigo ; après validation : bonne réponse `emerald`, mauvaise `red`.
+- Une seule action principale à la fois (« Vérifier », puis « Question suivante ») : bouton indigo `font-black uppercase tracking-widest`.
+- Retour après réponse : carte d'état claire (`emerald-50`/`emerald-700` ou `red-50`/`red-700`, bordure `-200`), explication en texte courant, **sans italique ni guillemets**.
 
 ---
 
@@ -267,7 +358,7 @@ Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:
 | **Barre de parcours** (`ParcoursTopBar`) | Version compacte empilée. | Version complète sur une ligne. |
 | **Marges de page** | `p-4` (16 px) sur les côtés. | `lg:p-12` (48 px), contenu centré `max-w-5xl`. |
 | **En-tête de page** (`PageHeader`) | Titre 36 px ; élément `aside` **sous** la description. | Titre 48 px ; `aside` **à droite**, aligné en bas. |
-| **Texte** | Courant 14 px, description 16 px. Jamais sous 12 px (sauf micro-labels 10 px). | Courant 16 px, description 18 px. |
+| **Texte** | Courant 14 px, description 16 px. Casse normale jamais sous 14 px ; 12 px pour capitales et badges uniquement. | Courant 16 px, description 18 px. |
 | **Filtres** (section, niveau, format) | Empilés en pleine largeur, boutons ≥ 44 px de haut. | Côte à côte (`md:grid-cols-3`). |
 | **Grille de cartes** | 1 colonne. | 3 colonnes (2 en tablette). |
 | **Carte mise en avant** (« Reprendre ») | Pleine largeur, bouton principal **en pleine largeur sous** le texte. | Pleine largeur, bouton **à droite** du texte. |
@@ -304,7 +395,9 @@ Règle d'écriture : la classe **sans préfixe** décrit le mobile, `md:` / `lg:
 
 ## 9. Checklist de relecture UI (avant chaque livraison)
 
-À vérifier sur **chaque** patch qui touche une page visible :
+À vérifier sur **chaque** patch qui touche une page visible.
+
+**« Revoir le design d'une page » = revue complète**, jamais seulement les couleurs : en-tête (§5), conteneur (§4.1), couleurs (§2), typographie — tailles, graisses, casse, police (§3), rayons et ombres (§4), composants (§6), mobile (§7), accessibilité RGAA / WCAG 2.2 AA (contraste, clavier, focus visible, `aria-label` des boutons-icônes, `alt` des images, cibles de 44 px).
 
 - [ ] L'en-tête suit le §5 **à l'identique** (taille, couleurs, marges, majuscules via `uppercase`).
 - [ ] Une seule couleur d'accent (indigo) ; les autres couleurs sont des états justifiés.
@@ -328,6 +421,24 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 |---|---|
 | `/tef-irn/parcours` | `apply_ligne_directrice_design` |
 | `/tef-irn/comprehension-ecrite` | `apply_ligne_directrice_design` |
+| `/tef-irn/comprehension-orale` | `apply_ligne_directrice_design` (lot 2) |
+| `/tef-irn/writing` (catalogue et session) | `apply_ligne_directrice_design` (lots 2 et 3) |
+| `/tef-irn/oral` (catalogue et session) | `apply_ligne_directrice_design` (lots 2 et 3) |
+| `/tef-irn/comprehension-ecrite/[scenarioId]`, `/tef-irn/comprehension-orale/[scenarioId]` | `apply_ligne_directrice_design` (lot 3) |
+| `/tef-irn/practice`, `/tef-irn/grammar-check`, `/tef-irn/vocab` | `apply_ligne_directrice_design` (lot 3) |
+| `/tef-irn/correction` | `apply_ligne_directrice_design` (lot 3) |
+| Écrans d'exercice QCM, Chasse aux erreurs, Vocabulaire, CE, CO | `apply_ligne_directrice_design` (lot 3 ter) |
+| `/tef-irn/dashboard` | `apply_ligne_directrice_design` (lot 4 bis, couleurs d'identification §2.6) |
+| `/tef-irn/progression` | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/lessons` (catalogue refait : filtres compacts, cartes identifiées par catégorie), `/tef-irn/lessons/[slug]` (+ fin de leçon) | `apply_ligne_directrice_design` (lot 4 bis) |
+| `/tef-irn/parcours/[slug]` (+ fin de parcours) | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/settings` | `apply_ligne_directrice_design` (lot 5) |
+| `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
+| `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
+| `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
+| `/tef-irn/coach`, `/tef-irn/cookies` | `apply_ligne_directrice_design` (lot 8) |
+| `/tef-irn/admin/*` (règles transverses, en-tête « Zone admin » conservé) | `apply_ligne_directrice_design` (lot 9) |
+| Navigation commune : barre du haut (`ParcoursTopBar`), barre latérale (`Sidebar`), navigation et menu mobiles, `AppLayout` | `apply_ligne_directrice_design` (lot 10) |
 
 ---
 

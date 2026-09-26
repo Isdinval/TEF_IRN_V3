@@ -53,10 +53,10 @@ function ScoreLegend() {
         <div className="px-4 pb-4 space-y-4">
           {categories.map((cat) => (
             <div key={cat}>
-              <p className="text-xs font-black uppercase text-zinc-400 mb-1.5">{CATEGORY_LABELS[cat]}</p>
+              <p className="text-xs font-black uppercase text-zinc-500 mb-1.5">{CATEGORY_LABELS[cat]}</p>
               <div className="space-y-1">
                 {HEALTH_SCORE_LEGEND.filter((e) => e.category === cat).map((entry) => (
-                  <div key={entry.code} className="flex items-center justify-between text-xs">
+                  <div key={entry.code} className="flex items-center justify-between text-sm">
                     <span className="text-zinc-600">{entry.label}</span>
                     <span className="font-bold text-red-600 shrink-0 ml-3">-{entry.points}</span>
                   </div>
@@ -64,7 +64,7 @@ function ScoreLegend() {
               </div>
             </div>
           ))}
-          <p className="text-xs text-zinc-400 pt-1 border-t border-zinc-100">
+          <p className="text-sm text-zinc-500 pt-1 border-t border-zinc-100">
             Les points cumulés sont plafonnés à 100 (score minimum : 0). Ces poids sont des choix qualitatifs,
             pas mesurés — à ajuster si un signal compte trop ou pas assez à l&apos;usage.
           </p>
@@ -174,7 +174,7 @@ export default function GuidesHealthView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 text-zinc-400">
+      <div className="flex items-center justify-center h-96 text-zinc-500">
         <Loader2 className="animate-spin mr-2" size={20} /> Calcul des scores...
       </div>
     );
@@ -189,7 +189,7 @@ export default function GuidesHealthView() {
         <select
           value={productFilter}
           onChange={(e) => setProductFilter(e.target.value as "Tous" | GuideProduct)}
-          className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+          className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
         >
           <option value="Tous">Tous les produits</option>
           <option value="tef-irn">TEF IRN</option>
@@ -198,7 +198,7 @@ export default function GuidesHealthView() {
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as "Tous" | GuideSiloRole)}
-          className="h-10 px-3 rounded-xl border border-zinc-200 text-sm font-bold"
+          className="h-10 px-3 rounded-2xl border border-zinc-200 text-sm font-bold"
         >
           <option value="Tous">Tous les rôles</option>
           <option value="hub">Hub</option>
@@ -249,19 +249,19 @@ export default function GuidesHealthView() {
 
       <ScoreLegend />
 
-      <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm divide-y divide-zinc-50">
-        {filtered.length === 0 && <p className="p-8 text-center text-zinc-400">Aucun guide ne correspond.</p>}
+      <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-50">
+        {filtered.length === 0 && <p className="p-8 text-center text-zinc-500">Aucun guide ne correspond.</p>}
         {filtered.map((r) => (
           <div key={r.id} className="p-4">
             <div className="flex items-center gap-4">
-              <span className={`shrink-0 w-14 h-10 rounded-xl flex items-center justify-center font-black text-sm ${scoreColor(r.score)}`}>
+              <span className={`shrink-0 w-14 h-10 rounded-2xl flex items-center justify-center font-black text-sm ${scoreColor(r.score)}`}>
                 {r.score}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm truncate">
-                  {r.title} {!r.isPublished && <span className="text-amber-600 text-xs font-bold">(brouillon)</span>}
+                  {r.title} {!r.isPublished && <span className="text-amber-600 text-sm font-bold">(brouillon)</span>}
                 </p>
-                <p className="text-xs text-zinc-400 truncate">
+                <p className="text-sm text-zinc-500 truncate">
                   {r.product} · {r.siloRole} · {r.slug}
                 </p>
               </div>
@@ -274,7 +274,7 @@ export default function GuidesHealthView() {
             {r.issues.length > 0 && (
               <ul className="mt-2 ml-[4.5rem] space-y-1">
                 {r.issues.map((issue, i) => (
-                  <li key={i} className="text-xs text-red-600 flex items-start gap-2">
+                  <li key={i} className="text-sm text-red-600 flex items-start gap-2">
                     <span className="font-black shrink-0">-{issue.points}</span>
                     <span>{issue.label}</span>
                   </li>

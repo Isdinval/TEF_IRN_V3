@@ -146,16 +146,16 @@ export default function DashboardPage() {
 
   if (!isMounted || isLoading || data?.profile?.onboarding_completed === false) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-slate-50/30">
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50/50">
         <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
-        <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Chargement...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Chargement...</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center p-8 text-center bg-slate-50/30">
+      <div className="flex h-screen w-full flex-col items-center justify-center p-8 text-center bg-zinc-50/50">
         <h2 className="text-2xl font-black text-zinc-900 mb-2">Oups !</h2>
         <p className="text-zinc-500 mb-8 italic">Impossible de charger vos données.</p>
         <Button onClick={() => window.location.reload()}>Réessayer</Button>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50/30 pb-20">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
       <div className="mx-auto max-w-7xl p-4 md:p-10 lg:p-12">
         <DashboardHeader
           fullName={profile.full_name || "Aventurier"}
@@ -231,7 +231,7 @@ export default function DashboardPage() {
         <div ref={sectionsTopRef} className="scroll-mt-24" />
 
         {activeSection === "today" && (
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-amber-400 bg-amber-50/40 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-amber-500 text-white rounded-full">Aujourd'hui</Badge>
             Aujourd'hui
@@ -239,7 +239,7 @@ export default function DashboardPage() {
 
           <div className="space-y-6">
             {profile.learning_mode !== "academique" && in_progress_parcours.length === 0 && !academicBannerDismissed && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-[2rem] bg-indigo-600 text-white relative">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-3xl bg-indigo-600 text-white relative">
                 <Compass size={32} className="shrink-0 opacity-90" />
                 <div className="flex-1 space-y-1">
                   <p className="font-black text-lg">Envie d'un cadre plus structuré ?</p>
@@ -256,9 +256,9 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setAcademicBannerDismissed(true)}
                   aria-label="Fermer"
-                  className="absolute top-3 right-3 sm:static sm:shrink-0 text-indigo-200 hover:text-white transition-colors"
+                  className="absolute top-2 right-2 sm:static sm:shrink-0 flex h-11 w-11 items-center justify-center rounded-2xl text-indigo-100 hover:bg-white/10 hover:text-white transition-colors"
                 >
-                  <X size={16} />
+                  <X size={16} aria-hidden />
                 </button>
               </div>
             )}
@@ -287,10 +287,10 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem] border-2 border-dashed border-zinc-200 bg-white">
+              <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl border-2 border-dashed border-zinc-200 bg-white">
                 <Compass size={48} className="text-zinc-200 mb-4" />
-                <p className="text-sm font-bold text-zinc-400">Aucun Parcours guidé en cours pour l'instant.</p>
-                <p className="text-xs text-zinc-300 mt-1 mb-4">Laissez-vous porter : une leçon, ses exercices, puis la suivante.</p>
+                <p className="text-sm font-bold text-zinc-500">Aucun Parcours guidé en cours pour l'instant.</p>
+                <p className="text-sm text-zinc-500 mt-1 mb-4">Laissez-vous porter : une leçon, ses exercices, puis la suivante.</p>
                 <Link
                   href="/tef-irn/parcours"
                   className="inline-flex items-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3 text-xs font-black uppercase tracking-widest text-white hover:bg-black transition-all"
@@ -312,7 +312,7 @@ export default function DashboardPage() {
         )}
 
         {activeSection === "progress" && (
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-violet-500 bg-violet-50/40 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-violet-600 text-white rounded-full">Progression</Badge>
             Ma progression
@@ -369,7 +369,7 @@ export default function DashboardPage() {
         )}
 
         {activeSection === "analysis" && (
-        <section className="mt-12 space-y-8 rounded-[2.5rem] border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
+        <section className="mt-12 space-y-8 rounded-3xl border-l-8 border-zinc-800 bg-zinc-100/60 p-6 md:p-10">
           <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-900 flex items-center gap-3">
             <Badge className="bg-zinc-900 text-white rounded-full">Analyse</Badge>
             Analyse détaillée

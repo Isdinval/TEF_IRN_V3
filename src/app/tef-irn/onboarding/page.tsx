@@ -57,7 +57,7 @@ function ProgressDots({ step }: { step: number }) {
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
         <div
           key={i}
-          className={`h-1 flex-1 rounded-full transition-colors ${i < step ? "bg-indigo-600" : "bg-zinc-100"}`}
+          className={`h-2 flex-1 rounded-full transition-colors ${i < step ? "bg-indigo-600" : "bg-indigo-100"}`}
         />
       ))}
     </div>
@@ -80,16 +80,16 @@ function OptionButton({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+      className={`w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
         selected
           ? "border-indigo-600 bg-indigo-50/60"
           : "border-zinc-200 hover:border-indigo-300 hover:bg-zinc-50"
       }`}
     >
-      {Icon && <Icon size={18} className={selected ? "text-indigo-600 shrink-0" : "text-zinc-400 shrink-0"} />}
+      {Icon && <Icon size={18} className={selected ? "text-indigo-600 shrink-0" : "text-zinc-500 shrink-0"} />}
       <span className="flex-1">
         <span className={`block text-sm font-bold ${selected ? "text-indigo-900" : "text-zinc-700"}`}>{label}</span>
-        {sub && <span className="block text-xs text-zinc-400 font-medium">{sub}</span>}
+        {sub && <span className="block text-sm text-zinc-500 font-medium">{sub}</span>}
       </span>
       <span
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
@@ -192,7 +192,7 @@ export default function Onboarding() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
         <Loader2 className="animate-spin text-indigo-600" size={28} />
       </div>
     );
@@ -201,25 +201,25 @@ export default function Onboarding() {
   const stepTransition = { duration: 0.2 };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-sm w-full">
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 overflow-hidden rounded-lg shadow-sm">
+            <div className="relative w-8 h-8 overflow-hidden rounded-2xl shadow-sm">
               <Image src="/logo.png" alt="LlamaKusi" fill className="object-cover" />
             </div>
             <span className="font-black text-lg tracking-tight text-zinc-900">LlamaKusi</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-zinc-100 shadow-xl shadow-zinc-200/50 p-6">
+        <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6">
           <ProgressDots step={step} />
 
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Quel est votre niveau actuel ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Une estimation suffit, on affinera ensuite.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">Une estimation suffit, on affinera ensuite.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {LEVEL_OPTIONS.map(l => (
                     <OptionButton key={l} selected={level === l} onClick={() => setLevel(l)} label={`Niveau ${l}`} />
@@ -231,7 +231,7 @@ export default function Onboarding() {
                     captureEvent("onboarding_step_completed", { step: 1, step_name: STEP_NAMES[1], value: level });
                     setStep(2);
                   }}
-                  className="w-full mt-6 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                  className="w-full mt-6 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                 >
                   Continuer <ChevronRight size={16} className="ml-1" />
                 </Button>
@@ -241,14 +241,14 @@ export default function Onboarding() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Quel objectif visez-vous ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Le niveau requis a changé au 1er janvier 2026.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">Le niveau requis a changé au 1er janvier 2026.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {GOAL_OPTIONS.map(g => (
                     <OptionButton key={g.id} selected={goal === g.id} onClick={() => setGoal(g.id)} label={g.label} sub={g.sub} />
                   ))}
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(1)} className="h-11 px-4 rounded-xl border-zinc-200">
+                  <Button variant="outline" onClick={() => setStep(1)} className="h-11 px-4 rounded-2xl border-zinc-200">
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
@@ -257,7 +257,7 @@ export default function Onboarding() {
                       captureEvent("onboarding_step_completed", { step: 2, step_name: STEP_NAMES[2], value: goal });
                       setStep(3);
                     }}
-                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
@@ -268,14 +268,14 @@ export default function Onboarding() {
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Quelle compétence vous inquiète le plus ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">On priorise vos premières recommandations dessus.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">On priorise vos premières recommandations dessus.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {WEAK_SKILLS.map(s => (
                     <OptionButton key={s.id} selected={weakSkill === s.id} onClick={() => setWeakSkill(s.id)} label={s.label} icon={s.icon} />
                   ))}
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(2)} className="h-11 px-4 rounded-xl border-zinc-200">
+                  <Button variant="outline" onClick={() => setStep(2)} className="h-11 px-4 rounded-2xl border-zinc-200">
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
@@ -284,7 +284,7 @@ export default function Onboarding() {
                       captureEvent("onboarding_step_completed", { step: 3, step_name: STEP_NAMES[3], value: weakSkill });
                       setStep(4);
                     }}
-                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
@@ -295,14 +295,14 @@ export default function Onboarding() {
             {step === 4 && (
               <motion.div key="step4" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Avez-vous une date d'examen ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Ça calibre le rythme de votre parcours.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">Ça calibre le rythme de votre parcours.</p>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="exam-date" className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Date visée</Label>
+                    <Label htmlFor="exam-date" className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Date visée</Label>
                     <Input
                       id="exam-date"
                       type="date"
-                      className="h-11 border-zinc-200 focus:border-indigo-600 rounded-xl text-sm font-bold"
+                      className="h-11 border-zinc-200 focus:border-indigo-600 rounded-2xl text-sm font-bold"
                       value={examDate}
                       disabled={noExamDateYet}
                       onChange={(e) => setExamDate(e.target.value)}
@@ -315,7 +315,7 @@ export default function Onboarding() {
                   />
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(3)} className="h-11 px-4 rounded-xl border-zinc-200">
+                  <Button variant="outline" onClick={() => setStep(3)} className="h-11 px-4 rounded-2xl border-zinc-200">
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
@@ -328,7 +328,7 @@ export default function Onboarding() {
                       });
                       setStep(5);
                     }}
-                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
@@ -339,14 +339,14 @@ export default function Onboarding() {
             {step === 5 && (
               <motion.div key="step5" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Combien de temps par semaine ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Avant-dernière étape.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">Avant-dernière étape.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {AVAILABILITY_OPTIONS.map(a => (
                     <OptionButton key={a.id} selected={availability === a.id} onClick={() => setAvailability(a.id)} label={a.label} />
                   ))}
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(4)} className="h-11 px-4 rounded-xl border-zinc-200">
+                  <Button variant="outline" onClick={() => setStep(4)} className="h-11 px-4 rounded-2xl border-zinc-200">
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
@@ -355,7 +355,7 @@ export default function Onboarding() {
                       captureEvent("onboarding_step_completed", { step: 5, step_name: STEP_NAMES[5], value: availability });
                       setStep(6);
                     }}
-                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                   >
                     Continuer <ChevronRight size={16} className="ml-1" />
                   </Button>
@@ -366,20 +366,20 @@ export default function Onboarding() {
             {step === 6 && (
               <motion.div key="step6" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={stepTransition}>
                 <h1 className="text-xl font-black text-zinc-900 mb-1">Comment voulez-vous apprendre ?</h1>
-                <p className="text-sm text-zinc-400 font-medium mb-5">Vous pourrez changer d'avis à tout moment dans les paramètres.</p>
+                <p className="text-sm text-zinc-500 font-medium mb-5">Vous pourrez changer d'avis à tout moment dans les paramètres.</p>
                 <div className="grid grid-cols-1 gap-2">
                   {LEARNING_MODE_OPTIONS.map(m => (
                     <OptionButton key={m.id} selected={learningMode === m.id} onClick={() => setLearningMode(m.id)} label={m.label} sub={m.sub} icon={m.icon} />
                   ))}
                 </div>
                 <div className="flex gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setStep(5)} className="h-11 px-4 rounded-xl border-zinc-200" disabled={loading}>
+                  <Button variant="outline" onClick={() => setStep(5)} className="h-11 px-4 rounded-2xl border-zinc-200" disabled={loading}>
                     <ChevronLeft size={16} />
                   </Button>
                   <Button
                     disabled={!learningMode || loading}
                     onClick={handleFinish}
-                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl"
+                    className="flex-1 h-11 font-bold bg-indigo-600 hover:bg-indigo-700 rounded-2xl"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : <><Rocket size={16} className="mr-1.5" /> C'est parti</>}
                   </Button>
