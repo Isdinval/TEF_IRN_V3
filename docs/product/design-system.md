@@ -47,8 +47,8 @@ Périmètre : les pages applicatives `/tef-irn/*` et `/examen-civique/*`. Trois 
 - ❌ Plus de 3 couleurs visibles dans un même écran, hors neutres.
 - ❌ Une couleur par type d'erreur (grammaire, conjugaison…). Les erreurs surlignées dans un texte de l'apprenant sont toutes en **attention** (`amber`), l'élément actif en indigo ; le type s'écrit dans la fiche de l'erreur.
 - ❌ `rose-*` pour un état : utiliser `red-*` (erreur) ou `amber-*` (attention).
-- ❌ Une couleur par section, par compétence (EE, EO, QCM…) ou par catégorie de leçon : l'accent est toujours l'indigo, la distinction se fait par le titre, le badge ou l'icône.
-- ❌ Dégradés décoratifs (`bg-gradient-*`) et lueurs (`shadow-[0_0_…]`) : fond plein, ou fond d'état pâle bordé (`emerald-50` + `border-emerald-200`).
+- ❌ Une couleur par section, compétence ou catégorie **en dehors de la palette d'identification du §2.6** (et de ses emplacements autorisés).
+- ❌ Dégradés décoratifs (`bg-gradient-*`) et lueurs (`shadow-[0_0_…]`), sauf la carte sombre de mise en avant (§2.6).
 
 > Règle 60-30-10 : ~60 % de fond neutre, ~30 % de texte et de gris, ~10 % d'indigo.
 
@@ -67,6 +67,43 @@ Le token shadcn `--primary` de `globals.css` vaut `#002395` (bleu de marque hist
 
 - Éditeur Expression Écrite (`writing/page.tsx`, `ZoneRedaction.tsx`) : ses panneaux redimensionnables utilisent `max-md:` pour forcer la pleine largeur sur mobile. Toléré tant que la mise en page n'est pas refondue ; ne pas reproduire ailleurs.
 - Panneaux sombres (analyse orale, feedback EE) : sur fond `zinc-900`/`zinc-950`, le texte secondaire reste en `zinc-400` (le `zinc-500` y serait moins lisible).
+
+
+### 2.6 Couleurs d'identification ⭐
+
+Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une compétence ou une section. Ce ne sont ni des accents ni des états.
+
+**Emplacements autorisés, et seulement ceux-là** :
+
+| Emplacement | Classes |
+|---|---|
+| Pastille d'icône | `bg-{c}-50 text-{c}-600` (ou `-700`) |
+| Barre de carte | `border-l-4 border-l-{c}-500` (ou `border-t-4`) |
+| Badge de catégorie | `rounded-full bg-{c}-50 text-{c}-700 text-xs font-black uppercase` |
+| Puce de filtre | `h-2.5 w-2.5 rounded-full bg-{c}-500` devant le libellé |
+| Volet de section (tableau de bord) | `border-l-8 border-{c} bg-{c}-50/40` + badge de section `bg-{c}` |
+
+❌ Jamais sur un bouton, un titre, du texte courant ou le fond plein d'une carte. Le bouton d'action reste indigo.
+
+**Catégories de leçon** (icône associée) :
+
+| Catégorie | Couleur | Icône |
+|---|---|---|
+| Grammaire | `emerald` | `BookText` |
+| Conjugaison | `blue` | `Clock` |
+| Syntaxe | `violet` | `ListTree` |
+| Vocabulaire | `amber` | `Languages` |
+| Orthographe | `rose` | `SpellCheck` |
+
+**Compétences (tableau de bord)** : Parcours `violet`, QCM `purple`, Chasse aux erreurs `indigo`, Vocabulaire `emerald`, Expression Écrite `sky`, Expression Orale `rose`, Examen (compte à rebours) `rose`.
+
+**Sections du tableau de bord** : Aujourd'hui `amber`, Ma progression `violet`, Analyse détaillée `zinc-900`.
+
+**Carte sombre de mise en avant** : une seule par page, `bg-zinc-900` (dégradé `from-zinc-900 via-zinc-800` et halos tolérés), texte blanc, libellés `zinc-400`. Exemples : en-tête du tableau de bord, carte « Besoin d'aide ? » d'un parcours.
+
+Une couleur d'identification ne dit rien de l'état : un état (« Terminé », « À revoir ») porte toujours son libellé et sa couleur d'état (§2.1).
+
+`design:check` n'autorise ces couleurs que dans les fichiers qui portent une palette d'identification (liste dans `scripts/design-check.mjs`).
 
 ---
 
@@ -368,9 +405,9 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/practice`, `/tef-irn/grammar-check`, `/tef-irn/vocab` | `apply_ligne_directrice_design` (lot 3) |
 | `/tef-irn/correction` | `apply_ligne_directrice_design` (lot 3) |
 | Écrans d'exercice QCM, Chasse aux erreurs, Vocabulaire, CE, CO | `apply_ligne_directrice_design` (lot 3 ter) |
-| `/tef-irn/dashboard` | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/dashboard` | `apply_ligne_directrice_design` (lot 4 bis, couleurs d'identification §2.6) |
 | `/tef-irn/progression` | `apply_ligne_directrice_design` (lot 4) |
-| `/tef-irn/lessons`, `/tef-irn/lessons/[slug]` (+ fin de leçon) | `apply_ligne_directrice_design` (lot 4) |
+| `/tef-irn/lessons` (catalogue refait : filtres compacts, cartes identifiées par catégorie), `/tef-irn/lessons/[slug]` (+ fin de leçon) | `apply_ligne_directrice_design` (lot 4 bis) |
 | `/tef-irn/parcours/[slug]` (+ fin de parcours) | `apply_ligne_directrice_design` (lot 4) |
 
 ---
