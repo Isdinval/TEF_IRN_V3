@@ -12,6 +12,7 @@ import {
   MENTIONS,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
+  EXAM_DURATION_SECONDS,
   EXAM_PASS_THRESHOLD,
   EXAM_STORAGE_KEY,
   mentionLabel,
@@ -328,23 +329,25 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           badge="100 % gratuit"
           description={`Obligatoire depuis janvier 2026 (carte de séjour pluriannuelle, carte de résident, naturalisation).${filteredCount !== null ? ` ${filteredCount} questions officielles disponibles.` : ""}`}
         >
-          {/* Réassurance */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-              <p className="text-lg">🆓</p>
-              <p className="text-sm font-black text-zinc-700 leading-tight">100 % gratuit</p>
-              <p className="text-sm text-zinc-500 font-medium leading-tight">Sans inscription requise</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-              <p className="text-lg">🏛️</p>
-              <p className="text-sm font-black text-zinc-700 leading-tight">Source officielle</p>
-              <p className="text-sm text-zinc-500 font-medium leading-tight">Ministère de l'Intérieur</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-3 text-center space-y-1">
-              <p className="text-lg">🧠</p>
-              <p className="text-sm font-black text-zinc-700 leading-tight">Révision adaptative</p>
-              <p className="text-sm text-zinc-500 font-medium leading-tight">L'algo s'adapte à vous</p>
-            </div>
+          {/* L'examen en bref — les faits clés lisibles en 5 secondes, puis la réassurance. */}
+          <div className="space-y-3">
+            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: "Format", value: `${EXAM_QUESTION_COUNT} questions`, detail: "QCM" },
+                { label: "Durée", value: `${EXAM_DURATION_SECONDS / 60} min`, detail: "Chronométré" },
+                { label: "Pour réussir", value: `${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}`, detail: `Soit ${Math.round((EXAM_PASS_THRESHOLD / EXAM_QUESTION_COUNT) * 100)} %` },
+                { label: "Lieu", value: "Centre agréé", detail: "Jamais en ligne" },
+              ].map((f) => (
+                <div key={f.label} className="bg-white rounded-2xl border border-zinc-100 p-3">
+                  <dt className="text-xs font-black uppercase tracking-widest text-zinc-500">{f.label}</dt>
+                  <dd className="text-lg font-black text-zinc-900 leading-tight mt-1">{f.value}</dd>
+                  <dd className="text-sm text-zinc-500 font-medium">{f.detail}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+              100 % gratuit, sans inscription · Questions officielles du Ministère de l&apos;Intérieur · Révision adaptative qui s&apos;ajuste à vous
+            </p>
           </div>
         </ExerciseLayout>
 
