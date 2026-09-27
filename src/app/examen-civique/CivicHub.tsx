@@ -227,6 +227,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     return () => clearInterval(interval);
   }, [resumableExam]);
 
+  const isNewLearner = !hasSeenQuestions && attempts.length === 0;
+  const masteredPct = filteredCount ? Math.min(100, Math.round((localStats.mastered / filteredCount) * 100)) : 0;
+
   const nextStep = resumableExam
     ? {
         href: "/examen-civique/examen-blanc?resume=1",
@@ -410,76 +413,81 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </section>
 
-        {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
-        <div className="space-y-2">
-          <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
-            <Badge className="bg-emerald-600 text-white rounded-full">Progression</Badge> Votre progression
+        {/* Progression — le verdict « prêt / pas encore » d'abord, puis le détail. Un
+            nouvel apprenant voit une phrase d'accueil plutôt qu'une grille de zéros. */}
+        <section aria-labelledby="progression-titre" className="space-y-2">
+          <h2 id="progression-titre" className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
+            <Badge className="bg-emerald-600 text-white rounded-full">Progression</Badge> Êtes-vous prêt ?
           </h2>
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 space-y-5">
-            {filteredCount !== null && filteredCount > 0 && (
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between">
-                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900">
-                    {localStats.mastered} / {filteredCount} questions maîtrisées
-                    <InfoTooltip text="Une question est « maîtrisée » après plusieurs révisions consécutives réussies (méthode de répétition espacée). Le total dépend de votre démarche et thématique actuelles." />
-                  </p>
-                  <p className="text-sm font-black text-emerald-600">
-                    {Math.round((localStats.mastered / filteredCount) * 100)}%
-                  </p>
-                </div>
-                <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, Math.round((localStats.mastered / filteredCount) * 100))}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            <div className="grid grid-cols-3 divide-x divide-zinc-100">
-              <div className="text-center px-1">
-                <p className="text-lg font-black text-amber-600">🔥 {civicStreak}</p>
-                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
-                  Jour{civicStreak > 1 ? "s" : ""} de suite
-                  <InfoTooltip text="Nombre de jours consécutifs où vous avez pratiqué au moins une question (entraînement ou examen blanc)." />
-                </p>
-              </div>
-              <div className="text-center px-1">
-                <p className="text-lg font-black text-zinc-900">
-                  {bestScore !== null ? bestScore : "—"}
-                  {bestScore !== null && <span className="text-sm text-zinc-500 font-bold">/{EXAM_QUESTION_COUNT}</span>}
-                </p>
-                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
-                  Meilleur score
-                  <InfoTooltip text={`Votre meilleur résultat parmi tous vos examens blancs passés, sur ${EXAM_QUESTION_COUNT} questions. Seuil de réussite : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`} />
-                </p>
-              </div>
-              <div className="text-center px-1">
-                <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-500"}`}>{dueCount ?? 0}</p>
-                <p className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">
-                  À réviser
-                  <InfoTooltip text="Questions déjà vues dont la date de révision (répétition espacée) est arrivée aujourd'hui. Les revoir maintenant les ancre plus durablement en mémoire." />
-                </p>
-              </div>
-            </div>
+          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-5">
+            {isNewLearner ? (
+              <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+                Votre progression s&apos;affichera ici dès vos premières réponses : questions maîtrisées, jours d&apos;entraînement d&apos;affilée, meilleur score à l&apos;examen blanc et révisions à faire.
+              </p>
+            ) : (
+              <>
+                {last5Average !== null ? (
+                  <div className={`rounded-2xl p-4 ${isExamReady ? "bg-emerald-50" : "bg-amber-50"}`}>
+                    <p className={`text-sm font-black ${isExamReady ? "text-emerald-700" : "text-amber-700"}`}>
+                      {isExamReady ? "Vous êtes prêt pour l'examen 🎉" : "Pas encore prêt : continuez à vous entraîner"}
+                    </p>
+                    <p className="text-sm text-zinc-600 font-medium mt-1 leading-relaxed">
+                      Moyenne sur {last5Count === 1 ? "votre dernier examen blanc" : `vos ${last5Count} derniers examens blancs`} : <span className="font-black text-zinc-900">{last5Average}/{EXAM_QUESTION_COUNT}</span>. Il faut {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT} pour réussir ; une moyenne récente est plus fiable qu&apos;un seul meilleur score.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl p-4 bg-zinc-50">
+                    <p className="text-sm font-black text-zinc-900">Pas encore d&apos;examen blanc</p>
+                    <p className="text-sm text-zinc-600 font-medium mt-1 leading-relaxed">
+                      Passez un examen blanc ({EXAM_QUESTION_COUNT} questions, {EXAM_DURATION_SECONDS / 60} min) pour savoir si vous atteignez le seuil de {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}.
+                    </p>
+                  </div>
+                )}
 
-            {last5Average !== null && (
-              <div className={`rounded-2xl p-4 flex items-center justify-between gap-3 ${isExamReady ? "bg-emerald-50" : "bg-amber-50"}`}>
-                <div>
-                  <p className={`text-sm font-black ${isExamReady ? "text-emerald-700" : "text-amber-700"}`}>
-                    {isExamReady ? "Vous êtes prêt pour l'examen 🎉" : "Continuez à vous entraîner"}
-                  </p>
-                  <p className="text-sm text-zinc-500 font-medium mt-0.5">
-                    Moyenne sur {last5Count === 1 ? "votre dernier examen blanc" : `vos ${last5Count} derniers examens blancs`} : {last5Average}/{EXAM_QUESTION_COUNT}
-                  </p>
+                {filteredCount !== null && filteredCount > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="text-sm font-black text-zinc-900">
+                        {localStats.mastered} / {filteredCount} questions maîtrisées
+                      </p>
+                      <p className="text-sm font-black text-indigo-600">{masteredPct} %</p>
+                    </div>
+                    <div className="h-2 bg-indigo-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${masteredPct >= 100 ? "bg-emerald-600" : "bg-indigo-600"}`}
+                        style={{ width: `${masteredPct}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-zinc-500 font-medium leading-relaxed">
+                      Une question est maîtrisée après plusieurs révisions réussies d&apos;affilée. Le total dépend de votre démarche et de votre thématique.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 divide-x divide-zinc-100">
+                  <div className="text-center px-1">
+                    <p className="text-lg font-black text-amber-600">🔥 {civicStreak}</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">Jour{civicStreak > 1 ? "s" : ""} de suite</p>
+                    <p className="text-sm text-zinc-500 font-medium mt-0.5">avec au moins une question</p>
+                  </div>
+                  <div className="text-center px-1">
+                    <p className="text-lg font-black text-zinc-900">
+                      {bestScore !== null ? bestScore : "—"}
+                      {bestScore !== null && <span className="text-sm text-zinc-500 font-bold">/{EXAM_QUESTION_COUNT}</span>}
+                    </p>
+                    <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">Meilleur score</p>
+                    <p className="text-sm text-zinc-500 font-medium mt-0.5">à l&apos;examen blanc</p>
+                  </div>
+                  <div className="text-center px-1">
+                    <p className={`text-lg font-black ${hasDue ? "text-indigo-600" : "text-zinc-500"}`}>{dueCount ?? 0}</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mt-0.5">À réviser</p>
+                    <p className="text-sm text-zinc-500 font-medium mt-0.5">aujourd&apos;hui</p>
+                  </div>
                 </div>
-                <InfoTooltip
-                  className={isExamReady ? "text-emerald-400 hover:text-emerald-700" : "text-amber-400 hover:text-amber-700"}
-                  text={`Seuil de réussite officiel : ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}. Une moyenne récente est un signal plus fiable qu'un seul meilleur score, qui peut être un coup de chance.`}
-                />
-              </div>
+              </>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Actions — 2 sous-sections distinctes : Entraînement (la boucle réelle de
             préparation, forme testée) et Ressources complémentaires (lecture de fond +
