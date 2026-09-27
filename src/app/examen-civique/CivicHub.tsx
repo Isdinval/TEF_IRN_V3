@@ -9,6 +9,7 @@ import { useShowCivicTefBridge } from "@/components/features/examen-civique/useS
 import { InfoTooltip } from "@/components/features/examen-civique/InfoTooltip";
 import { captureEvent } from "@/lib/analytics";
 import {
+  MENTIONS,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
   EXAM_PASS_THRESHOLD,
@@ -77,7 +78,7 @@ function formatTime(totalSeconds: number) {
 function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
   const supabase = useMemo(() => createClient(), []);
   const { user: currentUser } = useAuth();
-  const { mention, theme, buildHref } = useCivicContext();
+  const { mention, theme, setMention, buildHref } = useCivicContext();
   const { setPageContext } = useCoachContext();
 
   const [civicStreak, setCivicStreak] = useState(0);
@@ -372,6 +373,40 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </section>
 
+        {/* Démarche — contexte de toute la page (questions comptées, guides, niveau de
+            français requis) : choisie directement ici plutôt que seulement affichée. */}
+        <section aria-labelledby="demarche-titre" className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-4">
+          <h2 id="demarche-titre" className="flex items-center gap-2 text-lg font-black text-zinc-900">
+            <Badge className="bg-violet-600 text-white rounded-full">Démarche</Badge> Pour quelle demande ?
+          </h2>
+          <div role="group" aria-label="Choisir votre démarche" className="grid grid-cols-3 gap-2">
+            {MENTIONS.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                aria-pressed={mention === m.value}
+                onClick={() => setMention(m.value)}
+                className={`min-h-12 px-2 py-2 rounded-2xl font-black text-sm leading-tight transition-all ${mention === m.value ? "bg-indigo-600 text-white shadow-lg" : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"}`}
+              >
+                <span className="sm:hidden">{m.shortLabel ?? m.label}</span>
+                <span className="hidden sm:inline">{m.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-zinc-600 font-medium">
+            <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
+            {MENTION_TO_LEVEL[mention] && <> · Niveau de français requis : <span className="font-black text-zinc-900">{MENTION_TO_LEVEL[mention]}</span></>}
+          </p>
+          <div className="flex items-center gap-x-6 gap-y-1 flex-wrap">
+            <Link href="/examen-civique/eligibilite" className="inline-flex min-h-11 items-center text-sm font-black text-indigo-600 hover:underline">
+              Suis-je concerné ? Faire le test <ArrowRight className="ml-1" size={14} />
+            </Link>
+            <button type="button" onClick={() => setMentionHelpOpen(true)} className="inline-flex min-h-11 items-center text-sm font-bold text-zinc-500 hover:underline">
+              Cas particuliers et exemptions
+            </button>
+          </div>
+        </section>
+
         {/* Progression — toujours visible, même à 0 : ça rassure de savoir que c'est mesuré dès le départ */}
         <div className="space-y-2">
           <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
@@ -440,29 +475,6 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 />
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Démarche — répond à "est-ce que ça me concerne vraiment ?", promu en section
-            à part entière plutôt qu'un simple rappel discret. */}
-        <div className="space-y-2">
-          <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
-            <Badge className="bg-violet-600 text-white rounded-full">Démarche</Badge> Votre démarche
-          </h2>
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 flex items-center justify-between gap-4 flex-wrap">
-            <p className="text-sm text-zinc-600 font-medium">
-              Démarche actuelle : <span className="font-black text-zinc-900">{mentionLabel(mention)}</span>
-            </p>
-            <div className="flex items-center gap-4">
-              <Link href="/examen-civique/eligibilite">
-                <Button className="h-11 px-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700">
-                  Suis-je concerné ? <ArrowRight className="ml-2" size={14} />
-                </Button>
-              </Link>
-              <button onClick={() => setMentionHelpOpen(true)} className="text-xs font-black uppercase tracking-widest text-zinc-500 hover:underline">
-                Cas particuliers / exemptions
-              </button>
-            </div>
           </div>
         </div>
 
