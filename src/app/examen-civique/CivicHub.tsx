@@ -44,6 +44,7 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Circle,
   XCircle,
   MapPin,
 } from "lucide-react";
@@ -253,30 +254,62 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
 
-  // Pont vers le TEF IRN — réécrit en « Votre dossier complet » à l'item suivant.
-  const tefBridge = (
-    <>
-      {/* Pont LlamaKusi */}
-      {showCTATef && (
-        <div className="p-6 rounded-3xl bg-indigo-600 space-y-3">
-          <p className="text-sm font-black text-white">Vous préparez aussi votre niveau de français ?</p>
-          <p className="text-sm text-indigo-200 font-medium leading-relaxed">
-            Votre démarche {mentionLabel(mention)} exige le niveau {MENTION_TO_LEVEL[mention]} au TEF IRN.
-            LlamaKusi propose un coach IA oral &amp; écrit et des exercices adaptatifs — dès 32,90 €/mois.
-          </p>
-          <Link
-            href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/login?from=examen_civique_hub"}
-            onClick={() => captureEvent("civic_bridge_cta_clicked", { page: "hub", cta: "decouvrir_llamakusi" })}
-          >
-            <Button className="h-11 px-4 bg-white text-indigo-700 rounded-2xl font-black text-sm hover:bg-indigo-50">
-              Découvrir LlamaKusi <ArrowRight className="ml-2" size={14} />
-            </Button>
-          </Link>
-        </div>
-      )}
-
-    </>
-  );
+  // « Votre dossier complet » — pont vers le TEF IRN présenté comme la 2e exigence de la
+  // démarche. Placé juste après la progression quand l'apprenant est prêt (moment le plus
+  // pertinent), sinon en bas de page. Premier pas gratuit et sans compte pour un visiteur.
+  const tefLevel = MENTION_TO_LEVEL[mention];
+  const dossierPlacement = isExamReady ? "apres_progression" : "bas_de_page";
+  const dossierSection = showCTATef ? (
+    <section aria-labelledby="dossier-titre" className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-4">
+      <div className="space-y-1">
+        <p className="text-xs font-black uppercase tracking-widest text-indigo-700">Votre dossier complet</p>
+        <h2 id="dossier-titre" className="text-lg font-black text-zinc-900">
+          {isExamReady ? "Examen civique prêt : il reste le niveau de français" : "Votre demande exige deux épreuves"}
+        </h2>
+      </div>
+      <ol className="space-y-2">
+        <li className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
+          {isExamReady
+            ? <CheckCircle2 size={20} className="text-emerald-600 shrink-0 mt-0.5" aria-hidden />
+            : <Circle size={20} className="text-zinc-500 shrink-0 mt-0.5" aria-hidden />}
+          <div>
+            <p className="text-sm font-black text-zinc-900">Examen civique</p>
+            <p className="text-sm text-zinc-600 font-medium">
+              {isExamReady
+                ? `Prêt : ${last5Average}/${EXAM_QUESTION_COUNT} de moyenne à l'examen blanc`
+                : isNewLearner
+                  ? "À préparer ici, gratuitement"
+                  : `En préparation : ${masteredPct} % des questions maîtrisées`}
+            </p>
+          </div>
+        </li>
+        <li className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4">
+          <Circle size={20} className="text-zinc-500 shrink-0 mt-0.5" aria-hidden />
+          <div>
+            <p className="text-sm font-black text-zinc-900">Niveau de français{tefLevel ? ` ${tefLevel}` : ""} au TEF IRN</p>
+            <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+              Exigé pour votre démarche {mentionLabel(mention)}. LlamaKusi vous y prépare : coach IA oral &amp; écrit et exercices adaptatifs.
+            </p>
+          </div>
+        </li>
+      </ol>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Link
+          href={currentUser ? "/tef-irn/dashboard" : "/tef-irn/exercice-gratuit?from=examen_civique_hub"}
+          onClick={() => captureEvent("civic_bridge_cta_clicked", {
+            page: "hub",
+            cta: currentUser ? "decouvrir_llamakusi" : "tester_niveau_gratuit",
+            placement: dossierPlacement,
+            exam_ready: isExamReady,
+          })}
+          className="inline-flex h-11 items-center rounded-full bg-indigo-600 px-8 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+        >
+          {currentUser ? "Découvrir LlamaKusi" : "Tester mon niveau gratuitement"} <ArrowRight className="ml-2" size={14} />
+        </Link>
+        <p className="text-sm text-zinc-500 font-medium">Préparation complète au TEF IRN dès 32,90 €/mois.</p>
+      </div>
+    </section>
+  ) : null;
 
   const guidesSection = (
     <>
@@ -495,6 +528,8 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </section>
 
+        {isExamReady && dossierSection}
+
         {/* Outils — grille homogène de cartes entièrement cliquables : micro-label
             (Entraînement / Ressource) → titre → description écrite en clair (plus
             d'infobulles). L'action principale vit dans « Prochaine étape ». */}
@@ -603,9 +638,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           )}
           </div>
 
-        {/* Fin de page — une seule colonne, sans accordéon replié : pont TEF IRN,
-            guides de la démarche puis FAQ, visibles sur mobile comme sur ordinateur. */}
-        {tefBridge}
+        {/* Fin de page — une seule colonne, sans accordéon replié : dossier complet
+            (pont TEF IRN, sauf si l'apprenant est prêt : il remonte sous la progression), guides de la démarche puis FAQ, visibles sur mobile comme sur ordinateur. */}
+        {!isExamReady && dossierSection}
         {guidesSection}
         {faqSection}
       </div>
