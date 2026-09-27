@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useCivicContext, DEFAULT_THEME } from "@/components/features/examen-civique/useCivicContext";
 import { useShowCivicTefBridge } from "@/components/features/examen-civique/useShowCivicTefBridge";
-import { InfoTooltip } from "@/components/features/examen-civique/InfoTooltip";
 import { captureEvent } from "@/lib/analytics";
 import {
   MENTIONS,
@@ -489,126 +488,66 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           </div>
         </section>
 
-        {/* Actions — 2 sous-sections distinctes : Entraînement (la boucle réelle de
-            préparation, forme testée) et Ressources complémentaires (lecture de fond +
-            logistique, utiles mais non indispensables). Pas de badges numérotés : plus
-            aucun de ces éléments n'est une étape obligatoire dans un ordre imposé. */}
-        <div className="space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
-            <Badge className="bg-indigo-600 text-white rounded-full">Étapes</Badge> Se préparer
+        {/* Outils — grille homogène de cartes entièrement cliquables : micro-label
+            (Entraînement / Ressource) → titre → description écrite en clair (plus
+            d'infobulles). L'action principale vit dans « Prochaine étape ». */}
+        <section aria-labelledby="outils-titre" className="space-y-2">
+          <h2 id="outils-titre" className="flex items-center gap-2 text-lg font-black text-zinc-900 px-1">
+            <Badge className="bg-indigo-600 text-white rounded-full">Outils</Badge> Se préparer
           </h2>
-
-          {/* Sous-section : Entraînement — la boucle testée (apprendre/mémoriser,
-              consulter, se tester), celle que le produit recommande activement. */}
-          <div className="space-y-2">
-            <p className="px-1 text-xs font-black uppercase tracking-widest text-zinc-500">Entraînement</p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Parcourir — neutre, utilitaire */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              {
+                href: buildHref("/examen-civique/parcourir"),
+                kind: "Entraînement",
+                title: "Parcourir les questions",
+                description: "Toutes les questions-réponses du référentiel, avec explication et source, sans être testé : utile pour revoir un point précis.",
+                icon: <BookOpen size={16} className="text-zinc-500" />,
+                iconBg: "bg-zinc-100",
+              },
+              {
+                href: buildHref("/examen-civique/examen-blanc"),
+                kind: "Entraînement",
+                title: "Examen blanc",
+                description: `Simulation chronométrée dans les conditions réelles : ${EXAM_QUESTION_COUNT} questions, ${EXAM_DURATION_SECONDS / 60} min, seuil ${EXAM_PASS_THRESHOLD}/${EXAM_QUESTION_COUNT}.`,
+                icon: <Clock size={16} className="text-white" />,
+                iconBg: "bg-zinc-900",
+              },
+              {
+                href: "/examen-civique/livret",
+                kind: "Ressource",
+                title: "Livret du citoyen 2026",
+                description: "Le support officiel du Ministère de l'Intérieur, organisé par thématique. Gratuit, PDF téléchargeable. Utile, mais pas indispensable pour commencer.",
+                icon: <BookOpen size={16} className="text-indigo-600" />,
+                iconBg: "bg-indigo-50",
+              },
+              {
+                href: "/examen-civique/centres",
+                kind: "Ressource",
+                title: "Centres d'examen",
+                description: "L'examen se passe uniquement dans un centre agréé par une CCI, jamais en ligne ni à domicile. Adresses et contacts.",
+                icon: <MapPin size={16} className="text-zinc-500" />,
+                iconBg: "bg-zinc-100",
+              },
+            ].map((tool) => (
               <Link
-                href={buildHref("/examen-civique/parcourir")}
-                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
+                key={tool.title}
+                href={tool.href}
+                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 flex flex-col gap-3 hover:border-zinc-200 hover:shadow-md transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-2xl bg-zinc-100 flex items-center justify-center shrink-0">
-                    <BookOpen size={15} className="text-zinc-500" />
-                  </div>
-                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
+                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 ${tool.iconBg}`}>{tool.icon}</div>
+                  <ArrowRight size={16} className="text-zinc-500 group-hover:text-zinc-700 shrink-0 transition-colors" />
                 </div>
                 <div>
-                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                    Parcourir
-                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <InfoTooltip text="Consultez librement toutes les questions-réponses du référentiel, sans être testé — utile pour réviser un point précis." />
-                    </span>
-                  </p>
-                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
-                    Toutes les Q&amp;R avec explication et source.
-                  </p>
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">{tool.kind}</p>
+                  <p className="text-base font-black text-zinc-900 leading-tight mt-1">{tool.title}</p>
+                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-relaxed">{tool.description}</p>
                 </div>
               </Link>
-
-              {/* Examen blanc — icône sombre pour signaler le format formel/chronométré */}
-              <Link
-                href={buildHref("/examen-civique/examen-blanc")}
-                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-2xl bg-zinc-900 flex items-center justify-center shrink-0">
-                    <Clock size={15} className="text-white" />
-                  </div>
-                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
-                </div>
-                <div>
-                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                    Examen blanc
-                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <InfoTooltip text="Simulation chronométrée dans les conditions réelles de l'examen officiel : mêmes règles, même seuil de réussite." />
-                    </span>
-                  </p>
-                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
-                    {EXAM_QUESTION_COUNT} questions, 45 min · Seuil {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
-                  </p>
-                </div>
-              </Link>
-            </div>
+            ))}
           </div>
-
-          {/* Sous-section : Ressources complémentaires — pertinentes mais non
-              indispensables pour se préparer (lecture de fond, logistique du jour J). */}
-          <div className="space-y-2">
-            <p className="px-1 text-xs font-black uppercase tracking-widest text-zinc-500">Ressources complémentaires</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Livret du citoyen — lecture de fond recommandée, pas une étape obligatoire */}
-              <Link
-                href="/examen-civique/livret"
-                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
-                    <BookOpen size={15} className="text-indigo-600" />
-                  </div>
-                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
-                </div>
-                <div>
-                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                    Livret du citoyen 2026
-                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <InfoTooltip text="Le support de révision officiel : toutes les connaissances attendues à l'examen, organisées par thématique. Une lecture utile, mais pas indispensable pour commencer à vous entraîner." />
-                    </span>
-                  </p>
-                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
-                    Référentiel officiel du Ministère de l&apos;Intérieur. Gratuit, PDF téléchargeable.
-                  </p>
-                </div>
-              </Link>
-
-              {/* Centres d'examen — logistique du jour J, pas de contexte démarche/thème à propager */}
-              <Link
-                href="/examen-civique/centres"
-                className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-4 flex flex-col gap-2.5 hover:border-zinc-200 hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-2xl bg-zinc-100 flex items-center justify-center shrink-0">
-                    <MapPin size={15} className="text-zinc-500" />
-                  </div>
-                  <ArrowRight size={14} className="text-zinc-500 group-hover:text-zinc-600 shrink-0 transition-colors" />
-                </div>
-                <div>
-                  <p className="flex items-center gap-1.5 text-sm font-black text-zinc-900 leading-tight">
-                    Centres d&apos;examen
-                    <span className="relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <InfoTooltip text="L'examen se passe uniquement dans un centre agréé par une Chambre de Commerce et d'Industrie (CCI), jamais en ligne ni à domicile." />
-                    </span>
-                  </p>
-                  <p className="text-sm text-zinc-500 font-medium mt-1 leading-snug">
-                    Centres agréés CCI, adresse et contact.
-                  </p>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
+        </section>
 
         {/* Historique récent — toujours visible, même vide : ça indique qu'un historique
             existera après un premier examen blanc plutôt que de faire disparaître la section. */}
