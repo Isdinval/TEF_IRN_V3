@@ -523,6 +523,23 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                     <p className="text-sm text-zinc-500 font-medium mt-0.5">aujourd&apos;hui</p>
                   </div>
                 </div>
+
+                {/* Visiteur anonyme avec une progression locale : l'inviter à la sauvegarder
+                    (migration vers Supabase déjà gérée à la connexion, cf. useEffect ci-dessus). */}
+                {!currentUser && (
+                  <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+                      Votre progression est enregistrée sur cet appareil uniquement. Créez un compte gratuit pour la retrouver partout.
+                    </p>
+                    <Link
+                      href="/tef-irn/login?mode=signup&from=examen_civique_hub"
+                      onClick={() => captureEvent("civic_signup_nudge_clicked", { page: "hub" })}
+                      className="inline-flex min-h-11 items-center text-sm font-black text-indigo-600 hover:underline"
+                    >
+                      Créer mon compte gratuit <ArrowRight className="ml-1" size={14} />
+                    </Link>
+                  </div>
+                )}
               </>
             )}
           </div>
