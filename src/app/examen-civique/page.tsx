@@ -9,14 +9,6 @@ import { getCivicGuides } from "@/lib/civic-guides";
 import JsonLd from "@/components/shared/JsonLd";
 import { siteUrl } from "@/lib/site";
 
-const THEMES_STATIC = [
-  { label: "Vivre en société", count: "~20 questions" },
-  { label: "Principes & valeurs de la République", count: "~18 questions" },
-  { label: "Système politique français", count: "~15 questions" },
-  { label: "Droits & devoirs du citoyen", count: "~12 questions" },
-  { label: "Histoire, géographie & culture", count: "~15 questions" },
-];
-
 const FAQ = [
   {
     q: "Qu'est-ce que l'examen civique ?",
@@ -29,6 +21,10 @@ const FAQ = [
   {
     q: "Les questions viennent d'où ?",
     a: "Les questions utilisées sur LlamaKusi sont extraites du référentiel officiel publié par le Ministère de l'Intérieur français. Elles couvrent les 5 thématiques du programme officiel.",
+  },
+  {
+    q: "À quoi ressemble une question de l'examen civique ?",
+    a: "Exemple : « Quel est le principe qui sépare les Églises et l'État en France ? » Réponse : la laïcité. Ce principe, inscrit dans la loi de 1905, garantit la liberté de conscience et interdit à l'État de reconnaître ou subventionner un culte.",
   },
   {
     q: "C'est vraiment gratuit ?",
@@ -66,31 +62,6 @@ export default async function ExamenCiviquePage() {
     <>
       <JsonLd data={faqSchema} id="examen-civique-faq-schema" />
       <JsonLd data={breadcrumbSchema} id="examen-civique-breadcrumb" />
-
-      {/*
-        Contenu SEO statique — indexable par Google.
-        PAS de <h1> ici : le <h1> visible est dans CivicHub pour éviter le double H1.
-      */}
-      <div className="sr-only">
-        <p>
-          Préparez-vous gratuitement à l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle)
-          avec les questions officielles du Ministère de l'Intérieur. Révision adaptative,
-          examens blancs chronométrés, sans inscription.
-        </p>
-        <section aria-label="Thématiques de l'examen civique">
-          <h2>Les 5 thématiques de l'examen civique</h2>
-          <ul>
-            {THEMES_STATIC.map((t) => (
-              <li key={t.label}>{t.label} — {t.count}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-label="Exemple de question examen civique">
-          <h2>Exemple de question de l'examen civique</h2>
-          <p><strong>Question :</strong> Quel est le principe qui sépare les Églises et l'État en France ?</p>
-          <p><strong>Réponse :</strong> La laïcité. Ce principe, inscrit dans la loi de 1905, garantit la liberté de conscience et interdit à l'État de reconnaître ou subventionner un culte.</p>
-        </section>
-      </div>
 
       {/* Interface interactive : démarche, action recommandée, progression, guides, FAQ visible */}
       <CivicHub civicGuides={civicGuides} faq={FAQ} />

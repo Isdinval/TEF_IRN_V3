@@ -9,6 +9,7 @@ import { useShowCivicTefBridge } from "@/components/features/examen-civique/useS
 import { captureEvent } from "@/lib/analytics";
 import {
   MENTIONS,
+  THEMES,
   MENTION_TO_LEVEL,
   EXAM_QUESTION_COUNT,
   EXAM_DURATION_SECONDS,
@@ -387,6 +388,9 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
                 </div>
               ))}
             </dl>
+            <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+              <span className="font-black text-zinc-900">{THEMES.length} thématiques officielles :</span> {THEMES.map((t) => t.label).join(" · ")}
+            </p>
             <p className="text-sm text-zinc-600 font-medium leading-relaxed">
               100 % gratuit, sans inscription · Questions officielles du Ministère de l&apos;Intérieur · Révision adaptative qui s&apos;ajuste à vous
             </p>
