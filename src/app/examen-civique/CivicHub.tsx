@@ -45,7 +45,6 @@ import {
   BookOpen,
   CheckCircle2,
   XCircle,
-  Sparkles,
   MapPin,
 } from "lucide-react";
 import type { Guide } from "@/types/guides";
@@ -254,7 +253,8 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
     .filter((g) => g.category === CIVIC_GENERAL_GUIDE_CATEGORY || g.category === guideCategoryForMention(mention))
     .slice(0, 4);
 
-  const plusLoinContent = (
+  // Pont vers le TEF IRN — réécrit en « Votre dossier complet » à l'item suivant.
+  const tefBridge = (
     <>
       {/* Pont LlamaKusi */}
       {showCTATef && (
@@ -275,16 +275,21 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
         </div>
       )}
 
+    </>
+  );
+
+  const guidesSection = (
+    <>
       {/* Guides — teaser filtré par démarche, catalogue complet sur sa propre page */}
       {relevantGuides.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-zinc-900">Guides</h3>
+        <section aria-labelledby="guides-titre" className="space-y-2">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <h2 id="guides-titre" className="text-lg font-black text-zinc-900">Guides pour votre démarche</h2>
             <Link href="/examen-civique/guides" className="text-xs font-black uppercase tracking-widest text-indigo-500 hover:underline">
               Tous les guides →
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {relevantGuides.map((g) => (
               <Link
                 key={g.slug}
@@ -299,32 +304,34 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* FAQ */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-black text-zinc-900 px-1">Questions fréquentes</h3>
-        <Accordion className="bg-zinc-50 rounded-3xl border border-zinc-100 divide-y divide-zinc-100 px-6">
-          {faq.map((item) => (
-            <AccordionItem key={item.q} value={item.q} className="border-none">
-              <AccordionTrigger className="hover:no-underline py-4 gap-4">
-                <span className="text-sm font-bold text-zinc-800 text-left">{item.q}</span>
-              </AccordionTrigger>
-              <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
-                <p className="text-sm text-zinc-500 leading-relaxed">{item.a}</p>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
     </>
   );
 
+  // FAQ visible en bas de page — un seul niveau d'accordéon (design system §6.5).
+  const faqSection = (
+    <section aria-labelledby="faq-titre" className="space-y-2">
+      <h2 id="faq-titre" className="text-lg font-black text-zinc-900 px-1">Questions fréquentes</h2>
+      <Accordion className="bg-white rounded-3xl border border-zinc-100 shadow-sm divide-y divide-zinc-100 px-6">
+        {faq.map((item) => (
+          <AccordionItem key={item.q} value={item.q} className="border-none">
+            <AccordionTrigger className="hover:no-underline py-4 gap-4">
+              <span className="text-sm font-bold text-zinc-900 text-left">{item.q}</span>
+            </AccordionTrigger>
+            <AccordionContent className="pb-5 pl-0" hiddenUntilFound>
+              <p className="text-sm text-zinc-600 leading-relaxed">{item.a}</p>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </section>
+  );
+
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-6xl mx-auto px-5 py-8 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8 lg:items-start">
-        <div className="space-y-6 lg:col-span-2">
+    <div className="min-h-screen bg-zinc-50/50 pb-20">
+      <div className="mx-auto max-w-5xl p-4 md:p-10 lg:p-12 space-y-8">
 
         <ExerciseLayout
           title={<>Préparez votre <span className="text-indigo-600">examen civique</span></>}
@@ -596,36 +603,11 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
           )}
           </div>
 
-        {/* Séparateur — tout ce qui suit est secondaire (conversion, approfondissement).
-            Sur mobile : accordéon replié pour ne pas alourdir le scroll. Sur desktop
-            (lg:hidden ici), ce même contenu vit en colonne latérale persistante --
-            voir plus bas, hors de cette colonne principale. */}
-        <div className="pt-2 border-t border-zinc-200 lg:hidden" />
-
-        <Accordion className="bg-white rounded-3xl border border-zinc-100 shadow-sm px-6 lg:hidden">
-          <AccordionItem value="plus-loin" className="border-none">
-            <AccordionTrigger className="hover:no-underline py-4 gap-4">
-              <span className="flex items-center gap-2 text-sm font-black text-zinc-900">
-                <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
-              </span>
-            </AccordionTrigger>
-            <AccordionContent className="pb-6 pl-0 space-y-6" hiddenUntilFound>
-              {plusLoinContent}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-        </div>
-
-        {/* Colonne latérale — desktop uniquement (lg:), remplit l'espace laissé vide
-            par la colonne principale sur grand écran avec du contenu réel plutôt que
-            du padding. Même contenu que l'accordéon mobile ci-dessus, toujours visible
-            ici puisque l'espace ne manque pas. */}
-        <div className="hidden lg:block lg:sticky lg:top-8 space-y-6 bg-white rounded-3xl border border-zinc-100 shadow-sm p-6">
-          <h3 className="flex items-center gap-2 text-sm font-black text-zinc-900">
-            <Sparkles size={16} className="text-indigo-400" /> Pour aller plus loin
-          </h3>
-          {plusLoinContent}
-        </div>
+        {/* Fin de page — une seule colonne, sans accordéon replié : pont TEF IRN,
+            guides de la démarche puis FAQ, visibles sur mobile comme sur ordinateur. */}
+        {tefBridge}
+        {guidesSection}
+        {faqSection}
       </div>
 
       <Dialog open={mentionHelpOpen} onOpenChange={setMentionHelpOpen}>
