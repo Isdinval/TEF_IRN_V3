@@ -103,7 +103,7 @@ Elles servent à **reconnaître d'un coup d'œil** une catégorie de leçon, une
 
 **Espaces de navigation** : l'espace Examen Civique est en `blue` dans la barre latérale et la navigation mobile (groupe de menu, section, onglet actif), l'espace TEF IRN en `indigo`.
 
-**Examen Civique** : sections de l'accueil civique — Progression `emerald`, Démarche `violet`, Étapes `indigo`, Historique `zinc-900` ; parties du Livret du citoyen — une couleur par partie (`PART_THEME` de `LivretReader.tsx`), libellés en `-600`/`-700` pour le contraste.
+**Examen Civique** : sections de l'accueil civique — Démarche `violet`, Progression `emerald`, Outils `indigo`, Historique `zinc-900` (les blocs « Prochaine étape », « Votre dossier complet », Guides et FAQ restent neutres) ; parties du Livret du citoyen — une couleur par partie (`PART_THEME` de `LivretReader.tsx`), libellés en `-600`/`-700` pour le contraste.
 
 **Carte sombre de mise en avant** : une seule par page, `bg-zinc-900` (dégradé `from-zinc-900 via-zinc-800` et halos tolérés), texte blanc, libellés `zinc-400`. Exemples : en-tête du tableau de bord, carte « Besoin d'aide ? » d'un parcours.
 
@@ -435,6 +435,7 @@ Pages entièrement relues avec la checklist §9. Toute autre page applicative es
 | `/tef-irn/settings` | `apply_ligne_directrice_design` (lot 5) |
 | `/tef-irn/login`, `/tef-irn/onboarding` (parcours d'entrée : pas de PageHeader) | `apply_ligne_directrice_design` (lot 5) |
 | `/examen-civique` (accueil, entraînement, parcourir, livret, éligibilité, centres) — hors examen blanc (§2.7) et hors guides | `apply_ligne_directrice_design` (lot 6) |
+| `/examen-civique` (accueil) — refonte de la hiérarchie : une colonne, « Prochaine étape » unique, verdict « Êtes-vous prêt ? », aucune infobulle, FAQ visible | `refonte_dashboard_examen_civique` |
 | `/tef-irn/guides`, `/examen-civique/guides` (catalogue + détail) — univers éditorial conservé, règles §3/§4/contraste appliquées | `apply_ligne_directrice_design` (lot 7) |
 | `/tef-irn/coach`, `/tef-irn/cookies` | `apply_ligne_directrice_design` (lot 8) |
 | `/tef-irn/admin/*` (règles transverses, en-tête « Zone admin » conservé) | `apply_ligne_directrice_design` (lot 9) |
