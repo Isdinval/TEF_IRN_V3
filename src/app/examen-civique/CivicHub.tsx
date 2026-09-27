@@ -628,6 +628,31 @@ function CivicHubContent({ civicGuides, faq }: CivicHubProps) {
               </button>
             )}
           </div>
+          {last5Count >= 2 && (
+            <div
+              role="img"
+              aria-label={`Vos ${last5Count} derniers scores, du plus ancien au plus récent : ${[...last5].reverse().map((a) => a.score).join(", ")} sur ${EXAM_QUESTION_COUNT}. Seuil de réussite : ${EXAM_PASS_THRESHOLD}.`}
+              className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-2"
+            >
+              <div className="relative flex h-20 items-end gap-2">
+                <div
+                  className="absolute inset-x-0 border-t-2 border-dashed border-zinc-300"
+                  style={{ bottom: `${(EXAM_PASS_THRESHOLD / EXAM_QUESTION_COUNT) * 100}%` }}
+                  aria-hidden
+                />
+                {[...last5].reverse().map((a) => (
+                  <div
+                    key={a.id}
+                    className={`flex-1 rounded-t-lg ${a.score >= EXAM_PASS_THRESHOLD ? "bg-emerald-600" : "bg-amber-500"}`}
+                    style={{ height: `${Math.max(4, Math.round((a.score / (a.total_questions || EXAM_QUESTION_COUNT)) * 100))}%` }}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-zinc-500 font-medium">
+                {last5Count} derniers scores, du plus ancien au plus récent · pointillés : seuil de {EXAM_PASS_THRESHOLD}/{EXAM_QUESTION_COUNT}
+              </p>
+            </div>
+          )}
           {attempts.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-zinc-200 bg-white p-10 text-center">
               <Clock size={32} className="text-zinc-500" />
