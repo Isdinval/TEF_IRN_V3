@@ -48,7 +48,7 @@ PRONUNCIATIONS: dict[str, str] = {}
 # --- Vidéo -------------------------------------------------------------------
 W, H, FPS = 1080, 1920, 30
 TAIL_SECONDS = 0.15          # marge après le dernier mot (boucle serrée)
-SPEECH_WPS = 2.85            # mesuré : Short 3, voix Charon, 74 mots en 25,75 s ≈ 2,87 mots/s
+SPEECH_WPS = 3.18            # mesuré : Short 3, voix Charon, 74 mots en 23,27 s ≈ 3,18 mots/s
 MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-20"))   # relatif à la voix (musique normalisée à la même loudness)
 MUSIC_EXTS = (".wav", ".mp3", ".m4a", ".flac", ".ogg")
 
