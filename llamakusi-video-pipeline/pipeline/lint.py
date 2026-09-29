@@ -48,8 +48,8 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         secs = estimate_seconds(script)
         if total > config.MAX_WORDS_ERROR or secs > config.MAX_SECONDS_ERROR:
             add("error", f"trop long : {total} mots (~{secs:.0f}s estimées)")
-        elif total > config.MAX_WORDS_WARN or secs > config.MAX_SECONDS_WARN:
-            add("warn", f"{total} mots (~{secs:.0f}s estimées) > cible ~{config.MAX_WORDS_WARN} mots : "
+        elif secs > config.MAX_SECONDS_WARN:
+            add("warn", f"{total} mots (~{secs:.0f}s estimées) > cible ~{config.MAX_SECONDS_WARN:.0f}s : "
                         "durée réelle à mesurer via le TTS")
 
         for b in script.blocks:

@@ -135,9 +135,10 @@ def cmd_build(args) -> int:
     if until < STAGES.index("render"):
         return 0
 
-    music = config.MUSIC_DIR / "bed.wav"
+    music = config.find_music()
+    print(f"[music] {music if music else 'aucune'}")
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
-    assemble.render(bdir, tl, out, music if music.exists() else None,
+    assemble.render(bdir, tl, out, music,
                     preset="veryfast" if args.dry else "medium")
     print(f"✓ {out}")
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")

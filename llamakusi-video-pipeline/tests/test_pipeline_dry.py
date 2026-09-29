@@ -31,3 +31,16 @@ def test_dry_render_short_03(tmp_path):
     assert (v["width"], v["height"]) == (1080, 1920)
     assert abs(float(v["duration"]) - tl["duration"]) < 0.1
     shutil.rmtree(tmp_path / "layers", ignore_errors=True)
+
+
+def test_find_music_prefers_env_then_bed_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "MUSIC_DIR", tmp_path)
+    monkeypatch.delenv("MUSIC_FILE", raising=False)
+    assert config.find_music() is None
+    (tmp_path / "bed.mp3").write_bytes(b"x")
+    assert config.find_music() == tmp_path / "bed.mp3"
+    (tmp_path / "bed.wav").write_bytes(b"x")
+    assert config.find_music() == tmp_path / "bed.wav"          # wav prioritaire
+    monkeypatch.setenv("MUSIC_FILE", str(tmp_path / "absent.mp3"))
+    with pytest.raises(FileNotFoundError):
+        config.find_music()

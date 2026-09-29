@@ -48,8 +48,25 @@ PRONUNCIATIONS: dict[str, str] = {}
 # --- Vidéo -------------------------------------------------------------------
 W, H, FPS = 1080, 1920, 30
 TAIL_SECONDS = 0.15          # marge après le dernier mot (boucle serrée)
-SPEECH_WPS = 2.7             # HYPOTHÈSE : mots/seconde en français parlé (estimation)
-MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-20"))
+SPEECH_WPS = 2.85            # mesuré : Short 3, voix Charon, 74 mots en 25,75 s ≈ 2,87 mots/s
+MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-20"))   # relatif à la voix (musique normalisée à la même loudness)
+MUSIC_EXTS = (".wav", ".mp3", ".m4a", ".flac", ".ogg")
+
+
+def find_music() -> Path | None:
+    """MUSIC_FILE (.env) prioritaire, sinon assets/music/bed.<wav|mp3|m4a|flac|ogg>."""
+    override = env("MUSIC_FILE")
+    if override:
+        path = Path(override)
+        path = path if path.is_absolute() else ROOT / path
+        if not path.exists():
+            raise FileNotFoundError(f"MUSIC_FILE introuvable : {path}")
+        return path
+    for ext in MUSIC_EXTS:
+        path = MUSIC_DIR / f"bed{ext}"
+        if path.exists():
+            return path
+    return None
 
 # Zones de sécurité Shorts : rien d'important dans les 250 px du bas / 200 px de droite
 SAFE_RIGHT = W - 200         # 880

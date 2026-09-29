@@ -51,16 +51,17 @@ def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None =
 
     inputs += ["-i", str(build_dir / timeline["voice"])]
     voice_idx = idx
-    filters.append(f"[{voice_idx}:a]aresample=48000,loudnorm=I=-16:TP=-1.5:LRA=11,"
+    filters.append(f"[{voice_idx}:a]aresample=48000,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,"
                    f"apad=whole_dur={total:.5f},atrim=0:{total:.5f}[voice]")
     if music and music.exists():
         inputs += ["-stream_loop", "-1", "-i", str(music)]
         filters.append(f"[{voice_idx + 1}:a]aresample=48000,atrim=0:{total:.5f},asetpts=PTS-STARTPTS,"
+                       f"loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,"
                        f"volume={config.MUSIC_GAIN_DB}dB,afade=t=out:st={max(0.0, total - 0.6):.3f}:d=0.6[music]")
         filters.append("[voice][music]amix=inputs=2:duration=first:dropout_transition=0,volume=2[aout]")
         amap = "[aout]"
     else:
-        print("  ⚠ pas de musique (assets/music/bed.wav absent) : voix seule")
+        print("  ⚠ pas de musique (assets/music/bed.mp3|wav… ou MUSIC_FILE) : voix seule")
         amap = "[voice]"
 
     cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filters),
