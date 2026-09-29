@@ -1,0 +1,51 @@
+id: short-03
+format: short
+status: draft
+pillar: D
+product: examen_civique
+hook_formula: in_medias_res
+accent: blue
+title: 'Contravention : combien de jours pour agir ?'
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Tu reçois une contravention. Tu as combien de jours pour agir ?
+  mascot: perplexe
+  card:
+    kind: question
+    data:
+      draft: true
+      question_id: null
+      label: Examen civique · Question
+      question: Tu reçois une contravention. Tu as combien de jours pour agir ?
+      choices:
+      - 7 jours
+      - 15 jours
+      - 45 jours
+      - 90 jours
+      correct: C
+  visual_note: Carte de question générée directement à l'écran, 4 choix visibles.
+- id: build
+  voice: C'est une vraie question de l'examen civique. 12 questions sur 40 portent sur des situations
+    comme celle-ci — pas seulement des dates à apprendre par cœur, mais des règles du quotidien à savoir
+    appliquer.
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom sur les 4 choix.
+- id: payoff
+  voice: 'La réponse : 45 jours. Passé ce délai, l''amende est majorée.'
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Choix C surligné en doré.
+- id: loop
+  voice: Et ça, c'est le genre de règle qu'on croise tous les jours — sans jamais l'avoir apprise.
+  mascot: heureux
+  card_from: hook
+  visual_note: Retour à la carte de question initiale.
+claims:
+- text: '45 jours : délai avant majoration de l''amende forfaitaire (la question est ambiguë : un tarif
+    minoré existe avant 45 jours)'
+  source_hint: service-public.fr (amende forfaitaire) — reformuler la question si besoin
+- text: 12 questions sur 40 portent sur des situations de la vie quotidienne
+  source_hint: formation-civique.interieur.gouv.fr (structure de l'examen civique)

@@ -1,0 +1,60 @@
+id: short-05
+format: short
+status: draft
+pillar: F
+product: both
+hook_formula: contrarian
+accent: gold
+title: 'TEF ou TCF : la vraie question'
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Tout ce qu'on te dit sur le choix entre TEF et TCF passe à côté de la vraie question.
+  mascot: perplexe
+  overlay: TEF vs TCF
+  card:
+    kind: compare
+    data:
+      label: TEF IRN · TCF IRN
+      contrast: false
+      left:
+        title: TEF
+      right:
+        title: TCF
+      rows:
+      - label: Valeur réglementaire
+        left: Identique
+        right: Identique
+        highlight: true
+      - label: Validité
+        left: 2 ans
+        right: 2 ans
+        highlight: true
+      - label: Format d'épreuve
+        left: Propre au TEF
+        right: Propre au TCF
+        highlight: false
+  visual_note: Overlay « TEF vs TCF ». Mascotte perplexe.
+- id: build
+  voice: Les deux ont exactement la même valeur réglementaire, la même validité de deux ans. Le vrai choix
+    n'est pas lequel est reconnu — c'est lequel correspond à ta façon de travailler face à un format d'épreuve.
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte comparative, colonnes TEF/TCF.
+- id: payoff
+  voice: Le format d'épreuve change. La reconnaissance, elle, ne change pas.
+  mascot: victorieux
+  card_from: hook
+  overlay: Même valeur
+  visual_note: Overlay « MÊME VALEUR ».
+  card_state: revealed
+- id: loop
+  voice: Alors la question n'est plus lequel choisir — c'est lequel te ressemble.
+  mascot: heureux
+  card_from: hook
+  visual_note: Retour au cadrage initial.
+claims:
+- text: TEF IRN et TCF IRN ont la même valeur réglementaire
+  source_hint: service-public.fr ; arrêté du ministère de l'Intérieur
+- text: Validité de deux ans des attestations
+  source_hint: service-public.fr ; à confirmer (durée exacte non vérifiée)

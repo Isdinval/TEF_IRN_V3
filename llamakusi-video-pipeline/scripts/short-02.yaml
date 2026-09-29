@@ -1,0 +1,58 @@
+id: short-02
+format: short
+status: draft
+pillar: B
+product: both
+hook_formula: stakes
+accent: gold
+title: 'Naturalisation : le saut de B1 à B2 depuis 2026'
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Depuis 2026, le niveau demandé pour la naturalisation a fait un bond que beaucoup n'ont pas vu
+    venir.
+  mascot: perplexe
+  overlay: '2026'
+  card:
+    kind: compare
+    data:
+      label: Naturalisation · Niveau de français
+      contrast: true
+      left:
+        title: B1
+        subtitle: avant 2026
+      right:
+        title: B2
+        subtitle: depuis le 1er janvier 2026
+      rows:
+      - label: Expression
+        left: Phrases courtes, conversation simple
+        right: Argumenter, nuancer, conversation complexe
+        highlight: true
+      - label: Pour la naturalisation
+        left: Suffisait avant
+        right: Exigé aujourd'hui
+        highlight: true
+  visual_note: Date « 2026 » en overlay. Mascotte perplexe.
+- id: build
+  voice: 'Avant, le niveau B1 suffisait — des phrases courtes, une conversation simple. Depuis le 1er
+    janvier 2026, c''est le niveau B2 qui est exigé : argumenter, nuancer, tenir une vraie conversation
+    complexe. Ce n''est pas un ajustement, c''est un changement de catégorie.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte comparative B1 vs B2, blocs qui s'opposent visuellement.
+- id: payoff
+  voice: Ce qui suffisait il y a un an ne suffit plus aujourd'hui.
+  mascot: victorieux
+  card_from: hook
+  overlay: B1 → B2
+  visual_note: Overlay « B1 → B2 » doré.
+  card_state: revealed
+- id: loop
+  voice: 'Et la question à se poser maintenant, c''est : ton niveau a-t-il suivi ?'
+  mascot: heureux
+  card_from: hook
+  visual_note: Retour au cadrage initial. Overlay discret.
+claims:
+- text: 'Depuis le 1er janvier 2026, le niveau B2 est exigé pour la naturalisation (avant : B1)'
+  source_hint: Décret du 15 juillet 2025 ; service-public.fr

@@ -1,0 +1,12 @@
+# Artefacts générés / assets téléchargés (voir `python cli.py fetch-assets`)
+build/
+assets/fonts/*
+assets/mascot/*
+assets/music/*
+!assets/music/.gitkeep
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+# Le .gitignore racine ignore `.env*` : on réautorise le modèle.
+!.env.example

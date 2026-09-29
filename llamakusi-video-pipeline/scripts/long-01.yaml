@@ -1,0 +1,50 @@
+id: long-01
+format: long
+status: outline
+pillar: C
+product: tef_irn
+accent: indigo
+title: Comment structurer une expression écrite B2 (méthode complète)
+cta_overlay: null
+blocks:
+- id: hook
+  voice: À l'épreuve d'expression écrite du TEF IRN, tu as entre 30 et 90 mots pour prouver ton niveau.
+    Et la plupart des candidats qui restent bloqués en B1 n'ont pourtant aucun problème de vocabulaire.
+  mascot: perplexe
+  visual_note: 01 — HOOK (0:00-0:15)
+- id: setup
+  voice: 'On va se baser sur la grille de correction officielle, en deux temps : le contenu, puis la langue.
+    Trois choses aujourd''hui : comment le correcteur note réellement, comment structurer en trois blocs
+    même sur 90 mots, et un exemple complet qu''on construit ensemble jusqu''au bout.'
+  mascot: reflechit
+  visual_note: 02 — SETUP (0:15-0:45)
+- id: contenu1
+  voice: ''
+  mascot: reflechit
+  visual_note: '03 — CONTENU 1 : le contenu (0:45-3:00) — sujet « Donnez votre avis sur le télétravail
+    », 3 sous-questions implicites'
+- id: rehook
+  voice: La partie qui suit, c'est exactement celle où la plupart des candidats stagnent en B1 sans comprendre
+    pourquoi.
+  mascot: perplexe
+  visual_note: 04 — RE-HOOK (~3:00)
+- id: contenu2
+  voice: ''
+  mascot: reflechit
+  visual_note: '05 — CONTENU 2 : la structure (3:00-5:00) — plan en 3 blocs'
+- id: contenu3
+  voice: ''
+  mascot: reflechit
+  visual_note: '06 — CONTENU 3 : exemple complet de 85 mots annoté (5:00-6:00)'
+- id: payoff
+  voice: ''
+  mascot: victorieux
+  visual_note: 07 — PAYOFF (6:00-6:30) — texte annoté, transformation B1→B2
+- id: cta
+  voice: Sur l'app, chaque texte que tu écris reçoit cette même grille de correction, phrase par phrase
+    — contenu, puis langue. Lien en bio pour t'entraîner avec un vrai retour sur tes propres textes.
+  mascot: heureux
+  visual_note: 08 — CTA unique (6:30-7:00)
+claims:
+- text: L'expression écrite du TEF IRN demande entre 30 et 90 mots
+  source_hint: docs/product/tef-irn-reference.md ; site officiel CCI Paris IDF

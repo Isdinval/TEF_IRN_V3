@@ -1,0 +1,43 @@
+id: short-01
+format: short
+status: draft
+pillar: A
+product: tef_irn
+hook_formula: curiosity_gap
+accent: indigo
+title: Ce qui bloque 9 candidats sur 10 en B1
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Il y a une raison qui bloque 9 candidats sur 10 en B1 — et ce n'est pas le vocabulaire.
+  mascot: perplexe
+  card:
+    kind: text_annotated
+    data: {}
+  visual_note: Texte identique à l'écran. Mascotte perplexe.
+- id: build
+  voice: 'C''est la structure. Un correcteur note deux choses : le contenu, et la langue. Un vocabulaire
+    riche sans paragraphes clairs ne passe pas B2. Trois blocs suffisent : une idée en intro, deux arguments
+    reliés, une conclusion qui répond à la question.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: 'Carte générée : texte désordonné → mots INTRO / ARGUMENT / CONCLUSION apparaissent un
+    par un.'
+- id: payoff
+  voice: Même texte. Juste réorganisé en trois blocs. Le score passe de B1 à B2.
+  mascot: victorieux
+  card_from: hook
+  overlay: B1 → B2
+  visual_note: Carte avant/après, overlay « B1 → B2 » doré.
+- id: loop
+  voice: Alors la vraie question, ce n'est pas ce que tu sais — c'est comment tu l'organises.
+  mascot: heureux
+  card_from: hook
+  visual_note: Retour au cadrage de l'accroche. Overlay discret « lien en bio ».
+claims:
+- text: 9 candidats sur 10 restent bloqués en B1 à cause de la structure (pas du vocabulaire)
+  source_hint: 'AUCUNE source connue : statistique à sourcer ou à reformuler (ex. « la plupart »)'
+- text: 'Le correcteur note deux dimensions : le contenu, puis la langue'
+  source_hint: Grille officielle TEF IRN / docs/product/tef-irn-reference.md
+- text: Réorganiser en 3 blocs fait passer un texte de B1 à B2 (démonstration illustrative)
+  source_hint: À présenter comme exemple, pas comme garantie de score
