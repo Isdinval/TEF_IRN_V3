@@ -1,5 +1,7 @@
 # llamakusi-video-pipeline
 
+> **Toutes les commandes, leur rôle et le workflow : voir [DOCUMENTATION.md](DOCUMENTATION.md).**
+
 Pipeline de création des vidéos de la chaîne **La Naturalisation avec LlamaKusi** (Shorts 9:16 d'abord).
 Sous-dossier autonome de `TEF_IRN_V3` : Python, aucune dépendance avec l'app Next.js.
 
@@ -21,7 +23,7 @@ python cli.py lint --quiet                  # contrôle des scripts
 python cli.py build short-03 --dry          # rendu SANS API : voix muette, timings estimés
 python cli.py preview short-03              # planche contact build/short-03/preview.jpg
 python cli.py build short-03                # vrai run : TTS → ASR → alignement → rendu
-python -m pytest -q                         # 16 tests
+python -m pytest -q                         # tests
 ```
 
 Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la stratégie). Absente → voix seule.

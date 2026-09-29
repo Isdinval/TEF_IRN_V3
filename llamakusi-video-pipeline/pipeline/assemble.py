@@ -32,10 +32,13 @@ def _concat_list(segments: list[dict], blank: str, total: float, build_dir: Path
 
 
 def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None = None,
-           preset: str = "medium") -> Path:
+           preset: str = "medium", background: Path | None = None) -> Path:
     total = timeline["duration"]
-    inputs: list[str] = ["-f", "lavfi", "-i",
-                         f"color=c=0x{config.COLORS['bg'].lstrip('#')}:s={config.W}x{config.H}:r={config.FPS}:d={total:.5f}"]
+    if background and Path(background).exists():
+        inputs: list[str] = ["-i", str(background)]
+    else:
+        inputs = ["-f", "lavfi", "-i",
+                  f"color=c=0x{config.COLORS['bg'].lstrip('#')}:s={config.W}x{config.H}:r={config.FPS}:d={total:.5f}"]
     filters, last, idx = [], "[0:v]", 1
     for name in TRACK_ORDER:
         segs = timeline["tracks"].get(name, [])

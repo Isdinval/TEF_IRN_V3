@@ -7,6 +7,9 @@
   python cli.py build short-03               # TTS → ASR → alignement → rendu
   python cli.py preview short-03             # planche contact des blocs
   python cli.py fetch-question contravention # cherche de vraies questions civiques
+  python cli.py list                         # état de tous les scripts
+  python cli.py new short-06 --pillar D      # crée un squelette de script à remplir
+Documentation complète : DOCUMENTATION.md
 """
 from __future__ import annotations
 
@@ -18,7 +21,7 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from pipeline import align, assemble, assets, audio, config, lint, schema, supabase_source, timeline, tts
+from pipeline import align, assemble, assets, audio, background, config, lint, schema, supabase_source, timeline, tts
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -137,11 +140,76 @@ def cmd_build(args) -> int:
 
     music = config.find_music()
     print(f"[music] {music if music else 'aucune'}")
+    bg = None
+    if not args.no_bg:
+        print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
+        bg = background.generate(bdir, script.accent, tl["duration"])
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
     assemble.render(bdir, tl, out, music,
-                    preset="veryfast" if args.dry else "medium")
+                    preset="veryfast" if args.dry else "medium", background=bg)
     print(f"✓ {out}")
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
+    return 0
+
+
+def cmd_list(args) -> int:
+    scripts = schema.load_all(config.SCRIPTS_DIR)
+    print(f"{'id':<10} {'statut':<9} {'pilier':<6} {'hook':<14} {'~durée':>7}  {'claims ok':<9} build")
+    for sc in scripts:
+        secs = lint.estimate_seconds(sc)
+        ok = sum(1 for c in sc.claims if c.verified and c.source_url)
+        out = config.BUILD_DIR / sc.id / "out.mp4"
+        built = "out.mp4 ✓" if out.exists() else ("dry seulement" if (config.BUILD_DIR / sc.id / "out.dry.mp4").exists() else "-")
+        print(f"{sc.id:<10} {sc.status:<9} {sc.pillar:<6} {(sc.hook_formula or '-'):<14} "
+              f"{secs:>6.0f}s  {ok}/{len(sc.claims):<7} {built}")
+    return 0
+
+
+TEMPLATE = """# Script {id} — à compléter puis : python cli.py lint {id}
+id: {id}
+format: short
+status: draft            # draft → approved (après VOTRE relecture, GATE 1)
+pillar: {pillar}         # A produit TEF · B actu · C méthode · D civique · E FLE · F comparatif
+product: {product}       # tef_irn | examen_civique | both | fle_bridge
+hook_formula: {formula}  # stakes | contrarian | curiosity_gap | in_medias_res | direct_promise
+accent: {accent}         # indigo (TEF) | blue (civique) | gold
+title: "TITRE DE TRAVAIL"
+cta_overlay: Lien en bio # texte discret, JAMAIS parlé
+blocks:
+  - id: hook             # 0-1,5 s : démarre en plein milieu, sans « salut »
+    voice: "À REMPLACER"
+    mascot: perplexe
+    # overlay: "2026"    # gros badge doré (facultatif)
+    # card: {{kind: question, data: {{question_id: null, question: "…", choices: ["…", "…", "…", "…"], correct: "C", draft: true}}}}
+  - id: build            # une seule idée, zéro remplissage
+    voice: "À REMPLACER"
+    mascot: reflechit
+    # card_from: hook      # réutilise la carte du hook
+  - id: payoff           # la réponse, nette
+    voice: "À REMPLACER"
+    mascot: victorieux
+    # card_from: hook
+    # card_state: revealed # allume la bonne réponse
+  - id: loop             # la dernière ligne renvoie à la première
+    voice: "À REMPLACER"
+    mascot: heureux
+    # card_from: hook
+claims:                  # chaque affirmation factuelle, avec sa source à vérifier
+  - text: "AFFIRMATION À SOURCER"
+    source_hint: "service-public.fr …"
+"""
+
+
+def cmd_new(args) -> int:
+    path = config.SCRIPTS_DIR / f"{args.id}.yaml"
+    if path.exists():
+        print(f"✗ {path.name} existe déjà")
+        return 1
+    accent = {"A": "indigo", "C": "indigo", "D": "blue"}.get(args.pillar, "gold")
+    product = args.product or {"A": "tef_irn", "C": "tef_irn", "D": "examen_civique", "E": "fle_bridge"}.get(args.pillar, "both")
+    path.write_text(TEMPLATE.format(id=args.id, pillar=args.pillar, product=product,
+                                    formula=args.formula, accent=accent), encoding="utf-8")
+    print(f"✓ {path} — remplir les « À REMPLACER », puis : python cli.py lint {args.id}")
     return 0
 
 
@@ -187,8 +255,19 @@ def main() -> int:
     p.add_argument("--dry", action="store_true", help="aucun appel API : voix muette + timings estimés")
     p.add_argument("--proportional", action="store_true", help="TTS réel mais timings estimés (sans ASR)")
     p.add_argument("--force", action="store_true", help="ignore le cache TTS/ASR")
+    p.add_argument("--no-bg", action="store_true", help="fond noir uni (rendu plus rapide, pour tester)")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
     p.set_defaults(fn=cmd_build)
+
+    sub.add_parser("list").set_defaults(fn=cmd_list)
+
+    p = sub.add_parser("new")
+    p.add_argument("id")
+    p.add_argument("--pillar", choices=list("ABCDEF"), required=True)
+    p.add_argument("--product", choices=["tef_irn", "examen_civique", "both", "fle_bridge"])
+    p.add_argument("--formula", default="stakes",
+                   choices=["stakes", "contrarian", "curiosity_gap", "in_medias_res", "direct_promise"])
+    p.set_defaults(fn=cmd_new)
 
     p = sub.add_parser("preview")
     p.add_argument("id")

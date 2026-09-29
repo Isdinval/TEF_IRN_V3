@@ -42,6 +42,8 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
     for b in script.blocks:
         if not b.voice.strip():
             add("error", f"bloc '{b.id}' sans texte de voix")
+        elif "À REMPLACER" in b.voice:
+            add("error", f"bloc '{b.id}' : squelette non complété (« À REMPLACER »)")
 
     if script.format == "short":
         total = sum(count_words(b.voice) for b in script.blocks)

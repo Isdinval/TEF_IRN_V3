@@ -72,12 +72,17 @@ def _wrap(text: str, fnt, max_w: float) -> list[str]:
 
 # --- marque -------------------------------------------------------------------
 def render_brand(accent: str) -> Image.Image:
+    """Logo texte centré, gros et lisible : pastille d'accent + LLAMAKUSI en blanc."""
     img = canvas()
     d = ImageDraw.Draw(img)
+    fnt = font("montserrat", 50, 900)
+    text, tracking, dot, gap = "LLAMAKUSI", 9, 26, 22
+    text_w = sum(fnt.getlength(c) for c in text) + tracking * (len(text) - 1)
+    x = config.CONTENT_CX - (dot + gap + text_w) / 2
     y = LAYOUT["brand_y"]
-    d.ellipse((config.CONTENT_X0, y - 30, config.CONTENT_X0 + 18, y - 12), fill=rgb(config.ACCENTS[accent]))
-    _tracked(d, (config.CONTENT_X0 + 34, y - 10), "LLAMAKUSI", font("montserrat", 26, 900),
-             rgb(COLORS["muted"]), 5)
+    cy = y - 18
+    d.ellipse((x, cy - dot / 2, x + dot, cy + dot / 2), fill=rgb(config.ACCENTS[accent]))
+    _tracked(d, (x + dot + gap, y), text, fnt, rgb(COLORS["white"], 235), tracking)
     return img
 
 
@@ -95,7 +100,7 @@ def render_mascot(expression: str, pose: int) -> Image.Image:
     scale = LAYOUT["mascot_h"] / src.height
     src = src.resize((max(1, int(src.width * scale)), LAYOUT["mascot_h"]), Image.LANCZOS)
     img = canvas()
-    img.alpha_composite(src, (LAYOUT["mascot_x"], LAYOUT["mascot_bottom"] - src.height))
+    img.alpha_composite(src, ((W - src.width) // 2, LAYOUT["mascot_bottom"] - src.height))
     return img
 
 
@@ -129,15 +134,10 @@ def render_overlay(text: str) -> Image.Image:
 
 
 def render_cta(text: str) -> Image.Image:
-    """Petit CTA discret (jamais parlé en Short)."""
+    """Petit CTA discret centré sous la mascotte (jamais parlé en Short)."""
     img = canvas()
-    _pill(img, LAYOUT["cta_x"], LAYOUT["cta_cy"], text, "montserrat", 30, 900,
-          "#27272A", COLORS["white"], 26, 16, config.SAFE_RIGHT - LAYOUT["cta_x"], upper=True)
-    # recadre à gauche : _pill centre sur cx → on décale pour aligner le bord gauche
-    bbox = img.getchannel("A").getbbox()
-    if bbox:
-        dx = LAYOUT["cta_x"] - bbox[0]
-        img = img.transform(img.size, Image.AFFINE, (1, 0, -dx, 0, 1, 0))
+    _pill(img, config.CONTENT_CX, LAYOUT["cta_cy"], text, "montserrat", 32, 900,
+          "#27272A", COLORS["white"], 30, 18, config.CONTENT_W, upper=True)
     return img
 
 
@@ -151,7 +151,7 @@ def render_subs(texts: list[str], active: int) -> Image.Image:
         space = fnt.getlength(" ")
         widths = [fnt.getlength(t) for t in texts]
         total = sum(widths) + space * (len(texts) - 1)
-        if total <= config.CONTENT_W or size <= 46:
+        if total <= config.SUBS_MAX_W or size <= 46:
             break
         size -= 4
     x = config.CONTENT_CX - total / 2

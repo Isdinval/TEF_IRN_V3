@@ -49,7 +49,7 @@ PRONUNCIATIONS: dict[str, str] = {}
 W, H, FPS = 1080, 1920, 30
 TAIL_SECONDS = 0.15          # marge après le dernier mot (boucle serrée)
 SPEECH_WPS = 3.18            # mesuré : Short 3, voix Charon, 74 mots en 23,27 s ≈ 3,18 mots/s
-MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-20"))   # relatif à la voix (musique normalisée à la même loudness)
+MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-14"))   # relatif à la voix (musique normalisée à la même loudness)
 MUSIC_EXTS = (".wav", ".mp3", ".m4a", ".flac", ".ogg")
 
 
@@ -68,24 +68,24 @@ def find_music() -> Path | None:
             return path
     return None
 
-# Zones de sécurité Shorts : rien d'important dans les 250 px du bas / 200 px de droite
-SAFE_RIGHT = W - 200         # 880
-SAFE_BOTTOM = H - 250        # 1670
-CONTENT_X0 = 60
-CONTENT_W = SAFE_RIGHT - CONTENT_X0   # 820
-CONTENT_CX = CONTENT_X0 + CONTENT_W // 2
+# Mise en page CENTRÉE sur l'axe de l'écran (x = 540).
+# Les boutons YouTube (droite) n'occupent que la moitié basse : la carte (haut) peut être pleine largeur,
+# les sous-titres restent plus étroits (SUBS_MAX_W) pour ne pas frôler le rail de droite.
+CONTENT_W = 900
+CONTENT_X0 = (W - CONTENT_W) // 2     # 90
+CONTENT_CX = W // 2                   # 540
+SUBS_MAX_W = 780
+SAFE_BOTTOM = H - 250                 # 1670 : rien d'important en dessous (légende YouTube)
 
 LAYOUT = {
-    "brand_y": 150,
-    "overlay_cy": 265,       # badge d'accroche (centre vertical)
-    "card_y": 350,
-    "card_max_h": 660,
-    "subs_cy": 1090,
-    "mascot_x": 40,
-    "mascot_bottom": SAFE_BOTTOM,
-    "mascot_h": 500,
-    "cta_x": 450,
-    "cta_cy": 1590,
+    "brand_y": 175,          # ligne de base du logo texte
+    "overlay_cy": 300,       # badge d'accroche (centre vertical)
+    "card_y": 390,
+    "card_max_h": 640,
+    "subs_cy": 1105,
+    "mascot_bottom": 1580,   # mascotte centrée, sous les sous-titres
+    "mascot_h": 420,
+    "cta_cy": 1630,          # pill « Lien en bio », centré sous la mascotte
 }
 
 # --- Palette (tokens du design system / globals.css) -------------------------
@@ -108,6 +108,24 @@ ACCENTS = {
     "gold": "#F2C94C",
 }
 ACCENT_BAR = {"indigo": "#6366F1", "blue": "#3B82F6", "gold": "#F2C94C"}  # -500
+
+# --- Fond animé (background.py) : halos flous qui dérivent lentement, volontairement peu contrastés ----
+# (couleur, intensité 0-1, centre x, centre y, rayon d'orbite x, y, cycles/vidéo, phase, sigma)
+BG_PALETTES = {
+    "indigo": {"base": "#08080F", "blobs": [
+        ("#4F46E5", 0.34, 0.25, 0.28, 0.16, 0.10, 1, 0.0, 0.34),
+        ("#7C3AED", 0.24, 0.80, 0.62, 0.14, 0.12, 1, 2.1, 0.36),
+        ("#0EA5E9", 0.16, 0.45, 0.92, 0.18, 0.06, 2, 4.0, 0.32)]},
+    "blue": {"base": "#070A12", "blobs": [
+        ("#2563EB", 0.34, 0.75, 0.25, 0.16, 0.10, 1, 0.5, 0.34),
+        ("#0EA5E9", 0.20, 0.20, 0.60, 0.14, 0.12, 1, 2.6, 0.36),
+        ("#4F46E5", 0.18, 0.55, 0.92, 0.18, 0.06, 2, 4.4, 0.32)]},
+    "gold": {"base": "#0B0A09", "blobs": [
+        ("#4F46E5", 0.26, 0.22, 0.30, 0.16, 0.10, 1, 1.0, 0.36),
+        ("#B8892A", 0.20, 0.82, 0.58, 0.14, 0.12, 1, 3.0, 0.34),
+        ("#7C3AED", 0.14, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.32)]},
+}
+BG_DEBAND = 1.2              # force de `gradfun` (anti-banding des dégradés sombres ; un grain `noise` pèserait 70× plus)
 
 # --- Mascotte ----------------------------------------------------------------
 # Le repo n'a PAS d'expression « heureux » : on la mappe sur « neutre » (lama souriant).
