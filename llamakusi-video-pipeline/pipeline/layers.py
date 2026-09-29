@@ -312,6 +312,72 @@ def render_compare_card(data: dict, state: str, accent: str) -> Image.Image:
     return _paste_card(tile, cw, h)
 
 
+def _terms_layout(data: dict) -> dict:
+    """Mise en page de la carte `terms`, calculée sur TOUS les items (hauteur constante entre les étapes,
+    sinon la carte « saute » à chaque apparition)."""
+    S, pad, cw = 2, 40, config.CONTENT_W
+    items = data["items"]
+    gap, num_w = 14, 92
+    for term_size, def_size in ((42, 30), (40, 28), (38, 26), (34, 24), (30, 22)):
+        tf, df = font("montserrat", term_size * S, 900), font("inter", def_size * S, 500)
+        avail = (cw - 2 * pad - num_w - 24) * S
+        wrapped = [_wrap(str(it.get("definition", "")), df, avail) for it in items]
+        lh = int(def_size * 1.3)
+        row_h = 22 + int(term_size * 1.15) + 8 + max((len(w) for w in wrapped), default=0) * lh + 22
+        h = pad + 8 + 24 + 18 + len(items) * row_h + (len(items) - 1) * gap + pad - 8
+        if h <= LAYOUT["card_max_h"]:
+            break
+    return {"S": S, "pad": pad, "cw": cw, "h": int(h), "row_h": row_h, "gap": gap, "num_w": num_w,
+            "term_size": term_size, "def_size": def_size, "wrapped": wrapped, "lh": lh}
+
+
+def render_terms_card(data: dict, state: str, accent: str, visible: int | None = None,
+                      focus: bool = True) -> Image.Image:
+    """Carte « vocabulaire » : N lignes (terme + définition) qui apparaissent une à une.
+
+    data = {label?, items:[{term, definition, at?}]}
+    - `visible` = nombre d'items dévoilés (les autres restent des cases « ? »).
+    - `focus` : le dernier item dévoilé est mis en évidence (bordure dorée) ;
+    - state=\"revealed\" = tous en évidence.
+    """
+    L = _terms_layout(data)
+    S, pad, cw, row_h, gap = L["S"], L["pad"], L["cw"], L["row_h"], L["gap"]
+    items = data["items"]
+    n_visible = len(items) if (state == "revealed" or visible is None) else max(0, min(visible, len(items)))
+    label = data.get("label", "Vocabulaire")
+    tile, d = _card_base(cw, L["h"], accent, S)
+    y = (pad + 8) * S
+    _tracked(d, (pad * S, y + 24 * S), label.upper(), font("montserrat", 24 * S, 900),
+             rgb(COLORS["ink2"]), 4 * S)
+    y += (24 + 18) * S
+    tf = font("montserrat", L["term_size"] * S, 900)
+    df = font("inter", L["def_size"] * S, 500)
+    for k, item in enumerate(items):
+        shown = k < n_visible
+        hl = shown and (state == "revealed" or (focus and k == n_visible - 1))
+        x0, x1, y0, y1 = pad * S, (cw - pad) * S, y, y + row_h * S
+        fill = COLORS["gold_soft"] if hl else (COLORS["card"] if shown else COLORS["soft"])
+        border = COLORS["gold"] if hl else COLORS["line"]
+        d.rounded_rectangle((x0, y0, x1, y1), radius=28 * S, fill=rgb(fill), outline=rgb(border),
+                            width=(5 if hl else 2) * S)
+        cx, cy = x0 + 46 * S, y0 + 22 * S + int(L["term_size"] * 1.15 * S) // 2
+        d.ellipse((cx - 26 * S, cy - 26 * S, cx + 26 * S, cy + 26 * S),
+                  fill=rgb(COLORS["gold"] if hl else COLORS["soft"] if not shown else COLORS["ink"]))
+        d.text((cx, cy), str(k + 1), font=font("montserrat", 28 * S, 900), anchor="mm",
+               fill=rgb(COLORS["ink"] if hl else (COLORS["muted"] if not shown else COLORS["white"])))
+        tx = x0 + L["num_w"] * S
+        if shown:
+            d.text((tx, cy), str(item["term"]), font=tf, fill=rgb(COLORS["ink"]), anchor="lm")
+            ty = y0 + (22 + int(L["term_size"] * 1.15) + 8) * S
+            for line in L["wrapped"][k]:
+                d.text((tx, ty), line, font=df, fill=rgb(COLORS["ink2"]), anchor="lt")
+                ty += int(L["lh"] * S)
+        else:
+            d.text((tx, cy), "?", font=tf, fill=rgb(COLORS["muted"]), anchor="lm")
+        y += (row_h + gap) * S
+    return _paste_card(tile, cw, L["h"])
+
+
 def render_placeholder_card(kind: str, note: str, accent: str) -> Image.Image:
     S, pad, cw, h = 2, 40, config.CONTENT_W, 560
     tile, d = _card_base(cw, h, accent, S)
@@ -325,9 +391,12 @@ def render_placeholder_card(kind: str, note: str, accent: str) -> Image.Image:
     return _paste_card(tile, cw, h)
 
 
-def render_card(kind: str, data: dict, state: str, accent: str, note: str = "") -> Image.Image:
+def render_card(kind: str, data: dict, state: str, accent: str, note: str = "",
+                visible: int | None = None, focus: bool = True) -> Image.Image:
     if kind == "question":
         return render_question_card(data, state, accent)
     if kind == "compare" and data.get("rows"):
         return render_compare_card(data, state, accent)
+    if kind == "terms" and data.get("items"):
+        return render_terms_card(data, state, accent, visible, focus)
     return render_placeholder_card(kind, note, accent)

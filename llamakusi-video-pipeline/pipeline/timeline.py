@@ -8,6 +8,7 @@ from pathlib import Path
 from . import config, layers
 from .align import Word, block_spans, group_words, snap
 from .schema import Card, VideoScript
+from .textutil import tokenize
 
 TRACK_ORDER = ["brand", "card", "mascot", "overlay", "cta", "subs"]   # ordre = z-index croissant
 FRAME = 1.0 / config.FPS
@@ -47,6 +48,52 @@ def _clean(segments: list[dict], total: float) -> list[dict]:
     return out
 
 
+STEPPED_CARDS = {"terms"}      # cartes dont les items apparaissent un à un, calés sur la voix
+
+
+def _anchor_words(card: Card, words: list[Word]) -> list[Word]:
+    """Un mot d'ancrage par item, cherché dans l'ordre dans TOUTE la voix.
+
+    Ancre = `at` si fourni, sinon le premier mot de `term`. Le mot doit être prononcé :
+    l'item apparaît quand la voix le dit. Échec explicite si l'ancre est introuvable.
+    """
+    anchors: list[Word] = []
+    cursor = 0
+    for item in card.data["items"]:
+        key = tokenize(str(item.get("at") or item["term"]))[0].norm
+        for i in range(cursor, len(words)):
+            if words[i].norm == key:
+                anchors.append(words[i])
+                cursor = i + 1
+                break
+        else:
+            raise ValueError(f"carte '{card.kind}' : ancre « {key} » (item « {item['term']} ») "
+                             "introuvable dans la voix (après l'item précédent) ; utiliser `at:`")
+    return anchors
+
+
+def _card_segments(card: Card, state: str, bi: int, start: float, end: float,
+                   words: list[Word]) -> list[tuple[float, float, int | None, bool]]:
+    """Découpe le segment d'un bloc en étapes (start, end, nb d'items visibles, focus sur le dernier)."""
+    if card.kind not in STEPPED_CARDS or not card.data.get("items"):
+        return [(start, end, None, True)]
+    n = len(card.data["items"])
+    if state == "revealed":
+        return [(start, end, n, True)]
+    anchors = _anchor_words(card, words)
+    visible = sum(1 for a in anchors if a.block < bi)          # déjà dévoilés dans les blocs précédents
+    focus = 0 < visible < n                                    # continuité ; tout dévoilé = pas de focus
+    segs, cur = [], start
+    for a in (a for a in anchors if a.block == bi):
+        t = min(max(snap(a.start), start), end)
+        if t > cur + FRAME * 0.5:
+            segs.append((cur, t, visible, focus))
+            cur = t
+        visible += 1
+        focus = True                                           # un item vient d'apparaître : on le met en avant
+    segs.append((cur, end, visible, focus))
+    return segs
+
 def build_timeline(script: VideoScript, words: list[Word], audio_duration: float,
                    build_dir: Path) -> dict:
     layers_dir = build_dir / "layers"
@@ -71,11 +118,13 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
                          f"{block.mascot}-{block.pose}")})
         if block.id in cards:
             card, state = cards[block.id]
-            key = json.dumps([card.kind, card.data, state, script.accent, block.visual_note],
-                             sort_keys=True, ensure_ascii=False)
-            img = layers.render_card(card.kind, card.data, state, script.accent, block.visual_note)
-            tracks["card"].append({"start": start, "end": end,
-                                   "png": _save(img, layers_dir, "card", key)})
+            for seg_start, seg_end, visible, focus in _card_segments(card, state, bi, start, end, words):
+                key = json.dumps([card.kind, card.data, state, script.accent, block.visual_note,
+                                  visible, focus], sort_keys=True, ensure_ascii=False)
+                img = layers.render_card(card.kind, card.data, state, script.accent,
+                                         block.visual_note, visible, focus)
+                tracks["card"].append({"start": seg_start, "end": seg_end,
+                                       "png": _save(img, layers_dir, "card", key)})
         if block.overlay:
             tracks["overlay"].append({
                 "start": start, "end": end,

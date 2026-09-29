@@ -65,6 +65,12 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
     for b in script.blocks:
         if b.card and b.card.kind == "compare" and not b.card.data.get("rows"):
             add("todo", f"carte 'compare' (bloc '{b.id}') sans `rows` : placeholder rendu")
+        elif b.card and b.card.kind == "terms":
+            if not b.card.data.get("items"):
+                add("todo", f"carte 'terms' (bloc '{b.id}') sans `items` : placeholder rendu")
+            elif len(b.card.data["items"]) > 4:
+                add("warn", f"carte 'terms' (bloc '{b.id}') : {len(b.card.data['items'])} items, "
+                            "4 max lisibles sur 640 px")
         elif b.card and b.card.kind not in IMPLEMENTED_CARDS:
             add("todo", f"carte '{b.card.kind}' (bloc '{b.id}') pas encore implémentée : placeholder rendu")
 
