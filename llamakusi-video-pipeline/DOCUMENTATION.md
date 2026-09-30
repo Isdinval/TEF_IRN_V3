@@ -152,6 +152,7 @@ llamakusi-video-pipeline/
 | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | lecture des questions civiques (lues aussi dans `..\.env.local` de l'app) |
 | `MUSIC_FILE` | chemin d'un fichier musique (sinon `assets\music\bed.*`) |
 | `MUSIC_GAIN_DB` | niveau de la musique **sous la voix**, en dB (défaut **-14**) |
+| `TAIL_SECONDS` | silence final après le dernier mot, en secondes (défaut **0.7**) |
 
 > ⚠ Si votre `.env` contient encore `MUSIC_GAIN_DB=-20` (copié de l'ancien `.env.example`), **supprimez la ligne ou mettez -14**.
 > Plus le nombre est proche de 0, plus la musique est forte : `-10` fort · `-14` défaut · `-18` discret.
@@ -182,6 +183,34 @@ Un Short = 4 blocs **dans cet ordre** : `hook`, `build`, `payoff`, `loop`.
 
 En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TEF · `blue` civique · `gold`), `title`, et
 `claims:` (chaque affirmation factuelle avec `source_hint`, puis `source_url` + `verified: true` une fois vérifiée).
+
+---
+
+### Règle de boucle (Shorts) — obligatoire
+
+Sur YouTube, Facebook, etc., un Short est **construit en boucle** : la fin doit se raccorder au début pour que la vidéo
+redémarre sans que le spectateur s'en rende compte (temps de visionnage moyen artificiellement doublé, très bien vu des
+algorithmes). Le `lint` vérifie ce qui est automatisable ; le raccord de phrase reste à valider **à l'oreille**.
+
+| Règle | Contrôle |
+|---|---|
+| Le bloc `loop` reprend la carte du `hook` (`card_from: hook`, pas de `card` propre) | erreur de lint |
+| Carte progressive (`terms`, `text_annotated`) → `card_state: initial` sur `loop` | erreur de lint |
+| Carte non progressive → `card_state: plain` sur `loop` | avertissement |
+| Même `overlay` (ou aucun) sur `hook` et `loop` | avertissement |
+| **Dernière phrase suspendue** : finit par `…` `:` `—` `,` (pas de point final) | avertissement |
+| Mascotte du `loop` ≠ celle du `hook` | rappel (compromis assumé, voir ci-dessous) |
+| La dernière phrase se raccorde-t-elle à la première ? | **à l'oreille** : lire `loop` puis `hook` à la suite |
+
+Écriture : la dernière phrase reste en suspens et la première la complète, ou du moins la relance sans « salut ».
+Exemple : `… sans jamais l'avoir apprise…` → `Il y a une raison qui bloque 9 candidats…`.
+
+**Pas de CTA parlé** : dire « lien en bio » à voix haute casserait le raccord. Le CTA est visuel : pill « Lien en bio » +
+**flèche animée** (`cta_arrow: true` par défaut, désactivable par script).
+
+**Silence final** : `TAIL_SECONDS` (défaut 0,7 s, `.env` ou `config.py`) laisse un peu de vide après le dernier mot : la carte, la
+mascotte, le fond et le CTA sont prolongés, la musique continue puis s'estompe (`MUSIC_FADE_S`, 0,8 s). Plus le silence est long, plus le
+redémarrage de la boucle est retardé : rester entre 0,5 et 1 s.
 
 ---
 
@@ -254,4 +283,5 @@ Règles d'ancrage :
 - Carte `plan` (vidéo longue) : rendue en placeholder.
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
 - Upload YouTube (en privé), sous-titres multilingues, vidéo longue 16:9.
+- Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.

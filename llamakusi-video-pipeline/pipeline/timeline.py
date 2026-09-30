@@ -10,7 +10,7 @@ from .align import Word, block_spans, group_words, snap
 from .schema import STEPPED_CARDS, Card, VideoScript
 from .textutil import tokenize
 
-TRACK_ORDER = ["brand", "card", "mascot", "overlay", "cta", "subs"]   # ordre = z-index croissant
+TRACK_ORDER = ["brand", "card", "mascot", "overlay", "cta", "arrow", "subs"]   # ordre = z-index croissant
 FRAME = 1.0 / config.FPS
 
 
@@ -148,9 +148,21 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
         cta = block.cta_overlay or (script.cta_overlay if (script.format == "short"
                                     and bi == len(script.blocks) - 1) else None)
         if cta:
+            with_arrow = script.format == "short" and script.cta_arrow
             tracks["cta"].append({
                 "start": start, "end": end,
-                "png": _save(layers.render_cta(cta), layers_dir, "cta", cta)})
+                "png": _save(layers.render_cta(cta, with_arrow), layers_dir, "cta", f"{cta}|arrow={with_arrow}")})
+            if with_arrow:
+                step = config.ARROW_CYCLE_S / config.ARROW_PHASES
+                arrow_png: dict[int, str] = {}
+                t, k = start, 0
+                while t < end - FRAME * 0.5:
+                    nxt = min(snap(t + step) if snap(t + step) > t else t + FRAME, end)
+                    ph = k % config.ARROW_PHASES
+                    if ph not in arrow_png:
+                        arrow_png[ph] = _save(layers.render_cta_arrow(ph, cta), layers_dir, "arrow", f"{cta}#{ph}")
+                    tracks["arrow"].append({"start": t, "end": nxt, "png": arrow_png[ph]})
+                    t, k = nxt, k + 1
 
     groups = group_words(words)
     for gi, group in enumerate(groups):

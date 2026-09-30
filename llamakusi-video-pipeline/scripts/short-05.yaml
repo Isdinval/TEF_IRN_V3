@@ -49,7 +49,7 @@ blocks:
   visual_note: Overlay « MÊME VALEUR ».
   card_state: revealed
 - id: loop
-  voice: Alors la question n'est plus lequel choisir — c'est lequel te ressemble.
+  voice: Alors la question n'est plus lequel choisir — c'est lequel te ressemble…
   mascot: heureux
   card_from: hook
   visual_note: Retour au cadrage initial.

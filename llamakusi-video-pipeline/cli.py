@@ -190,10 +190,11 @@ blocks:
     mascot: victorieux
     # card_from: hook
     # card_state: revealed # allume la bonne réponse
-  - id: loop             # la dernière ligne renvoie à la première
-    voice: "À REMPLACER"
+  - id: loop             # BOUCLE : phrase SUSPENDUE (finit par … : —) qui se raccorde au hook
+    voice: "À REMPLACER…"
     mascot: heureux
-    # card_from: hook
+    card_from: hook      # obligatoire : même carte que le hook
+    # card_state: initial  # OBLIGATOIRE si la carte est progressive (terms, text_annotated)
 claims:                  # chaque affirmation factuelle, avec sa source à vérifier
   - text: "AFFIRMATION À SOURCER"
     source_hint: "service-public.fr …"

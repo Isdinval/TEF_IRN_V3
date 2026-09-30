@@ -26,6 +26,34 @@ class Issue:
     message: str
 
 
+_OPEN_END = ("…", "...", ":", "—", "–", ",")
+
+
+def _lint_loop(script: VideoScript, add) -> None:
+    """Règle de boucle Short : la fin doit redémarrer sur le début sans que le spectateur le remarque."""
+    hook, loop = script.blocks[0], script.blocks[-1]
+    hook_card = hook.card
+    loop_card = loop.card or next((b.card for b in script.blocks if b.id == loop.card_from), None)
+    if hook_card and (loop.card_from != hook.id or loop.card):
+        add("error", "boucle : le dernier bloc doit reprendre la carte du hook (`card_from: hook`, sans `card` propre)")
+    if hook_card and loop_card is hook_card and loop.card_from == hook.id:
+        if hook_card.kind in STEPPED_CARDS and loop.card_state != "initial":
+            add("error", f"boucle : carte progressive '{hook_card.kind}' → le bloc loop doit avoir `card_state: initial` "
+                         "(retour visuel exact à l'accroche)")
+        if hook_card.kind not in STEPPED_CARDS and loop.card_state != "plain":
+            add("warn", f"boucle : carte '{hook_card.kind}' → `card_state: plain` conseillé sur le bloc loop "
+                        "(même image que le début)")
+    if hook.overlay and loop.overlay and loop.overlay != hook.overlay:
+        add("warn", "boucle : overlay du loop différent de celui du hook (saut visible au redémarrage)")
+    end = loop.voice.rstrip()
+    if end and not end.endswith(_OPEN_END):
+        add("warn", "boucle : la dernière phrase est « fermée » (point final). Écrire une phrase SUSPENDUE qui se "
+                    "raccorde au hook (ex. « …sans jamais l'avoir » → « Il y a une raison… »), terminée par … ou : ou —")
+    if loop.mascot != hook.mascot:
+        add("todo", f"boucle visuelle : mascotte {hook.mascot} (hook) ≠ {loop.mascot} (loop) → coupe visible au redémarrage "
+                    "(compromis assumé tant que la progression narrative prime)")
+
+
 def estimate_seconds(script: VideoScript) -> float:
     words = sum(count_words(b.voice) for b in script.blocks)
     return words / config.SPEECH_WPS
@@ -59,6 +87,8 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         for b in script.blocks:
             if _SPOKEN_CTA.search(b.voice):
                 add("error", f"CTA parlé interdit en Short (bloc '{b.id}') : overlay texte uniquement")
+
+        _lint_loop(script, add)
 
         moods = [b.mascot for b in script.blocks]
         if moods != _PROGRESSION:
@@ -100,7 +130,9 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         if unv:
             add("todo", f"{len(unv)} claim(s) à sourcer/vérifier avant publication")
 
-    add("todo", "à vérifier à la main : la dernière ligne boucle-t-elle vers la première ?")
+    if script.format == "short":
+        add("todo", "à vérifier à l'oreille : la dernière phrase se raccorde-t-elle à la première ? "
+                    "(lire loop puis hook à la suite)")
     return out
 
 

@@ -39,7 +39,7 @@ blocks:
   card_state: revealed
   visual_note: Choix C surligné en doré.
 - id: loop
-  voice: Et ça, c'est le genre de règle qu'on croise tous les jours — sans jamais l'avoir apprise.
+  voice: Et ça, c'est le genre de règle qu'on croise tous les jours — sans jamais l'avoir apprise…
   mascot: heureux
   card_from: hook
   visual_note: Retour à la carte de question initiale.

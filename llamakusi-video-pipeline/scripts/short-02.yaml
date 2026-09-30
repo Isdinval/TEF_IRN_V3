@@ -49,7 +49,7 @@ blocks:
   visual_note: Overlay « B1 → B2 » doré.
   card_state: revealed
 - id: loop
-  voice: 'Et la question à se poser maintenant, c''est : ton niveau a-t-il suivi ?'
+  voice: 'Et la question à se poser maintenant, c''est : ton niveau a-t-il suivi…'
   mascot: heureux
   card_from: hook
   visual_note: Retour au cadrage initial. Overlay discret.

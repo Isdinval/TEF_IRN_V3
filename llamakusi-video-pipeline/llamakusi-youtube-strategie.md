@@ -95,6 +95,12 @@ Positionnement : chaîne unique (pas deux chaînes séparées Examen Civique / T
 - Screen-recording réel de l'app + réaction mascotte
 - Sous-titres burn-in obligatoires
 
+**Règle de boucle (Shorts, décision validée)** : un Short est construit en boucle — la fin se raccorde au début pour que la vidéo
+redémarre sans que le spectateur s'en aperçoive (temps de visionnage moyen artificiellement doublé, très bien vu des algorithmes).
+Concrètement : dernière phrase *suspendue* qui se raccorde à la première, même carte à l'écran au début et à la fin, pas de CTA parlé
+(le CTA est visuel : pill « Lien en bio » + flèche animée). Un court silence final (~0,7 s) évite l'arrêt sec ; il retarde légèrement
+le redémarrage, donc reste sous 1 s. Contrôlé par `lint` (voir DOCUMENTATION.md § Règle de boucle).
+
 **Long 4-8 min (piliers C, D)**
 - 1 problème concret → méthode complète utilisable → exemple traité dans l'app en démonstration → CTA
 - Porte l'essentiel de la conversion — mérite le plus de soin éditorial

@@ -50,7 +50,7 @@ blocks:
   card_state: revealed
   visual_note: Carte avant/après, overlay « B1 → B2 » doré.
 - id: loop
-  voice: Alors la vraie question, ce n'est pas ce que tu sais — c'est comment tu l'organises.
+  voice: Alors la vraie question, ce n'est pas ce que tu sais — c'est comment tu l'organises…
   mascot: heureux
   card_from: hook
   card_state: initial

@@ -60,7 +60,7 @@ def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None =
         inputs += ["-stream_loop", "-1", "-i", str(music)]
         filters.append(f"[{voice_idx + 1}:a]aresample=48000,atrim=0:{total:.5f},asetpts=PTS-STARTPTS,"
                        f"loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,"
-                       f"volume={config.MUSIC_GAIN_DB}dB,afade=t=out:st={max(0.0, total - 0.6):.3f}:d=0.6[music]")
+                       f"volume={config.MUSIC_GAIN_DB}dB,afade=t=out:st={max(0.0, total - config.MUSIC_FADE_S):.3f}:d={config.MUSIC_FADE_S}[music]")
         filters.append("[voice][music]amix=inputs=2:duration=first:dropout_transition=0,volume=2[aout]")
         amap = "[aout]"
     else:

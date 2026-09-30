@@ -47,7 +47,8 @@ PRONUNCIATIONS: dict[str, str] = {}
 
 # --- Vidéo -------------------------------------------------------------------
 W, H, FPS = 1080, 1920, 30
-TAIL_SECONDS = 0.15          # marge après le dernier mot (boucle serrée)
+TAIL_SECONDS = float(env("TAIL_SECONDS", "0.7"))   # silence final après le dernier mot (0,5-1 s ; plus = boucle moins serrée)
+MUSIC_FADE_S = 0.8           # fondu de sortie de la musique (démarre à total - MUSIC_FADE_S)
 SPEECH_WPS = 3.18            # mesuré : Short 3, voix Charon, 74 mots en 23,27 s ≈ 3,18 mots/s
 MUSIC_GAIN_DB = float(env("MUSIC_GAIN_DB", "-14"))   # relatif à la voix (musique normalisée à la même loudness)
 MUSIC_EXTS = (".wav", ".mp3", ".m4a", ".flac", ".ogg")
@@ -87,6 +88,11 @@ LAYOUT = {
     "mascot_h": 420,
     "cta_cy": 1630,          # pill « Lien en bio », centré sous la mascotte
 }
+
+ARROW_BOUNCE = 8            # amplitude du rebond de la flèche CTA, dans le pill (px)
+ARROW_SLOT = 56              # largeur réservée à droite du texte du pill pour la flèche (px)
+ARROW_CYCLE_S = 0.9          # durée d'un rebond
+ARROW_PHASES = 18            # images distinctes par rebond (18 → 20 i/s)
 
 # --- Palette (tokens du design system / globals.css) -------------------------
 COLORS = {

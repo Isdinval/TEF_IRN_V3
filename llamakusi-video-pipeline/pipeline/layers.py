@@ -106,23 +106,28 @@ def render_mascot(expression: str, pose: int) -> Image.Image:
 
 # --- overlays -------------------------------------------------------------------
 def _pill(img: Image.Image, cx: int, cy: int, text: str, fnt_family: str, size: int, weight: int,
-          fill: str, ink: str, pad_x: int, pad_y: int, max_w: int, upper: bool = True) -> None:
+          fill: str, ink: str, pad_x: int, pad_y: int, max_w: int, upper: bool = True,
+          reserve_right: int = 0) -> tuple[int, int, int, float]:
+    """Dessine le pill ; retourne (x gauche, y haut, largeur, largeur du texte).
+    `reserve_right` = espace vide à droite du texte (ex. pour une flèche animée)."""
     text = text.upper() if upper else text
     while True:
         fnt = font(fnt_family, size, weight)
         w = fnt.getlength(text)
-        if w + 2 * pad_x <= max_w or size <= 24:
+        if w + 2 * pad_x + reserve_right <= max_w or size <= 24:
             break
         size -= 4
     S = 3
-    tw, th = int(w + 2 * pad_x), int(size * 1.0 + 2 * pad_y)
+    tw, th = int(w + 2 * pad_x + reserve_right), int(size * 1.0 + 2 * pad_y)
     tile = Image.new("RGBA", (tw * S, th * S), (0, 0, 0, 0))
     td = ImageDraw.Draw(tile)
     td.rounded_rectangle((0, 0, tw * S - 1, th * S - 1), radius=th * S // 2, fill=rgb(fill))
-    td.text((tw * S / 2, th * S / 2), text, font=font(fnt_family, size * S, weight),
+    td.text(((pad_x + w / 2) * S, th * S / 2), text, font=font(fnt_family, size * S, weight),
             fill=rgb(ink), anchor="mm")
     tile = tile.resize((tw, th), Image.LANCZOS)
-    img.alpha_composite(tile, (int(cx - tw / 2), int(cy - th / 2)))
+    left, top = int(cx - tw / 2), int(cy - th / 2)
+    img.alpha_composite(tile, (left, top))
+    return left, top, tw, w
 
 
 def render_overlay(text: str) -> Image.Image:
@@ -133,11 +138,37 @@ def render_overlay(text: str) -> Image.Image:
     return img
 
 
-def render_cta(text: str) -> Image.Image:
-    """Petit CTA discret centré sous la mascotte (jamais parlé en Short)."""
+_CTA_PAD_X = 30
+
+
+def render_cta(text: str, arrow: bool = False) -> Image.Image:
+    """Petit CTA discret centré sous la mascotte (jamais parlé en Short).
+    `arrow=True` réserve à droite la place de la flèche animée (voir render_cta_arrow)."""
     img = canvas()
     _pill(img, config.CONTENT_CX, LAYOUT["cta_cy"], text, "montserrat", 32, 900,
-          "#27272A", COLORS["white"], 30, 18, config.CONTENT_W, upper=True)
+          "#27272A", COLORS["white"], _CTA_PAD_X, 18, config.CONTENT_W, upper=True,
+          reserve_right=config.ARROW_SLOT if arrow else 0)
+    return img
+
+
+def render_cta_arrow(phase: int, text: str) -> Image.Image:
+    """Chevron « ⌄ » doré dans la zone réservée du pill CTA ; `phase` (0..ARROW_PHASES-1) = position dans le rebond."""
+    import math
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    fnt = font("montserrat", 32, 900)
+    tw = int(fnt.getlength(text.upper()) + 2 * _CTA_PAD_X + config.ARROW_SLOT)
+    left = int(config.CONTENT_CX - tw / 2)
+    cx = left + _CTA_PAD_X + fnt.getlength(text.upper()) + config.ARROW_SLOT / 2
+    t = (phase % config.ARROW_PHASES) / config.ARROW_PHASES
+    dy = config.ARROW_BOUNCE * (0.5 - 0.5 * math.cos(2 * math.pi * t)) - config.ARROW_BOUNCE / 2   # doux, centré
+    cy = LAYOUT["cta_cy"] + 2 + dy
+    half, drop, width = 15, 10, 7
+    pts = [(cx - half, cy - drop / 2), (cx, cy + drop / 2), (cx + half, cy - drop / 2)]
+    col = rgb(COLORS["gold"])
+    d.line(pts, fill=col, width=width, joint="curve")
+    for x, y in (pts[0], pts[2]):
+        d.ellipse((x - width / 2, y - width / 2, x + width / 2, y + width / 2), fill=col)
     return img
 
 
