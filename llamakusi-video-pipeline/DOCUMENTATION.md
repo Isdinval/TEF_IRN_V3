@@ -171,6 +171,7 @@ llamakusi-video-pipeline/
 | `MUSIC_FILE` | chemin d'un fichier musique (sinon `assets\music\bed.*`) |
 | `MUSIC_GAIN_DB` | niveau de la musique **sous la voix**, en dB (défaut **-14**) |
 | `TAIL_SECONDS` | silence final après le dernier mot, en secondes (défaut **0.7**) |
+| `SEG_MAX_WORDS` | vidéo longue : taille maximale d'un segment de voix, en mots (défaut **150**, ~47 s) |
 | `GEMINI_TRANSLATE_MODEL` | modèle texte pour les traductions `.srt` (défaut `gemini-3.8-flash`) |
 | `SUB_LANGS_LONG` / `SUB_LANGS_SHORT` | langues `.srt` par défaut (défaut : `ar,en,es,zh-Hans` / **aucune**) |
 
@@ -206,7 +207,7 @@ En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TE
 
 ---
 
-### Format long 16:9 (état : L1 livré = mise en page)
+### Format long 16:9 (état : L1 mise en page + L2 voix par segments livrés)
 
 `format: long` dans le script → profil 1920×1080 : logo en haut à gauche, carte dans la colonne gauche (x 96-1216), sous-titres karaoké sous la carte,
 mascotte dans la colonne droite. Pas de flèche ni de CTA incrusté en long (le CTA est parlé, une seule fois, à la fin). Le fond animé n'est calculé que
@@ -217,7 +218,14 @@ sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 - Le cache des calques PNG (`build/<id>/layers`) est **vidé automatiquement** quand `layers.py`, `textutil.py` ou le profil changent : plus de suppression manuelle.
 - **Temps de rendu mesuré (sandbox, ffmpeg 6, preset `veryfast`, `--dry`)** : ~8 min pour 97 s de vidéo, soit ~5× la durée. Une vidéo de 6 min demandera donc
   beaucoup plus (plusieurs dizaines de minutes) : à confirmer sur ta machine ; voir la piste d'optimisation dans la stratégie.
-- Ce qui reste : voix longue par segments (L2), carte `plan`, `chapter:` et `chapters.txt` (L3).
+- **Voix par segments (L2)** : pour `format: long`, `build` fait un appel TTS **et** un appel ASR par segment (= un bloc ; un bloc de plus de
+  `SEG_MAX_WORDS` mots, 150 par défaut, est coupé en fin de phrase). Chaque segment est mis en cache dans `build/<id>/voice_segments/` par empreinte de son
+  texte (+ modèle, voix, style) : **corriger un bloc ne régénère et ne paie que ce bloc**. Les segments sont assemblés avec une respiration de 0,35 s entre blocs
+  (0,15 s entre deux morceaux d'un même bloc), niveaux recalés (± 6 dB max) et fondus de 5 ms aux raccords ; les timings de chaque segment sont alignés puis décalés.
+  `build/<id>/voice_segments.json` liste les segments (début, fin, mots, clé, `cached`). `--force` refait **tous** les segments (payant) ; pour un seul bloc,
+  modifier son texte suffit. Les Shorts gardent leur appel unique. Si l'alignement échoue (< 90 %), c'est le segment fautif qu'il faut écouter.
+  Limite : les segments sont synthétisés l'un après l'autre (pas en parallèle) ; un bloc avec `tts_text` n'est jamais coupé (le lint prévient s'il dépasse `SEG_MAX_WORDS`).
+- Ce qui reste : carte `plan`, `chapter:` et `chapters.txt`, lint des longs (L3).
 
 ### Règle de boucle (Shorts) — obligatoire
 
@@ -314,7 +322,7 @@ Règles d'ancrage :
 
 - Génération automatique des scripts (section 2).
 - Carte `plan` (vidéo longue) : rendue en placeholder (patch L3).
-- Vidéo longue : voix par segments avec cache (L2), titres de chapitre + `chapters.txt` + lint des longs (L3).
+- Vidéo longue : titres de chapitre + `chapters.txt` + lint des longs (L3).
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
 - Upload YouTube (en privé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).

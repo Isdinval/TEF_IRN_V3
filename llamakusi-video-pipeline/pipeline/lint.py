@@ -96,6 +96,9 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
 
     if script.format == "long":
         for b in script.blocks:
+            if b.tts_text and count_words(b.voice) > config.SEG_MAX_WORDS:
+                add("warn", f"bloc '{b.id}' : {count_words(b.voice)} mots avec `tts_text` → envoyé en UN appel TTS "
+                            f"(pas de découpe possible) ; couper le bloc en deux (> {config.SEG_MAX_WORDS} mots)")
             if b.overlay:
                 add("warn", f"bloc '{b.id}' : le badge `overlay` est prévu pour l'accroche d'un Short ; "
                             "en 16:9 il se superpose à la zone haute (titre de chapitre à venir)")

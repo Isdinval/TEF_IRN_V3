@@ -255,7 +255,7 @@ mais un seul, à la fin**, re-hook obligatoire vers 3:00 (déjà dans `long-01`)
 3. **Cartes** : `plan` (3 blocs qui apparaissent sur ancres, comme `terms`) devient réelle ; les 4 autres cartes s'adaptent à la largeur de zone
    sans changer de contenu.
 
-*Livraison en 3 patchs (L1 livré)* : **L1** profil 16:9 (config par format, layout, fond et musique bouclés, cartes adaptées) → rendu `--dry` de `long-01` contrôlé
+*Livraison en 3 patchs (L1 et L2 livrés)* : **L1** profil 16:9 (config par format, layout, fond et musique bouclés, cartes adaptées) → rendu `--dry` de `long-01` contrôlé
 visuellement ; **L2** voix par segments avec cache (le seul qui exige Gemini, donc testé chez toi) ; **L3** carte `plan` + `chapter:` + export
 `chapters.txt` (timestamps pour la description YouTube, ≥ 3 chapitres, premier à 0:00) + lint des longs (durée, un seul CTA, re-hook).
 *Plus tard (hors MVP)* : miniature générée (Pillow, mêmes tokens), barre de progression, animation de transition entre cartes, doublage audio.

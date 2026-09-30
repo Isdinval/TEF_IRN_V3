@@ -50,6 +50,14 @@ SUB_LANGS_SHORT = [x for x in env("SUB_LANGS_SHORT", "").split(",") if x.strip()
 SUB_LANG_NAMES = {"ar": "arabe standard moderne", "en": "anglais", "es": "espagnol (neutre)",
                   "zh-Hans": "chinois simplifié", "uk": "ukrainien", "fr": "français"}
 
+# --- Voix des vidéos LONGUES : un appel TTS (+ un ASR) par segment, mis en cache par segment ---------------
+# Un segment = un bloc, ou un groupe de phrases d'un bloc trop long. La limite de durée d'un appel TTS n'est pas
+# vérifiée (hypothèse) : SEG_MAX_WORDS=150 (~47 s de voix) est volontairement prudent. Réglable dans .env.
+SEG_MAX_WORDS = int(env("SEG_MAX_WORDS", "150"))
+SEG_PAUSE_BLOCK = 0.35       # respiration entre deux blocs (s)
+SEG_PAUSE_SENTENCE = 0.15    # respiration entre deux segments d'un MÊME bloc (s)
+SEG_LEVEL_MAX_GAIN_DB = 6.0  # recalage de niveau entre segments : correction plafonnée à ± cette valeur
+
 # Prononciations forcées, appliquées au texte envoyé au TTS uniquement
 # (le texte affiché reste celui du script). Ex : {"IRN": "I R N"}. Vide par défaut.
 PRONUNCIATIONS: dict[str, str] = {}

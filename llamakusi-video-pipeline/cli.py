@@ -23,7 +23,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
-                      supabase_source, timeline, tts)
+                      supabase_source, timeline, tts, voice as voice_mod)
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -91,6 +91,21 @@ def cmd_build(args) -> int:
         audio.make_silence(voice, dur)
         words = align.proportional_timings(words, dur)
         print(f"[dry] voix muette de {dur:.1f}s, timings proportionnels")
+    elif script.format == "long":
+        # Vidéo longue : TTS + ASR PAR SEGMENT (cache par segment), voix concaténée, timings déjà alignés.
+        _, dur, report, _segs = voice_mod.build_voice(
+            script, words, bdir, use_asr=not args.proportional and until >= STAGES.index("asr"), force=args.force)
+        print(f"[voix] durée totale : {dur:.2f}s")
+        if until < STAGES.index("align"):
+            return 0
+        if not args.proportional:
+            (bdir / "align_report.json").write_text(
+                json.dumps(asdict(report), ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"[align] couverture {report.coverage:.0%} · interpolés : {len(report.interpolated) or '-'} "
+                  f"· faibles : {len(report.weak) or '-'}")
+            if not report.ok:
+                print("✗ alignement insuffisant (<90 %) : voir build/<id>/voice_segments.json puis écouter le segment fautif")
+                return 2
     else:
         text = tts.spoken_text(script)
         meta_path = bdir / "voice.meta.json"
