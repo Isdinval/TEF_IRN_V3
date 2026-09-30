@@ -7,6 +7,7 @@
   python cli.py build short-03               # TTS → ASR → alignement → rendu
   python cli.py preview short-03             # planche contact des blocs
   python cli.py fetch-question contravention # cherche de vraies questions civiques
+  python cli.py subs short-03 [--langs ar,en] # .srt (fr + traductions Gemini) depuis build/<id>/words.json
   python cli.py list                         # état de tous les scripts
   python cli.py new short-06 --pillar D      # crée un squelette de script à remplir
 Documentation complète : DOCUMENTATION.md
@@ -21,7 +22,8 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from pipeline import align, assemble, assets, audio, background, config, lint, schema, supabase_source, timeline, tts
+from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
+                      supabase_source, timeline, tts)
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -152,6 +154,22 @@ def cmd_build(args) -> int:
     return 0
 
 
+def cmd_subs(args) -> int:
+    script = schema.find_script(config.SCRIPTS_DIR, args.id)
+    if args.langs is not None:
+        langs = [x.strip() for x in args.langs.split(",") if x.strip()]
+    else:
+        langs = config.SUB_LANGS_LONG if script.format == "long" else config.SUB_LANGS_SHORT
+    bdir = config.BUILD_DIR / script.id
+    if not langs:
+        print(f"· {script.format} : aucune traduction par défaut (français seul). Forcer avec --langs ar,en,es,zh-Hans")
+    paths = subtitles.generate(bdir, langs, dry=args.dry, force=args.force)
+    for p in paths:
+        print(f"✓ {p}")
+    print("  Studio → Sous-titres → Ajouter une langue → Importer un fichier → « Avec minutage ».")
+    return 0
+
+
 def cmd_list(args) -> int:
     scripts = schema.load_all(config.SCRIPTS_DIR)
     print(f"{'id':<10} {'statut':<9} {'pilier':<6} {'hook':<14} {'~durée':>7}  {'claims ok':<9} build")
@@ -259,6 +277,13 @@ def main() -> int:
     p.add_argument("--no-bg", action="store_true", help="fond noir uni (rendu plus rapide, pour tester)")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
     p.set_defaults(fn=cmd_build)
+
+    p = sub.add_parser("subs")
+    p.add_argument("id")
+    p.add_argument("--langs", help="ex. ar,en,es,zh-Hans (défaut : long = SUB_LANGS_LONG, short = aucune)")
+    p.add_argument("--dry", action="store_true", help="traduction factice « [ar] texte », aucun appel API")
+    p.add_argument("--force", action="store_true", help="ignore le cache des traductions (payant)")
+    p.set_defaults(fn=cmd_subs)
 
     sub.add_parser("list").set_defaults(fn=cmd_list)
 

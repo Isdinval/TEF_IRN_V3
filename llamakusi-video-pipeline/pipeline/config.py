@@ -40,6 +40,15 @@ TTS_VOICE = env("GEMINI_TTS_VOICE", "Kore")
 TTS_STYLE = env("GEMINI_TTS_STYLE", "")
 ASR_MODEL = env("GEMINI_ASR_MODEL", "gemini-3.5-transcribe")
 ASR_LANGUAGE = "fr-FR"
+TRANSLATE_MODEL = env("GEMINI_TRANSLATE_MODEL", "gemini-3.8-flash")   # modèle texte GA (doc Google, 09/2026)
+
+# --- Sous-titres .srt (pistes YouTube natives ; le français est gravé dans l'image) ------------
+# Décision : traduire les vidéos LONGUES par défaut ; les Shorts seulement sur demande (--langs ou .env).
+# Codes = ceux de YouTube Studio (chinois simplifié = zh-Hans).
+SUB_LANGS_LONG = [x for x in env("SUB_LANGS_LONG", "ar,en,es,zh-Hans").split(",") if x.strip()]
+SUB_LANGS_SHORT = [x for x in env("SUB_LANGS_SHORT", "").split(",") if x.strip()]
+SUB_LANG_NAMES = {"ar": "arabe standard moderne", "en": "anglais", "es": "espagnol (neutre)",
+                  "zh-Hans": "chinois simplifié", "uk": "ukrainien", "fr": "français"}
 
 # Prononciations forcées, appliquées au texte envoyé au TTS uniquement
 # (le texte affiché reste celui du script). Ex : {"IRN": "I R N"}. Vide par défaut.

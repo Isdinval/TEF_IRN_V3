@@ -188,6 +188,14 @@ Source : `docs/product/design-system.md` du repo `Isdinval/TEF_IRN_V3`. La chaî
 
 **Sous-titres — règle généralisée (correction validée)** : burn-in obligatoire sur **tous les formats, Shorts ET vidéos longues**, format karaoké 2-3 mots synchronisés.
 
+**Sous-titres multilingues (`.srt` de YouTube, distincts du burn-in français) — décision : LONGS d'abord.** Langues de départ : `ar`, `en`, `es`,
+`zh-Hans` (+ le `.srt` français, indexé par YouTube). Pourquoi pas sur les Shorts pour l'instant : (1) le coût réel n'est pas la traduction (quasi
+gratuite) mais l'**envoi manuel dans Studio** : 5 Shorts × 4 langues = 20 imports par semaine, contre 4 pour la vidéo longue ; (2) sur un Short,
+le sous-titre français est déjà à l'écran et le menu CC est peu utilisé — utilité **non démontrée** (hypothèse) ; (3) la cible apprend le français,
+donc lit déjà du français. Les longs, eux, sont regardés attentivement, cherchés, et leurs pistes de sous-titres sont indexées.
+**Test à faire** : traduire 2-3 Shorts, comparer les vues par langue de sous-titres dans YouTube Analytics, et n'étendre que si l'effet est mesurable.
+Les Shorts se traduisent à la demande (`python cli.py subs <id> --langs ar,en`), sans rien changer au code.
+
 **Visuel "question d'examen" — décision clé (correction validée)** : **pas de screen-recording réel de l'app**. Remplacé par une **carte de question générée par code** (mini-page HTML/CSS stylée avec les tokens exacts du design system — `rounded-3xl`, couleurs, typo — rendue en image via Playwright/html2image). 100% automatisable, pas de bibliothèque à maintenir manuellement, évite aussi d'exposer l'UI de prod à un public externe.
 
 **Mascotte lama** : asset déjà existant dans l'app (élément décoratif). 4 expressions disponibles (character sheets, 5 positions chacune) : heureux, perplexe, victorieux, réfléchit.
@@ -218,6 +226,36 @@ Zones de sécurité : rien d'important dans les 250px du bas ni les 200px de dro
 Fin        CTA
 ```
 Sous-titres burn-in sur toute la durée. Bandeau titre Montserrat, accent produit en coin haut gauche permanent.
+
+**Format long 16:9 — cadrage (décisions, MVP → évolution)**
+
+*Principe* : même pipeline, même moteur de cartes ; ce qui change = profil de mise en page, voix en plusieurs segments, fond et musique bouclés.
+
+*Grille 1920×1080, 30 i/s (valeurs de départ, à caler au premier rendu)* :
+```
+haut (y 40-120)   logo à gauche (x 96) · titre du chapitre en cours à droite (Montserrat 800), change à chaque bloc portant `chapter:`
+zone carte        x 96-1216 (1120 px) · y 150-840 : question / compare / terms / text_annotated / plan, alignées à gauche
+sous-titres       centrés sur la colonne carte (x 656), y ~930, karaoké 2-3 mots (règle inchangée)
+colonne droite    x 1300-1824 : mascotte (~560 px de haut, ancrée y 900) ; CTA final = pill sous la mascotte
+marges            96 px latéral, 60 px vertical (pas de zone UI à éviter comme en Short)
+```
+*Différences de règles avec le Short* : pas de boucle (donc ni `card_from: hook` ni phrase suspendue), pas de flèche animée, **CTA parlé autorisé
+mais un seul, à la fin**, re-hook obligatoire vers 3:00 (déjà dans `long-01`), durée visée 4-8 min soit ~600-1 200 mots (à ~150 mots/min).
+
+*Trois risques techniques, traités dans cet ordre* :
+1. **Voix** : aujourd'hui 1 appel TTS + 1 appel ASR pour tout le script. Sur 6 min, la limite de durée par appel n'est **pas vérifiée** (hypothèse : risque
+   réel). MVP : TTS et ASR **par bloc** (bloc trop long → coupé à la phrase), chaque segment en cache par hash de son texte, puis concaténation avec
+   une respiration de 0,35 s. Bonus : corriger un bloc ne régénère que ce bloc (et son coût). Les timings du script restent ceux de l'ASR par segment.
+2. **Temps de rendu** : 6 min × 30 i/s × ~6 pistes PNG en 1080p sous ffmpeg 4.2.3 → estimation grossière **10-25 min par vidéo** (non mesuré). Parades :
+   fond généré en **boucle de 30 s** (`stream_loop`, `frame_at` est déjà périodique) au lieu de 6 min de calcul ; musique bouclée (`aloop`) ;
+   `preview` et rendu brouillon en 720p (`--scale 0.667`).
+3. **Cartes** : `plan` (3 blocs qui apparaissent sur ancres, comme `terms`) devient réelle ; les 4 autres cartes s'adaptent à la largeur de zone
+   sans changer de contenu.
+
+*Livraison en 3 patchs* : **L1** profil 16:9 (config par format, layout, fond et musique bouclés, cartes adaptées) → rendu `--dry` de `long-01` contrôlé
+visuellement ; **L2** voix par segments avec cache (le seul qui exige Gemini, donc testé chez toi) ; **L3** carte `plan` + `chapter:` + export
+`chapters.txt` (timestamps pour la description YouTube, ≥ 3 chapitres, premier à 0:00) + lint des longs (durée, un seul CTA, re-hook).
+*Plus tard (hors MVP)* : miniature générée (Pillow, mêmes tokens), barre de progression, animation de transition entre cartes, doublage audio.
 
 **Miniatures (vidéos longues uniquement)** : fond sombre, mascotte expressive + texte court Montserrat Black gold sur fond indigo/blue selon produit, 4-5 mots max.
 

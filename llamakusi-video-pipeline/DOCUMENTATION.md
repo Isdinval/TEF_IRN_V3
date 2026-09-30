@@ -110,6 +110,24 @@ uniquement `reviewed = true`). La commande affiche les questions trouvées avec 
 
 Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le style changent.
 
+### `subs` — sous-titres `.srt` multilingues
+
+```
+python cli.py subs long-01                      # français + ar, en, es, zh-Hans (défaut des vidéos LONGUES)
+python cli.py subs short-03                     # français seul (défaut des Shorts : pas de traduction)
+python cli.py subs short-03 --langs ar,en       # forcer des langues sur un Short
+python cli.py subs long-01 --dry                # traduction factice « [ar] texte », sans réseau
+python cli.py subs long-01 --force              # ignore le cache (nouvel appel Gemini payant)
+```
+
+Prérequis : avoir lancé `build <id>` (le texte et les timings viennent de `build/<id>/words.json`). Sortie : `build/<id>/subs.fr.srt`
+(toujours) et `subs.<langue>.srt`. Les cues suivent les **phrases** (pas les groupes karaoké de l'image) ; les timings sont ceux
+du français ; **un seul appel Gemini par langue** (contexte complet), mis en cache dans `build/<id>/translation.<langue>.json`
+(relancer ne coûte rien tant que le texte ne change pas). Les mots français enseignés restent en français, suivis de leur traduction.
+
+Envoi : YouTube Studio → *Sous-titres* → *Ajouter une langue* → *Importer un fichier* → **avec minutage**. Codes YouTube : `ar`, `en`, `es`,
+`zh-Hans` (chinois simplifié). Un `.srt` français est aussi produit : YouTube indexe les pistes de sous-titres (bon pour le SEO).
+
 ### `preview` — planche contact
 `python cli.py preview short-03`
 **Pourquoi :** produit `build\short-03\preview.jpg` (une image par bloc) pour valider la mise en page d'un coup d'œil sans
@@ -153,6 +171,8 @@ llamakusi-video-pipeline/
 | `MUSIC_FILE` | chemin d'un fichier musique (sinon `assets\music\bed.*`) |
 | `MUSIC_GAIN_DB` | niveau de la musique **sous la voix**, en dB (défaut **-14**) |
 | `TAIL_SECONDS` | silence final après le dernier mot, en secondes (défaut **0.7**) |
+| `GEMINI_TRANSLATE_MODEL` | modèle texte pour les traductions `.srt` (défaut `gemini-3.8-flash`) |
+| `SUB_LANGS_LONG` / `SUB_LANGS_SHORT` | langues `.srt` par défaut (défaut : `ar,en,es,zh-Hans` / **aucune**) |
 
 > ⚠ Si votre `.env` contient encore `MUSIC_GAIN_DB=-20` (copié de l'ancien `.env.example`), **supprimez la ligne ou mettez -14**.
 > Plus le nombre est proche de 0, plus la musique est forte : `-10` fort · `-14` défaut · `-18` discret.
@@ -282,6 +302,6 @@ Règles d'ancrage :
 - Génération automatique des scripts (section 2).
 - Carte `plan` (vidéo longue) : rendue en placeholder.
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
-- Upload YouTube (en privé), sous-titres multilingues, vidéo longue 16:9.
+- Upload YouTube (en privé), vidéo longue 16:9 (cadrage validé dans la stratégie, § Format long : pas encore codé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.
