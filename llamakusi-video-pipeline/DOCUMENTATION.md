@@ -174,9 +174,9 @@ Un Short = 4 blocs **dans cet ordre** : `hook`, `build`, `payoff`, `loop`.
 | `voice` | texte dit **et** affiché en sous-titres |
 | `mascot` | `perplexe` · `reflechit` · `victorieux` · `heureux` |
 | `overlay` | gros badge doré en haut (ex. `"2026"`, `"B1 → B2"`) |
-| `card` | carte à afficher (`question` et `compare` sont prêtes ; les autres sont des placeholders) |
+| `card` | carte à afficher (`question`, `compare`, `terms`, `text_annotated` sont prêtes ; `plan` est un placeholder) |
 | `card_from` | réutilise la carte d'un bloc précédent (ex. `hook`) |
-| `card_state` | `plain` ou `revealed` (allume la bonne réponse / les lignes clés) |
+| `card_state` | `plain` (défaut) · `revealed` (allume la bonne réponse / dévoile tout) · `initial` (retour visuel à l'accroche) |
 | `cta_overlay` | petit texte discret ; en Short, `Lien en bio` sur le dernier bloc. **Jamais parlé.** |
 | `tts_text` | prononciation forcée (TTS seulement, sans changer les sous-titres) |
 
@@ -199,11 +199,59 @@ En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TE
 | Erreur 403/429 Gemini | quota / facturation | vérifier le projet dans AI Studio |
 | `pip install` a changé | nouvelle dépendance (numpy) | `pip install -r requirements.txt` |
 
+
+### Cartes à apparition progressive : `terms` et `text_annotated`
+
+Ces cartes dévoilent leurs éléments **un par un pendant la voix**. Chaque élément est déclenché par un **mot
+d'ancrage** : il apparaît à l'instant où la voix le prononce (timings réels de l'ASR). Les éléments sont listés
+**dans l'ordre où la voix les nomme**.
+
+```yaml
+# terms : N lignes « terme + définition » (cases « ? » tant que non dévoilées)
+card:
+  kind: terms
+  data:
+    label: Vocabulaire · Préfecture
+    items:
+    - term: Récépissé
+      definition: Papier provisoire qui prouve que ta demande est en cours
+      at: récépissé          # optionnel : mot de la voix qui déclenche (défaut : 1er mot de `term`)
+
+# text_annotated : un texte d'exemple, d'abord DÉSORDONNÉ, puis RÉORGANISÉ en blocs colorés
+card:
+  kind: text_annotated
+  data:
+    label: Exemple · Faut-il limiter les écrans ?
+    shuffled: [2, 0, 3, 1]   # ordre d'affichage avant réorganisation (défaut : ordre inverse)
+    parts:                   # ordre LOGIQUE (= ordre dans lequel la voix les nomme)
+    - role: intro            # intro | argument | conclusion  (couleur de l'étiquette)
+      label: Intro           # texte de la pastille (défaut : le rôle)
+      at: intro              # mot de la voix qui fait apparaître la pastille (défaut : label, puis rôle)
+      text: Aujourd'hui, les enfants passent beaucoup de temps devant les écrans.
+```
+
+Cycle typique d'un Short (la carte est définie dans `hook`, les autres blocs font `card_from: hook`) :
+
+| Bloc | `card_state` | Ce qu'on voit |
+|---|---|---|
+| `hook` | `plain` | tout masqué (`terms` : cases « ? ») / texte désordonné sans étiquette |
+| `build` | `plain` | un élément apparaît à chaque mot d'ancrage (le dernier apparu est mis en évidence) |
+| `payoff` | `revealed` | tout dévoilé (`text_annotated` : texte réordonné, blocs colorés) |
+| `loop` | `initial` (ou `plain`) | `initial` = retour à l'état de l'accroche ; `plain` = tout reste dévoilé, sans mise en évidence |
+
+Règles d'ancrage :
+- `at` accepte le pluriel (`argument` ↔ `arguments`) et `mot#2` pour « 2e occurrence du mot » (après l'ancre
+  précédente). Utile si le mot est déjà prononcé plus tôt (dans le hook, par exemple).
+- Une ancre introuvable est signalée **par `lint`, avant tout appel TTS** (erreur bloquante).
+- Limites de lisibilité (`lint` avertit au-delà) : 4 lignes pour `terms`, 5 parties pour `text_annotated`.
+- La bascule « désordonné → réorganisé » est une coupe franche (pas d'animation) : voir §9.
+
 ---
 
 ## 9. Ce qui n'existe pas encore
 
 - Génération automatique des scripts (section 2).
-- Cartes `text_annotated`, `terms`, `plan` (Shorts 1 et 4, vidéo longue) : rendues en placeholder.
+- Carte `plan` (vidéo longue) : rendue en placeholder.
+- Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
 - Upload YouTube (en privé), sous-titres multilingues, vidéo longue 16:9.
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.

@@ -378,6 +378,88 @@ def render_terms_card(data: dict, state: str, accent: str, visible: int | None =
     return _paste_card(tile, cw, L["h"])
 
 
+ROLE_ACCENT = {"intro": "indigo", "argument": "blue", "conclusion": "gold"}
+
+
+def _tint(hex_color: str, k: float = 0.16) -> tuple[int, int, int]:
+    """Teinte très claire d'une couleur (k = part de la couleur mélangée à du blanc)."""
+    return tuple(int(255 - (255 - c) * k) for c in rgb(hex_color)[:3])
+
+
+def _part_tag(part: dict) -> str:
+    return str(part.get("label") or part["role"]).upper()
+
+
+def _text_layout(data: dict) -> dict:
+    """Mise en page de `text_annotated`, calculée sur TOUTES les parties : la carte garde la même hauteur
+    avant/après réorganisation (l'ordre change, pas la taille)."""
+    S, pad, cw = 2, 40, config.CONTENT_W
+    parts = data["parts"]
+    gap, pad_top, pad_bot, overhang = 20, 26, 16, 20
+    for size in (30, 28, 26, 24, 22):
+        df = font("inter", size * S, 500)
+        avail = (cw - 2 * pad - 2 * 28) * S
+        wrapped = [_wrap(str(p["text"]), df, avail) for p in parts]
+        lh = int(size * 1.32)
+        rows = [pad_top + pad_bot + len(w) * lh for w in wrapped]
+        h = pad + 8 + 24 + 18 + overhang + sum(rows) + gap * (len(parts) - 1) + pad - 8
+        if h <= LAYOUT["card_max_h"]:
+            break
+    return {"S": S, "pad": pad, "cw": cw, "h": int(h), "size": size, "lh": lh, "rows": rows,
+            "wrapped": wrapped, "gap": gap, "pad_top": pad_top, "overhang": overhang}
+
+
+def render_text_annotated_card(data: dict, state: str, accent: str, visible: int | None = None,
+                               focus: bool = True) -> Image.Image:
+    """Carte « texte annoté » : les phrases d'un texte, d'abord DÉSORDONNÉES puis RÉORGANISÉES en blocs.
+
+    data = {label?, shuffled?, parts:[{role: intro|argument|conclusion, text, label?, at?}]}
+    - `parts` est dans l'ordre LOGIQUE (c'est aussi l'ordre dans lequel la voix les nomme) ;
+      `shuffled` = ordre d'affichage avant réorganisation (défaut : ordre inverse).
+    - `visible` = nombre de parties déjà étiquetées (étiquette-pastille qui chevauche le cadre) ;
+    - state="revealed" = ordre logique, tout étiqueté et coloré.
+    """
+    L = _text_layout(data)
+    S, pad, cw, gap = L["S"], L["pad"], L["cw"], L["gap"]
+    parts = data["parts"]
+    n = len(parts)
+    revealed = state == "revealed"
+    n_lab = n if (revealed or visible is None) else max(0, min(visible, n))
+    order = list(range(n)) if revealed else list(data.get("shuffled") or reversed(range(n)))
+    tile, d = _card_base(cw, L["h"], accent, S)
+    y = (pad + 8) * S
+    _tracked(d, (pad * S, y + 24 * S), str(data.get("label", "Exemple de réponse écrite")).upper(),
+             font("montserrat", 24 * S, 900), rgb(COLORS["ink2"]), 4 * S)
+    y += (24 + 18 + L["overhang"]) * S
+    df = font("inter", L["size"] * S, 500)
+    pf = font("montserrat", 20 * S, 900)
+    for idx in order:
+        part = parts[idx]
+        labeled = idx < n_lab                          # `parts` est dans l'ordre de la voix
+        color = config.ACCENTS[ROLE_ACCENT[part["role"]]]
+        hl = labeled and focus and not revealed and idx == n_lab - 1
+        x0, x1, y0, y1 = pad * S, (cw - pad) * S, y, y + L["rows"][idx] * S
+        d.rounded_rectangle((x0, y0, x1, y1), radius=26 * S,
+                            fill=_tint(color) if labeled else rgb(COLORS["soft"]),
+                            outline=rgb(color) if labeled else rgb(COLORS["line"]),
+                            width=(6 if hl else 3 if labeled else 2) * S)
+        ty = y0 + L["pad_top"] * S
+        for line in L["wrapped"][idx]:
+            d.text((x0 + 28 * S, ty), line, font=df, fill=rgb(COLORS["ink"]), anchor="lt")
+            ty += int(L["lh"] * S)
+        if labeled:                                    # pastille d'étiquette, à cheval sur le bord haut
+            tag, tr = _part_tag(part), 2 * S
+            tw = sum(pf.getlength(c) for c in tag) + tr * (len(tag) - 1)
+            pw, ph = int(tw + 40 * S), 30 * S
+            px1 = x1 - 28 * S
+            d.rounded_rectangle((px1 - pw, y0 - ph // 2, px1, y0 + ph // 2), radius=ph // 2,
+                                fill=rgb(color))
+            ink = COLORS["ink"] if part["role"] == "conclusion" else COLORS["white"]
+            _tracked(d, (px1 - pw + 20 * S, y0 + int(0.36 * 20 * S)), tag, pf, rgb(ink), tr)
+        y += (L["rows"][idx] + gap) * S
+    return _paste_card(tile, cw, L["h"])
+
+
 def render_placeholder_card(kind: str, note: str, accent: str) -> Image.Image:
     S, pad, cw, h = 2, 40, config.CONTENT_W, 560
     tile, d = _card_base(cw, h, accent, S)
@@ -399,4 +481,6 @@ def render_card(kind: str, data: dict, state: str, accent: str, note: str = "",
         return render_compare_card(data, state, accent)
     if kind == "terms" and data.get("items"):
         return render_terms_card(data, state, accent, visible, focus)
+    if kind == "text_annotated" and data.get("parts"):
+        return render_text_annotated_card(data, state, accent, visible, focus)
     return render_placeholder_card(kind, note, accent)

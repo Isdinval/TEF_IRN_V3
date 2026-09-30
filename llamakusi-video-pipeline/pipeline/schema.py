@@ -17,6 +17,12 @@ CardKind = Literal["question", "compare", "text_annotated", "terms", "plan"]
 
 SHORT_BLOCKS = ["hook", "build", "payoff", "loop"]
 
+# Cartes à apparition progressive (un item par étape, calé sur un mot de la voix) :
+#   kind -> (clé de la liste dans `data`, champ qui donne le mot d'ancrage par défaut)
+STEPPED_CARDS = {"terms": ("items", "term"), "text_annotated": ("parts", "label")}
+ROLES = ("intro", "argument", "conclusion")
+_REQUIRED_FIELDS = {"terms": ("term", "definition"), "text_annotated": ("role", "text")}
+
 
 class Claim(BaseModel):
     """Affirmation factuelle vérifiable. Bloque la publication tant que non vérifiée."""
@@ -31,6 +37,31 @@ class Card(BaseModel):
     kind: CardKind
     data: dict = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def _check_stepped_data(self) -> "Card":
+        """Erreur claire dès le chargement (plutôt qu'un KeyError au rendu). Données vides = placeholder."""
+        spec = STEPPED_CARDS.get(self.kind)
+        if not spec or not self.data.get(spec[0]):
+            return self
+        key = spec[0]
+        items = self.data[key]
+        if not isinstance(items, list) or not all(isinstance(i, dict) for i in items):
+            raise ValueError(f"carte '{self.kind}' : `{key}` doit être une liste d'objets")
+        for n, item in enumerate(items, 1):
+            for f in _REQUIRED_FIELDS[self.kind]:
+                if not str(item.get(f, "")).strip():
+                    raise ValueError(f"carte '{self.kind}' : {key}[{n}] sans `{f}`")
+        if self.kind == "text_annotated":
+            for n, item in enumerate(items, 1):
+                if item["role"] not in ROLES:
+                    raise ValueError(f"carte 'text_annotated' : parts[{n}].role « {item['role']} » "
+                                     f"invalide (attendu : {', '.join(ROLES)})")
+            order = self.data.get("shuffled")
+            if order is not None and sorted(order) != list(range(len(items))):
+                raise ValueError("carte 'text_annotated' : `shuffled` doit être une permutation de "
+                                 f"0..{len(items) - 1} (ordre d'affichage avant réorganisation)")
+        return self
+
 
 class Block(BaseModel):
     id: str
@@ -41,7 +72,7 @@ class Block(BaseModel):
     cta_overlay: Optional[str] = None   # petit texte discret (jamais parlé en Short)
     card: Optional[Card] = None
     card_from: Optional[str] = None     # réutilise la carte d'un bloc précédent (boucle)
-    card_state: Literal["plain", "revealed"] = "plain"
+    card_state: Literal["plain", "revealed", "initial"] = "plain"   # initial = retour à l'état de l'accroche
     tts_text: Optional[str] = None      # surcharge de prononciation (TTS uniquement)
     visual_note: str = ""               # description Phase 0 (référence humaine)
 

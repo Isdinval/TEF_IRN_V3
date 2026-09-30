@@ -7,7 +7,7 @@ from pathlib import Path
 
 from . import config, layers
 from .align import Word, block_spans, group_words, snap
-from .schema import Card, VideoScript
+from .schema import STEPPED_CARDS, Card, VideoScript
 from .textutil import tokenize
 
 TRACK_ORDER = ["brand", "card", "mascot", "overlay", "cta", "subs"]   # ordre = z-index croissant
@@ -48,26 +48,39 @@ def _clean(segments: list[dict], total: float) -> list[dict]:
     return out
 
 
-STEPPED_CARDS = {"terms"}      # cartes dont les items apparaissent un à un, calés sur la voix
+def _stem(norm: str) -> str:
+    """Tolère le pluriel simple (« argument » ↔ « arguments »)."""
+    return norm[:-1] if len(norm) > 3 and norm.endswith("s") else norm
 
 
 def _anchor_words(card: Card, words: list[Word]) -> list[Word]:
-    """Un mot d'ancrage par item, cherché dans l'ordre dans TOUTE la voix.
+    """Un mot d'ancrage par item, cherché dans l'ordre (celui de la liste) dans TOUTE la voix.
 
-    Ancre = `at` si fourni, sinon le premier mot de `term`. Le mot doit être prononcé :
-    l'item apparaît quand la voix le dit. Échec explicite si l'ancre est introuvable.
+    Ancre = `at` si fourni, sinon le champ par défaut de la carte (`term`, `label`, puis `role`).
+    `at: "de#2"` = 2e occurrence du mot (après l'ancre précédente). L'item apparaît quand la voix
+    prononce ce mot. Échec explicite si l'ancre est introuvable.
     """
+    key, field = STEPPED_CARDS[card.kind]
     anchors: list[Word] = []
     cursor = 0
-    for item in card.data["items"]:
-        key = tokenize(str(item.get("at") or item["term"]))[0].norm
+    for item in card.data[key]:
+        spec = str(item.get("at") or item.get(field) or item.get("role") or "")
+        word_part, _, nth = spec.partition("#")
+        toks = tokenize(word_part)
+        if not toks:
+            raise ValueError(f"carte '{card.kind}' : ancre vide pour l'item {item}")
+        target = _stem(toks[0].norm)
+        occurrence = int(nth) if nth.strip().isdigit() else 1
+        seen = 0
         for i in range(cursor, len(words)):
-            if words[i].norm == key:
-                anchors.append(words[i])
-                cursor = i + 1
-                break
+            if _stem(words[i].norm) == target:
+                seen += 1
+                if seen == occurrence:
+                    anchors.append(words[i])
+                    cursor = i + 1
+                    break
         else:
-            raise ValueError(f"carte '{card.kind}' : ancre « {key} » (item « {item['term']} ») "
+            raise ValueError(f"carte '{card.kind}' : ancre « {spec} » (item « {word_part or item} ») "
                              "introuvable dans la voix (après l'item précédent) ; utiliser `at:`")
     return anchors
 
@@ -75,11 +88,14 @@ def _anchor_words(card: Card, words: list[Word]) -> list[Word]:
 def _card_segments(card: Card, state: str, bi: int, start: float, end: float,
                    words: list[Word]) -> list[tuple[float, float, int | None, bool]]:
     """Découpe le segment d'un bloc en étapes (start, end, nb d'items visibles, focus sur le dernier)."""
-    if card.kind not in STEPPED_CARDS or not card.data.get("items"):
+    spec = STEPPED_CARDS.get(card.kind)
+    if not spec or not card.data.get(spec[0]):
         return [(start, end, None, True)]
-    n = len(card.data["items"])
+    n = len(card.data[spec[0]])
     if state == "revealed":
         return [(start, end, n, True)]
+    if state == "initial":                                     # retour visuel à l'accroche
+        return [(start, end, 0, False)]
     anchors = _anchor_words(card, words)
     visible = sum(1 for a in anchors if a.block < bi)          # déjà dévoilés dans les blocs précédents
     focus = 0 < visible < n                                    # continuité ; tout dévoilé = pas de focus

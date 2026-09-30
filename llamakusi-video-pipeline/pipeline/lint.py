@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 
 from . import config
-from .schema import VideoScript
+from .schema import STEPPED_CARDS, VideoScript
 from .textutil import count_words
 
 _SPOKEN_CTA = re.compile(
@@ -14,7 +14,9 @@ _SPOKEN_CTA = re.compile(
     re.IGNORECASE,
 )
 _PROGRESSION = ["perplexe", "reflechit", "victorieux", "heureux"]
-IMPLEMENTED_CARDS = {"question", "compare"}
+IMPLEMENTED_CARDS = {"question", "compare", "terms", "text_annotated"}
+_CARD_REQUIRED = {"compare": "rows", "terms": "items", "text_annotated": "parts"}   # sans elles : placeholder
+_MAX_STEPS = {"terms": 4, "text_annotated": 5}      # au-delà, illisible sur 640 px de haut
 
 
 @dataclass
@@ -62,17 +64,25 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         if moods != _PROGRESSION:
             add("warn", f"mascotte hors ordre narratif {_PROGRESSION} : {moods}")
 
+    words = None
     for b in script.blocks:
-        if b.card and b.card.kind == "compare" and not b.card.data.get("rows"):
-            add("todo", f"carte 'compare' (bloc '{b.id}') sans `rows` : placeholder rendu")
-        elif b.card and b.card.kind == "terms":
-            if not b.card.data.get("items"):
-                add("todo", f"carte 'terms' (bloc '{b.id}') sans `items` : placeholder rendu")
-            elif len(b.card.data["items"]) > 4:
-                add("warn", f"carte 'terms' (bloc '{b.id}') : {len(b.card.data['items'])} items, "
-                            "4 max lisibles sur 640 px")
-        elif b.card and b.card.kind not in IMPLEMENTED_CARDS:
-            add("todo", f"carte '{b.card.kind}' (bloc '{b.id}') pas encore implémentée : placeholder rendu")
+        if not b.card:
+            continue
+        kind, need = b.card.kind, _CARD_REQUIRED.get(b.card.kind)
+        if need and not b.card.data.get(need):
+            add("todo", f"carte '{kind}' (bloc '{b.id}') sans `{need}` : placeholder rendu")
+        elif kind not in IMPLEMENTED_CARDS:
+            add("todo", f"carte '{kind}' (bloc '{b.id}') pas encore implémentée : placeholder rendu")
+        elif kind in STEPPED_CARDS:
+            n = len(b.card.data[need])
+            if n > _MAX_STEPS[kind]:
+                add("warn", f"carte '{kind}' (bloc '{b.id}') : {n} éléments, {_MAX_STEPS[kind]} max lisibles")
+            try:                                     # ancres introuvables : détecté ici, avant tout appel TTS
+                from . import align, timeline
+                words = words or align.flatten_script(script)
+                timeline._anchor_words(b.card, words)
+            except ValueError as exc:
+                add("error", f"bloc '{b.id}' : {exc}")
 
     if script.pillar in {"B", "C", "D", "F"} and not script.claims:
         add("warn", f"pilier {script.pillar} : aucune claim déclarée (sources officielles obligatoires)")

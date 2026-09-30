@@ -13,7 +13,26 @@ blocks:
   mascot: perplexe
   card:
     kind: text_annotated
-    data: {}
+    data:
+      label: Exemple · Faut-il limiter les écrans ?
+      shuffled: [2, 0, 3, 1]          # ordre d'affichage AVANT réorganisation
+      parts:                          # ordre logique = ordre dans lequel la voix les nomme
+      - role: intro
+        label: Intro
+        at: intro
+        text: Aujourd'hui, les enfants passent beaucoup de temps devant les écrans. Faut-il limiter cet usage ?
+      - role: argument
+        label: Argument 1
+        at: arguments
+        text: D'abord, les écrans fatiguent les enfants et réduisent leur temps de sommeil.
+      - role: argument
+        label: Argument 2
+        at: reliés
+        text: De plus, ce temps perdu se fait au détriment de la lecture et du sport.
+      - role: conclusion
+        label: Conclusion
+        at: conclusion
+        text: Il faut donc encadrer les écrans, sans les interdire complètement.
   visual_note: Texte identique à l'écran. Mascotte perplexe.
 - id: build
   voice: 'C''est la structure. Un correcteur note deux choses : le contenu, et la langue. Un vocabulaire
@@ -28,11 +47,13 @@ blocks:
   mascot: victorieux
   card_from: hook
   overlay: B1 → B2
+  card_state: revealed
   visual_note: Carte avant/après, overlay « B1 → B2 » doré.
 - id: loop
   voice: Alors la vraie question, ce n'est pas ce que tu sais — c'est comment tu l'organises.
   mascot: heureux
   card_from: hook
+  card_state: initial
   visual_note: Retour au cadrage de l'accroche. Overlay discret « lien en bio ».
 claims:
 - text: 9 candidats sur 10 restent bloqués en B1 à cause de la structure (pas du vocabulaire)
