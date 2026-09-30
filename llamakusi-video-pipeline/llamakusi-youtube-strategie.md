@@ -249,10 +249,13 @@ mais un seul, à la fin**, re-hook obligatoire vers 3:00 (déjà dans `long-01`)
 2. **Temps de rendu** : 6 min × 30 i/s × ~6 pistes PNG en 1080p sous ffmpeg 4.2.3 → estimation grossière **10-25 min par vidéo** (non mesuré). Parades :
    fond généré en **boucle de 30 s** (`stream_loop`, `frame_at` est déjà périodique) au lieu de 6 min de calcul ; musique bouclée (`aloop`) ;
    `preview` et rendu brouillon en 720p (`--scale 0.667`).
+   **Mesure L1 (sandbox, `--dry`, `veryfast`) : ~8 min pour 97 s, soit ~5× la durée** — pire que l'estimation : le coût vient des 4 pistes PNG plein cadre 1920×1080
+   décodées et superposées à chaque image. Piste d'optimisation (non faite, à décider après mesure sur ta machine) : recadrer chaque piste à sa zone (carte, mascotte,
+   sous-titres) avec `overlay=x:y` au lieu de PNG plein cadre, ce qui réduit fortement les pixels traités.
 3. **Cartes** : `plan` (3 blocs qui apparaissent sur ancres, comme `terms`) devient réelle ; les 4 autres cartes s'adaptent à la largeur de zone
    sans changer de contenu.
 
-*Livraison en 3 patchs* : **L1** profil 16:9 (config par format, layout, fond et musique bouclés, cartes adaptées) → rendu `--dry` de `long-01` contrôlé
+*Livraison en 3 patchs (L1 livré)* : **L1** profil 16:9 (config par format, layout, fond et musique bouclés, cartes adaptées) → rendu `--dry` de `long-01` contrôlé
 visuellement ; **L2** voix par segments avec cache (le seul qui exige Gemini, donc testé chez toi) ; **L3** carte `plan` + `chapter:` + export
 `chapters.txt` (timestamps pour la description YouTube, ≥ 3 chapitres, premier à 0:00) + lint des longs (durée, un seul CTA, re-hook).
 *Plus tard (hors MVP)* : miniature générée (Pillow, mêmes tokens), barre de progression, animation de transition entre cartes, doublage audio.

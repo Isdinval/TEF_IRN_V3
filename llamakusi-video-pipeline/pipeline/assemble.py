@@ -32,10 +32,10 @@ def _concat_list(segments: list[dict], blank: str, total: float, build_dir: Path
 
 
 def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None = None,
-           preset: str = "medium", background: Path | None = None) -> Path:
+           preset: str = "medium", background: Path | None = None, loop_background: bool = False) -> Path:
     total = timeline["duration"]
     if background and Path(background).exists():
-        inputs: list[str] = ["-i", str(background)]
+        inputs: list[str] = (["-stream_loop", "-1"] if loop_background else []) + ["-i", str(background)]
     else:
         inputs = ["-f", "lavfi", "-i",
                   f"color=c=0x{config.COLORS['bg'].lstrip('#')}:s={config.W}x{config.H}:r={config.FPS}:d={total:.5f}"]

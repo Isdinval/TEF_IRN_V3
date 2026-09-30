@@ -69,6 +69,7 @@ def cmd_fetch_question(args) -> int:
 
 def cmd_build(args) -> int:
     script = schema.find_script(config.SCRIPTS_DIR, args.id)
+    config.use_profile(script.format)          # 1080×1920 (short) ou 1920×1080 (long)
     for i in lint.lint_script(script, publish=False):
         if i.level == "error":
             print(f"✗ lint : {i.message}")
@@ -148,7 +149,8 @@ def cmd_build(args) -> int:
         bg = background.generate(bdir, script.accent, tl["duration"])
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
     assemble.render(bdir, tl, out, music,
-                    preset="veryfast" if args.dry else "medium", background=bg)
+                    preset="veryfast" if args.dry else "medium", background=bg,
+                    loop_background=background.is_loop(tl["duration"]))
     print(f"✓ {out}")
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
     return 0
@@ -238,14 +240,18 @@ def cmd_preview(args) -> int:
     tl = json.loads((bdir / "timeline.json").read_text())
     video = bdir / ("out.dry.mp4" if (bdir / "out.dry.mp4").exists() and not (bdir / "out.mp4").exists() else "out.mp4")
     frames = []
+    vertical = tl["size"][1] > tl["size"][0]
+    cell = (360, 640) if vertical else (640, 360)
     for b in tl["blocks"]:
         t = min(tl["duration"] - 0.1, b["start"] + (b["end"] - b["start"]) * 0.6)
         png = bdir / f"prev_{b['id']}.png"
         audio.run(["ffmpeg", "-y", "-ss", f"{t:.3f}", "-i", str(video), "-frames:v", "1", str(png)])
-        frames.append(Image.open(png).convert("RGB").resize((360, 640)))
-    sheet = Image.new("RGB", (360 * len(frames), 640))
+        frames.append(Image.open(png).convert("RGB").resize(cell))
+    cols = len(frames) if vertical else min(3, len(frames))              # long : grille de 3 colonnes
+    rows = -(-len(frames) // cols)
+    sheet = Image.new("RGB", (cell[0] * cols, cell[1] * rows))
     for i, f in enumerate(frames):
-        sheet.paste(f, (360 * i, 0))
+        sheet.paste(f, (cell[0] * (i % cols), cell[1] * (i // cols)))
     dst = bdir / "preview.jpg"
     sheet.save(dst, quality=88)
     print(f"✓ {dst}")

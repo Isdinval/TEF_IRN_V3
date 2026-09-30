@@ -1,0 +1,142 @@
+id: long-02
+format: long
+status: draft
+pillar: C
+product: tef_irn
+accent: indigo
+title: DÉMO 16:9 — test de mise en page des 4 cartes (ne sera pas publié)
+cta_overlay: null
+blocks:
+- id: s1_hook
+  voice: Il y a une raison qui bloque 9 candidats sur 10 en B1 — et ce n'est pas le vocabulaire.
+  mascot: perplexe
+  card:
+    kind: text_annotated
+    data:
+      label: Exemple · Faut-il limiter les écrans ?
+      shuffled:
+      - 2
+      - 0
+      - 3
+      - 1
+      parts:
+      - role: intro
+        label: Intro
+        at: intro
+        text: Aujourd'hui, les enfants passent beaucoup de temps devant les écrans. Faut-il limiter cet usage ?
+      - role: argument
+        label: Argument 1
+        at: arguments
+        text: D'abord, les écrans fatiguent les enfants et réduisent leur temps de sommeil.
+      - role: argument
+        label: Argument 2
+        at: reliés
+        text: De plus, ce temps perdu se fait au détriment de la lecture et du sport.
+      - role: conclusion
+        label: Conclusion
+        at: conclusion
+        text: Il faut donc encadrer les écrans, sans les interdire complètement.
+- id: s1_build
+  voice: 'C''est la structure. Un correcteur note deux choses : le contenu, et la langue. Un vocabulaire riche sans
+    paragraphes clairs ne passe pas B2. Trois blocs suffisent : une idée en intro, deux arguments reliés, une conclusion
+    qui répond à la question.'
+  mascot: reflechit
+  card_from: s1_hook
+- id: s1_payoff
+  voice: Même texte. Juste réorganisé en trois blocs. Le score passe de B1 à B2.
+  mascot: victorieux
+  card_from: s1_hook
+  card_state: revealed
+- id: s2_hook
+  voice: Depuis 2026, le niveau demandé pour la naturalisation a fait un bond que beaucoup n'ont pas vu venir.
+  mascot: perplexe
+  card:
+    kind: compare
+    data:
+      label: Naturalisation · Niveau de français
+      contrast: true
+      left:
+        title: B1
+        subtitle: avant 2026
+      right:
+        title: B2
+        subtitle: depuis le 1er janvier 2026
+      rows:
+      - label: Expression
+        left: Phrases courtes, conversation simple
+        right: Argumenter, nuancer, conversation complexe
+        highlight: true
+      - label: Pour la naturalisation
+        left: Suffisait avant
+        right: Exigé aujourd'hui
+        highlight: true
+- id: s2_build
+  voice: 'Avant, le niveau B1 suffisait — des phrases courtes, une conversation simple. Depuis le 1er janvier 2026,
+    c''est le niveau B2 qui est exigé : argumenter, nuancer, tenir une vraie conversation complexe. Ce n''est pas
+    un ajustement, c''est un changement de catégorie.'
+  mascot: reflechit
+  card_from: s2_hook
+- id: s2_payoff
+  voice: Ce qui suffisait il y a un an ne suffit plus aujourd'hui.
+  mascot: victorieux
+  card_from: s2_hook
+  card_state: revealed
+- id: s3_hook
+  voice: Tu reçois une contravention. Tu as combien de jours pour agir ?
+  mascot: perplexe
+  card:
+    kind: question
+    data:
+      draft: true
+      question_id: null
+      label: Examen civique · Question
+      question: Tu reçois une contravention. Tu as combien de jours pour agir ?
+      choices:
+      - 7 jours
+      - 15 jours
+      - 45 jours
+      - 90 jours
+      correct: C
+- id: s3_build
+  voice: C'est une vraie question de l'examen civique. 12 questions sur 40 portent sur des situations comme celle-ci
+    — pas seulement des dates à apprendre par cœur, mais des règles du quotidien à savoir appliquer.
+  mascot: reflechit
+  card_from: s3_hook
+- id: s3_payoff
+  voice: 'La réponse : 45 jours. Passé ce délai, l''amende est majorée.'
+  mascot: victorieux
+  card_from: s3_hook
+  card_state: revealed
+- id: s4_hook
+  voice: À la fin de cette vidéo, tu connais 3 mots qu'on va te dire à la préfecture — et que personne ne t'explique.
+  mascot: perplexe
+  card:
+    kind: terms
+    data:
+      label: Vocabulaire · Préfecture
+      items:
+      - term: Récépissé
+        definition: Papier provisoire qui prouve que ta demande est en cours
+      - term: Convocation
+        definition: Le rendez-vous fixé, à l'heure exacte
+      - term: Pièce justificative
+        definition: Le document qui prouve ce que tu déclares
+- id: s4_build
+  voice: 'Le récépissé : un papier provisoire qui prouve que ta demande est en cours. La convocation : le rendez-vous
+    fixé, à l''heure exacte, sans exception. La pièce justificative : le document qui prouve ce que tu déclares
+    — un justificatif de domicile, par exemple.'
+  mascot: reflechit
+  card_from: s4_hook
+- id: s4_payoff
+  voice: Trois mots. Trois pièges évités.
+  mascot: victorieux
+  card_from: s4_hook
+  card_state: revealed
+- id: cta
+  voice: Si cette méthode t'a aidé, retrouve les exercices complets dans la description de la vidéo.
+  mascot: heureux
+  card_from: s4_hook
+  card_state: revealed
+claims:
+- text: Démo technique de mise en page, aucun contenu factuel publié
+  source_hint: n/a (script de test)

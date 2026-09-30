@@ -178,7 +178,7 @@ llamakusi-video-pipeline/
 > Plus le nombre est proche de 0, plus la musique est forte : `-10` fort · `-14` défaut · `-18` discret.
 
 ### `pipeline\config.py` (mise en page et look)
-- `LAYOUT` : positions verticales (logo, badge, carte, sous-titres, mascotte, CTA). Tout est centré sur x = 540.
+- `PROFILES` : **un profil de mise en page par format** (`short` 1080×1920 centré sur x = 540 ; `long` 1920×1080, cartes à gauche, mascotte à droite). `LAYOUT` (positions du logo, badge, carte, sous-titres, mascotte, CTA) est le profil actif ; on règle les positions dans `PROFILES[...]["layout"]`. Le format du script (`format: short|long`) choisit le profil automatiquement.
 - `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`).
   Pour un fond plus discret, baisser les intensités (2ᵉ valeur de chaque ligne) ; plus présent, les augmenter.
 - `MASCOT_MOOD` : correspondance des expressions (`heureux` → `neutre`, car le repo n'a pas de « heureux »).
@@ -205,6 +205,19 @@ En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TE
 `claims:` (chaque affirmation factuelle avec `source_hint`, puis `source_url` + `verified: true` une fois vérifiée).
 
 ---
+
+### Format long 16:9 (état : L1 livré = mise en page)
+
+`format: long` dans le script → profil 1920×1080 : logo en haut à gauche, carte dans la colonne gauche (x 96-1216), sous-titres karaoké sous la carte,
+mascotte dans la colonne droite. Pas de flèche ni de CTA incrusté en long (le CTA est parlé, une seule fois, à la fin). Le fond animé n'est calculé que
+sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
+
+- `scripts/long-02.yaml` = **démo technique** (les 4 cartes enchaînées, ~97 s) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
+  puis `python cli.py preview long-02` (planche en grille 3 colonnes). Elle ne sera pas publiée.
+- Le cache des calques PNG (`build/<id>/layers`) est **vidé automatiquement** quand `layers.py`, `textutil.py` ou le profil changent : plus de suppression manuelle.
+- **Temps de rendu mesuré (sandbox, ffmpeg 6, preset `veryfast`, `--dry`)** : ~8 min pour 97 s de vidéo, soit ~5× la durée. Une vidéo de 6 min demandera donc
+  beaucoup plus (plusieurs dizaines de minutes) : à confirmer sur ta machine ; voir la piste d'optimisation dans la stratégie.
+- Ce qui reste : voix longue par segments (L2), carte `plan`, `chapter:` et `chapters.txt` (L3).
 
 ### Règle de boucle (Shorts) — obligatoire
 
@@ -300,8 +313,9 @@ Règles d'ancrage :
 ## 9. Ce qui n'existe pas encore
 
 - Génération automatique des scripts (section 2).
-- Carte `plan` (vidéo longue) : rendue en placeholder.
+- Carte `plan` (vidéo longue) : rendue en placeholder (patch L3).
+- Vidéo longue : voix par segments avec cache (L2), titres de chapitre + `chapters.txt` + lint des longs (L3).
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
-- Upload YouTube (en privé), vidéo longue 16:9 (cadrage validé dans la stratégie, § Format long : pas encore codé).
+- Upload YouTube (en privé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.

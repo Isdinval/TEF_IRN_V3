@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
-from . import config, layers
+from . import config, layers, textutil
 from .align import Word, block_spans, group_words, snap
 from .schema import STEPPED_CARDS, Card, VideoScript
 from .textutil import tokenize
@@ -20,6 +21,19 @@ def _save(img, layers_dir: Path, prefix: str, key: str) -> str:
     if not path.exists():
         img.save(path, "PNG", optimize=False)
     return f"layers/{name}"
+
+
+def _check_layers_signature(layers_dir: Path) -> None:
+    """Vide le cache des calques PNG si le code de rendu ou le profil de mise en page a changé
+    (plus besoin de supprimer build/<id>/layers à la main après une modification du rendu)."""
+    sig = hashlib.sha1((config.profile_signature()
+                        + Path(layers.__file__).read_text(encoding="utf-8")
+                        + Path(textutil.__file__).read_text(encoding="utf-8")).encode("utf-8")).hexdigest()
+    marker = layers_dir / ".signature"
+    if layers_dir.exists() and (not marker.exists() or marker.read_text() != sig):
+        shutil.rmtree(layers_dir)
+    layers_dir.mkdir(parents=True, exist_ok=True)
+    marker.write_text(sig)
 
 
 def _resolve_cards(script: VideoScript) -> dict[str, tuple[Card, str]]:
@@ -112,7 +126,9 @@ def _card_segments(card: Card, state: str, bi: int, start: float, end: float,
 
 def build_timeline(script: VideoScript, words: list[Word], audio_duration: float,
                    build_dir: Path) -> dict:
+    config.use_profile(script.format)
     layers_dir = build_dir / "layers"
+    _check_layers_signature(layers_dir)
     layers_dir.mkdir(parents=True, exist_ok=True)
     total = snap(audio_duration + config.TAIL_SECONDS)
     spans = block_spans(words, len(script.blocks), total)

@@ -94,6 +94,12 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         if moods != _PROGRESSION:
             add("warn", f"mascotte hors ordre narratif {_PROGRESSION} : {moods}")
 
+    if script.format == "long":
+        for b in script.blocks:
+            if b.overlay:
+                add("warn", f"bloc '{b.id}' : le badge `overlay` est prévu pour l'accroche d'un Short ; "
+                            "en 16:9 il se superpose à la zone haute (titre de chapitre à venir)")
+
     words = None
     for b in script.blocks:
         if not b.card:

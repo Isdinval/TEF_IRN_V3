@@ -1,4 +1,4 @@
-"""Rendu des calques (PNG RGBA plein cadre 1080×1920) avec Pillow.
+"""Rendu des calques (PNG RGBA plein cadre, taille du profil actif : 1080×1920 Short / 1920×1080 Long) avec Pillow.
 
 Choix : Pillow plutôt que Playwright pour le MVP (0 dépendance navigateur, rendu
 déterministe, testable). Les tokens (couleurs, polices, rayons) sont ceux du design
@@ -12,7 +12,7 @@ from functools import lru_cache
 from PIL import Image, ImageDraw, ImageFont
 
 from . import config
-from .config import COLORS, LAYOUT, W, H
+from .config import COLORS, LAYOUT
 from .textutil import NBSP
 
 
@@ -44,7 +44,7 @@ def font(family: str, size: int, weight: int) -> ImageFont.FreeTypeFont:
 
 
 def canvas() -> Image.Image:
-    return Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    return Image.new("RGBA", (config.W, config.H), (0, 0, 0, 0))
 
 
 def _tracked(draw: ImageDraw.ImageDraw, xy, text: str, fnt, fill, tracking: float) -> float:
@@ -75,12 +75,15 @@ def render_brand(accent: str) -> Image.Image:
     """Logo texte centré, gros et lisible : pastille d'accent + LLAMAKUSI en blanc."""
     img = canvas()
     d = ImageDraw.Draw(img)
-    fnt = font("montserrat", 50, 900)
-    text, tracking, dot, gap = "LLAMAKUSI", 9, 26, 22
+    size = LAYOUT["brand_size"]
+    k = size / 50                                   # dimensions calées sur 50 px (Short), proportionnelles
+    fnt = font("montserrat", size, 900)
+    text, tracking, dot, gap = "LLAMAKUSI", 9 * k, 26 * k, 22 * k
     text_w = sum(fnt.getlength(c) for c in text) + tracking * (len(text) - 1)
-    x = config.CONTENT_CX - (dot + gap + text_w) / 2
+    total = dot + gap + text_w
+    x = LAYOUT["brand_x"] - (total / 2 if LAYOUT["brand_align"] == "center" else 0)
     y = LAYOUT["brand_y"]
-    cy = y - 18
+    cy = y - 18 * k
     d.ellipse((x, cy - dot / 2, x + dot, cy + dot / 2), fill=rgb(config.ACCENTS[accent]))
     _tracked(d, (x + dot + gap, y), text, fnt, rgb(COLORS["white"], 235), tracking)
     return img
@@ -100,7 +103,7 @@ def render_mascot(expression: str, pose: int) -> Image.Image:
     scale = LAYOUT["mascot_h"] / src.height
     src = src.resize((max(1, int(src.width * scale)), LAYOUT["mascot_h"]), Image.LANCZOS)
     img = canvas()
-    img.alpha_composite(src, ((W - src.width) // 2, LAYOUT["mascot_bottom"] - src.height))
+    img.alpha_composite(src, (LAYOUT["mascot_cx"] - (src.width + 1) // 2, LAYOUT["mascot_bottom"] - src.height))
     return img
 
 
@@ -145,8 +148,8 @@ def render_cta(text: str, arrow: bool = False) -> Image.Image:
     """Petit CTA discret centré sous la mascotte (jamais parlé en Short).
     `arrow=True` réserve à droite la place de la flèche animée (voir render_cta_arrow)."""
     img = canvas()
-    _pill(img, config.CONTENT_CX, LAYOUT["cta_cy"], text, "montserrat", 32, 900,
-          "#27272A", COLORS["white"], _CTA_PAD_X, 18, config.CONTENT_W, upper=True,
+    _pill(img, LAYOUT["cta_cx"], LAYOUT["cta_cy"], text, "montserrat", 32, 900,
+          "#27272A", COLORS["white"], _CTA_PAD_X, 18, LAYOUT["cta_max_w"], upper=True,
           reserve_right=config.ARROW_SLOT if arrow else 0)
     return img
 
@@ -158,7 +161,7 @@ def render_cta_arrow(phase: int, text: str) -> Image.Image:
     d = ImageDraw.Draw(img)
     fnt = font("montserrat", 32, 900)
     tw = int(fnt.getlength(text.upper()) + 2 * _CTA_PAD_X + config.ARROW_SLOT)
-    left = int(config.CONTENT_CX - tw / 2)
+    left = int(LAYOUT["cta_cx"] - tw / 2)
     cx = left + _CTA_PAD_X + fnt.getlength(text.upper()) + config.ARROW_SLOT / 2
     t = (phase % config.ARROW_PHASES) / config.ARROW_PHASES
     dy = config.ARROW_BOUNCE * (0.5 - 0.5 * math.cos(2 * math.pi * t)) - config.ARROW_BOUNCE / 2   # doux, centré
@@ -176,7 +179,7 @@ def render_cta_arrow(phase: int, text: str) -> Image.Image:
 def render_subs(texts: list[str], active: int) -> Image.Image:
     img = canvas()
     d = ImageDraw.Draw(img)
-    size = 70
+    size = LAYOUT["subs_size"]
     while True:
         fnt = font("montserrat", size, 800)
         space = fnt.getlength(" ")

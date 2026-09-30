@@ -55,7 +55,7 @@ SUB_LANG_NAMES = {"ar": "arabe standard moderne", "en": "anglais", "es": "espagn
 PRONUNCIATIONS: dict[str, str] = {}
 
 # --- Vidéo -------------------------------------------------------------------
-W, H, FPS = 1080, 1920, 30
+FPS = 30
 TAIL_SECONDS = float(env("TAIL_SECONDS", "0.7"))   # silence final après le dernier mot (0,5-1 s ; plus = boucle moins serrée)
 MUSIC_FADE_S = 0.8           # fondu de sortie de la musique (démarre à total - MUSIC_FADE_S)
 SPEECH_WPS = 3.18            # mesuré : Short 3, voix Charon, 74 mots en 23,27 s ≈ 3,18 mots/s
@@ -78,25 +78,72 @@ def find_music() -> Path | None:
             return path
     return None
 
-# Mise en page CENTRÉE sur l'axe de l'écran (x = 540).
-# Les boutons YouTube (droite) n'occupent que la moitié basse : la carte (haut) peut être pleine largeur,
-# les sous-titres restent plus étroits (SUBS_MAX_W) pour ne pas frôler le rail de droite.
-CONTENT_W = 900
-CONTENT_X0 = (W - CONTENT_W) // 2     # 90
-CONTENT_CX = W // 2                   # 540
-SUBS_MAX_W = 780
-SAFE_BOTTOM = H - 250                 # 1670 : rien d'important en dessous (légende YouTube)
-
-LAYOUT = {
-    "brand_y": 175,          # ligne de base du logo texte
-    "overlay_cy": 300,       # badge d'accroche (centre vertical)
-    "card_y": 390,
-    "card_max_h": 640,
-    "subs_cy": 1105,
-    "mascot_bottom": 1580,   # mascotte centrée, sous les sous-titres
-    "mascot_h": 420,
-    "cta_cy": 1630,          # pill « Lien en bio », centré sous la mascotte
+# --- Profils de mise en page -------------------------------------------------------------------
+# Un profil par format (`short` 9:16, `long` 16:9). `use_profile(fmt)` écrit le profil actif dans les
+# variables globales ci-dessous (W, H, CONTENT_*, LAYOUT…), lues dynamiquement par layers/background/assemble.
+# Choix MVP : état global plutôt que paramètre passé partout (layers.py = 500 lignes) ; `build_timeline`
+# et le CLI appellent `use_profile` ; tests/conftest.py remet `short` avant chaque test.
+#
+# SHORT : tout CENTRÉ sur x = 540. Les boutons YouTube (droite) n'occupent que la moitié basse : la carte
+#   (haut) peut être pleine largeur ; les sous-titres restent plus étroits (subs_max_w).
+# LONG  : 1920×1080. Colonne gauche (x 96-1216) = cartes + sous-titres ; colonne droite = mascotte + CTA.
+PROFILES = {
+    "short": {
+        "W": 1080, "H": 1920, "bg_low": (216, 384),
+        "content_w": 900, "content_x0": 90, "content_cx": 540, "subs_max_w": 780,
+        "layout": {
+            "brand_align": "center", "brand_x": 540, "brand_y": 175, "brand_size": 50,
+            "overlay_cy": 300,       # badge d'accroche (centre vertical)
+            "card_y": 390, "card_max_h": 640,
+            "subs_cy": 1105, "subs_size": 70,
+            "mascot_cx": 540, "mascot_bottom": 1580, "mascot_h": 420,   # centrée, sous les sous-titres
+            "cta_cx": 540, "cta_cy": 1630, "cta_max_w": 900,           # pill « Lien en bio »
+        },
+    },
+    "long": {
+        "W": 1920, "H": 1080, "bg_low": (384, 216),
+        "content_w": 1120, "content_x0": 96, "content_cx": 656, "subs_max_w": 1080,
+        "layout": {
+            "brand_align": "left", "brand_x": 96, "brand_y": 98, "brand_size": 40,
+            "overlay_cy": 110,       # non prévu en 16:9 (le lint prévient)
+            "card_y": 150, "card_max_h": 690,
+            "subs_cy": 930, "subs_size": 66,
+            "mascot_cx": 1562, "mascot_bottom": 900, "mascot_h": 560,
+            "cta_cx": 1562, "cta_cy": 960, "cta_max_w": 520,
+        },
+    },
 }
+BG_LOOP_S = 30.0             # fond des vidéos longues : boucle de 30 s répétée (calcul et poids divisés par ~12)
+
+W, H = 1080, 1920
+CONTENT_W = CONTENT_X0 = CONTENT_CX = SUBS_MAX_W = 0
+BG_LOW = (216, 384)
+SAFE_BOTTOM = 0
+LAYOUT: dict = {}            # dict MUTÉ sur place (layers.py garde la même référence)
+ACTIVE_PROFILE = ""
+
+
+def use_profile(fmt: str) -> None:
+    """Active le profil `short` ou `long` (idempotent)."""
+    global W, H, CONTENT_W, CONTENT_X0, CONTENT_CX, SUBS_MAX_W, BG_LOW, SAFE_BOTTOM, ACTIVE_PROFILE
+    prof = PROFILES[fmt]
+    W, H = prof["W"], prof["H"]
+    CONTENT_W, CONTENT_X0, CONTENT_CX = prof["content_w"], prof["content_x0"], prof["content_cx"]
+    SUBS_MAX_W, BG_LOW = prof["subs_max_w"], tuple(prof["bg_low"])
+    SAFE_BOTTOM = H - (250 if fmt == "short" else 60)    # short : légende YouTube ; long : marge simple
+    LAYOUT.clear()
+    LAYOUT.update(prof["layout"])
+    ACTIVE_PROFILE = fmt
+
+
+def profile_signature() -> str:
+    """Empreinte du profil actif (sert à invalider le cache des calques PNG quand la mise en page change)."""
+    import json
+    return json.dumps({"fmt": ACTIVE_PROFILE, "W": W, "H": H, "cw": CONTENT_W, "x0": CONTENT_X0, "cx": CONTENT_CX,
+                       "subs": SUBS_MAX_W, "layout": LAYOUT}, sort_keys=True)
+
+
+use_profile("short")
 
 ARROW_BOUNCE = 8            # amplitude du rebond de la flèche CTA, dans le pill (px)
 ARROW_SLOT = 56              # largeur réservée à droite du texte du pill pour la flèche (px)

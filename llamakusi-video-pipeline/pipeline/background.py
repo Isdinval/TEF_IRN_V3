@@ -15,8 +15,6 @@ import numpy as np
 
 from . import config
 
-LOW_W, LOW_H = 216, 384
-
 
 def _rgb(hex_color: str) -> np.ndarray:
     h = hex_color.lstrip("#")
@@ -24,7 +22,8 @@ def _rgb(hex_color: str) -> np.ndarray:
 
 
 def frame_at(accent: str, t: float, duration: float) -> np.ndarray:
-    """Image RGB uint8 (LOW_H, LOW_W, 3) du fond à l'instant t."""
+    """Image RGB uint8 (LOW_H, LOW_W, 3) du fond à l'instant t (LOW_* = profil actif)."""
+    LOW_W, LOW_H = config.BG_LOW
     pal = config.BG_PALETTES.get(accent, config.BG_PALETTES["indigo"])
     ys, xs = np.mgrid[0:LOW_H, 0:LOW_W].astype(np.float32)
     x, y = xs / (LOW_W - 1), ys / (LOW_H - 1) * (LOW_H / LOW_W)      # y corrigé du ratio → halos ronds
@@ -40,11 +39,20 @@ def frame_at(accent: str, t: float, duration: float) -> np.ndarray:
     return (np.clip(img, 0, 1) * 255).astype(np.uint8)
 
 
+def is_loop(duration: float) -> bool:
+    """Vidéo longue : le fond n'est généré que sur BG_LOOP_S secondes et répété (assemble : -stream_loop)."""
+    return duration > config.BG_LOOP_S * 1.05
+
+
 def generate(build_dir: Path, accent: str, duration: float, fps: int | None = None) -> Path:
-    """Génère (ou réutilise) build/<id>/background_<accent>_<n>.mp4 en 1080×1920."""
+    """Génère (ou réutilise) build/<id>/background_<accent>_<W>x<H>_<n>.mp4 (taille du profil actif).
+    Au-delà de BG_LOOP_S, ne génère qu'une boucle de BG_LOOP_S s (mouvement périodique → raccord invisible)."""
     fps = fps or config.FPS
+    if is_loop(duration):
+        duration = config.BG_LOOP_S
     n = max(1, round(duration * fps))
-    out = build_dir / f"background_{accent}_{n}.mp4"
+    out = build_dir / f"background_{accent}_{config.W}x{config.H}_{n}.mp4"
+    LOW_W, LOW_H = config.BG_LOW
     if out.exists() and out.stat().st_size > 0:
         return out
     cmd = ["ffmpeg", "-y", "-loglevel", "error",
