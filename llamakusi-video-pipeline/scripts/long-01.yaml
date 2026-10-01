@@ -1,50 +1,260 @@
 id: long-01
 format: long
-status: outline
+status: draft
 pillar: C
 product: tef_irn
 accent: indigo
-title: Comment structurer une expression écrite B2 (méthode complète)
+title: 'Expression écrite TEF IRN : la méthode en 4 blocs pour la section B'
 cta_overlay: null
 blocks:
 - id: hook
-  voice: À l'épreuve d'expression écrite du TEF IRN, tu as entre 30 et 90 mots pour prouver ton niveau.
-    Et la plupart des candidats qui restent bloqués en B1 n'ont pourtant aucun problème de vocabulaire.
+  voice: Tu as environ vingt minutes pour convaincre une association de te choisir, avec cent mots minimum. Sans
+    plan, on écrit au fil de la plume, et on perd son lecteur dès la deuxième phrase. Dans cette vidéo, je te donne
+    une méthode en quatre blocs pour la section B de l'expression écrite du TEF IRN, avec un exemple complet.
   mascot: perplexe
-  visual_note: 01 — HOOK (0:00-0:15)
+  chapter: Le piège de la section B
+  card:
+    kind: compare
+    data:
+      label: TEF IRN · Expression écrite
+      contrast: true
+      left:
+        title: Section A
+        subtitle: Message à un ami
+      right:
+        title: Section B
+        subtitle: Convaincre
+      rows:
+      - label: Consigne
+        left: Prendre des nouvelles
+        right: Exposer ses motivations
+        highlight: false
+      - label: Durée conseillée
+        left: 10 minutes
+        right: 20 minutes
+        highlight: true
+      - label: Mots minimum
+        left: 40 mots
+        right: 100 mots
+        highlight: true
 - id: setup
-  voice: 'On va se baser sur la grille de correction officielle, en deux temps : le contenu, puis la langue.
-    Trois choses aujourd''hui : comment le correcteur note réellement, comment structurer en trois blocs
-    même sur 90 mots, et un exemple complet qu''on construit ensemble jusqu''au bout.'
+  voice: Au programme. D'abord, ce que l'épreuve demande vraiment. Ensuite, la méthode en quatre blocs, avec un
+    texte complet. Puis, les connecteurs qui rendent ton texte fluide. Et pour finir, comment répartir ton temps.
   mascot: reflechit
-  visual_note: 02 — SETUP (0:15-0:45)
-- id: contenu1
-  voice: ''
+  card:
+    kind: plan
+    data:
+      label: Au programme
+      items:
+      - title: Ce que demande l'épreuve
+        detail: Deux sections, 30 minutes
+        at: demande
+      - title: La méthode en 4 blocs
+        detail: Avec un texte complet
+        at: méthode
+      - title: Les connecteurs
+        detail: Pour relier tes idées
+        at: connecteurs
+      - title: Répartir ton temps
+        detail: Plan, rédaction, relecture
+        at: répartir
+- id: format
+  voice: 'Commençons par le format. L''expression écrite du TEF IRN dure 30 minutes, en deux sections. La section
+    A est un message pour prendre des nouvelles d''un ami : 10 minutes conseillées et 40 mots minimum. La section
+    B est celle qui nous intéresse : tu exposes tes motivations pour convaincre, en 20 minutes conseillées, avec
+    100 mots minimum. Et depuis le 1er janvier 2026, la naturalisation exige le niveau B2 : sur 100 mots, chaque
+    phrase compte.'
   mascot: reflechit
-  visual_note: '03 — CONTENU 1 : le contenu (0:45-3:00) — sujet « Donnez votre avis sur le télétravail
-    », 3 sous-questions implicites'
-- id: rehook
-  voice: La partie qui suit, c'est exactement celle où la plupart des candidats stagnent en B1 sans comprendre
-    pourquoi.
+  chapter: Ce que demande l'épreuve
+  card_from: hook
+  card_state: revealed
+- id: method_problem
+  voice: 'Prenons un vrai sujet. Une association de quartier cherche des bénévoles pour aider des enfants avec leurs
+    devoirs, deux fois par semaine. On te demande d''exposer tes motivations pour convaincre. Voici un texte écrit
+    sans plan : toutes les idées sont là, mais dans le désordre. Le lecteur se perd, même si chaque phrase est correcte.'
   mascot: perplexe
-  visual_note: 04 — RE-HOOK (~3:00)
-- id: contenu2
-  voice: ''
+  chapter: La méthode en 4 blocs
+  card:
+    kind: text_annotated
+    data:
+      label: Exemple · Section B
+      shuffled:
+      - 2
+      - 0
+      - 3
+      - 1
+      parts:
+      - role: intro
+        label: Intro
+        at: introduction
+        text: Madame, Monsieur, votre annonce a retenu toute mon attention. Je souhaite vous proposer mon aide pour
+          accompagner les enfants du quartier dans leurs devoirs.
+      - role: argument
+        label: Argument 1
+        at: premier
+        text: Tout d'abord, j'ai moi-même reçu un soutien scolaire à mon arrivée en France. En effet, cette aide
+          m'a rassuré et m'a redonné confiance en moi.
+      - role: argument
+        label: Argument 2
+        at: deuxième
+        text: De plus, je suis disponible deux soirs par semaine et j'ai l'habitude d'expliquer avec patience, notamment
+          à mes frères et sœurs plus jeunes. Je pense donc pouvoir créer un climat calme et encourageant.
+      - role: conclusion
+        label: Conclusion
+        at: conclusion
+        text: C'est pourquoi je serais heureux de vous rencontrer pour en discuter. Je vous remercie de l'attention
+          que vous porterez à ma candidature et vous prie d'agréer mes salutations distinguées.
+- id: method_build
+  voice: 'Alors on pose quatre blocs. Introduction : tu dis que l''annonce t''intéresse et que tu proposes ton aide.
+    Premier argument : une raison personnelle. Deuxième argument : ce que tu peux apporter. Conclusion : tu proposes
+    un échange, et tu remercies.'
   mascot: reflechit
-  visual_note: '05 — CONTENU 2 : la structure (3:00-5:00) — plan en 3 blocs'
-- id: contenu3
-  voice: ''
+  card_from: method_problem
+- id: method_ideas
+  voice: Et si tu manques d'idées ? Pose-toi ces questions. Pourquoi cette annonce m'intéresse-t-elle ? Qu'est-ce
+    que je sais faire qui peut aider ? Quand suis-je disponible ? Tes réponses deviennent tes arguments.
   mascot: reflechit
-  visual_note: '06 — CONTENU 3 : exemple complet de 85 mots annoté (5:00-6:00)'
-- id: payoff
-  voice: ''
+  card_from: method_problem
+- id: method_tips
+  voice: 'Deux conseils pour que ton texte sonne juste. Pour l''introduction, reprends les mots de l''annonce :
+    elle parle de devoirs, tu parles de devoirs. Pour la conclusion, propose toujours une suite concrète : une rencontre,
+    un appel, un essai. Ton lecteur doit comprendre ce que tu proposes.'
   mascot: victorieux
-  visual_note: 07 — PAYOFF (6:00-6:30) — texte annoté, transformation B1→B2
-- id: cta
-  voice: Sur l'app, chaque texte que tu écris reçoit cette même grille de correction, phrase par phrase
-    — contenu, puis langue. Lien en bio pour t'entraîner avec un vrai retour sur tes propres textes.
+  card_from: method_problem
+- id: method_payoff
+  voice: 'Même texte, mais organisé en quatre blocs. On comprend tout de suite ce que tu veux, pourquoi tu es motivé
+    et ce que tu proposes. Et ce texte fait 111 mots : il dépasse le minimum demandé.'
+  mascot: victorieux
+  card_from: method_problem
+  card_state: revealed
+- id: rehook_connecteurs
+  voice: Mais une structure ne suffit pas. Si tes blocs ne sont pas reliés, ton texte reste une liste de phrases.
+    Voyons les petits mots qui font avancer ton raisonnement.
+  mascot: perplexe
+  chapter: Les connecteurs qui relient tes idées
+  card_from: method_problem
+  card_state: revealed
+- id: connectors
+  voice: 'Quatre connecteurs suffisent pour ce type de sujet. Un pour ouvrir ton premier argument : tout d''abord.
+    Un pour ajouter une deuxième idée : de plus. Un pour justifier ce que tu viens de dire : en effet. Et un pour
+    amener ta conclusion : c''est pourquoi.'
+  mascot: reflechit
+  card:
+    kind: terms
+    data:
+      label: Connecteurs · Argumenter
+      items:
+      - term: Tout d'abord
+        definition: Ouvre ton premier argument
+        at: ouvrir
+      - term: De plus
+        definition: Ajoute une deuxième idée
+        at: ajouter
+      - term: En effet
+        definition: Justifie ce que tu viens de dire
+        at: justifier
+      - term: C'est pourquoi
+        definition: Amène ta conclusion
+        at: amener
+- id: connectors_payoff
+  voice: 'Retrouve-les dans notre exemple : chaque argument commence par un connecteur, et la conclusion aussi.
+    Ils ne changent pas d''un sujet à l''autre. Seul le contenu change.'
   mascot: heureux
-  visual_note: 08 — CTA unique (6:30-7:00)
+  card_from: connectors
+  card_state: revealed
+- id: time
+  voice: 'Passons au temps. Voici une répartition possible pour tes 20 minutes de section B. Trois minutes pour
+    choisir tes quatre blocs. Treize minutes pour rédiger. Quatre minutes pour te relire : accords, conjugaisons,
+    ponctuation. C''est un conseil, pas une règle officielle.'
+  mascot: reflechit
+  chapter: Répartir ton temps
+  card:
+    kind: plan
+    data:
+      label: Section B · 20 minutes
+      items:
+      - title: 3 min · Choisir tes 4 blocs
+        detail: Une idée par bloc, pas plus
+        at: trois
+      - title: 13 min · Rédiger
+        detail: Un connecteur par argument
+        at: treize
+      - title: 4 min · Te relire
+        detail: Accords, conjugaisons, ponctuation
+        at: relire
+- id: length
+  voice: Et combien de mots viser ? Le minimum est de 100, mais ne t'arrête pas à 100 pile. Vise plutôt entre 110
+    et 130 mots, pour garder une marge si tu as mal compté. Mieux vaut un texte court et propre qu'un texte long
+    plein d'erreurs.
+  mascot: heureux
+  card_from: time
+  card_state: revealed
+- id: errors
+  voice: 'Voyons trois erreurs à éviter. Première erreur : se lancer sans plan. Les idées se mélangent, et le lecteur
+    décroche. Deuxième erreur : oublier les connecteurs. Ton texte devient une simple liste de phrases. Troisième
+    erreur : négliger la relecture. Quelques minutes suffisent pour corriger un accord ou un accent.'
+  mascot: perplexe
+  chapter: Trois erreurs à éviter
+  card:
+    kind: terms
+    data:
+      label: Section B · Erreurs à éviter
+      items:
+      - term: Se lancer sans plan
+        definition: Les idées se mélangent
+        at: lancer
+      - term: Oublier les connecteurs
+        definition: Le texte devient une liste
+        at: oublier
+      - term: Négliger la relecture
+        definition: Des erreurs faciles à corriger
+        at: négliger
+- id: section_a
+  voice: Et la section A ? C'est un message à un ami, avec 40 mots minimum. Utilise un langage standard, pas le
+    langage des textos. Salue ton ami et donne une nouvelle. Pose-lui deux ou trois questions. Puis termine par
+    un petit mot chaleureux.
+  mascot: reflechit
+  chapter: Et la section A ?
+  card:
+    kind: plan
+    data:
+      label: Section A · Message à un ami
+      items:
+      - title: Saluer et donner une nouvelle
+        detail: Une ou deux phrases
+        at: salue
+      - title: Poser 2 ou 3 questions
+        detail: Sur son nouveau quotidien
+        at: questions
+      - title: Terminer chaleureusement
+        detail: À bientôt, prends soin de toi
+        at: termine
+- id: cta
+  voice: 'Tu as maintenant la méthode : quatre blocs, des connecteurs, et un temps bien réparti. Pour t''entraîner,
+    écris ton propre texte sur ce sujet, puis compare avec l''exemple. Et pour savoir où tu en es vraiment, retrouve
+    des sujets chronométrés avec correction par l''IA sur LlamaKusi : le lien est dans la description.'
+  mascot: heureux
+  chapter: À toi de jouer
+  card_from: method_problem
+  card_state: revealed
 claims:
-- text: L'expression écrite du TEF IRN demande entre 30 et 90 mots
-  source_hint: docs/product/tef-irn-reference.md ; site officiel CCI Paris IDF
+- text: 'TEF IRN, expression écrite : 2 sections, 30 minutes au total'
+  source_url: https://www.lefrancaisdesaffaires.fr/le-tef-irn-evolue-au-1-avril-2025/
+  source_hint: Le français des affaires (CCI Paris Île-de-France), « Le TEF IRN évolue » (format en vigueur depuis
+    le 1er avril 2025)
+  verified: false
+- text: 'Section A : message pour prendre des nouvelles d''un ami, 10 minutes conseillées, 40 mots minimum ; langage
+    standard exigé (pas de langage texto)'
+  source_url: https://www.lefrancaisdesaffaires.fr/le-tef-irn-evolue-au-1-avril-2025/
+  source_hint: 'idem ; consigne « langage standard, et non pas le langage texto » : PDF officiel CCI « Description
+    et exemples d''épreuves — Expression écrite » (lefrancaisdesaffaires.fr/wp-content/uploads/2024/10/tefirn-exemples-epreuve-ee.pdf)'
+  verified: false
+- text: 'Section B : exposer ses motivations pour convaincre, 20 minutes conseillées, 100 mots minimum (80 avant
+    le 1er avril 2025)'
+  source_url: https://www.lefrancaisdesaffaires.fr/le-tef-irn-evolue-au-1-avril-2025/
+  source_hint: 'idem ; le PDF 2024 indique encore 80 mots : NE PAS s''y fier'
+  verified: false
+- text: 'Depuis le 1er janvier 2026, le niveau B2 est exigé pour la naturalisation (avant : B1)'
+  source_url: https://www.france-education-international.fr/actualites/nouveautes-tcf-irn?langue=fr
+  source_hint: Décret n° 2025-648 du 15 juillet 2025 ; service-public.fr ; page TEF IRN officielle
+  verified: false

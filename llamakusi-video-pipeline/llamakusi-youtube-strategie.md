@@ -260,6 +260,11 @@ visuellement ; **L2** voix par segments avec cache (le seul qui exige Gemini, do
 `chapters.txt` (timestamps pour la description YouTube, ≥ 3 chapitres, premier à 0:00) + lint des longs (durée, un seul CTA, re-hook).
 *Plus tard (hors MVP)* : miniature générée (Pillow, mêmes tokens), barre de progression, animation de transition entre cartes, doublage audio.
 
+**Premier script long (`long-01`, pilier C)** — *expression écrite du TEF IRN, section B : méthode en 4 blocs*. Faits vérifiés le 01/10/2026 sur les pages officielles de
+Le français des affaires (CCI Paris Île-de-France) : depuis le **1er avril 2025**, expression écrite = 2 sections en 30 minutes ; section A = 40 mots minimum (10 min conseillées) ;
+section B = **100 mots minimum** (20 min conseillées). Pièges rencontrés : le PDF d'exemples 2024 indique encore 80 mots (obsolète) et les fourchettes « 30-60 / 40-90 mots » sont celles
+du **TCF IRN**, pas du TEF IRN — l'ébauche initiale les avait confondues. À re-vérifier avant chaque publication : ces formats ont déjà changé une fois.
+
 **Miniatures (vidéos longues uniquement)** : fond sombre, mascotte expressive + texte court Montserrat Black gold sur fond indigo/blue selon produit, 4-5 mots max.
 
 ---

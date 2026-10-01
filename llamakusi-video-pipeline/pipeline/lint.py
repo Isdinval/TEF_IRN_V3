@@ -56,6 +56,20 @@ def _lint_loop(script: VideoScript, add) -> None:
                     "(compromis assumé tant que la progression narrative prime)")
 
 
+def _lint_anchor_range(script: VideoScript, owner, anchors, add) -> None:
+    """Les ancres sont cherchées dans TOUTE la voix : un mot déjà prononcé plus tôt déclencherait l'apparition
+    au mauvais endroit. On vérifie que chaque ancre tombe dans un bloc où la carte est affichée."""
+    start = script.blocks.index(owner)
+    users = [i for i, x in enumerate(script.blocks) if x is owner or x.card_from == owner.id]
+    lo, hi = min(users + [start]), max(users)
+    for a in anchors:
+        if not lo <= a.block <= hi:
+            where = "avant" if a.block < lo else "après"
+            add("warn", f"bloc '{owner.id}' : l'ancre « {a.text.strip(' .,:;')} » est prononcée dans le bloc "
+                        f"'{script.blocks[a.block].id}', {where} l'affichage de la carte → apparition mal placée ; "
+                        "reformuler la voix ou cibler une autre occurrence (`mot#2`)")
+
+
 LONG_MIN_S, LONG_MAX_S = 240.0, 480.0          # 4-8 min (stratégie)
 _REHOOK_AFTER_S = 150.0                          # re-hook attendu dès que la vidéo dépasse ce seuil (~3:00 visé)
 
@@ -167,9 +181,11 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
             try:                                     # ancres introuvables : détecté ici, avant tout appel TTS
                 from . import align, timeline
                 words = words or align.flatten_script(script)
-                timeline._anchor_words(b.card, words)
+                anchors = timeline._anchor_words(b.card, words)
             except ValueError as exc:
                 add("error", f"bloc '{b.id}' : {exc}")
+            else:
+                _lint_anchor_range(script, b, anchors, add)
 
     if script.pillar in {"B", "C", "D", "F"} and not script.claims:
         add("warn", f"pilier {script.pillar} : aucune claim déclarée (sources officielles obligatoires)")

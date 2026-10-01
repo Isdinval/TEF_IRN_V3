@@ -233,7 +233,8 @@ un fond dont la première et la dernière image sont proches n'a pas besoin d'ê
 mascotte dans la colonne droite. Pas de flèche ni de CTA incrusté en long (le CTA est parlé, une seule fois, à la fin). Le fond animé n'est calculé que
 sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 
-- `scripts/long-02.yaml` = **démo technique** (les 5 cartes enchaînées, ~108 s, avec chapitres) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
+- `scripts/long-01.yaml` = **premier vrai script long** (expression écrite TEF IRN, section B : méthode en 4 blocs ; 8 chapitres, 718 mots, `status: draft`) ; ses 4 claims sont
+  sourcées mais **à vérifier à la main** (`verified: false`) avant toute publication. `scripts/long-02.yaml` = **démo technique** (les 5 cartes enchaînées, ~108 s, avec chapitres) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
   puis `python cli.py preview long-02` (planche en grille 3 colonnes). Elle ne sera pas publiée.
 - Le cache des calques PNG (`build/<id>/layers`) est **vidé automatiquement** quand `layers.py`, `textutil.py` ou le profil changent : plus de suppression manuelle.
 - **Temps de rendu mesuré (sandbox, ffmpeg 6, preset `veryfast`, `--dry`)** : ~8 min pour 97 s de vidéo, soit ~5× la durée. Une vidéo de 6 min demandera donc
@@ -342,6 +343,10 @@ Règles d'ancrage :
 - `at` accepte le pluriel (`argument` ↔ `arguments`) et `mot#2` pour « 2e occurrence du mot » (après l'ancre
   précédente). Utile si le mot est déjà prononcé plus tôt (dans le hook, par exemple).
 - Une ancre introuvable est signalée **par `lint`, avant tout appel TTS** (erreur bloquante).
+- **L'ancre doit être un mot isolé** de la voix : `l'épreuve` (= un seul mot pour le code) ne peut pas être ciblé par `épreuve`, ni `d'abord` par `abord` ;
+  choisir un autre mot de la phrase. Les ancres sont cherchées dans **toute la voix du script**, à partir de la première : un mot déjà prononcé dans un bloc
+  antérieur déclencherait l'apparition trop tôt. Le `lint` **avertit** quand une ancre tombe dans un bloc où la carte n'est pas affichée ; corriger la voix
+  ou cibler la bonne occurrence (`mot#2`).
 - Limites de lisibilité (`lint` avertit au-delà) : 4 lignes pour `terms`, 5 parties pour `text_annotated`.
 - La bascule « désordonné → réorganisé » est une coupe franche (pas d'animation) : voir §9.
 
