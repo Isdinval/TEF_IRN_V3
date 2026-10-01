@@ -165,14 +165,22 @@ def cmd_build(args) -> int:
 
     music = config.find_music()
     print(f"[music] {music if music else 'aucune'}")
-    bg = None
-    if not args.no_bg:
+    bg, bg_loop = None, False
+    custom = args.background or script.background
+    if args.no_bg:
+        pass
+    elif custom:
+        src = config.resolve_background(custom)
+        print(f"[fond] vidéo personnalisée : {src}")
+        bg, bg_loop = background.from_file(src, bdir, tl["duration"])
+    else:
         print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
         bg = background.generate(bdir, script.accent, tl["duration"])
+        bg_loop = background.is_loop(tl["duration"])
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
     assemble.render(bdir, tl, out, music,
                     preset="veryfast" if args.dry else "medium", background=bg,
-                    loop_background=background.is_loop(tl["duration"]))
+                    loop_background=bg_loop)
     print(f"✓ {out}")
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
     return 0
@@ -303,6 +311,8 @@ def main() -> int:
     p.add_argument("--proportional", action="store_true", help="TTS réel mais timings estimés (sans ASR)")
     p.add_argument("--force", action="store_true", help="ignore le cache TTS/ASR")
     p.add_argument("--no-bg", action="store_true", help="fond noir uni (rendu plus rapide, pour tester)")
+    p.add_argument("--background", help="vidéo de fond personnalisée (assets/backgrounds/<nom> ou chemin) ; "
+                                        "répétée avant/arrière si trop courte. Prioritaire sur `background:` du script")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
     p.set_defaults(fn=cmd_build)
 

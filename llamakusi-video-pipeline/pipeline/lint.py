@@ -135,6 +135,12 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
         if moods != _PROGRESSION:
             add("warn", f"mascotte hors ordre narratif {_PROGRESSION} : {moods}")
 
+    if script.background:
+        try:
+            config.resolve_background(script.background)
+        except FileNotFoundError as exc:
+            add("error", str(exc))
+
     if script.format == "long":
         _lint_long(script, add)
         for b in script.blocks:

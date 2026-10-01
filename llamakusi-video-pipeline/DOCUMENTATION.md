@@ -106,6 +106,7 @@ uniquement `reviewed = true`). La commande affiche les questions trouvées avec 
 | `--proportional` | vrai TTS mais **sans ASR** : timings estimés | repli si l'alignement échoue |
 | `--force` | refait TTS et ASR même si en cache (**payant**) | voix à regénérer sans changer le texte |
 | `--no-bg` | fond noir uni au lieu du fond animé | rendu un peu plus rapide pour tester |
+| `--background <fichier>` | **fond vidéo personnalisé** (voir § ci-dessous) ; prioritaire sur `background:` du script | tes propres fonds |
 | `--placeholder-mascots` | silhouettes de test si les assets manquent | tests hors-ligne uniquement |
 
 Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le style changent.
@@ -199,6 +200,7 @@ Un Short = 4 blocs **dans cet ordre** : `hook`, `build`, `payoff`, `loop`.
 | `card` | carte à afficher (`question`, `compare`, `terms`, `text_annotated`, `plan` sont prêtes) |
 | `card_from` | réutilise la carte d'un bloc précédent (ex. `hook`) |
 | `card_state` | `plain` (défaut) · `revealed` (allume la bonne réponse / dévoile tout) · `initial` (retour visuel à l'accroche) |
+| `background` | fond vidéo personnalisé (nom dans `assets/backgrounds/` ou chemin) ; défaut : fond animé généré |
 | `cta_overlay` | petit texte discret ; en Short, `Lien en bio` sur le dernier bloc. **Jamais parlé.** |
 | `tts_text` | prononciation forcée (TTS seulement, sans changer les sous-titres) |
 
@@ -206,6 +208,24 @@ En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TE
 `claims:` (chaque affirmation factuelle avec `source_hint`, puis `source_url` + `verified: true` une fois vérifiée).
 
 ---
+
+### Fond vidéo personnalisé
+
+Au lieu du fond animé généré, tu peux fournir **ta propre vidéo de fond** : déposer le fichier dans `assets/backgrounds/` (non versionné), puis soit
+`python cli.py build short-03 --background mon-fond.mp4`, soit `background: mon-fond.mp4` dans le script (le lint vérifie que le fichier existe ;
+un chemin absolu marche aussi). Le son du fond est ignoré.
+
+| Situation | Comportement |
+|---|---|
+| fond **plus court** que la vidéo, mêmes dimensions | lu **en avant puis en arrière (boomerang)**, répété jusqu'à la fin ; raccords sans temps d'arrêt |
+| fond **assez long**, mêmes dimensions | utilisé tel quel, coupé à la durée de la vidéo |
+| dimensions **différentes** | recadrage centré (« cover ») avec avertissement ; pour un rendu net, fournir 1080×1920 (Short) ou 1920×1080 (Long) |
+
+Le fond préparé est mis en cache dans `build/<id>/` (`bg_pingpong_*.mp4`) : il ne dépend pas de la durée cible, donc il est réutilisé d'un script à l'autre.
+Coût temporaire à la première préparation : le fond est décodé sur disque (~3 Mo par image en 1080×1920, soit ~1 Go pour 10 s), puis supprimé ; un message
+clair s'affiche s'il manque de la place. Conseil de création : un mouvement lent et peu contrasté (les cartes et les sous-titres doivent rester lisibles) ;
+un fond dont la première et la dernière image sont proches n'a pas besoin d'être « bouclable » : le boomerang s'en charge.
+**Si tu avais remplacé à la main `build/<id>/background_*.mp4`, utilise désormais cette option** (ce fichier est prévu pour le fond généré).
 
 ### Format long 16:9 (état : L1 mise en page + L2 voix par segments + L3 plan/chapitres/lint livrés)
 

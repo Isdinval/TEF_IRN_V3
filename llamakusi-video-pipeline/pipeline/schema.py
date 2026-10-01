@@ -88,6 +88,7 @@ class VideoScript(BaseModel):
     accent: Literal["indigo", "blue", "gold"] = "indigo"
     title: str
     cta_overlay: Optional[str] = "Lien en bio"   # appliqué au dernier bloc d'un Short
+    background: Optional[str] = None             # fond VIDÉO personnalisé (assets/backgrounds/<nom> ou chemin) ; défaut = fond animé généré
     cta_arrow: bool = True                       # flèche animée au-dessus du CTA (Short, dernier bloc)
     blocks: list[Block]
     claims: list[Claim] = Field(default_factory=list)

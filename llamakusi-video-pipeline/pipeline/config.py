@@ -10,6 +10,7 @@ ASSETS_DIR = ROOT / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"
 MASCOT_DIR = ASSETS_DIR / "mascot"
 MUSIC_DIR = ASSETS_DIR / "music"
+BACKGROUNDS_DIR = ASSETS_DIR / "backgrounds"   # vidéos de fond personnalisées (non versionnées)
 BUILD_DIR = ROOT / "build"
 
 
@@ -221,3 +222,13 @@ MAX_WORDS_WARN = 80
 MAX_WORDS_ERROR = 110
 MAX_SECONDS_WARN = 36.0
 MAX_SECONDS_ERROR = 45.0
+
+
+def resolve_background(name: str) -> Path:
+    """`background:` d'un script ou `--background` : chemin absolu / relatif au dossier courant, sinon assets/backgrounds/<nom>."""
+    tried = []
+    for cand in (Path(name), ROOT / name, BACKGROUNDS_DIR / name):
+        tried.append(str(cand))
+        if cand.is_file():
+            return cand.resolve()
+    raise FileNotFoundError(f"fond vidéo introuvable : « {name} » (cherché : {', '.join(tried)})")

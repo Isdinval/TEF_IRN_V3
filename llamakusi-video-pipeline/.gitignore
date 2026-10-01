@@ -10,3 +10,5 @@ __pycache__/
 .env
 # Le .gitignore racine ignore `.env*` : on réautorise le modèle.
 !.env.example
+assets/backgrounds/*
+!assets/backgrounds/.gitkeep
