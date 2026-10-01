@@ -89,6 +89,11 @@ npm run dev
 - [Guide de Contribution](./docs/ops/contributing.md)
 - [Piège PostgREST : troncature à 1000 lignes](./docs/ops/postgrest-max-rows-truncation.md)
 
+### Chaîne vidéo (sous-projet Python autonome)
+- [Pipeline vidéo — démarrage](./llamakusi-video-pipeline/README.md)
+- [Pipeline vidéo — commandes et workflow](./llamakusi-video-pipeline/DOCUMENTATION.md)
+- [Stratégie de la chaîne YouTube](./llamakusi-video-pipeline/llamakusi-youtube-strategie.md)
+
 ### Pour les agents IA
 - [AGENTS.md](./AGENTS.md) — conventions, structure des dossiers, méthode de travail
 

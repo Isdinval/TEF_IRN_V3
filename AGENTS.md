@@ -88,6 +88,9 @@ src/app/
 
 supabase/
 └── migrations/               # Migrations SQL — NE PAS modifier manuellement, créer un nouveau fichier
+
+llamakusi-video-pipeline/     # Sous-projet Python AUTONOME (chaîne vidéo faceless YouTube/Facebook) — aucune dépendance avec l'app Next.js
+                              # Lit seulement Supabase (civic_questions, reviewed = true) et le Storage (mascotte). Doc : son README.md + DOCUMENTATION.md
 ```
 
 ### ⚠️ Piège fréquent : le préfixe `/tef-irn/`

@@ -354,6 +354,7 @@ Règles d'ancrage :
 
 ## 9. Ce qui n'existe pas encore
 
+- Habillage motion design du fond (formes, lignes, icônes en mouvement) : aujourd'hui seuls des halos flous dérivent, d'où des vidéos jugées « vides ».
 - Génération automatique des scripts (section 2).
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
 - Upload YouTube (en privé).

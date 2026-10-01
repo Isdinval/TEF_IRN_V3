@@ -46,12 +46,14 @@ Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` 
 `claims[]` = affirmations factuelles à sourcer (bloquent `lint --publish`). Le CTA n'est **jamais parlé** :
 `cta_overlay` est un petit texte sur le dernier bloc.
 
-## Ce qui est testé / non testé (au 29/09/2026)
+## État (au 01/10/2026)
 
-- ✅ Testé hors-ligne : schéma, lint, alignement (bruit ASR simulé), groupes karaoké, timeline, rendu ffmpeg complet en `--dry`.
-- ⚠ **Non testé (pas d'accès réseau à la conception)** : appels TTS et ASR réels, téléchargement des assets, lecture Supabase.
-  Le code suit les pages Google « Text-to-speech generation » et « Audio transcription » (API *Interactions*) du 29/09/2026.
-  Le **premier run réel = le spike T1** : contrôler `build/<id>/align_report.json` et écouter `voice.wav`.
+- ✅ Livré : Shorts 9:16 (boucle, CTA animé), cartes `question`, `compare`, `terms`, `text_annotated`, `plan`,
+  format long 16:9 (L1 mise en page, L2 voix par segments en cache, L3 chapitres + `chapters.txt` + lint des longs),
+  sous-titres `.srt` multilingues (`subs`), fond vidéo personnalisé (`--background`, boucle boomerang).
+- ✅ Testé hors-ligne : schéma, lint, alignement (bruit ASR simulé), karaoké, timeline, rendu ffmpeg en `--dry`.
+- ⚠ Premier run réel TTS + ASR (spike T1) : à confirmer — contrôler `build/<id>/align_report.json` et écouter `voice.wav`.
+- ⚠ Contenu : 7 scripts en `status: draft`, aucune claim vérifiée → aucune vidéo publiable (`lint --publish`).
 
 ## Hypothèses à confirmer
 
@@ -59,9 +61,9 @@ Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` 
 - Voix : `Kore` par défaut → mettre celle utilisée sur le site dans `.env`.
 - `SPEECH_WPS = 2.7` (mots/s) sert uniquement à estimer la durée avant TTS.
 - Sous-titres karaoké en **Montserrat ExtraBold** (lisibilité) au lieu d'Inter Medium : à trancher (`layers.render_subs`).
-- Cartes `compare`, `text_annotated`, `terms`, `plan` : **placeholder** (seule `question` est réelle).
+- Clé Supabase : `SUPABASE_SERVICE_ROLE_KEY`, sinon `SUPABASE_ANON_KEY` (lecture seule, filtre `reviewed = true` toujours appliqué).
 
 ## Prochaines tâches
 
-1. Premier run réel Short 3 + spike alignement (T1) · 2. carte `compare` (Shorts 2 et 5) · 3. cartes `text_annotated` / `terms`
-4. upload YouTube en privé · 5. sous-titres multilingues (`captions.insert`) · 6. vidéo longue (16:9).
+Voir `DOCUMENTATION.md` § 9 (ce qui n'existe pas encore). En tête : habillage motion design des fonds (vidéos jugées « vides »),
+upload YouTube en privé, génération de scripts sourcés.
