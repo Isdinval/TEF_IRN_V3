@@ -24,6 +24,7 @@ from pathlib import Path
 
 from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
                       supabase_source, timeline, tts, voice as voice_mod)
+from pipeline import chapters as chapters_mod
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -153,6 +154,12 @@ def cmd_build(args) -> int:
     tl = timeline.build_timeline(script, words, dur, bdir)
     print(f"[timeline] {tl['duration']:.2f}s · " + " · ".join(
         f"{k}:{len(v)}" for k, v in tl["tracks"].items()))
+    chs = chapters_mod.extract(script, tl["blocks"], tl["duration"])
+    if chs:
+        (bdir / "chapters.txt").write_text(chapters_mod.to_text(chs), encoding="utf-8")
+        print(f"[chapitres] {len(chs)} → {bdir / 'chapters.txt'} (à coller dans la description YouTube)")
+        for msg in chapters_mod.problems(chs, script.blocks[0].id):
+            print(f"  ⚠ {msg}")
     if until < STAGES.index("render"):
         return 0
 

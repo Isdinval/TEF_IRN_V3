@@ -6,12 +6,13 @@ import json
 import shutil
 from pathlib import Path
 
+from . import chapters as chapters_mod
 from . import config, layers, textutil
 from .align import Word, block_spans, group_words, snap
 from .schema import STEPPED_CARDS, Card, VideoScript
 from .textutil import tokenize
 
-TRACK_ORDER = ["brand", "card", "mascot", "overlay", "cta", "arrow", "subs"]   # ordre = z-index croissant
+TRACK_ORDER = ["brand", "chapter", "card", "mascot", "overlay", "cta", "arrow", "subs"]   # ordre = z-index croissant
 FRAME = 1.0 / config.FPS
 
 
@@ -179,6 +180,11 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
                         arrow_png[ph] = _save(layers.render_cta_arrow(ph, cta), layers_dir, "arrow", f"{cta}#{ph}")
                     tracks["arrow"].append({"start": t, "end": nxt, "png": arrow_png[ph]})
                     t, k = nxt, k + 1
+
+    if script.format == "long":
+        for ch in chapters_mod.extract(script, block_info, total):
+            tracks["chapter"].append({"start": ch.start, "end": ch.end, "png": _save(
+                layers.render_chapter(ch.index, ch.title), layers_dir, "chapter", f"{ch.index}|{ch.title}")})
 
     groups = group_words(words)
     for gi, group in enumerate(groups):

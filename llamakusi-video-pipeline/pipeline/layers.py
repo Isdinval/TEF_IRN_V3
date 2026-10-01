@@ -175,6 +175,25 @@ def render_cta_arrow(phase: int, text: str) -> Image.Image:
     return img
 
 
+# --- titre de chapitre (vidéo longue) ---------------------------------------------------------
+def render_chapter(index: int, title: str) -> Image.Image:
+    """En haut à DROITE (16:9) : « CHAPITRE n » en petit + titre ; aligné sur la marge droite = marge gauche du logo."""
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    right = config.W - LAYOUT["brand_x"]
+    max_w = config.W - 2 * LAYOUT["brand_x"] - 520                   # laisse la place du logo à gauche
+    size = 38
+    while size > 26 and font("montserrat", size, 800).getlength(title) > max_w:
+        size -= 2
+    label = f"CHAPITRE {index}"
+    lf = font("montserrat", 20, 900)
+    lw = sum(lf.getlength(c) for c in label) + 4 * (len(label) - 1)
+    _tracked(d, (right - lw, LAYOUT["brand_y"] - 44), label, lf, rgb(COLORS["gold"]), 4)
+    d.text((right, LAYOUT["brand_y"]), title, font=font("montserrat", size, 800), anchor="rs",
+           fill=rgb(COLORS["white"], 235))
+    return img
+
+
 # --- sous-titres karaoké ---------------------------------------------------------
 def render_subs(texts: list[str], active: int) -> Image.Image:
     img = canvas()
@@ -412,6 +431,74 @@ def render_terms_card(data: dict, state: str, accent: str, visible: int | None =
     return _paste_card(tile, cw, L["h"])
 
 
+def _plan_layout(data: dict) -> dict:
+    """Mise en page de la carte `plan`, calculée sur TOUTES les étapes (hauteur constante entre les apparitions)."""
+    S, pad, cw = 2, 40, config.CONTENT_W
+    items = data["items"]
+    gap, num_w = 14, 92
+    has_detail = any(str(i.get("detail", "")).strip() for i in items)
+    for ts, ds in ((44, 28), (40, 26), (36, 24), (32, 22), (28, 20)):
+        tf, df = font("montserrat", ts * S, 900), font("inter", ds * S, 500)
+        avail = (cw - 2 * pad - num_w - 24) * S
+        tw = [_wrap(str(i["title"]), tf, avail) for i in items]
+        dw = [_wrap(str(i.get("detail", "")), df, avail) if str(i.get("detail", "")).strip() else [] for i in items]
+        tlh, dlh = int(ts * 1.2), int(ds * 1.3)
+        row_h = 20 + max(len(t) for t in tw) * tlh + (6 + max(len(d) for d in dw) * dlh if has_detail else 0) + 20
+        h = pad + 8 + 24 + 18 + len(items) * row_h + (len(items) - 1) * gap + pad - 8
+        if h <= LAYOUT["card_max_h"]:
+            break
+    return {"S": S, "pad": pad, "cw": cw, "h": int(h), "row_h": row_h, "gap": gap, "num_w": num_w, "ts": ts, "ds": ds,
+            "tw": tw, "dw": dw, "tlh": tlh, "dlh": dlh}
+
+
+def render_plan_card(data: dict, state: str, accent: str, visible: int | None = None,
+                     focus: bool = True) -> Image.Image:
+    """Carte « plan » (vidéo longue) : N étapes numérotées reliées par un fil, qui apparaissent une à une.
+
+    data = {label?, items:[{title, detail?, at?}]} — mêmes règles que `terms` (visible / focus / revealed).
+    Les étapes pas encore annoncées restent des cases vides « … ».
+    """
+    L = _plan_layout(data)
+    S, pad, cw, row_h, gap = L["S"], L["pad"], L["cw"], L["row_h"], L["gap"]
+    items = data["items"]
+    n_visible = len(items) if (state == "revealed" or visible is None) else max(0, min(visible, len(items)))
+    tile, d = _card_base(cw, L["h"], accent, S)
+    y = (pad + 8) * S
+    _tracked(d, (pad * S, y + 24 * S), str(data.get("label", "Au programme")).upper(),
+             font("montserrat", 24 * S, 900), rgb(COLORS["ink2"]), 4 * S)
+    y += (24 + 18) * S
+    tf, df = font("montserrat", L["ts"] * S, 900), font("inter", L["ds"] * S, 500)
+    cx = pad * S + 46 * S
+    centers = [y + (k * (row_h + gap) + 20) * S + int(L["ts"] * 0.6 * S) for k in range(len(items))]
+    for k in range(len(items) - 1):                                       # fil entre les pastilles
+        d.line((cx, centers[k], cx, centers[k + 1]), fill=rgb(COLORS["line"]), width=4 * S)
+    for k, item in enumerate(items):
+        shown = k < n_visible
+        hl = shown and (state == "revealed" or (focus and k == n_visible - 1))
+        x0, x1, y0, y1 = pad * S, (cw - pad) * S, y, y + row_h * S
+        fill = COLORS["gold_soft"] if hl else (COLORS["card"] if shown else COLORS["soft"])
+        d.rounded_rectangle((x0, y0, x1, y1), radius=28 * S, fill=rgb(fill),
+                            outline=rgb(COLORS["gold"] if hl else COLORS["line"]), width=(5 if hl else 2) * S)
+        cy = centers[k]
+        d.ellipse((cx - 26 * S, cy - 26 * S, cx + 26 * S, cy + 26 * S),
+                  fill=rgb(COLORS["gold"] if hl else COLORS["soft"] if not shown else COLORS["ink"]))
+        d.text((cx, cy), str(k + 1), font=font("montserrat", 28 * S, 900), anchor="mm",
+               fill=rgb(COLORS["ink"] if hl else (COLORS["muted"] if not shown else COLORS["white"])))
+        tx, ty = x0 + L["num_w"] * S, y0 + 20 * S
+        if shown:
+            for line in L["tw"][k]:
+                d.text((tx, ty), line, font=tf, fill=rgb(COLORS["ink"]), anchor="lt")
+                ty += L["tlh"] * S
+            ty += 6 * S
+            for line in L["dw"][k]:
+                d.text((tx, ty), line, font=df, fill=rgb(COLORS["ink2"]), anchor="lt")
+                ty += L["dlh"] * S
+        else:
+            d.text((tx, ty), "…", font=tf, fill=rgb(COLORS["muted"]), anchor="lt")
+        y += (row_h + gap) * S
+    return _paste_card(tile, cw, L["h"])
+
+
 ROLE_ACCENT = {"intro": "indigo", "argument": "blue", "conclusion": "gold"}
 
 
@@ -515,6 +602,8 @@ def render_card(kind: str, data: dict, state: str, accent: str, note: str = "",
         return render_compare_card(data, state, accent)
     if kind == "terms" and data.get("items"):
         return render_terms_card(data, state, accent, visible, focus)
+    if kind == "plan" and data.get("items"):
+        return render_plan_card(data, state, accent, visible, focus)
     if kind == "text_annotated" and data.get("parts"):
         return render_text_annotated_card(data, state, accent, visible, focus)
     return render_placeholder_card(kind, note, accent)

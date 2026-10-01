@@ -196,7 +196,7 @@ Un Short = 4 blocs **dans cet ordre** : `hook`, `build`, `payoff`, `loop`.
 | `voice` | texte dit **et** affiché en sous-titres |
 | `mascot` | `perplexe` · `reflechit` · `victorieux` · `heureux` |
 | `overlay` | gros badge doré en haut (ex. `"2026"`, `"B1 → B2"`) |
-| `card` | carte à afficher (`question`, `compare`, `terms`, `text_annotated` sont prêtes ; `plan` est un placeholder) |
+| `card` | carte à afficher (`question`, `compare`, `terms`, `text_annotated`, `plan` sont prêtes) |
 | `card_from` | réutilise la carte d'un bloc précédent (ex. `hook`) |
 | `card_state` | `plain` (défaut) · `revealed` (allume la bonne réponse / dévoile tout) · `initial` (retour visuel à l'accroche) |
 | `cta_overlay` | petit texte discret ; en Short, `Lien en bio` sur le dernier bloc. **Jamais parlé.** |
@@ -207,13 +207,13 @@ En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TE
 
 ---
 
-### Format long 16:9 (état : L1 mise en page + L2 voix par segments livrés)
+### Format long 16:9 (état : L1 mise en page + L2 voix par segments + L3 plan/chapitres/lint livrés)
 
 `format: long` dans le script → profil 1920×1080 : logo en haut à gauche, carte dans la colonne gauche (x 96-1216), sous-titres karaoké sous la carte,
 mascotte dans la colonne droite. Pas de flèche ni de CTA incrusté en long (le CTA est parlé, une seule fois, à la fin). Le fond animé n'est calculé que
 sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 
-- `scripts/long-02.yaml` = **démo technique** (les 4 cartes enchaînées, ~97 s) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
+- `scripts/long-02.yaml` = **démo technique** (les 5 cartes enchaînées, ~108 s, avec chapitres) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
   puis `python cli.py preview long-02` (planche en grille 3 colonnes). Elle ne sera pas publiée.
 - Le cache des calques PNG (`build/<id>/layers`) est **vidé automatiquement** quand `layers.py`, `textutil.py` ou le profil changent : plus de suppression manuelle.
 - **Temps de rendu mesuré (sandbox, ffmpeg 6, preset `veryfast`, `--dry`)** : ~8 min pour 97 s de vidéo, soit ~5× la durée. Une vidéo de 6 min demandera donc
@@ -225,7 +225,16 @@ sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
   `build/<id>/voice_segments.json` liste les segments (début, fin, mots, clé, `cached`). `--force` refait **tous** les segments (payant) ; pour un seul bloc,
   modifier son texte suffit. Les Shorts gardent leur appel unique. Si l'alignement échoue (< 90 %), c'est le segment fautif qu'il faut écouter.
   Limite : les segments sont synthétisés l'un après l'autre (pas en parallèle) ; un bloc avec `tts_text` n'est jamais coupé (le lint prévient s'il dépasse `SEG_MAX_WORDS`).
-- Ce qui reste : carte `plan`, `chapter:` et `chapters.txt`, lint des longs (L3).
+- **Carte `plan` (L3)** : étapes numérotées reliées par un fil, qui apparaissent une à une sur un mot prononcé (mêmes règles que `terms` : `at:`, sinon le titre ;
+  `card_state: plain | revealed | initial`). Données : `items: [{title, detail?, at?}]`, 6 étapes maximum. Étapes pas encore annoncées = cases « … ».
+  Exemple dans `scripts/long-02.yaml` (bloc `intro`). Usage type : un bloc `setup` qui annonce le plan, puis `card_state: revealed` pour le rappeler.
+- **Chapitres (L3)** : `chapter: "Titre"` sur un bloc **ouvre** un chapitre (il dure jusqu'au prochain). Effet : titre « CHAPITRE n » en haut à droite de l'image,
+  et `build/<id>/chapters.txt` (lignes `m:ss Titre`, à coller dans la description YouTube). Règles YouTube contrôlées par le lint et à l'export : 1er chapitre à 0:00
+  (donc `chapter:` sur le premier bloc), 3 chapitres minimum, 10 s minimum chacun (règles rappelées de mémoire : à confirmer dans l'aide YouTube).
+  Le dernier chapitre va jusqu'à la fin ; ne pas ouvrir de chapitre sur un bloc final très court (le CTA).
+- **Lint des longs (L3)** : durée estimée 4-8 min (600-1200 mots) ; bloc `rehook*` attendu dès ~2 min 30 ; **un seul** CTA parlé, dans le dernier bloc ;
+  titres de chapitres ≤ 48 caractères et uniques ; `overlay` déconseillé. `long-02` (démo de ~100 s) garde donc 1 avertissement de durée : c'est normal.
+- Ce qui reste (hors MVP) : optimisation du temps de rendu, miniature générée, barre de progression, plan « fil rouge » avec étape courante mise en évidence.
 
 ### Règle de boucle (Shorts) — obligatoire
 
@@ -321,8 +330,6 @@ Règles d'ancrage :
 ## 9. Ce qui n'existe pas encore
 
 - Génération automatique des scripts (section 2).
-- Carte `plan` (vidéo longue) : rendue en placeholder (patch L3).
-- Vidéo longue : titres de chapitre + `chapters.txt` + lint des longs (L3).
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
 - Upload YouTube (en privé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).

@@ -19,9 +19,9 @@ SHORT_BLOCKS = ["hook", "build", "payoff", "loop"]
 
 # Cartes à apparition progressive (un item par étape, calé sur un mot de la voix) :
 #   kind -> (clé de la liste dans `data`, champ qui donne le mot d'ancrage par défaut)
-STEPPED_CARDS = {"terms": ("items", "term"), "text_annotated": ("parts", "label")}
+STEPPED_CARDS = {"terms": ("items", "term"), "text_annotated": ("parts", "label"), "plan": ("items", "title")}
 ROLES = ("intro", "argument", "conclusion")
-_REQUIRED_FIELDS = {"terms": ("term", "definition"), "text_annotated": ("role", "text")}
+_REQUIRED_FIELDS = {"terms": ("term", "definition"), "text_annotated": ("role", "text"), "plan": ("title",)}
 
 
 class Claim(BaseModel):
@@ -68,6 +68,7 @@ class Block(BaseModel):
     voice: str = ""
     mascot: Mascot = "reflechit"
     pose: int = 1                       # 1..6 (voir config.MASCOT_COUNTS)
+    chapter: Optional[str] = None       # LONG : ce bloc OUVRE un chapitre (titre affiché en haut à droite + chapters.txt)
     overlay: Optional[str] = None       # gros badge d'accroche (ex. « 2026 », « B1 → B2 »)
     cta_overlay: Optional[str] = None   # petit texte discret (jamais parlé en Short)
     card: Optional[Card] = None

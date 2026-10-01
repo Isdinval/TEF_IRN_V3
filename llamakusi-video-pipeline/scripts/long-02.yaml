@@ -7,6 +7,26 @@ accent: indigo
 title: DÉMO 16:9 — test de mise en page des 4 cartes (ne sera pas publié)
 cta_overlay: null
 blocks:
+- id: intro
+  voice: 'Bonjour, et bienvenue dans cette leçon de démonstration. Au programme aujourd''hui : d''abord structurer
+    un texte, ensuite comprendre ce que change le B2, et enfin éviter un piège de l''examen civique. On commence
+    tout de suite.'
+  mascot: reflechit
+  chapter: Introduction
+  card:
+    kind: plan
+    data:
+      label: Au programme
+      items:
+      - title: Structurer un texte
+        detail: Trois blocs, même sur 90 mots
+        at: structurer
+      - title: Ce que change le B2
+        detail: Argumenter et nuancer
+        at: B2
+      - title: Un piège de l'examen civique
+        detail: La règle que tout le monde oublie
+        at: piège
 - id: s1_hook
   voice: Il y a une raison qui bloque 9 candidats sur 10 en B1 — et ce n'est pas le vocabulaire.
   mascot: perplexe
@@ -36,6 +56,7 @@ blocks:
         label: Conclusion
         at: conclusion
         text: Il faut donc encadrer les écrans, sans les interdire complètement.
+  chapter: Structurer un texte
 - id: s1_build
   voice: 'C''est la structure. Un correcteur note deux choses : le contenu, et la langue. Un vocabulaire riche sans
     paragraphes clairs ne passe pas B2. Trois blocs suffisent : une idée en intro, deux arguments reliés, une conclusion
@@ -70,6 +91,7 @@ blocks:
         left: Suffisait avant
         right: Exigé aujourd'hui
         highlight: true
+  chapter: Ce que change le B2
 - id: s2_build
   voice: 'Avant, le niveau B1 suffisait — des phrases courtes, une conversation simple. Depuis le 1er janvier 2026,
     c''est le niveau B2 qui est exigé : argumenter, nuancer, tenir une vraie conversation complexe. Ce n''est pas
@@ -97,6 +119,7 @@ blocks:
       - 45 jours
       - 90 jours
       correct: C
+  chapter: Un piège de l'examen civique
 - id: s3_build
   voice: C'est une vraie question de l'examen civique. 12 questions sur 40 portent sur des situations comme celle-ci
     — pas seulement des dates à apprendre par cœur, mais des règles du quotidien à savoir appliquer.
@@ -121,6 +144,7 @@ blocks:
         definition: Le rendez-vous fixé, à l'heure exacte
       - term: Pièce justificative
         definition: Le document qui prouve ce que tu déclares
+  chapter: Le vocabulaire de la préfecture
 - id: s4_build
   voice: 'Le récépissé : un papier provisoire qui prouve que ta demande est en cours. La convocation : le rendez-vous
     fixé, à l''heure exacte, sans exception. La pièce justificative : le document qui prouve ce que tu déclares
