@@ -26,6 +26,7 @@ python cli.py build short-03                # vrai run : TTS → ASR → alignem
 python -m pytest -q                         # tests
 ```
 
+Fond : déposer `assets/backgrounds/short-loop.mp4` et `long-loop.mp4` (boucles, voir DOCUMENTATION.md). Absents → halos générés.
 Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la stratégie). Absente → voix seule.
 
 ## Commandes utiles
@@ -36,8 +37,6 @@ Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la
 | `build <id> --proportional` | vrai TTS, timings estimés (pas d'ASR) : repli si l'alignement échoue |
 | `build <id> --force` | ignore le cache TTS/ASR (le cache est invalidé seul si le texte/la voix change) |
 | `build <id> --placeholder-mascots` | silhouettes de test si les assets sont absents |
-| `build <id> --no-motion` | ancien fond (halos seuls), pour comparer |
-| `make-bg [--format short\|long\|all]` | pré-génère les boucles de fond motion (sinon faites au 1er `build`) |
 | `lint --publish` | règles de publication : claims sourcées + vérifiées, cartes non `draft`, `status: approved` |
 | `fetch-question <mot>` | liste de vraies questions de `civic_questions` (`reviewed = true`) |
 

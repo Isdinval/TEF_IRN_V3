@@ -108,7 +108,6 @@ uniquement `reviewed = true`). La commande affiche les questions trouvées avec 
 | `--no-bg` | fond noir uni au lieu du fond animé | rendu un peu plus rapide pour tester |
 | `--background <fichier>` | **fond vidéo personnalisé** (voir § ci-dessous) ; prioritaire sur `background:` du script | tes propres fonds |
 | `--placeholder-mascots` | silhouettes de test si les assets manquent | tests hors-ligne uniquement |
-| `--no-motion` | ancien fond (halos seuls) au lieu du fond motion design | comparer, ou rendu plus sobre |
 
 Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le style changent.
 
@@ -130,21 +129,24 @@ du français ; **un seul appel Gemini par langue** (contexte complet), mis en ca
 Envoi : YouTube Studio → *Sous-titres* → *Ajouter une langue* → *Importer un fichier* → **avec minutage**. Codes YouTube : `ar`, `en`, `es`,
 `zh-Hans` (chinois simplifié). Un `.srt` français est aussi produit : YouTube indexe les pistes de sous-titres (bon pour le SEO).
 
-### `make-bg` — pré-générer les fonds motion design
-`python cli.py make-bg` · `make-bg --format long` · `make-bg --format all --accent blue --variant 0`
-**Pourquoi :** le fond motion (grille en perspective, particules, formes line-art, balayage lumineux) est une **boucle parfaite**
-de 12 s pré-rendue une seule fois par format × accent × variante, puis réutilisée par tous les scripts (cache `build/_motion/`).
-`build` la génère seul s'il en a besoin (1-2 min la première fois) ; `make-bg` sert à tout préparer d'avance.
-Chaque script reçoit une variante fixe (dérivée de son `id`) : les vidéos ne partagent pas toutes le même fond.
+### Fond par défaut : boucles vidéo (motion design)
+Déposer dans `assets/backgrounds/` (non versionné) une boucle parfaite par format :
 
-### Fond motion et premier plan vivant — comment ça marche
-- **Fond** : tout mouvement fait un nombre entier de cycles sur 12 s → la boucle est invisible (pas de boomerang). À l'assemblage,
-  sa vitesse est recalée (±~25 %) pour qu'un nombre entier de boucles tienne pile dans la vidéo : la fin du Short raccorde au début.
-  Les formes évitent la carte et sont atténuées derrière les sous-titres ; elles **peuvent** aller dans les zones UI (bas / droite),
-  car être masqué par les boutons YouTube ne coûte rien à un décor.
-- **Premier plan** (`assemble.motion_y`, instants calculés dans `timeline.json` → `motion`) : mascotte qui respire et saute à
-  chaque nouveau bloc, carte qui arrive par le bas (nouvelle carte) puis rebondit quand la réponse est révélée, badge qui tombe,
-  sous-titres qui « poppent » à chaque nouveau groupe. **Aucune animation à t = 0 en Short** (boucle sans raccord).
+| Format | Fichier attendu | Source actuelle |
+|---|---|---|
+| Short 9:16 | `short-loop.mp4` | Pixabay « loop spiral particles glow light » (313919) |
+| Long 16:9 | `long-loop.mp4` | Pixabay « network loop energy technology » (12716) |
+
+Noms modifiables dans `.env` (`BG_SHORT`, `BG_LONG`). À la première utilisation, la boucle est recadrée au format (« cover »),
+assombrie (`BG_VIDEO_DIM`, 0,70 par défaut, pour la lisibilité) et mise en cache dans `build/_bg/` (durée complète conservée).
+Elle est ensuite **lue en boucle, sans boomerang**. En Short, sa vitesse est recalée (≈ ±25 %) pour qu'un nombre entier de boucles
+tienne pile dans la vidéo : la fin raccorde au début. Fichier absent → repli sur le fond de halos généré (message dans la console).
+Priorité : `--no-bg` > `--background` / `background:` du script (lecture boomerang) > boucle par défaut > halos générés.
+
+### Premier plan vivant — comment ça marche
+`assemble.motion_y` anime les calques à partir des instants calculés dans `timeline.json` → `motion` : mascotte qui respire et saute
+à chaque nouveau bloc, carte qui arrive par le bas (nouvelle carte) puis rebondit quand la réponse est révélée, badge qui tombe,
+sous-titres qui « poppent » à chaque nouveau groupe. **Aucune animation à t = 0 en Short** (boucle sans raccord).
 
 ### `preview` — planche contact
 `python cli.py preview short-03`
@@ -199,8 +201,7 @@ llamakusi-video-pipeline/
 ### `pipeline\config.py` (mise en page et look)
 - `PROFILES` : **un profil de mise en page par format** (`short` 1080×1920 centré sur x = 540 ; `long` 1920×1080, cartes à gauche, mascotte à droite). `LAYOUT` (positions du logo, badge, carte, sous-titres, mascotte, CTA) est le profil actif ; on règle les positions dans `PROFILES[...]["layout"]`. Le format du script (`format: short|long`) choisit le profil automatiquement.
 - `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`).
-- `MOTION_*` : fond motion (durée de boucle, nombre de variantes et de formes, intensité du balayage, opacité de la grille).
-  Modifier une valeur régénère automatiquement les boucles concernées (signature dans le nom du fichier).
+- `DEFAULT_BACKGROUNDS` / `BG_VIDEO_DIM` : boucles de fond par défaut et leur luminosité (aussi réglables dans `.env`).
 - `FG_*` : amplitudes (px) et durées (s) du premier plan vivant — à baisser si l'image bouge trop, à 0 pour couper un effet.
   Pour un fond plus discret, baisser les intensités (2ᵉ valeur de chaque ligne) ; plus présent, les augmenter.
 - `MASCOT_MOOD` : correspondance des expressions (`heureux` → `neutre`, car le repo n'a pas de « heureux »).

@@ -196,12 +196,10 @@ BG_PALETTES = {
         ("#B8892A", 0.20, 0.82, 0.58, 0.14, 0.12, 1, 3.0, 0.34),
         ("#7C3AED", 0.14, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.32)]},
 }
-# --- Fond motion design (motion.py) : boucle parfaite pré-rendue par (format, accent, variante) ---------
-MOTION_LOOP_S = 12.0         # durée de la boucle ; recalée en vitesse à l'assemblage pour finir pile sur une boucle
-MOTION_VARIANTS = 3          # variantes de placement (choisie par script : motion.variant_for)
-MOTION_SHAPES = 9            # formes line-art (anneau, carré, plus, triangle, document, bulle, coche, étoile)
-MOTION_SWEEP = 0.10          # intensité du balayage lumineux diagonal (0 = aucun)
-MOTION_GRID_ALPHA = 0.80     # opacité de la grille en perspective (bas de l'image)
+# --- Fond vidéo par défaut : boucles parfaites (ex. Pixabay) déposées dans assets/backgrounds/ ---------
+# Lues en boucle (pas de boomerang) ; en Short, vitesse recalée pour finir pile sur une boucle (raccord).
+DEFAULT_BACKGROUNDS = {"short": env("BG_SHORT", "short-loop.mp4"), "long": env("BG_LONG", "long-loop.mp4")}
+BG_VIDEO_DIM = float(env("BG_VIDEO_DIM", "0.70"))   # luminosité du fond (1 = brut) : lisibilité carte/sous-titres
 
 # --- Premier plan vivant (assemble.py) : amplitudes en px, durées en s -----------------------------------
 FG_MASCOT_BOB = 7            # respiration de la mascotte (va-et-vient vertical)
@@ -254,3 +252,11 @@ def resolve_background(name: str) -> Path:
         if cand.is_file():
             return cand.resolve()
     raise FileNotFoundError(f"fond vidéo introuvable : « {name} » (cherché : {', '.join(tried)})")
+
+
+def resolve_default_background(fmt: str) -> Path | None:
+    """Boucle de fond par défaut du format (DEFAULT_BACKGROUNDS), ou None si le fichier n'est pas déposé."""
+    try:
+        return resolve_background(DEFAULT_BACKGROUNDS[fmt])
+    except FileNotFoundError:
+        return None

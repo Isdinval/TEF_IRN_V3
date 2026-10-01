@@ -166,3 +166,29 @@ def from_file(src: Path, build_dir: Path, total: float, log=print) -> tuple[Path
         log(f"  [fond] {info['duration']:.1f}s < {total:.1f}s : lecture avant/arrière répétée (boomerang)…")
         pingpong(src, out, w, h, fps, est_frames=int(info["duration"] * fps) + 2)
     return out, True
+
+
+def prepare_loop(src: Path, log=print) -> tuple[Path, float]:
+    """Boucle parfaite (fond par défaut) → copie au format du profil actif : recadrage « cover », fps, assombrie
+    (BG_VIDEO_DIM), DURÉE COMPLÈTE conservée (la boucle reste parfaite). Cache partagé : build/_bg/.
+    Retourne (fichier, durée d'une boucle en s)."""
+    import hashlib
+
+    from .audio import run
+
+    w, h, fps, dim = config.W, config.H, config.FPS, config.BG_VIDEO_DIM
+    st = src.stat()
+    sig = hashlib.sha1(f"{src.resolve()}|{st.st_size}|{st.st_mtime_ns}|{w}x{h}|{fps}|{dim}".encode()).hexdigest()[:12]
+    out_dir = config.BUILD_DIR / "_bg"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f"loop_{src.stem}_{w}x{h}_{sig}.mp4"
+    if not out.exists():
+        info = probe_video(src)
+        if (info["width"], info["height"]) != (w, h):
+            log(f"  [fond] {info['width']}×{info['height']} → {w}×{h} (recadrage centré, une seule fois)")
+        vf = (f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},"
+              f"colorchannelmixer=rr={dim}:gg={dim}:bb={dim}")
+        run(["ffmpeg", "-y", "-i", str(src), "-an", "-vf", vf, "-c:v", "libx264", "-crf", "16",
+             "-preset", "veryfast", "-pix_fmt", "yuv420p", str(out)])
+    n = round(probe_video(out)["duration"] * fps)
+    return out, n / fps
