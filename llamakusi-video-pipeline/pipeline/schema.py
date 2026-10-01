@@ -25,12 +25,12 @@ _REQUIRED_FIELDS = {"terms": ("term", "definition"), "text_annotated": ("role", 
 
 
 class Claim(BaseModel):
-    """Affirmation factuelle vérifiable. Bloque la publication tant que non vérifiée."""
+    """Affirmation factuelle. Publiable uniquement si reprise d'un guide LlamaKusi publié (`source_guide`)."""
 
     text: str
-    source_url: Optional[str] = None
-    source_hint: Optional[str] = None   # où chercher la source (ex. service-public.fr)
-    verified: bool = False
+    source_guide: Optional[str] = None  # slug du guide publié (table `guides`) dont la claim est reprise
+    source_url: Optional[str] = None    # informatif : source officielle citée par le guide
+    source_hint: Optional[str] = None   # informatif : où chercher la source (ex. service-public.fr)
 
 
 class Card(BaseModel):

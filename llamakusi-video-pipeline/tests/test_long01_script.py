@@ -87,5 +87,5 @@ def test_one_spoken_cta_in_the_last_block_and_no_unverified_claim_can_be_publish
     assert not [m for m in _msgs(s, "warn") if "CTA" in m or "chapitre" in m or "rehook" in m]
     assert re.search(r"dans la description", s.blocks[-1].voice)
     publish = _msgs(s, "error", publish=True)
-    assert sum("claim non vérifiée" in m for m in publish) == 4         # à vérifier à la main avant publication
+    assert sum("claim sans guide source" in m for m in publish) == 4     # chaque claim doit citer un guide publié
     assert all(c.source_url for c in s.claims)

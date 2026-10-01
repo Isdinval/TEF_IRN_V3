@@ -40,8 +40,10 @@ Chaque étape écrit son résultat dans `build\<id>\` : relancer une commande **
   évolution possible, mais volontairement laissée pour plus tard : tant que les vidéos ne sont pas validées à la main,
   automatiser la création multiplierait les erreurs (surtout que chaque affirmation doit être sourcée).
 
-Le **contenu factuel** (chiffres, délais, règles) reste de votre responsabilité : la section `claims:` de chaque script
-liste ce qu'il faut vérifier, et `lint --publish` refuse une vidéo dont les claims ne sont pas vérifiées.
+**Règle des claims (décision du 01/10/2026)** : une affirmation factuelle (chiffre, délai, règle) n'est publiable que si
+elle est reprise d'un **guide LlamaKusi publié et sourcé**. Chaque claim porte `source_guide: <slug>` ; `lint --publish`
+vérifie dans Supabase (table `guides`, `is_published = true`) que ce guide existe et est publié. Si Supabase est
+injoignable, la vidéo est bloquée (jamais de publication non vérifiée).
 
 ---
 
@@ -56,7 +58,7 @@ liste ce qu'il faut vérifier, et `lint --publish` refuse une vidéo dont les cl
 | 5 | Voir une planche des 4 blocs | `python cli.py preview short-06` |
 | 6 | Vrai rendu (voix + alignement + musique) | `python cli.py build short-06` |
 | 7 | **Regarder sur téléphone, son activé** | ouvrir `build\short-06\out.mp4` |
-| 8 | Sourcer les claims, `status: approved` | éditer le YAML puis `python cli.py lint --publish short-06` |
+| 8 | Relier chaque claim à un guide publié (`source_guide`), `status: approved` | éditer le YAML puis `python cli.py lint --publish short-06` |
 
 ---
 
@@ -73,7 +75,7 @@ mascotte vit déjà sur Supabase Storage). À lancer **une fois** après l'insta
 Vérifie : durée estimée trop longue, CTA parlé (interdit en Short), formule de hook identique à la vidéo précédente,
 ordre de la mascotte, texte « À REMPLACER » oublié, cartes pas encore implémentées.
 - `--quiet` : masque les simples rappels (« · »).
-- `--publish` : règles strictes avant mise en ligne → toutes les claims vérifiées **et** sourcées, carte sans données
+- `--publish` : règles strictes avant mise en ligne → chaque claim reprise d'un guide publié (`source_guide`, vérifié dans Supabase), carte sans données
   provisoires (`draft`), `status: approved`. Tant qu'une erreur reste, la vidéo n'est pas publiable.
 
 ### `list` — vue d'ensemble
@@ -229,7 +231,8 @@ Un Short = 4 blocs **dans cet ordre** : `hook`, `build`, `payoff`, `loop`.
 | `tts_text` | prononciation forcée (TTS seulement, sans changer les sous-titres) |
 
 En tête de fichier : `pillar`, `product`, `hook_formula`, `accent` (`indigo` TEF · `blue` civique · `gold`), `title`, et
-`claims:` (chaque affirmation factuelle avec `source_hint`, puis `source_url` + `verified: true` une fois vérifiée).
+`claims:` (chaque affirmation factuelle avec `source_guide` = slug du guide publié dont elle est reprise ; `source_url` et
+`source_hint` restent informatifs).
 
 ---
 
@@ -257,8 +260,8 @@ un fond dont la première et la dernière image sont proches n'a pas besoin d'ê
 mascotte dans la colonne droite. Pas de flèche ni de CTA incrusté en long (le CTA est parlé, une seule fois, à la fin). Le fond animé n'est calculé que
 sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 
-- `scripts/long-01.yaml` = **premier vrai script long** (expression écrite TEF IRN, section B : méthode en 4 blocs ; 8 chapitres, 718 mots, `status: draft`) ; ses 4 claims sont
-  sourcées mais **à vérifier à la main** (`verified: false`) avant toute publication. `scripts/long-02.yaml` = **démo technique** (les 5 cartes enchaînées, ~108 s, avec chapitres) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
+- `scripts/long-01.yaml` = **premier vrai script long** (expression écrite TEF IRN, section B : méthode en 4 blocs ; 8 chapitres, 718 mots, `status: draft`) ; ses 4 claims ont une
+  source officielle mais pas encore de `source_guide` : non publiable en l'état. `scripts/long-02.yaml` = **démo technique** (les 5 cartes enchaînées, ~108 s, avec chapitres) pour contrôler la mise en page : `python cli.py build long-02 --dry --placeholder-mascots`
   puis `python cli.py preview long-02` (planche en grille 3 colonnes). Elle ne sera pas publiée.
 - Le cache des calques PNG (`build/<id>/layers`) est **vidé automatiquement** quand `layers.py`, `textutil.py` ou le profil changent : plus de suppression manuelle.
 - **Temps de rendu mesuré (sandbox, ffmpeg 6, preset `veryfast`, `--dry`)** : ~8 min pour 97 s de vidéo, soit ~5× la durée. Une vidéo de 6 min demandera donc

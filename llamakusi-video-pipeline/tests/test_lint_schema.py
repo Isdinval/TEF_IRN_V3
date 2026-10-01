@@ -36,6 +36,37 @@ def test_publish_blocks_unverified_claims_and_draft_cards():
     assert any("approved" in m for m in msgs)
 
 
+def test_publish_requires_claims_from_a_published_guide(monkeypatch):
+    calls = []
+
+    def fake(slugs):
+        calls.append(slugs)
+        return {"guide-publie"}
+
+    monkeypatch.setattr(lint.supabase_source, "published_guide_slugs", fake)
+    s = schema.find_script(config.SCRIPTS_DIR, "short-03")
+    s.claims = [schema.Claim(text="ok", source_guide="guide-publie"),
+                schema.Claim(text="absent", source_guide="guide-brouillon"),
+                schema.Claim(text="sans guide")]
+    msgs = [i.message for i in lint.lint_all([s], publish=True) if i.level == "error" and "claim" in i.message]
+    assert len(msgs) == 2
+    assert any("guide-brouillon" in m and "non publié" in m for m in msgs)
+    assert any("sans guide source" in m for m in msgs)
+    assert calls == [{"guide-publie", "guide-brouillon"}]           # un seul appel Supabase pour le lot
+
+
+def test_publish_fails_closed_when_supabase_is_unreachable(monkeypatch):
+    def boom(slugs):
+        raise RuntimeError("réseau")
+
+    monkeypatch.setattr(lint.supabase_source, "published_guide_slugs", boom)
+    s = schema.find_script(config.SCRIPTS_DIR, "short-03")
+    s.claims = [schema.Claim(text="x", source_guide="guide-publie")]
+    msgs = [i.message for i in lint.lint_script(s, publish=True) if i.level == "error"]
+    assert any("non vérifiables" in m for m in msgs)
+    assert any("non publié" in m for m in msgs)
+
+
 def test_same_hook_formula_twice_in_a_row_is_flagged():
     a = schema.find_script(config.SCRIPTS_DIR, "short-01")
     b = schema.find_script(config.SCRIPTS_DIR, "short-02")

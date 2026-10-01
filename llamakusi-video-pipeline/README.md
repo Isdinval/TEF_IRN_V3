@@ -37,14 +37,14 @@ Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la
 | `build <id> --proportional` | vrai TTS, timings estimés (pas d'ASR) : repli si l'alignement échoue |
 | `build <id> --force` | ignore le cache TTS/ASR (le cache est invalidé seul si le texte/la voix change) |
 | `build <id> --placeholder-mascots` | silhouettes de test si les assets sont absents |
-| `lint --publish` | règles de publication : claims sourcées + vérifiées, cartes non `draft`, `status: approved` |
+| `lint --publish` | règles de publication : claims reprises d'un guide publié (`source_guide`), cartes non `draft`, `status: approved` |
 | `fetch-question <mot>` | liste de vraies questions de `civic_questions` (`reviewed = true`) |
 
 ## Contrat de script (`scripts/<id>.yaml`)
 
 Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` (`perplexe|reflechit|victorieux|heureux`),
 `overlay` (gros badge doré), `card` ou `card_from` (réutilise la carte d'un bloc précédent), `card_state` (`plain|revealed`).
-`claims[]` = affirmations factuelles à sourcer (bloquent `lint --publish`). Le CTA n'est **jamais parlé** :
+`claims[]` = affirmations factuelles, chacune reprise d'un guide publié (`source_guide: <slug>`, vérifié par `lint --publish`). Le CTA n'est **jamais parlé** :
 `cta_overlay` est un petit texte sur le dernier bloc.
 
 ## État (au 01/10/2026)

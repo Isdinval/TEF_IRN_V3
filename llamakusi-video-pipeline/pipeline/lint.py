@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from . import chapters as chapters_mod
 
-from . import config
+from . import config, supabase_source
 from .schema import STEPPED_CARDS, VideoScript
 from .textutil import count_words
 
@@ -112,7 +112,12 @@ def estimate_seconds(script: VideoScript) -> float:
     return words / config.SPEECH_WPS
 
 
-def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
+def _guide_slugs(scripts: list[VideoScript]) -> set[str]:
+    return {c.source_guide for s in scripts for c in s.claims if c.source_guide}
+
+
+def lint_script(script: VideoScript, publish: bool = False,
+                published_guides: set[str] | None = None) -> list[Issue]:
     sid, out = script.id, []
 
     def add(level: str, msg: str) -> None:
@@ -188,20 +193,28 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
                 _lint_anchor_range(script, b, anchors, add)
 
     if script.pillar in {"B", "C", "D", "F"} and not script.claims:
-        add("warn", f"pilier {script.pillar} : aucune claim déclarée (sources officielles obligatoires)")
+        add("warn", f"pilier {script.pillar} : aucune claim déclarée (chaque fait doit venir d'un guide publié)")
     if publish:
+        if published_guides is None and _guide_slugs([script]):
+            try:
+                published_guides = supabase_source.published_guide_slugs(_guide_slugs([script]))
+            except Exception as exc:                 # échec réseau/clé : on bloque (jamais de publication non vérifiée)
+                add("error", f"guides sources non vérifiables (Supabase) : {exc}")
+                published_guides = set()
         for c in script.claims:
-            if not (c.verified and c.source_url):
-                add("error", f"claim non vérifiée/sans source : « {c.text} »")
+            if not c.source_guide:
+                add("error", f"claim sans guide source (`source_guide`) : « {c.text} »")
+            elif c.source_guide not in (published_guides or set()):
+                add("error", f"claim : guide « {c.source_guide} » introuvable ou non publié : « {c.text} »")
         for b in script.blocks:
             if b.card and b.card.data.get("draft"):
                 add("error", f"carte du bloc '{b.id}' en données provisoires (draft) : brancher une vraie source")
         if script.status != "approved":
             add("error", "status != approved (validation humaine GATE 1 manquante)")
     else:
-        unv = [c for c in script.claims if not (c.verified and c.source_url)]
+        unv = [c for c in script.claims if not c.source_guide]
         if unv:
-            add("todo", f"{len(unv)} claim(s) à sourcer/vérifier avant publication")
+            add("todo", f"{len(unv)} claim(s) sans `source_guide` (slug d'un guide publié) avant publication")
 
     if script.format == "short":
         add("todo", "à vérifier à l'oreille : la dernière phrase se raccorde-t-elle à la première ? "
@@ -211,8 +224,14 @@ def lint_script(script: VideoScript, publish: bool = False) -> list[Issue]:
 
 def lint_all(scripts: list[VideoScript], publish: bool = False) -> list[Issue]:
     out: list[Issue] = []
+    published = None
+    if publish and _guide_slugs(scripts):            # un seul appel Supabase pour tout le lot
+        try:
+            published = supabase_source.published_guide_slugs(_guide_slugs(scripts))
+        except Exception:
+            published = None                         # chaque script remontera l'erreur lui-même
     for s in scripts:
-        out.extend(lint_script(s, publish))
+        out.extend(lint_script(s, publish, published))
     shorts = [s for s in scripts if s.format == "short" and s.status != "outline"]
     for prev, cur in zip(shorts, shorts[1:]):
         if prev.hook_formula and prev.hook_formula == cur.hook_formula:

@@ -79,3 +79,15 @@ def resolve_cards(script: VideoScript) -> None:
             if not rows:
                 raise RuntimeError(f"question {b.card.data['question_id']} introuvable (reviewed=true ?)")
             b.card.data = to_card_data(rows[0])
+
+
+def published_guide_slugs(slugs: set[str]) -> set[str]:
+    """Slugs parmi `slugs` qui existent dans `guides` ET sont publiés (filtre is_published toujours appliqué)."""
+    if not slugs:
+        return set()
+    url = f"{_base_url()}/rest/v1/guides"
+    params = {"select": "slug", "is_published": "eq.true",
+              "slug": "in.(" + ",".join(f'"{s}"' for s in sorted(slugs)) + ")"}
+    r = requests.get(url, headers=_headers(), params=params, timeout=30)
+    r.raise_for_status()
+    return {row["slug"] for row in r.json()}

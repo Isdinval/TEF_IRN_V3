@@ -213,7 +213,7 @@ def cmd_list(args) -> int:
     print(f"{'id':<10} {'statut':<9} {'pilier':<6} {'hook':<14} {'~durée':>7}  {'claims ok':<9} build")
     for sc in scripts:
         secs = lint.estimate_seconds(sc)
-        ok = sum(1 for c in sc.claims if c.verified and c.source_url)
+        ok = sum(1 for c in sc.claims if c.source_guide)
         out = config.BUILD_DIR / sc.id / "out.mp4"
         built = "out.mp4 ✓" if out.exists() else ("dry seulement" if (config.BUILD_DIR / sc.id / "out.dry.mp4").exists() else "-")
         print(f"{sc.id:<10} {sc.status:<9} {sc.pillar:<6} {(sc.hook_formula or '-'):<14} "
@@ -301,7 +301,7 @@ def main() -> int:
 
     p = sub.add_parser("lint")
     p.add_argument("ids", nargs="*")
-    p.add_argument("--publish", action="store_true", help="règles de publication (claims vérifiées, status approved)")
+    p.add_argument("--publish", action="store_true", help="règles de publication (claims reprises d'un guide publié, status approved)")
     p.add_argument("--quiet", action="store_true", help="masque les rappels")
     p.set_defaults(fn=cmd_lint)
 
