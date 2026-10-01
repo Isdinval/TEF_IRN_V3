@@ -36,6 +36,8 @@ Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la
 | `build <id> --proportional` | vrai TTS, timings estimés (pas d'ASR) : repli si l'alignement échoue |
 | `build <id> --force` | ignore le cache TTS/ASR (le cache est invalidé seul si le texte/la voix change) |
 | `build <id> --placeholder-mascots` | silhouettes de test si les assets sont absents |
+| `build <id> --no-motion` | ancien fond (halos seuls), pour comparer |
+| `make-bg [--format short\|long\|all]` | pré-génère les boucles de fond motion (sinon faites au 1er `build`) |
 | `lint --publish` | règles de publication : claims sourcées + vérifiées, cartes non `draft`, `status: approved` |
 | `fetch-question <mot>` | liste de vraies questions de `civic_questions` (`reviewed = true`) |
 
@@ -65,5 +67,4 @@ Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` 
 
 ## Prochaines tâches
 
-Voir `DOCUMENTATION.md` § 9 (ce qui n'existe pas encore). En tête : habillage motion design des fonds (vidéos jugées « vides »),
-upload YouTube en privé, génération de scripts sourcés.
+Voir `DOCUMENTATION.md` § 9 (ce qui n'existe pas encore). En tête : upload YouTube en privé, génération de scripts sourcés.

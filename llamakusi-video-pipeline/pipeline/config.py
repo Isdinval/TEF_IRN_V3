@@ -196,6 +196,28 @@ BG_PALETTES = {
         ("#B8892A", 0.20, 0.82, 0.58, 0.14, 0.12, 1, 3.0, 0.34),
         ("#7C3AED", 0.14, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.32)]},
 }
+# --- Fond motion design (motion.py) : boucle parfaite pré-rendue par (format, accent, variante) ---------
+MOTION_LOOP_S = 12.0         # durée de la boucle ; recalée en vitesse à l'assemblage pour finir pile sur une boucle
+MOTION_VARIANTS = 3          # variantes de placement (choisie par script : motion.variant_for)
+MOTION_SHAPES = 9            # formes line-art (anneau, carré, plus, triangle, document, bulle, coche, étoile)
+MOTION_SWEEP = 0.10          # intensité du balayage lumineux diagonal (0 = aucun)
+MOTION_GRID_ALPHA = 0.80     # opacité de la grille en perspective (bas de l'image)
+
+# --- Premier plan vivant (assemble.py) : amplitudes en px, durées en s -----------------------------------
+FG_MASCOT_BOB = 7            # respiration de la mascotte (va-et-vient vertical)
+FG_MASCOT_BOB_PERIOD = 2.8
+FG_MASCOT_HOP = 34           # petit saut à chaque changement de bloc
+FG_HOP_S = 0.35
+FG_CARD_ENTER = 90           # la carte arrive par le bas (nouvelle carte)
+FG_CARD_ENTER_S = 0.40
+FG_CARD_BUMP = 16            # rebond quand la réponse est révélée
+FG_CARD_BUMP_S = 0.30
+FG_CARD_FLOAT = 3            # flottement très léger de la carte (lisibilité préservée)
+FG_CARD_FLOAT_PERIOD = 4.0
+FG_OVERLAY_DROP = 60         # le badge tombe du haut
+FG_OVERLAY_DROP_S = 0.35
+FG_SUBS_POP = (1.14, 1.06)   # échelle des 2 premières paires d'images de chaque groupe karaoké
+
 BG_DEBAND = 1.2              # force de `gradfun` (anti-banding des dégradés sombres ; un grain `noise` pèserait 70× plus)
 
 # --- Mascotte ----------------------------------------------------------------

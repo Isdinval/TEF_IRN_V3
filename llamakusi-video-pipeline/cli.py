@@ -22,7 +22,7 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
+from pipeline import (align, assemble, assets, audio, background, config, lint, motion, schema, subtitles,
                       supabase_source, timeline, tts, voice as voice_mod)
 from pipeline import chapters as chapters_mod
 
@@ -165,7 +165,7 @@ def cmd_build(args) -> int:
 
     music = config.find_music()
     print(f"[music] {music if music else 'aucune'}")
-    bg, bg_loop = None, False
+    bg, bg_loop, bg_period = None, False, None
     custom = args.background or script.background
     if args.no_bg:
         pass
@@ -173,6 +173,11 @@ def cmd_build(args) -> int:
         src = config.resolve_background(custom)
         print(f"[fond] vidéo personnalisée : {src}")
         bg, bg_loop = background.from_file(src, bdir, tl["duration"])
+    elif not args.no_motion:
+        variant = motion.variant_for(script.id)
+        bg = motion.loop_path(script.accent, variant)
+        bg_loop, bg_period = True, config.MOTION_LOOP_S
+        print(f"[fond] motion design : {bg.name} (variante {variant})")
     else:
         print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
         bg = background.generate(bdir, script.accent, tl["duration"])
@@ -180,9 +185,22 @@ def cmd_build(args) -> int:
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
     assemble.render(bdir, tl, out, music,
                     preset="veryfast" if args.dry else "medium", background=bg,
-                    loop_background=bg_loop)
+                    loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
+    return 0
+
+
+def cmd_make_bg(args) -> int:
+    """Pré-génère les boucles de fond motion (sinon générées au premier build qui en a besoin)."""
+    formats = ["short", "long"] if args.format == "all" else [args.format]
+    accents = list(config.ACCENT_BAR) if args.accent == "all" else [args.accent]
+    variants = range(config.MOTION_VARIANTS) if args.variant is None else [args.variant]
+    for fmt in formats:
+        config.use_profile(fmt)
+        for accent in accents:
+            for v in variants:
+                print(f"✓ {motion.loop_path(accent, v)}")
     return 0
 
 
@@ -313,8 +331,15 @@ def main() -> int:
     p.add_argument("--no-bg", action="store_true", help="fond noir uni (rendu plus rapide, pour tester)")
     p.add_argument("--background", help="vidéo de fond personnalisée (assets/backgrounds/<nom> ou chemin) ; "
                                         "répétée avant/arrière si trop courte. Prioritaire sur `background:` du script")
+    p.add_argument("--no-motion", action="store_true", help="ancien fond (halos seuls) au lieu du fond motion design")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
     p.set_defaults(fn=cmd_build)
+
+    p = sub.add_parser("make-bg", help="pré-générer les boucles de fond motion design (cache build/_motion/)")
+    p.add_argument("--format", choices=["short", "long", "all"], default="short")
+    p.add_argument("--accent", choices=["indigo", "blue", "gold", "all"], default="all")
+    p.add_argument("--variant", type=int, choices=range(config.MOTION_VARIANTS), default=None)
+    p.set_defaults(fn=cmd_make_bg)
 
     p = sub.add_parser("subs")
     p.add_argument("id")

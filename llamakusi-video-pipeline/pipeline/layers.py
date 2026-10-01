@@ -195,7 +195,8 @@ def render_chapter(index: int, title: str) -> Image.Image:
 
 
 # --- sous-titres karaoké ---------------------------------------------------------
-def render_subs(texts: list[str], active: int) -> Image.Image:
+def render_subs(texts: list[str], active: int, scale: float = 1.0) -> Image.Image:
+    """`scale` > 1 : images d'apparition d'un nouveau groupe (effet « pop », voir timeline)."""
     img = canvas()
     d = ImageDraw.Draw(img)
     size = LAYOUT["subs_size"]
@@ -207,6 +208,12 @@ def render_subs(texts: list[str], active: int) -> Image.Image:
         if total <= config.SUBS_MAX_W or size <= 46:
             break
         size -= 4
+    if scale != 1.0:
+        size = round(size * scale)
+        fnt = font("montserrat", size, 800)
+        space = fnt.getlength(" ")
+        widths = [fnt.getlength(t) for t in texts]
+        total = sum(widths) + space * (len(texts) - 1)
     x = config.CONTENT_CX - total / 2
     y = LAYOUT["subs_cy"]
     spans = []

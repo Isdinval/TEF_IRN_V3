@@ -143,7 +143,24 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
                             "png": _save(layers.render_brand(script.accent), layers_dir, "brand", script.accent)})
 
     block_info = []
+    # premier plan vivant (assemble.py) : instants des animations. Aucune à t=0 en Short (boucle sans raccord).
+    motion = {"hop": [], "card_enter": [], "card_bump": [], "overlay_drop": []}
+    prev_card, prev_state = None, None
     for bi, (block, (start, end)) in enumerate(zip(script.blocks, spans)):
+        card_id = None
+        if block.id in cards:
+            c, st_ = cards[block.id]
+            card_id = json.dumps([c.kind, c.data], sort_keys=True, ensure_ascii=False)
+            if card_id != prev_card and (bi > 0 or script.format == "long"):
+                motion["card_enter"].append(start)
+            elif st_ == "revealed" and prev_state != "revealed":
+                motion["card_bump"].append(start)
+            prev_state = st_
+        prev_card = card_id
+        if bi > 0:
+            motion["hop"].append(start)
+        if block.overlay and (bi > 0 or script.format == "long"):
+            motion["overlay_drop"].append(start)
         block_info.append({"id": block.id, "start": start, "end": end, "mascot": block.mascot})
         tracks["mascot"].append({
             "start": start, "end": end,
@@ -196,9 +213,18 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
             else:
                 en = snap(min(next_start, words[group[-1]].end + 0.25))
             texts = [words[k].text for k in group]
-            img = layers.render_subs(texts, j)
-            tracks["subs"].append({"start": st, "end": max(en, st + FRAME),
-                                   "png": _save(img, layers_dir, "subs", "|".join(texts) + f"#{j}")})
+            key = "|".join(texts) + f"#{j}"
+            if j == 0:                                     # « pop » : 2 × 2 images agrandies à l'apparition du groupe
+                for scale in config.FG_SUBS_POP:
+                    pop_end = min(st + 2 * FRAME, en)
+                    if pop_end - st < FRAME * 0.5:
+                        break
+                    tracks["subs"].append({"start": st, "end": pop_end, "png": _save(
+                        layers.render_subs(texts, j, scale), layers_dir, "subs", f"{key}@{scale}")})
+                    st = pop_end
+            if en - st >= FRAME * 0.5:
+                tracks["subs"].append({"start": st, "end": max(en, st + FRAME),
+                                       "png": _save(layers.render_subs(texts, j), layers_dir, "subs", key)})
 
     timeline = {
         "id": script.id,
@@ -208,6 +234,7 @@ def build_timeline(script: VideoScript, words: list[Word], audio_duration: float
         "voice": "voice.wav",
         "blank": "layers/blank.png",
         "blocks": block_info,
+        "motion": motion,
         "tracks": {k: _clean(v, total) for k, v in tracks.items()},
     }
     (build_dir / "timeline.json").write_text(json.dumps(timeline, ensure_ascii=False, indent=2),
