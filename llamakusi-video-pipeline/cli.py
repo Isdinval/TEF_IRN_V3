@@ -173,13 +173,13 @@ def cmd_build(args) -> int:
         src = config.resolve_background(custom)
         print(f"[fond] vidéo personnalisée : {src}")
         bg, bg_loop = background.from_file(src, bdir, tl["duration"])
-    elif (default := config.resolve_default_background(script.format)):
+    elif (default := config.resolve_default_background(script.format, script.id)):
         print(f"[fond] boucle par défaut ({script.format}) : {default.name}")
         bg, bg_dur = background.prepare_loop(default)
         bg_loop = True
         bg_period = bg_dur if script.format == "short" else None   # Short : raccord exact fin → début
     else:
-        print(f"  ⚠ pas de boucle par défaut ({config.DEFAULT_BACKGROUNDS[script.format]} dans assets/backgrounds/) : fond de halos généré")
+        print(f"  ⚠ pas de boucle par défaut ({config.DEFAULT_BG_PREFIX[script.format]}-01.mp4… dans assets/backgrounds/) : fond de halos généré")
         print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
         bg = background.generate(bdir, script.accent, tl["duration"])
         bg_loop = background.is_loop(tl["duration"])

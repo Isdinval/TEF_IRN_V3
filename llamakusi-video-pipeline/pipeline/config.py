@@ -197,8 +197,11 @@ BG_PALETTES = {
         ("#7C3AED", 0.14, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.32)]},
 }
 # --- Fond vidéo par défaut : boucles parfaites (ex. Pixabay) déposées dans assets/backgrounds/ ---------
-# Lues en boucle (pas de boomerang) ; en Short, vitesse recalée pour finir pile sur une boucle (raccord).
-DEFAULT_BACKGROUNDS = {"short": env("BG_SHORT", "short-loop.mp4"), "long": env("BG_LONG", "long-loop.mp4")}
+# Fichiers <préfixe>-01.mp4, -02.mp4… : rotation par numéro de script (short-03 → 3e boucle). Lues en boucle
+# (pas de boomerang) ; en Short, vitesse recalée pour finir pile sur une boucle (raccord).
+# BG_SHORT / BG_LONG dans .env : force UN fichier pour tous les scripts du format (désactive la rotation).
+DEFAULT_BG_PREFIX = {"short": "short-loop", "long": "long-loop"}
+DEFAULT_BG_FORCED = {"short": env("BG_SHORT", ""), "long": env("BG_LONG", "")}
 BG_VIDEO_DIM = float(env("BG_VIDEO_DIM", "0.70"))   # luminosité du fond (1 = brut) : lisibilité carte/sous-titres
 
 # --- Premier plan vivant (assemble.py) : amplitudes en px, durées en s -----------------------------------
@@ -254,9 +257,19 @@ def resolve_background(name: str) -> Path:
     raise FileNotFoundError(f"fond vidéo introuvable : « {name} » (cherché : {', '.join(tried)})")
 
 
-def resolve_default_background(fmt: str) -> Path | None:
-    """Boucle de fond par défaut du format (DEFAULT_BACKGROUNDS), ou None si le fichier n'est pas déposé."""
-    try:
-        return resolve_background(DEFAULT_BACKGROUNDS[fmt])
-    except FileNotFoundError:
+def resolve_default_background(fmt: str, script_id: str) -> Path | None:
+    """Boucle de fond par défaut : fichier forcé (BG_SHORT / BG_LONG), sinon rotation parmi
+    assets/backgrounds/<préfixe>*.mp4 (triés). Le numéro final de l'id choisit la boucle (short-01 → 1re,
+    short-02 → 2e… puis on recommence) : choix stable d'un rendu à l'autre et alternance entre vidéos
+    consécutives. Id sans numéro → choix dérivé de l'id. None si aucun fichier n'est déposé."""
+    import re
+    import zlib
+
+    if DEFAULT_BG_FORCED[fmt]:
+        return resolve_background(DEFAULT_BG_FORCED[fmt])
+    loops = sorted(BACKGROUNDS_DIR.glob(f"{DEFAULT_BG_PREFIX[fmt]}*.mp4"))
+    if not loops:
         return None
+    m = re.search(r"(\d+)$", script_id)
+    k = int(m.group(1)) - 1 if m else zlib.crc32(script_id.encode("utf-8"))
+    return loops[k % len(loops)]

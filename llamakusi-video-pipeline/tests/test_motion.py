@@ -27,6 +27,21 @@ def test_prepare_loop_crops_and_keeps_full_duration(tmp_path, monkeypatch):
     assert background.prepare_loop(src, log=lambda *_: None)[0] == out        # cache
 
 
-def test_default_background_absent_returns_none(monkeypatch):
-    monkeypatch.setitem(config.DEFAULT_BACKGROUNDS, "short", "absent-xyz.mp4")
-    assert config.resolve_default_background("short") is None
+def test_default_background_rotation(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "BACKGROUNDS_DIR", tmp_path)
+    monkeypatch.setitem(config.DEFAULT_BG_FORCED, "short", "")
+    assert config.resolve_default_background("short", "short-01") is None        # aucun fichier
+    for n in ("03", "01", "02"):
+        (tmp_path / f"short-loop-{n}.mp4").write_bytes(b"x")
+    pick = lambda sid: config.resolve_default_background("short", sid).name
+    assert [pick(f"short-0{i}") for i in range(1, 5)] == [
+        "short-loop-01.mp4", "short-loop-02.mp4", "short-loop-03.mp4", "short-loop-01.mp4"]
+    assert pick("demo") == pick("demo")                                          # sans numéro : stable
+
+
+def test_default_background_forced(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "BACKGROUNDS_DIR", tmp_path)
+    (tmp_path / "short-loop-01.mp4").write_bytes(b"x")
+    (tmp_path / "special.mp4").write_bytes(b"x")
+    monkeypatch.setitem(config.DEFAULT_BG_FORCED, "short", "special.mp4")
+    assert config.resolve_default_background("short", "short-01").name == "special.mp4"

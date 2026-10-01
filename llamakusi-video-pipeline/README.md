@@ -26,7 +26,7 @@ python cli.py build short-03                # vrai run : TTS → ASR → alignem
 python -m pytest -q                         # tests
 ```
 
-Fond : déposer `assets/backgrounds/short-loop.mp4` et `long-loop.mp4` (boucles, voir DOCUMENTATION.md). Absents → halos générés.
+Fond : déposer `assets/backgrounds/short-loop-01.mp4`, `-02.mp4`… et `long-loop-01.mp4`… (boucles en rotation, voir DOCUMENTATION.md). Absents → halos générés.
 Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la stratégie). Absente → voix seule.
 
 ## Commandes utiles

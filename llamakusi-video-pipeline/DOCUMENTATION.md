@@ -130,14 +130,17 @@ Envoi : YouTube Studio → *Sous-titres* → *Ajouter une langue* → *Importer 
 `zh-Hans` (chinois simplifié). Un `.srt` français est aussi produit : YouTube indexe les pistes de sous-titres (bon pour le SEO).
 
 ### Fond par défaut : boucles vidéo (motion design)
-Déposer dans `assets/backgrounds/` (non versionné) une boucle parfaite par format :
+Déposer dans `assets/backgrounds/` (non versionné) des boucles parfaites, numérotées :
 
-| Format | Fichier attendu | Source actuelle |
+| Format | Fichiers | Exemple de source |
 |---|---|---|
-| Short 9:16 | `short-loop.mp4` | Pixabay « loop spiral particles glow light » (313919) |
-| Long 16:9 | `long-loop.mp4` | Pixabay « network loop energy technology » (12716) |
+| Short 9:16 | `short-loop-01.mp4`, `short-loop-02.mp4`, `short-loop-03.mp4`… | Pixabay « loop spiral particles glow light » (313919) |
+| Long 16:9 | `long-loop-01.mp4`, `long-loop-02.mp4`… | Pixabay « network loop energy technology » (12716) |
 
-Noms modifiables dans `.env` (`BG_SHORT`, `BG_LONG`). À la première utilisation, la boucle est recadrée au format (« cover »),
+**Rotation** : le numéro final du script choisit la boucle (`short-01` → `-01`, `short-02` → `-02`… puis on recommence).
+Choix stable (re-rendre une vidéo garde son fond) et alternance entre vidéos consécutives ; ajouter une boucle suffit,
+sans toucher au code. Pour un fond précis sur UN script : `background:` dans son YAML. Pour forcer un fichier sur tout un
+format : `BG_SHORT` / `BG_LONG` dans `.env`. À la première utilisation, la boucle est recadrée au format (« cover »),
 assombrie (`BG_VIDEO_DIM`, 0,70 par défaut, pour la lisibilité) et mise en cache dans `build/_bg/` (durée complète conservée).
 Elle est ensuite **lue en boucle, sans boomerang**. En Short, sa vitesse est recalée (≈ ±25 %) pour qu'un nombre entier de boucles
 tienne pile dans la vidéo : la fin raccorde au début. Fichier absent → repli sur le fond de halos généré (message dans la console).
@@ -201,7 +204,7 @@ llamakusi-video-pipeline/
 ### `pipeline\config.py` (mise en page et look)
 - `PROFILES` : **un profil de mise en page par format** (`short` 1080×1920 centré sur x = 540 ; `long` 1920×1080, cartes à gauche, mascotte à droite). `LAYOUT` (positions du logo, badge, carte, sous-titres, mascotte, CTA) est le profil actif ; on règle les positions dans `PROFILES[...]["layout"]`. Le format du script (`format: short|long`) choisit le profil automatiquement.
 - `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`).
-- `DEFAULT_BACKGROUNDS` / `BG_VIDEO_DIM` : boucles de fond par défaut et leur luminosité (aussi réglables dans `.env`).
+- `DEFAULT_BG_PREFIX` / `BG_VIDEO_DIM` : préfixe des boucles de fond par défaut et leur luminosité (`BG_SHORT`, `BG_LONG`, `BG_VIDEO_DIM` dans `.env`).
 - `FG_*` : amplitudes (px) et durées (s) du premier plan vivant — à baisser si l'image bouge trop, à 0 pour couper un effet.
   Pour un fond plus discret, baisser les intensités (2ᵉ valeur de chaque ligne) ; plus présent, les augmenter.
 - `MASCOT_MOOD` : correspondance des expressions (`heureux` → `neutre`, car le repo n'a pas de « heureux »).
