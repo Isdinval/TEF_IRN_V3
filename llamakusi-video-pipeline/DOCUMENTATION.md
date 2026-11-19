@@ -113,6 +113,21 @@ uniquement `reviewed = true`). La commande affiche les questions trouvées avec 
 
 Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le style changent.
 
+### `publish` — publier (PUBLIC, immédiat, sans brouillon)
+`python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
+Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approved`, claims sourcées), réglages du `.env` (voir `.env.example`).
+
+| Option | Effet |
+|---|---|
+| `--platforms youtube,facebook,instagram` | défaut : les trois ; Instagram = Shorts seulement (Reels) |
+| `--confirm-public` | obligatoire hors `--dry` |
+| `--force` | republie même si `build/<id>/published.json` contient déjà la plateforme (doublon) |
+
+- **YouTube** : une fois `python cli.py publish-auth youtube` (client OAuth « application de bureau »). Long : chapitres (`chapters.txt`) dans la description + `thumbnail.png|jpg` s'il existe. Un projet API non audité par YouTube laisse la vidéo **privée** (avertissement affiché).
+- **Facebook** : Short → Reel de Page ; long → vidéo de Page. **Instagram** : Reel (envoi direct du fichier, attente du traitement).
+- Titre = `title` ; description = `publish.description` (sinon titre) + hashtags `publish.hashtags` (sinon `#LlamaKusi #TEFIRN #Naturalisation`).
+- Une erreur sur une plateforme n'arrête pas les autres ; code de sortie 1 si au moins une échoue.
+
 ### `subs` — sous-titres `.srt` multilingues
 
 ```
@@ -399,7 +414,6 @@ Règles d'ancrage :
 
 - Génération automatique des scripts (section 2).
 - Transition animée pour la réorganisation de `text_annotated` (aujourd'hui : coupe franche).
-- Upload YouTube (en privé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.
 

@@ -8,6 +8,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 .env
+.youtube_token.json
 # Le .gitignore racine ignore `.env*` : on réautorise le modèle.
 !.env.example
 assets/backgrounds/*

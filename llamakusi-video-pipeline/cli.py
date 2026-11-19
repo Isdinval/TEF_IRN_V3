@@ -8,6 +8,8 @@
   python cli.py preview short-03             # planche contact des blocs
   python cli.py fetch-question contravention # cherche de vraies questions civiques
   python cli.py subs short-03 [--langs ar,en] # .srt (fr + traductions Gemini) depuis build/<id>/words.json
+  python cli.py publish short-03 --dry       # aperçu des textes ; puis --confirm-public = publication PUBLIQUE (YouTube, Facebook, Instagram)
+  python cli.py publish-auth youtube         # une fois : autorisation OAuth YouTube
   python cli.py list                         # état de tous les scripts
   python cli.py new short-06 --pillar D      # crée un squelette de script à remplir
 Documentation complète : DOCUMENTATION.md
@@ -27,6 +29,7 @@ from pipeline import (align, assemble, assets, audio, background, config, lint, 
                       supabase_source, timeline, tts, voice as voice_mod)
 from pipeline import chapters as chapters_mod
 from pipeline import thumbnail as thumbnail_mod
+from pipeline import publish as publish_mod
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -240,6 +243,26 @@ def cmd_subs(args) -> int:
     return 0
 
 
+def cmd_publish(args) -> int:
+    script = schema.find_script(config.SCRIPTS_DIR, args.id)
+    platforms = [x.strip() for x in args.platforms.split(",") if x.strip()]
+    bdir = config.BUILD_DIR / script.id
+    if not args.dry:
+        publish_mod.check_publishable(script, platforms, args.confirm_public)
+        if lint.has_errors(lint.lint_all([script], publish=True)):
+            print(f"✗ lint --publish en erreur : corriger d'abord (python cli.py lint --publish {script.id})")
+            return 1
+    results = publish_mod.publish(script, bdir, platforms, dry=args.dry, force=args.force)
+    for name, result in results.items():
+        print(f"  {name} : {result}")
+    return 1 if any(r.startswith("✗") for r in results.values()) else 0
+
+
+def cmd_publish_auth(args) -> int:
+    publish_mod.youtube_authorize()
+    return 0
+
+
 def cmd_list(args) -> int:
     scripts = schema.load_all(config.SCRIPTS_DIR)
     print(f"{'id':<10} {'statut':<9} {'pilier':<6} {'hook':<14} {'~durée':>7}  {'claims ok':<9} build")
@@ -367,6 +390,20 @@ def main() -> int:
     p.add_argument("--dry", action="store_true", help="traduction factice « [ar] texte », aucun appel API")
     p.add_argument("--force", action="store_true", help="ignore le cache des traductions (payant)")
     p.set_defaults(fn=cmd_subs)
+
+    p = sub.add_parser("publish")
+    p.add_argument("id")
+    p.add_argument("--platforms", default="youtube,facebook,instagram",
+                   help="youtube,facebook,instagram (défaut : les trois ; instagram = Shorts seulement)")
+    p.add_argument("--confirm-public", action="store_true",
+                   help="obligatoire (hors --dry) : la publication est PUBLIQUE et immédiate, sans brouillon")
+    p.add_argument("--dry", action="store_true", help="affiche les textes par plateforme, aucun appel réseau")
+    p.add_argument("--force", action="store_true", help="republie même si déjà envoyé (crée un doublon)")
+    p.set_defaults(fn=cmd_publish)
+
+    p = sub.add_parser("publish-auth")
+    p.add_argument("platform", choices=["youtube"])
+    p.set_defaults(fn=cmd_publish_auth)
 
     sub.add_parser("list").set_defaults(fn=cmd_list)
 

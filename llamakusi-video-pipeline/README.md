@@ -66,4 +66,4 @@ Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` 
 
 ## Prochaines tâches
 
-Voir `DOCUMENTATION.md` § 9 (ce qui n'existe pas encore). En tête : upload YouTube en privé, génération de scripts sourcés.
+Voir `DOCUMENTATION.md` § 9 (ce qui n'existe pas encore). En tête : génération de scripts sourcés. Publication : `python cli.py publish <id> --dry` (voir DOCUMENTATION.md).

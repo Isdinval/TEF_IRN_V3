@@ -87,6 +87,13 @@ class ThumbnailInfo(BaseModel):
     pose: Optional[int] = None
 
 
+class PublishInfo(BaseModel):
+    """Textes de publication (facultatif : sinon `title` + hashtags par défaut)."""
+
+    description: Optional[str] = None
+    hashtags: list[str] = Field(default_factory=list)   # sans « # »
+
+
 class VideoScript(BaseModel):
     id: str
     format: Literal["short", "long"] = "short"
@@ -102,6 +109,7 @@ class VideoScript(BaseModel):
     blocks: list[Block]
     claims: list[Claim] = Field(default_factory=list)
     thumbnail: ThumbnailInfo = Field(default_factory=ThumbnailInfo)
+    publish: PublishInfo = Field(default_factory=PublishInfo)
 
     @model_validator(mode="after")
     def _check(self) -> "VideoScript":
