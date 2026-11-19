@@ -100,18 +100,20 @@ class GeoScene:
         self.u = min(W, H) / 1080                                   # échelle des traits et des rayons
         U = rng.uniform
         gold, rose, core = _hex3(g["gold"]), _hex3(g["rose"]), _hex3(g["core"])
-        self.gold, self.rose = gold, rose
+        self.gold, self.rose, self.core = gold, rose, core
         self.polys = []
+        cells = [(c, r) for r in range(3) for c in range(3)]      # grille 3×3 jitterée : formes réparties
+        rng.shuffle(cells)
         for i in range(g["poly"]):
-            n = int(rng.choice([3, 4, 5, 5, 6]))
+            n = int(rng.choice([3, 4, 4, 5, 6, 6, 8]))
             r = U(150, 340) * self.u
             ang = [2 * np.pi * k / n + U(-0.35, 0.35) for k in range(n)]
             rad = [r * U(0.7, 1.15) for _ in range(n)]
             self.polys.append({
-                "c": (U(0.05, 0.95) * W, U(0.04, 0.96) * H), "ang": ang, "rad": rad, "th0": U(0, 2 * np.pi),
+                "c": ((cells[i][0] + U(0.1, 0.9)) / 3 * W, (cells[i][1] + U(0.1, 0.9)) / 3 * H), "ang": ang, "rad": rad, "th0": U(0, 2 * np.pi),
                 "amp": np.radians(U(5, 12)), "rc": int(rng.choice([1, 2, 3])), "rp": U(0, 2 * np.pi),
                 "ax": U(0.02, 0.06) * W, "ay": U(0.02, 0.05) * H, "dc": int(rng.choice([1, 2])), "dp": U(0, 2 * np.pi),
-                "col": rose if i % 4 == 3 else gold, "a": int(U(*g["poly_alpha"]))})
+                "col": rose if i % 4 == 3 else gold, "tw": int(rng.choice([1, 1, 2, 2, 0])), "ring": i % 4 == 2, "a": int(U(*g["poly_alpha"]))})
         self.orbs = []
         for j in range(g["orbs"]):
             halo = rose if j % 5 == 4 else gold
@@ -147,8 +149,23 @@ class GeoScene:
             th = p["th0"] + p["amp"] * np.sin(p["rc"] * pt + p["rp"])
             cx = p["c"][0] + p["ax"] * np.sin(p["dc"] * pt + p["dp"])
             cy = p["c"][1] + p["ay"] * np.cos(p["dc"] * pt + p["dp"])
-            pts = [(cx + r * np.cos(a + th), cy + r * np.sin(a + th)) for a, r in zip(p["ang"], p["rad"])]
-            d.line(pts + [pts[0]], fill=p["col"] + (p["a"],), width=lw, joint="curve")
+            col, a = p["col"], p["a"]
+            if p["ring"]:                                           # anneaux concentriques
+                r = float(np.mean(p["rad"]))
+                for k, f in ((1.0, 1.0), (0.78, 0.7)):
+                    d.ellipse((cx - r * k, cy - r * k, cx + r * k, cy + r * k), outline=col + (int(a * f),), width=lw)
+                continue
+            def poly(dx, dy, sc, rot, alpha):
+                pts = [(cx + dx + sc * r * np.cos(an + rot), cy + dy + sc * r * np.sin(an + rot)) for an, r in zip(p["ang"], p["rad"])]
+                d.line(pts + [pts[0]], fill=col + (int(alpha),), width=lw, joint="curve")
+                return pts
+            pts = poly(0, 0, 1.0, th, a)
+            if p["tw"] == 1:                                        # jumeau intérieur, tourne en sens inverse
+                poly(0, 0, 0.62, -th * 1.4, a * 0.75)
+            elif p["tw"] == 2:                                      # jumeau décalé (effet « double »)
+                poly(16 * u, 11 * u, 1.0, th, a * 0.55)
+            for x, y in pts:                                        # sommets : petits points brillants
+                d.ellipse((x - 2.6 * u, y - 2.6 * u, x + 2.6 * u, y + 2.6 * u), fill=self.core + (190,))
         pos = [(o["p"][0] + o["amp"][0] * np.sin(o["cx"] * pt + o["ph"][0]),
                 o["p"][1] + o["amp"][1] * np.cos(o["cy"] * pt + o["ph"][1])) for o in self.orbs]
         link = 0.30 * max(W, H)
@@ -161,11 +178,23 @@ class GeoScene:
             y = (q["y0"] - q["k"] * H * t / max(duration, 0.1)) % H
             a = int(q["a"] * (0.65 + 0.35 * np.sin(q["tc"] * pt + q["ph"])))
             d.ellipse((q["x"] - q["r"], y - q["r"], q["x"] + q["r"], y + q["r"]), fill=q["col"] + (a,))
+        small = lay.resize((W // 4, H // 4), Image.BILINEAR).filter(ImageFilter.GaussianBlur(2.4))
+        glow = small.resize((W, H), Image.BICUBIC)                  # halo lumineux autour des traits
+        ga = np.clip(np.asarray(glow.getchannel("A"), dtype=np.float32) * g["glow"], 0, 255) * self.calm
+        glow.putalpha(Image.fromarray(ga.astype(np.uint8)))
         lay = lay.filter(ImageFilter.GaussianBlur(0.6 * u + 0.2))   # anti-crénelage des traits
         a = np.asarray(lay.getchannel("A"), dtype=np.float32) * self.calm
         lay.putalpha(Image.fromarray(a.astype(np.uint8)))
         img = self.base.copy()
+        # balayage de lumière : bande diagonale douce qui traverse l'écran (1 passage par boucle)
+        lw_, lh_ = W // 6, H // 6
+        yy, xx = np.mgrid[0:lh_, 0:lw_].astype(np.float32)
+        proj = (xx / lw_ * 0.6 + yy / lh_ * 0.8)
+        band = np.exp(-(((proj - (-0.3 + 1.6 * (t / max(duration, 0.1)))) / 0.07) ** 2)) * g["sweep"]
+        sw = np.zeros((lh_, lw_, 4), np.uint8); sw[..., :3] = self.core; sw[..., 3] = np.clip(band * 255, 0, 255)
+        img.alpha_composite(glow)
         img.alpha_composite(lay)
+        img.alpha_composite(Image.fromarray(sw, "RGBA").resize((W, H), Image.BICUBIC))
         for o, (x, y) in zip(self.orbs, pos):                       # orbes : par-dessus, avec scintillement
             tw = 0.65 + 0.35 * np.sin(o["tc"] * pt + o["ph"][2])
             spr = Image.fromarray(np.dstack([o["rgb"], (o["alpha"] * tw * 255).astype(np.uint8)]), "RGBA")
