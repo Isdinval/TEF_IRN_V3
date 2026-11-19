@@ -104,7 +104,7 @@ PROFILES = {
             "brand_align": "center", "brand_x": 540, "brand_y": 175, "brand_size": 50,
             "overlay_cy": 300,       # badge d'accroche (centre vertical)
             "card_y": 390, "card_max_h": 640,
-            "subs_cy": 1105, "subs_size": 70,
+            "subs_cy": 1105, "subs_size": 70, "progress_y": 96,
             "mascot_cx": 540, "mascot_bottom": 1580, "mascot_h": 420,   # centrée, sous les sous-titres
             "cta_cx": 540, "cta_cy": 1630, "cta_max_w": 900,           # pill « Lien en bio »
         },
@@ -116,7 +116,7 @@ PROFILES = {
             "brand_align": "left", "brand_x": 96, "brand_y": 98, "brand_size": 40,
             "overlay_cy": 110,       # non prévu en 16:9 (le lint prévient)
             "card_y": 150, "card_max_h": 690,
-            "subs_cy": 930, "subs_size": 66,
+            "subs_cy": 930, "subs_size": 66, "progress_y": 0,
             "mascot_cx": 1562, "mascot_bottom": 900, "mascot_h": 560,
             "cta_cx": 1562, "cta_cy": 960, "cta_max_w": 520,
         },
@@ -149,7 +149,7 @@ def profile_signature() -> str:
     """Empreinte du profil actif (sert à invalider le cache des calques PNG quand la mise en page change)."""
     import json
     return json.dumps({"fmt": ACTIVE_PROFILE, "W": W, "H": H, "cw": CONTENT_W, "x0": CONTENT_X0, "cx": CONTENT_CX,
-                       "subs": SUBS_MAX_W, "layout": LAYOUT}, sort_keys=True)
+                       "subs": SUBS_MAX_W, "layout": LAYOUT, "style": STYLE_VERSION}, sort_keys=True)
 
 
 use_profile("short")
@@ -160,41 +160,46 @@ ARROW_CYCLE_S = 0.9          # durée d'un rebond
 ARROW_PHASES = 18            # images distinctes par rebond (18 → 20 i/s)
 
 # --- Palette (tokens du design system / globals.css) -------------------------
+# Charte « émeraude / or / rose » (inspirée de l'artefact The New York Tower) : fond sombre, cartes crème.
+STYLE_VERSION = "2026-11-emerald-gold"   # à changer quand la charte évolue (invalide le cache des calques)
 COLORS = {
-    "bg": "#09090B",         # zinc-950
-    "card": "#FFFFFF",
-    "ink": "#18181B",        # zinc-900
-    "ink2": "#52525B",       # zinc-600
-    "muted": "#A1A1AA",      # zinc-400
-    "line": "#E4E4E7",       # zinc-200
-    "soft": "#F4F4F5",       # zinc-100
-    "gold": "#F2C94C",       # --brand-gold (mode sombre, globals.css)
-    "gold_soft": "#FEF6D8",
-    "white": "#FFFFFF",
+    "bg": "#0A100C",         # noir émeraude
+    "card": "#FFFEF8",       # crème (cartes)
+    "ink": "#14201A",
+    "ink2": "#55604F",
+    "muted": "#8F9988",
+    "line": "#D9CFAE",
+    "soft": "#F0E9D2",
+    "gold": "#E0B955",       # sous-titres actifs, badge, contours de cartes
+    "gold_soft": "#FBF3D9",
+    "white": "#F7F3E6",      # blanc chaud
     "black": "#000000",
+    "pill": "#17241C",       # CTA « Lien en bio »
 }
+# L'accent ne distingue plus les produits par une teinte dominante : il colore la pastille du logo,
+# le liseré des cartes et les rôles du texte annoté. Les clés `indigo`/`blue`/`gold` sont conservées (scripts YAML).
 ACCENTS = {
-    "indigo": "#4F46E5",     # indigo-600 : TEF IRN
-    "blue": "#2563EB",       # blue-600 : Examen Civique
-    "gold": "#F2C94C",
+    "indigo": "#A63D63",     # rose profond : TEF IRN (aplats sous texte clair)
+    "blue": "#0B7A58",       # émeraude : Examen Civique
+    "gold": "#E0B955",
 }
-ACCENT_BAR = {"indigo": "#6366F1", "blue": "#3B82F6", "gold": "#F2C94C"}  # -500
+ACCENT_BAR = {"indigo": "#E08AA8", "blue": "#5FCB9A", "gold": "#E0B955"}  # versions claires (liseré, pastille)
 
 # --- Fond animé (background.py) : halos flous qui dérivent lentement, volontairement peu contrastés ----
 # (couleur, intensité 0-1, centre x, centre y, rayon d'orbite x, y, cycles/vidéo, phase, sigma)
 BG_PALETTES = {
-    "indigo": {"base": "#08080F", "blobs": [
-        ("#4F46E5", 0.34, 0.25, 0.28, 0.16, 0.10, 1, 0.0, 0.34),
-        ("#7C3AED", 0.24, 0.80, 0.62, 0.14, 0.12, 1, 2.1, 0.36),
-        ("#0EA5E9", 0.16, 0.45, 0.92, 0.18, 0.06, 2, 4.0, 0.32)]},
-    "blue": {"base": "#070A12", "blobs": [
-        ("#2563EB", 0.34, 0.75, 0.25, 0.16, 0.10, 1, 0.5, 0.34),
-        ("#0EA5E9", 0.20, 0.20, 0.60, 0.14, 0.12, 1, 2.6, 0.36),
-        ("#4F46E5", 0.18, 0.55, 0.92, 0.18, 0.06, 2, 4.4, 0.32)]},
-    "gold": {"base": "#0B0A09", "blobs": [
-        ("#4F46E5", 0.26, 0.22, 0.30, 0.16, 0.10, 1, 1.0, 0.36),
-        ("#B8892A", 0.20, 0.82, 0.58, 0.14, 0.12, 1, 3.0, 0.34),
-        ("#7C3AED", 0.14, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.32)]},
+    "indigo": {"base": "#0A100C", "blobs": [          # TEF IRN : or + rose sur émeraude
+        ("#C9A24A", 0.24, 0.25, 0.28, 0.16, 0.10, 1, 0.0, 0.36),
+        ("#E08AA8", 0.18, 0.80, 0.62, 0.14, 0.12, 1, 2.1, 0.38),
+        ("#1F7A52", 0.42, 0.45, 0.92, 0.18, 0.06, 2, 4.0, 0.38)]},
+    "blue": {"base": "#08110F", "blobs": [            # Examen Civique : or + émeraude, rose discret
+        ("#C9A24A", 0.22, 0.75, 0.25, 0.16, 0.10, 1, 0.5, 0.36),
+        ("#2E8B73", 0.38, 0.20, 0.60, 0.14, 0.12, 1, 2.6, 0.38),
+        ("#E08AA8", 0.12, 0.55, 0.92, 0.18, 0.06, 2, 4.4, 0.34)]},
+    "gold": {"base": "#0C0D09", "blobs": [
+        ("#C9A24A", 0.28, 0.22, 0.30, 0.16, 0.10, 1, 1.0, 0.38),
+        ("#E08AA8", 0.16, 0.82, 0.58, 0.14, 0.12, 1, 3.0, 0.36),
+        ("#1F7A52", 0.36, 0.45, 0.92, 0.18, 0.06, 2, 5.0, 0.36)]},
 }
 # --- Fond vidéo par défaut : boucles parfaites (ex. Pixabay) déposées dans assets/backgrounds/ ---------
 # Fichiers <préfixe>-01.mp4, -02.mp4… : rotation par numéro de script (short-03 → 3e boucle). Lues en boucle
@@ -202,6 +207,20 @@ BG_PALETTES = {
 # BG_SHORT / BG_LONG dans .env : force UN fichier pour tous les scripts du format (désactive la rotation).
 DEFAULT_BG_PREFIX = {"short": "short-loop", "long": "long-loop"}
 DEFAULT_BG_FORCED = {"short": env("BG_SHORT", ""), "long": env("BG_LONG", "")}
+BG_USE_LOOPS = env("BG_USE_LOOPS", "0") == "1"     # 1 = reprendre la rotation des boucles de assets/backgrounds/ (ancien fond)
+
+# --- Poussière dorée (background.py) : bokeh doux qui monte lentement, périodique → raccord invisible ----
+BG_DUST_COUNT = int(env("BG_DUST_COUNT", "38"))
+BG_DUST_COLORS = ("#E8CE8A", "#E8CE8A", "#E8CE8A", "#E08AA8")   # ~1 grain sur 4 en rose
+
+# --- Barre de progression dorée → rose (assemble.py) ; PROGRESS_BAR=0 pour la désactiver ---------------
+PROGRESS_BAR = env("PROGRESS_BAR", "1") != "0"
+PROGRESS_H = 8
+PROGRESS_COLORS = ("#E8CE8A", "#C9A24A", "#E08AA8")
+
+# --- Cartes : halo doré derrière la carte ---------------------------------------------------------
+CARD_GLOW_ALPHA = 70
+CARD_GLOW_BLUR = 28
 BG_VIDEO_DIM = float(env("BG_VIDEO_DIM", "0.70"))   # luminosité du fond (1 = brut) : lisibilité carte/sous-titres
 
 # --- Premier plan vivant (assemble.py) : amplitudes en px, durées en s -----------------------------------
@@ -234,10 +253,11 @@ MASCOT_URL_BASE = (
     "https://jksrmyyfllitrkarvgvk.supabase.co/storage/v1/object/public/grammar-check"
 )
 
-FONT_FILES = {"montserrat": "Montserrat.ttf", "inter": "Inter.ttf"}
+FONT_FILES = {"montserrat": "Montserrat.ttf", "inter": "Inter.ttf", "cormorant": "CormorantGaramond.ttf"}
 FONT_URLS = {
     "Montserrat.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf",
     "Inter.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+    "CormorantGaramond.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
 }
 
 # --- Lint --------------------------------------------------------------------
@@ -267,6 +287,8 @@ def resolve_default_background(fmt: str, script_id: str) -> Path | None:
 
     if DEFAULT_BG_FORCED[fmt]:
         return resolve_background(DEFAULT_BG_FORCED[fmt])
+    if not BG_USE_LOOPS:
+        return None
     loops = sorted(BACKGROUNDS_DIR.glob(f"{DEFAULT_BG_PREFIX[fmt]}*.mp4"))
     if not loops:
         return None

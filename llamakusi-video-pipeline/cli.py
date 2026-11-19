@@ -179,7 +179,7 @@ def cmd_build(args) -> int:
         bg_loop = True
         bg_period = bg_dur if script.format == "short" else None   # Short : raccord exact fin → début
     else:
-        print(f"  ⚠ pas de boucle par défaut ({config.DEFAULT_BG_PREFIX[script.format]}-01.mp4… dans assets/backgrounds/) : fond de halos généré")
+        print("  [fond] généré : aurore or/rose + poussière dorée (BG_USE_LOOPS=1 pour la rotation des boucles de assets/backgrounds/)")
         print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
         bg = background.generate(bdir, script.accent, tl["duration"])
         bg_loop = background.is_loop(tl["duration"])

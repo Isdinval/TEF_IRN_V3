@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import features as _pil_features
 
 from . import config
 from .config import COLORS, LAYOUT
@@ -41,6 +42,11 @@ def font(family: str, size: int, weight: int) -> ImageFont.FreeTypeFont:
             values.append(axis["default"])
     f.set_variation_by_axes(values)
     return f
+
+
+def _features(family: str):
+    """Chiffres alignés (lnum) pour Cormorant (chiffres elzéviriens par défaut : « B1 » serait illisible) ; None sans raqm."""
+    return ["lnum"] if family == "cormorant" and _pil_features.check("raqm") else None
 
 
 def canvas() -> Image.Image:
@@ -84,7 +90,7 @@ def render_brand(accent: str) -> Image.Image:
     x = LAYOUT["brand_x"] - (total / 2 if LAYOUT["brand_align"] == "center" else 0)
     y = LAYOUT["brand_y"]
     cy = y - 18 * k
-    d.ellipse((x, cy - dot / 2, x + dot, cy + dot / 2), fill=rgb(config.ACCENTS[accent]))
+    d.ellipse((x, cy - dot / 2, x + dot, cy + dot / 2), fill=rgb(config.ACCENT_BAR[accent]))
     _tracked(d, (x + dot + gap, y), text, fnt, rgb(COLORS["white"], 235), tracking)
     return img
 
@@ -116,7 +122,7 @@ def _pill(img: Image.Image, cx: int, cy: int, text: str, fnt_family: str, size: 
     text = text.upper() if upper else text
     while True:
         fnt = font(fnt_family, size, weight)
-        w = fnt.getlength(text)
+        w = fnt.getlength(text, features=_features(fnt_family))
         if w + 2 * pad_x + reserve_right <= max_w or size <= 24:
             break
         size -= 4
@@ -126,7 +132,7 @@ def _pill(img: Image.Image, cx: int, cy: int, text: str, fnt_family: str, size: 
     td = ImageDraw.Draw(tile)
     td.rounded_rectangle((0, 0, tw * S - 1, th * S - 1), radius=th * S // 2, fill=rgb(fill))
     td.text(((pad_x + w / 2) * S, th * S / 2), text, font=font(fnt_family, size * S, weight),
-            fill=rgb(ink), anchor="mm")
+            fill=rgb(ink), anchor="mm", features=_features(fnt_family))
     tile = tile.resize((tw, th), Image.LANCZOS)
     left, top = int(cx - tw / 2), int(cy - th / 2)
     img.alpha_composite(tile, (left, top))
@@ -136,7 +142,7 @@ def _pill(img: Image.Image, cx: int, cy: int, text: str, fnt_family: str, size: 
 def render_overlay(text: str) -> Image.Image:
     """Gros badge d'accroche (fond doré, texte sombre)."""
     img = canvas()
-    _pill(img, config.CONTENT_CX, LAYOUT["overlay_cy"], text, "montserrat", 84, 900,
+    _pill(img, config.CONTENT_CX, LAYOUT["overlay_cy"], text, "cormorant", 104, 700,
           COLORS["gold"], COLORS["ink"], 48, 26, config.CONTENT_W)
     return img
 
@@ -149,7 +155,7 @@ def render_cta(text: str, arrow: bool = False) -> Image.Image:
     `arrow=True` réserve à droite la place de la flèche animée (voir render_cta_arrow)."""
     img = canvas()
     _pill(img, LAYOUT["cta_cx"], LAYOUT["cta_cy"], text, "montserrat", 32, 900,
-          "#27272A", COLORS["white"], _CTA_PAD_X, 18, LAYOUT["cta_max_w"], upper=True,
+          COLORS["pill"], COLORS["white"], _CTA_PAD_X, 18, LAYOUT["cta_max_w"], upper=True,
           reserve_right=config.ARROW_SLOT if arrow else 0)
     return img
 
@@ -182,14 +188,14 @@ def render_chapter(index: int, title: str) -> Image.Image:
     d = ImageDraw.Draw(img)
     right = config.W - LAYOUT["brand_x"]
     max_w = config.W - 2 * LAYOUT["brand_x"] - 520                   # laisse la place du logo à gauche
-    size = 38
-    while size > 26 and font("montserrat", size, 800).getlength(title) > max_w:
+    size = 46
+    while size > 30 and font("cormorant", size, 700).getlength(title, features=_features("cormorant")) > max_w:
         size -= 2
     label = f"CHAPITRE {index}"
     lf = font("montserrat", 20, 900)
     lw = sum(lf.getlength(c) for c in label) + 4 * (len(label) - 1)
     _tracked(d, (right - lw, LAYOUT["brand_y"] - 44), label, lf, rgb(COLORS["gold"]), 4)
-    d.text((right, LAYOUT["brand_y"]), title, font=font("montserrat", size, 800), anchor="rs",
+    d.text((right, LAYOUT["brand_y"]), title, font=font("cormorant", size, 700), anchor="rs", features=_features("cormorant"),
            fill=rgb(COLORS["white"], 235))
     return img
 
@@ -237,13 +243,38 @@ def _card_base(w: int, h: int, accent: str, S: int) -> tuple[Image.Image, ImageD
     r = 52 * S                                      # rounded-3xl (à l'échelle du 1080 px)
     d.rounded_rectangle((0, 0, w * S - 1, h * S - 1), radius=r, fill=rgb(config.ACCENT_BAR[accent]))
     d.rounded_rectangle((0, 8 * S, w * S - 1, h * S - 1), radius=r, fill=rgb(COLORS["card"]))
+    d.rounded_rectangle((0, 0, w * S - 1, h * S - 1), radius=r, outline=rgb(COLORS["gold"], 220), width=3 * S)
     return tile, d
+
+
+def _glow(img: Image.Image, x: int, y: int, w: int, h: int) -> None:
+    """Halo doré diffus derrière la carte (calcul limité à la zone utile)."""
+    pad = 80
+    box = (max(0, x - pad), max(0, y - pad), min(config.W, x + w + pad), min(config.H, y + h + pad))
+    layer = Image.new("RGBA", (box[2] - box[0], box[3] - box[1]), (0, 0, 0, 0))
+    ImageDraw.Draw(layer).rounded_rectangle((x - box[0], y - box[1], x - box[0] + w, y - box[1] + h), radius=52,
+                                            fill=rgb(COLORS["gold"], config.CARD_GLOW_ALPHA))
+    img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(config.CARD_GLOW_BLUR)), box[:2])
+
+
+def render_progress() -> Image.Image:
+    """Barre de progression pleine largeur (dégradé or → rose), que assemble fait glisser de gauche à droite."""
+    img = Image.new("RGBA", (config.W, config.PROGRESS_H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    stops = [tuple(rgb(c)[:3]) for c in config.PROGRESS_COLORS]
+    for x in range(config.W):
+        u = x / max(1, config.W - 1) * (len(stops) - 1)
+        i = min(int(u), len(stops) - 2)
+        f = u - i
+        d.line((x, 0, x, config.PROGRESS_H), fill=tuple(round(a + (b - a) * f) for a, b in zip(stops[i], stops[i + 1])) + (255,))
+    return img
 
 
 def _paste_card(tile: Image.Image, w: int, h: int) -> Image.Image:
     img = canvas()
     tile = tile.resize((w, h), Image.LANCZOS)
     y = LAYOUT["card_y"] + max(0, (LAYOUT["card_max_h"] - h) // 2)
+    _glow(img, config.CONTENT_X0, y, w, h)
     img.alpha_composite(tile, (config.CONTENT_X0, y))
     return img
 

@@ -205,7 +205,11 @@ llamakusi-video-pipeline/
 
 ### `pipeline\config.py` (mise en page et look)
 - `PROFILES` : **un profil de mise en page par format** (`short` 1080×1920 centré sur x = 540 ; `long` 1920×1080, cartes à gauche, mascotte à droite). `LAYOUT` (positions du logo, badge, carte, sous-titres, mascotte, CTA) est le profil actif ; on règle les positions dans `PROFILES[...]["layout"]`. Le format du script (`format: short|long`) choisit le profil automatiquement.
-- `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`).
+- `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`) — charte 2026 « émeraude / or / rose » (noir émeraude, halos or + rose, cartes crème).
+- `BG_USE_LOOPS=1` : réactive la rotation des boucles de `assets/backgrounds/` (par défaut : fond généré = aurore + poussière dorée `BG_DUST_COUNT`).
+- `PROGRESS_BAR=0` : désactive la barre de progression or → rose (haut de l'image ; `progress_y` dans les profils).
+- `STYLE_VERSION` : à changer quand la charte visuelle évolue (invalide le cache des calques PNG).
+- Titres d'accroche et de chapitre en Cormorant Garamond (`python cli.py fetch-assets` la télécharge) ; sous-titres inchangés (Montserrat).
 - `DEFAULT_BG_PREFIX` / `BG_VIDEO_DIM` : préfixe des boucles de fond par défaut et leur luminosité (`BG_SHORT`, `BG_LONG`, `BG_VIDEO_DIM` dans `.env`).
 - `FG_*` : amplitudes (px) et durées (s) du premier plan vivant — à baisser si l'image bouge trop, à 0 pour couper un effet.
   Pour un fond plus discret, baisser les intensités (2ᵉ valeur de chaque ligne) ; plus présent, les augmenter.

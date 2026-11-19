@@ -28,6 +28,7 @@ def test_prepare_loop_crops_and_keeps_full_duration(tmp_path, monkeypatch):
 
 
 def test_default_background_rotation(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "BG_USE_LOOPS", True)                            # rotation = opt-in (BG_USE_LOOPS=1)
     monkeypatch.setattr(config, "BACKGROUNDS_DIR", tmp_path)
     monkeypatch.setitem(config.DEFAULT_BG_FORCED, "short", "")
     assert config.resolve_default_background("short", "short-01") is None        # aucun fichier

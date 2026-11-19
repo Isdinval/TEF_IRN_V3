@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import config
+from . import config, layers
 from .audio import run
 from .timeline import TRACK_ORDER
 
@@ -78,6 +78,14 @@ def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None =
         k = max(1, round(total / bg_period))
         filters.append(f"[0:v]setpts=PTS*{total / (k * bg_period):.6f},fps={config.FPS}[bg]")
         last = "[bg]"
+    if config.PROGRESS_BAR:       # barre de progression : glisse de -w (t=0) à 0 (fin) ; sous les autres calques
+        pb = build_dir / f"progress_{config.W}x{config.H}.png"
+        layers.render_progress().save(pb)
+        inputs += ["-loop", "1", "-framerate", str(config.FPS), "-i", str(pb)]
+        filters.append(f"[{idx}:v]format=rgba[pb]")
+        filters.append(f"{last}[pb]overlay=x='-w+w*t/{total:.5f}':y={config.LAYOUT['progress_y']}:format=yuv444[v{idx}]")
+        last = f"[v{idx}]"
+        idx += 1
     for name in TRACK_ORDER:
         segs = timeline["tracks"].get(name, [])
         if not segs:

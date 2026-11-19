@@ -1,4 +1,4 @@
-"""Fond animé : halos de couleur floutés qui dérivent lentement + vignettage + anti-banding.
+"""Fond animé : halos de couleur floutés qui dérivent lentement + poussière dorée (bokeh) + vignettage + anti-banding.
 
 Choix : calcul numpy en BASSE résolution (216×384), envoyé à ffmpeg qui agrandit en bicubique
 (donc flou naturel, pas de détails qui attirent l'œil) puis applique `gradfun` (anti-banding).
@@ -21,6 +21,21 @@ def _rgb(hex_color: str) -> np.ndarray:
     return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.float32) / 255.0
 
 
+def _dust(accent: str) -> list[tuple]:
+    """Grains de poussière dorée (déterministes par accent) : (x, y0, vitesse, sigma, intensité, cycles, phase, couleur)."""
+    import zlib
+    rng = np.random.default_rng(zlib.crc32(accent.encode("utf-8")))
+    colors = config.BG_DUST_COLORS
+    out = []
+    for i in range(config.BG_DUST_COUNT):
+        sigma = float(rng.uniform(0.008, 0.030))
+        amp = float(rng.uniform(0.10, 0.30)) * (0.012 / sigma) ** 0.5       # gros grain = plus doux
+        out.append((float(rng.uniform(0.04, 0.96)), float(rng.uniform()), int(rng.integers(1, 4)), sigma,
+                    min(amp, 0.34), int(rng.integers(4, 10)), float(rng.uniform(0, 2 * math.pi)),
+                    _rgb(colors[i % len(colors)])))
+    return out
+
+
 def frame_at(accent: str, t: float, duration: float) -> np.ndarray:
     """Image RGB uint8 (LOW_H, LOW_W, 3) du fond à l'instant t (LOW_* = profil actif)."""
     LOW_W, LOW_H = config.BG_LOW
@@ -34,6 +49,16 @@ def frame_at(accent: str, t: float, duration: float) -> np.ndarray:
         by = (cy + ry * math.cos(cycles * phase_t + phase)) * (LOW_H / LOW_W)
         g = np.exp(-(((x - bx) ** 2 + (y - by) ** 2) / (2 * sigma ** 2)))
         img += (g * strength)[..., None] * _rgb(color)
+    cols, rows = np.arange(LOW_W, dtype=np.float32) / (LOW_W - 1), np.arange(LOW_H, dtype=np.float32) / (LOW_H - 1)
+    for px, py0, k, sigma, amp, cycles, phase, color in _dust(accent):    # tous les mouvements : cycles ENTIERS
+        cx = px + 0.015 * math.sin(phase_t + phase)
+        cy = (py0 - k * t / max(duration, 0.1)) % 1.0                    # monte, puis ré-entre par le bas
+        gx = np.exp(-0.5 * ((cols - cx) / sigma) ** 2)
+        gy = np.exp(-0.5 * ((((rows - cy + 0.5) % 1.0) - 0.5) / (sigma * LOW_W / LOW_H)) ** 2)
+        ri, ci = np.nonzero(gy > 0.02)[0], np.nonzero(gx > 0.02)[0]
+        if ri.size and ci.size:
+            tw = 0.65 + 0.35 * math.sin(cycles * phase_t + phase)         # scintillement
+            img[np.ix_(ri, ci)] += (amp * tw * np.outer(gy[ri], gx[ci]))[..., None] * color
     r2 = ((xs / (LOW_W - 1) - 0.5) ** 2 + (ys / (LOW_H - 1) - 0.5) ** 2) / 0.5
     img *= (1.0 - 0.45 * r2)[..., None]                                # vignettage
     return (np.clip(img, 0, 1) * 255).astype(np.uint8)

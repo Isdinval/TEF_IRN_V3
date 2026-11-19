@@ -1,6 +1,7 @@
 import subprocess
 import json
 
+import numpy as np
 import pytest
 
 from pipeline import assets, background, config, layers, schema
@@ -50,3 +51,29 @@ def test_background_frames_move_but_stay_subtle():
     b = background.frame_at("blue", 6.0, 24.0).astype(int)
     assert abs(a - b).mean() > 0.2                    # ça bouge
     assert a.max() < 130                              # jamais un fond éclatant (texte/cartes restent le centre)
+
+
+def test_background_dust_is_periodic_and_visible():
+    """Poussière dorée : cycles entiers → l'image à t = durée égale celle de t = 0 (boucle invisible) ; elle éclaircit le fond."""
+    a = background.frame_at("indigo", 0.0, 12.0).astype(int)
+    b = background.frame_at("indigo", 12.0, 12.0).astype(int)
+    assert np.abs(a - b).max() <= 2
+    old = config.BG_DUST_COUNT
+    try:
+        config.BG_DUST_COUNT = 0
+        bare = background.frame_at("indigo", 0.0, 12.0).astype(int)
+    finally:
+        config.BG_DUST_COUNT = old
+    assert (a - bare).max() > 8 and (a >= bare).all()
+
+
+def test_loops_are_opt_in_and_card_has_glow(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "BACKGROUNDS_DIR", tmp_path)
+    monkeypatch.setitem(config.DEFAULT_BG_FORCED, "short", "")
+    (tmp_path / "short-loop-01.mp4").write_bytes(b"x")
+    assert config.resolve_default_background("short", "short-01") is None      # fond généré par défaut
+    monkeypatch.setattr(config, "CARD_GLOW_ALPHA", 70)                          # halo actif : déborde de la carte
+    img = layers.render_question_card({"question": "Q ?", "choices": ["a", "b", "c", "d"], "correct": "A"}, "initial", "gold")
+    solid = img.getchannel("A").point(lambda v: 255 if v > 200 else 0).getbbox()
+    full = img.getchannel("A").getbbox()
+    assert full[0] < solid[0] and full[1] < solid[1]
