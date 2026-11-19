@@ -123,7 +123,8 @@ Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approve
 | `--confirm-public` | obligatoire hors `--dry` |
 | `--force` | republie même si `build/<id>/published.json` contient déjà la plateforme (doublon) |
 
-- **YouTube** : une fois `python cli.py publish-auth youtube` (client OAuth « application de bureau »). Long : chapitres (`chapters.txt`) dans la description + `thumbnail.png|jpg` s'il existe. Un projet API non audité par YouTube laisse la vidéo **privée** (avertissement affiché).
+- **YouTube, envoi manuel (choix actuel, sans audit Google)** : `python cli.py pack <id>` écrit `build/<id>/studio.txt` (titre, description avec chapitres, hashtags) et liste `out.mp4` + `thumbnail.jpg` à importer dans YouTube Studio. L'API reste inutilisable en public tant que le projet n'a pas passé l'audit « API Services ».
+- **YouTube, API** : une fois `python cli.py publish-auth youtube` (client OAuth « application de bureau »). Long : chapitres (`chapters.txt`) dans la description + `thumbnail.png|jpg` s'il existe. Un projet API non audité par YouTube laisse la vidéo **privée** (avertissement affiché).
 - **Facebook** : Short → Reel de Page ; long → vidéo de Page. **Instagram** : Reel (envoi direct du fichier, attente du traitement).
 - Titre = `title` ; description = `publish.description` (sinon : titre + phrase de présentation selon `product` + lien llamakusi.com) + hashtags `publish.hashtags` (sinon jeu par `product`, ex. Examen Civique : `#LlamaKusi #ExamenCivique #CSP #CarteDeResident #Naturalisation`).
 - Une erreur sur une plateforme n'arrête pas les autres ; code de sortie 1 si au moins une échoue.

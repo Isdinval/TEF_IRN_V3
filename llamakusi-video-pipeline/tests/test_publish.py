@@ -166,3 +166,13 @@ def test_default_hashtags_follow_the_product(tmp_path):
     assert "#ExamenCivique" in text and "#TEFIRN" not in text
     sc.publish.description = "Ma description"
     assert publish.texts(sc, tmp_path, "youtube")["text"].startswith("Ma description")
+
+
+def test_pack_writes_studio_text(tmp_path, monkeypatch, capsys):
+    import cli
+    monkeypatch.setattr(config, "BUILD_DIR", tmp_path)
+    (tmp_path / "short-03").mkdir()
+    monkeypatch.setattr("sys.argv", ["cli.py", "pack", "short-03"])
+    assert cli.main() == 0
+    txt = (tmp_path / "short-03" / "studio.txt").read_text(encoding="utf-8")
+    assert txt.startswith("TITRE\n") and "#ExamenCivique" in txt

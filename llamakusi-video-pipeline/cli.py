@@ -258,6 +258,26 @@ def cmd_publish(args) -> int:
     return 1 if any(r.startswith("✗") for r in results.values()) else 0
 
 
+def cmd_pack(args) -> int:
+    """Envoi MANUEL (YouTube Studio) : écrit build/<id>/studio.txt (titre, description + chapitres, hashtags) et liste les fichiers."""
+    script = schema.find_script(config.SCRIPTS_DIR, args.id)
+    bdir = config.BUILD_DIR / script.id
+    t = publish_mod.texts(script, bdir, "youtube")
+    bdir.mkdir(parents=True, exist_ok=True)
+    (bdir / "studio.txt").write_text(f"TITRE\n{t['title']}\n\nDESCRIPTION\n{t['text']}\n", encoding="utf-8")
+    thumb = thumbnail_mod.thumbnail_path(bdir)
+    if script.format == "long" and not thumb.exists():
+        thumb = thumbnail_mod.save(script, bdir)
+    print(f"Titre : {t['title']}\n\n{t['text']}\n")
+    for label, path in (("Vidéo", bdir / "out.mp4"), ("Miniature", thumb if script.format == "long" else None),
+                        ("Textes", bdir / "studio.txt")):
+        if path:
+            print(f"  {label:<9}: {path}{'' if path.exists() else '  ✗ ABSENT (python cli.py build ' + script.id + ')'}")
+    if script.format == "short":
+        print("  (Short : pas de miniature personnalisée dans Studio ; choisir l'image de couverture dans la vidéo)")
+    return 0
+
+
 def cmd_publish_auth(args) -> int:
     publish_mod.youtube_authorize()
     return 0
@@ -400,6 +420,10 @@ def main() -> int:
     p.add_argument("--dry", action="store_true", help="affiche les textes par plateforme, aucun appel réseau")
     p.add_argument("--force", action="store_true", help="republie même si déjà envoyé (crée un doublon)")
     p.set_defaults(fn=cmd_publish)
+
+    p = sub.add_parser("pack", help="prépare l'envoi MANUEL dans YouTube Studio (titre, description, chapitres, fichiers)")
+    p.add_argument("id")
+    p.set_defaults(fn=cmd_pack)
 
     p = sub.add_parser("publish-auth")
     p.add_argument("platform", choices=["youtube"])
