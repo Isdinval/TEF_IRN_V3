@@ -125,7 +125,7 @@ Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approve
 
 - **YouTube** : une fois `python cli.py publish-auth youtube` (client OAuth « application de bureau »). Long : chapitres (`chapters.txt`) dans la description + `thumbnail.png|jpg` s'il existe. Un projet API non audité par YouTube laisse la vidéo **privée** (avertissement affiché).
 - **Facebook** : Short → Reel de Page ; long → vidéo de Page. **Instagram** : Reel (envoi direct du fichier, attente du traitement).
-- Titre = `title` ; description = `publish.description` (sinon titre) + hashtags `publish.hashtags` (sinon `#LlamaKusi #TEFIRN #Naturalisation`).
+- Titre = `title` ; description = `publish.description` (sinon : titre + phrase de présentation selon `product` + lien llamakusi.com) + hashtags `publish.hashtags` (sinon jeu par `product`, ex. Examen Civique : `#LlamaKusi #ExamenCivique #CSP #CarteDeResident #Naturalisation`).
 - Une erreur sur une plateforme n'arrête pas les autres ; code de sortie 1 si au moins une échoue.
 
 ### `subs` — sous-titres `.srt` multilingues

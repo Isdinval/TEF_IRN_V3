@@ -52,6 +52,7 @@ def test_texts_youtube_short_adds_shorts_tag_and_default_hashtags(short, tmp_pat
 def test_texts_instagram_caption_falls_back_to_title_without_shorts_tag(short, tmp_path):
     t = publish.texts(short, tmp_path, "instagram")
     assert t["text"].startswith(short.title) and "#Shorts" not in t["text"]
+    assert publish.SITE in t["text"]
 
 
 def test_texts_long_youtube_gets_chapters_only_on_youtube(long, tmp_path):
@@ -157,3 +158,11 @@ def test_one_platform_failing_does_not_block_the_others(short, env, tmp_path, mo
     out = publish.publish(short, bdir, ["facebook", "youtube"])
     assert out["facebook"].startswith("✗") and out["youtube"].startswith("https://youtu.be/ok")
     assert list(json.loads((bdir / "published.json").read_text())) == ["youtube"]
+
+
+def test_default_hashtags_follow_the_product(tmp_path):
+    sc = schema.find_script(config.SCRIPTS_DIR, "short-03")           # examen_civique
+    text = publish.texts(sc, tmp_path, "youtube")["text"]
+    assert "#ExamenCivique" in text and "#TEFIRN" not in text
+    sc.publish.description = "Ma description"
+    assert publish.texts(sc, tmp_path, "youtube")["text"].startswith("Ma description")

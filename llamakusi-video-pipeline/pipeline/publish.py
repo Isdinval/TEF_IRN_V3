@@ -20,7 +20,21 @@ from . import config
 from .schema import VideoScript
 
 PLATFORMS = ("youtube", "facebook", "instagram")
-DEFAULT_HASHTAGS = ["LlamaKusi", "TEFIRN", "Naturalisation"]
+SITE = "https://llamakusi.com"
+# Défauts par produit (surchargés par `publish.hashtags` / `publish.description` du script). Hashtags sans accent ni espace.
+# Jamais de promesse « gratuit » : certaines briques sont réservées aux abonnés.
+DEFAULT_HASHTAGS = {
+    "tef_irn": ["LlamaKusi", "TEFIRN", "TEF", "Naturalisation"],
+    "examen_civique": ["LlamaKusi", "ExamenCivique", "CSP", "CarteDeResident", "Naturalisation"],
+    "both": ["LlamaKusi", "TEFIRN", "ExamenCivique", "Naturalisation"],
+    "fle_bridge": ["LlamaKusi", "FLE", "Prefecture", "Naturalisation"],
+}
+DEFAULT_PITCH = {
+    "tef_irn": "Prépare le TEF IRN avec LlamaKusi : exercices et coach d'expression écrite et orale.",
+    "examen_civique": "Prépare l'examen civique (CSP, carte de résident, naturalisation) avec LlamaKusi.",
+    "both": "Prépare le TEF IRN et l'examen civique avec LlamaKusi.",
+    "fle_bridge": "Comprends le français administratif et prépare ta démarche avec LlamaKusi.",
+}
 GRAPH_VERSION = config.env("GRAPH_VERSION", "v25.0")
 GRAPH = f"https://graph.facebook.com/{GRAPH_VERSION}"
 GRAPH_VIDEO = f"https://graph-video.facebook.com/{GRAPH_VERSION}"
@@ -59,16 +73,14 @@ def _missing(platform: str) -> list[str]:
 def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
     """Titre + texte de publication d'une plateforme (description, chapitres YouTube des longs, hashtags)."""
     info = script.publish
-    tags = list(info.hashtags or DEFAULT_HASHTAGS)
-    body = info.description or ""
+    tags = list(info.hashtags or DEFAULT_HASHTAGS[script.product])
+    body = info.description or f"{script.title}\n\n{DEFAULT_PITCH[script.product]}\n{SITE}"
     if platform == "youtube":
         if script.format == "short":
             tags.append("Shorts")
         chapters = bdir / "chapters.txt"
         if script.format == "long" and chapters.exists():
             body = f"{body}\n\n{chapters.read_text(encoding='utf-8').strip()}".strip()
-    elif not body:
-        body = script.title
     text = f"{body}\n\n{' '.join('#' + t for t in tags)}".strip()
     return {"title": script.title[:100], "text": text, "tags": tags}
 
