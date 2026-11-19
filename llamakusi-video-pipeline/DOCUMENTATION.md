@@ -390,3 +390,9 @@ Règles d'ancrage :
 - Upload YouTube (en privé).
 - Boucle visuelle complète : la mascotte finit `heureux` alors que le hook commence `perplexe` (coupe visible).
 - Baisse automatique de la musique quand la voix parle (« ducking ») : aujourd'hui un niveau fixe.
+
+## Aperçu avec l'interface des réseaux sociaux
+
+`python ui_preview.py build/short-03/out.mp4 --platform all --zones` superpose une maquette (YouTube Shorts, TikTok, Reels ; YouTube pour le 16:9)
+sur une vidéo ou une image et écrit `<nom>.ui-<plateforme>.<ext>` ; `--zones` colore en rouge les zones à éviter. Maquette approximative :
+valider dans YouTube Studio.
