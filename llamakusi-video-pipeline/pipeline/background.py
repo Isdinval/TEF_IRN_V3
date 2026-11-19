@@ -128,6 +128,25 @@ class GeoScene:
         self.dust = [{"x": U(0.02, 0.98) * W, "y0": U(0, 1) * H, "k": int(rng.integers(1, 3)), "r": U(0.8, 2.4) * self.u,
                           "tc": int(rng.integers(4, 11)), "ph": U(0, 2 * np.pi), "a": U(80, 170), "col": rose if i % 6 == 5 else core}
                      for i in range(g["dust"])]
+        # maillage de facettes : grille jitterée dont chaque cellule est coupée en 2 triangles qui « respirent »
+        mc, mr = (6, 11) if H > W else (11, 6)
+        vx, vy = np.meshgrid(np.linspace(-0.05, 1.05, mc + 1), np.linspace(-0.05, 1.05, mr + 1))
+        nv = vx.size
+        self.vb = np.stack([vx.ravel() * W + U(-0.35, 0.35, nv) * W / mc, vy.ravel() * H + U(-0.35, 0.35, nv) * H / mr], 1)
+        self.vamp = np.stack([U(0.01, 0.045, nv) * W, U(0.01, 0.04, nv) * H], 1)
+        self.vph = U(0, 2 * np.pi, (nv, 2))
+        self.vcy = rng.integers(1, 3, (nv, 2))
+        self.tris = []
+        for r_ in range(mr):
+            for c_ in range(mc):
+                a_, b_, c2, d2 = r_ * (mc + 1) + c_, r_ * (mc + 1) + c_ + 1, (r_ + 1) * (mc + 1) + c_, (r_ + 1) * (mc + 1) + c_ + 1
+                for tri in ((a_, b_, d2), (a_, d2, c2)) if (r_ + c_) % 2 else ((a_, b_, c2), (b_, d2, c2)):
+                    self.tris.append((tri, U(0, 2 * np.pi), int(rng.integers(1, 4)), bool(rng.random() < 0.2)))
+        sp = max(20, round(64 * self.u))                              # grille de points (onde partant d'une origine par scène)
+        gx, gy = np.meshgrid(np.arange(sp / 2, W, sp), np.arange(sp / 2, H, sp))
+        self.gxy = np.stack([gx.ravel(), gy.ravel()], 1)
+        self.origins = [(U(0.1, 0.9) * W, U(0.1, 0.9) * H) for _ in range(3)]
+        self.scene_starts = [0.0]                                     # début de chaque scène (= bloc) : change le motif dominant
         # fond fixe : noir chaud + très léger halo or (haut gauche) et rose (bas droite) + vignettage
         lw, lh = max(2, W // 8), max(2, H // 8)
         ys, xs = np.mgrid[0:lh, 0:lw].astype(np.float32)
@@ -140,7 +159,19 @@ class GeoScene:
         cy = H * config.LAYOUT.get("subs_cy", 0) / max(1, config.H) if config.LAYOUT.get("subs_cy") else H * 0.58
         self.calm = (1 - g["calm"] * np.exp(-0.5 * ((np.arange(H, dtype=np.float32) - cy) / (0.05 * H)) ** 2))[:, None]
 
-    def render(self, t: float, duration: float):
+    _PROFILES = ((1.0, 0.45, 0.0), (0.55, 1.0, 0.0), (0.9, 0.7, 0.6))   # (maillage, grille, teinte rose) par scène
+
+    def _scene(self, t: float):
+        """(poids maillage, poids grille, teinte rose, indice d'origine) : fondu de 0,8 s à chaque changement de scène."""
+        import bisect
+        k = max(0, bisect.bisect_right(self.scene_starts, t) - 1)
+        cur, prev = self._PROFILES[k % 3], self._PROFILES[(k - 1) % 3] if k else self._PROFILES[0]
+        f = float(np.clip((t - self.scene_starts[k]) / 0.8, 0, 1))
+        f = f * f * (3 - 2 * f) if k else 1.0
+        mix = [p + (c - p) * f for p, c in zip(prev, cur)]
+        return mix[0], mix[1], mix[2], k % 3
+
+    def render(self, t: float, duration: float, level: float = 0.0):
         """Image RGB (PIL) à l'instant t ; mouvements en cycles ENTIERS sur `duration` (boucle sans à-coup)."""
         from PIL import Image, ImageDraw, ImageFilter
 
@@ -150,6 +181,10 @@ class GeoScene:
         d = ImageDraw.Draw(lay)
         far = Image.new("RGBA", (W, H), self.gold + (0,))
         df = ImageDraw.Draw(far)
+        fl = Image.new("RGBA", (W, H), self.gold + (0,))             # surfaces : polygones remplis
+        dl = ImageDraw.Draw(fl)
+        lv = level * g["react"]
+        mw, gw, tint, oi = self._scene(t)
         lw = max(1, round(g["poly_width"] * u))
         # point focal : double hexagone + anneau, lents, derrière la carte (60° de rotation = symétrie → boucle sans à-coup)
         fx, fy, fr = W / 2, 0.40 * H, 0.40 * min(W, H)
@@ -188,12 +223,38 @@ class GeoScene:
                 dd.line(pts + [pts[0]], fill=col + (int(alpha),), width=lw, joint="curve")
                 return pts
             pts = poly(0, 0, 1.0, th, a)
+            dl.polygon(pts, fill=col + (int(a * 0.10 * (1 + 0.8 * lv)),))
             if p["tw"] == 1:                                        # jumeau intérieur, tourne en sens inverse
                 poly(0, 0, 0.62, -th * 1.4, a * 0.75)
             elif p["tw"] == 2:                                      # jumeau décalé (effet « double »)
                 poly(16 * u, 11 * u, 1.0, th, a * 0.55)
             for x, y in pts:                                        # sommets : petits points brillants
                 dd.ellipse((x - 2.6 * u, y - 2.6 * u, x + 2.6 * u, y + 2.6 * u), fill=self.core + (190,))
+        # maillage de facettes (demi-résolution) : surfaces lumineuses qui respirent + arêtes fines
+        ms = Image.new("RGBA", (W // 2, H // 2), self.gold + (0,))
+        dm = ImageDraw.Draw(ms)
+        V = (self.vb + self.vamp * np.stack([np.sin(self.vcy[:, 0] * pt + self.vph[:, 0]),
+                                             np.cos(self.vcy[:, 1] * pt + self.vph[:, 1])], 1)) * 0.5
+        for (i0, i1, i2), ph, tc, is_rose in self.tris:
+            b = (0.5 + 0.5 * np.sin(tc * pt + ph)) ** 4                      # peu de facettes allumées à la fois (pas de voile uniforme)
+            colm = self.rose if (is_rose or tint > 0.5 and (i0 % 3 == 0)) else self.core   # blanc chaud : évite le voile olive
+            tri = [tuple(V[i]) for i in (i0, i1, i2)]
+            dm.polygon(tri, fill=colm + (int(np.clip((2 + 34 * b + 40 * lv * b) * g["mesh"] * mw, 0, 255)),))
+            dm.line(tri + [tri[0]], fill=colm + (int(26 * g["mesh"] * mw),), width=1)
+        ms = ms.resize((W, H), Image.BILINEAR)
+        ma = np.asarray(ms.getchannel("A"), dtype=np.float32) * self.calm
+        ms.putalpha(Image.fromarray(ma.astype(np.uint8)))
+        # grille de points : une onde part d'une origine (propre à la scène) et grossit avec la voix
+        gd = np.hypot(self.gxy[:, 0] - self.origins[oi][0], self.gxy[:, 1] - self.origins[oi][1])
+        cyc = max(1, round(duration / 10))
+        wv = 0.5 + 0.5 * np.sin(2 * np.pi * gd / (0.30 * max(W, H)) - cyc * pt)
+        amp = np.clip(wv * (0.6 + 0.9 * lv), 0, 1)
+        gcol = tuple(int(x + (y - x) * tint * 0.7) for x, y in zip(self.gold, self.rose))
+        for (x, y), am in zip(self.gxy, amp):
+            al = (22 + 135 * am) * g["grid"] * gw
+            if al > 10:
+                rr = (1.3 + 2.4 * am) * u
+                d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=gcol + (int(min(al, 255)),))
         pos = [(o["p"][0] + o["amp"][0] * np.sin(o["cx"] * pt + o["ph"][0]),
                 o["p"][1] + o["amp"][1] * np.cos(o["cy"] * pt + o["ph"][1])) for o in self.orbs]
         link = 0.30 * max(W, H)
@@ -226,7 +287,7 @@ class GeoScene:
         far.putalpha(Image.fromarray(fa.astype(np.uint8)))
         small = lay.resize((W // 4, H // 4), Image.BILINEAR).filter(ImageFilter.GaussianBlur(2.4))
         glow = small.resize((W, H), Image.BICUBIC)                  # halo lumineux autour des traits
-        ga = np.clip(np.asarray(glow.getchannel("A"), dtype=np.float32) * g["glow"], 0, 255) * self.calm
+        ga = np.clip(np.asarray(glow.getchannel("A"), dtype=np.float32) * g["glow"] * (1 + 0.7 * lv), 0, 255) * self.calm
         glow.putalpha(Image.fromarray(ga.astype(np.uint8)))
         lay = lay.filter(ImageFilter.GaussianBlur(0.6 * u + 0.2))   # anti-crénelage des traits
         a = np.asarray(lay.getchannel("A"), dtype=np.float32) * self.calm
@@ -241,39 +302,108 @@ class GeoScene:
         band2 = np.exp(-(((proj - (-0.4 + 1.95 * ((t / T + 0.5) % 1))) / 0.05) ** 2)) * g["sweep"] * 0.7   # 2e balayage rose, décalé
         sw2 = np.zeros((lh_, lw_, 4), np.uint8); sw2[..., :3] = self.rose; sw2[..., 3] = np.clip(band2 * 255, 0, 255)
         img.alpha_composite(far)
+        img.alpha_composite(ms)
+        img.alpha_composite(fl)
         img.alpha_composite(glow)
         img.alpha_composite(lay)
         img.alpha_composite(Image.fromarray(sw, "RGBA").resize((W, H), Image.BICUBIC))
         img.alpha_composite(Image.fromarray(sw2, "RGBA").resize((W, H), Image.BICUBIC))
         for o, (x, y) in zip(self.orbs, pos):                       # orbes : par-dessus, avec scintillement
             tw = 0.65 + 0.35 * np.sin(o["tc"] * pt + o["ph"][2])
-            spr = Image.fromarray(np.dstack([o["rgb"], (o["alpha"] * tw * 255).astype(np.uint8)]), "RGBA")
+            spr = Image.fromarray(np.dstack([o["rgb"], (o["alpha"] * min(1.0, tw * (0.8 + 0.5 * lv)) * 255).astype(np.uint8)]), "RGBA")
             ox, oy = int(x) - spr.width // 2, int(y) - spr.height // 2
             sx, sy = max(0, -ox), max(0, -oy)
             ex, ey = min(spr.width, W - ox), min(spr.height, H - oy)
             if ex > sx and ey > sy:
                 img.alpha_composite(spr.crop((sx, sy, ex, ey)), (ox + sx, oy + sy))
-        return img.convert("RGB")
+        img = img.convert("RGB")
+        z = 1 + 0.05 * (0.5 - 0.5 * np.cos(pt))                     # zoom lent périodique : de la vie sur tout l'écran
+        cw, ch = W / z, H / z
+        return img.resize((W, H), Image.BILINEAR, box=((W - cw) / 2, (H - ch) / 2, (W + cw) / 2, (H + ch) / 2))
 
 
-def _generate_geo(build_dir: Path, duration: float, fps: int, seed: str) -> Path:
+def _envelope(voice: Path | None, n: int, gfps: int) -> np.ndarray:
+    """Niveau de la voix (0-1) pour chacune des n images : RMS par image, normalisé, attaque rapide / relâchement lent."""
+    zeros = np.zeros(n)
+    if not voice or not Path(voice).exists():
+        return zeros
+    try:
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(voice), "-ac", "1", "-ar", "8000", "-f", "s16le", "-"],
+                             capture_output=True, check=True).stdout
+        x = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+        hop = 8000 / gfps
+        e = np.array([np.sqrt(np.mean(x[int(i * hop):int((i + 1) * hop)] ** 2)) if len(x[int(i * hop):int((i + 1) * hop)]) else 0.0
+                      for i in range(n)])
+        top = float(np.percentile(e, 95))
+        if top < 1e-3:
+            return zeros
+        e = np.clip(e / top, 0, 1)
+        for i in range(1, n):
+            e[i] = max(e[i], e[i - 1] * 0.82)
+        return e
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        return zeros
+
+
+_SCENE = None
+
+
+def _init_worker(scene) -> None:
+    global _SCENE
+    _SCENE = scene
+
+
+def _work(args) -> bytes:
+    t, duration, level = args
+    return _SCENE.render(t, duration, level).tobytes()
+
+
+def _generate_geo(build_dir: Path, duration: float, fps: int, seed: str, voice: Path | None = None,
+                  scenes: list[float] | None = None) -> Path:
+    import hashlib
+    from concurrent.futures import ProcessPoolExecutor
     gfps = max(1, min(fps, config.BG_GEO_FPS))
     n = max(1, round(duration * gfps))
     slug = "".join(c if c.isalnum() else "-" for c in seed)
-    out = build_dir / f"background_geo_{config.STYLE_VERSION}_{slug}_{config.W}x{config.H}_{n}.mp4"
+    has_voice = bool(voice and Path(voice).exists())
+    tag = hashlib.md5((repr(scenes) + (str(Path(voice).stat().st_size) if has_voice else "")).encode()).hexdigest()[:6]
+    out = build_dir / f"background_geo_{config.STYLE_VERSION}_{slug}_{tag}_{config.W}x{config.H}_{n}.mp4"
     if out.exists() and out.stat().st_size > 0:
         return out
     scene = GeoScene(seed, config.W, config.H)
+    scene.scene_starts = sorted(scenes) if scenes else [0.0]
+    levels = _envelope(voice, n, gfps) if has_voice else np.zeros(n)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{config.W}x{config.H}",
-           "-r", str(gfps), "-i", "-", "-vf", f"fps={fps},gradfun=strength={config.BG_DEBAND}:radius=32",
+           "-r", str(gfps), "-i", "-", "-vf", f"fps={fps},gradfun=strength={config.BG_DEBAND}:radius=32,noise=alls=4:allf=t",
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    nw = max(1, config.BG_WORKERS)
+    pool = None
+    if nw > 1 and n > nw:
+        try:
+            pool = ProcessPoolExecutor(nw, initializer=_init_worker, initargs=(scene,))
+        except (OSError, ValueError):
+            pool = None
     try:
-        for k in range(n):
-            proc.stdin.write(scene.render(k / gfps, duration).tobytes())
+        k, batch = 0, nw * 4
+        while k < n:                                                # images calculées en parallèle, par lots (mémoire bornée)
+            jobs = [(i / gfps, duration, float(levels[i])) for i in range(k, min(n, k + batch))]
+            try:
+                frames = list(pool.map(_work, jobs)) if pool else [scene.render(*j).tobytes() for j in jobs]
+            except Exception:  # noqa: BLE001 - processus indisponibles (environnement restreint) : repli en série
+                if pool:
+                    pool.shutdown(wait=False, cancel_futures=True)
+                pool = None
+                frames = [scene.render(*j).tobytes() for j in jobs]
+            for f in frames:
+                proc.stdin.write(f)
+            k += batch
         proc.stdin.close()
     except BrokenPipeError:
         pass
+    finally:
+        if pool:
+            pool.shutdown()
     err = proc.stderr.read().decode("utf-8", "replace")
     if proc.wait() != 0:
         out.unlink(missing_ok=True)
@@ -281,13 +411,16 @@ def _generate_geo(build_dir: Path, duration: float, fps: int, seed: str) -> Path
     return out
 
 
-def generate(build_dir: Path, accent: str, duration: float, fps: int | None = None, seed: str | None = None) -> Path:
+def generate(build_dir: Path, accent: str, duration: float, fps: int | None = None, seed: str | None = None,
+             voice: Path | None = None, scenes: list[float] | None = None) -> Path:
     """Génère (ou réutilise) le fond animé du profil actif. BG_STYLE=geo (défaut) : constellation géométrique propre à
     `seed` (id du script) ; BG_STYLE=halo : ancien fond de halos par accent.
     Au-delà de BG_LOOP_S, ne génère qu'une boucle de BG_LOOP_S s (mouvement périodique → raccord invisible)."""
     fps = fps or config.FPS
     if config.BG_STYLE == "geo":
-        return _generate_geo(build_dir, config.BG_LOOP_S if is_loop(duration) else duration, fps, seed or accent)
+        if is_loop(duration):                                        # vidéo longue : boucle générique (ni voix ni scènes)
+            return _generate_geo(build_dir, config.BG_LOOP_S, fps, seed or accent)
+        return _generate_geo(build_dir, duration, fps, seed or accent, voice=voice, scenes=scenes)
     if is_loop(duration):
         duration = config.BG_LOOP_S
     n = max(1, round(duration * fps))

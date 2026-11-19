@@ -122,7 +122,7 @@ PROFILES = {
         },
     },
 }
-BG_LOOP_S = 30.0             # fond des vidéos longues : boucle de 30 s répétée (calcul et poids divisés par ~12)
+BG_LOOP_S = 75.0             # fond des vidéos longues : boucle de 30 s répétée (calcul et poids divisés par ~12)
 
 W, H = 1080, 1920
 CONTENT_W = CONTENT_X0 = CONTENT_CX = SUBS_MAX_W = 0
@@ -213,12 +213,15 @@ BG_USE_LOOPS = env("BG_USE_LOOPS", "0") == "1"     # 1 = reprendre la rotation d
 # Grands polygones en traits fins qui dérivent + orbes lumineux reliés par de fins traits + poussière nette.
 # Tout est périodique (cycles entiers) → raccord invisible ; la disposition dépend de l'id du script (seed).
 BG_STYLE = env("BG_STYLE", "geo")
+BG_WORKERS = int(env("BG_WORKERS", str(min(os.cpu_count() or 1, 8))))   # processus pour calculer les images du fond
 BG_GEO_FPS = int(env("BG_GEO_FPS", "15"))            # images/s calculées (dupliquées à FPS) : mouvements lents, coût / 2
 GEO = {
     "base": "#0A0D0B", "glow_gold": "#C9A24A", "glow_rose": "#E08AA8",
     "gold": "#D9B65E", "rose": "#E08AA8", "core": "#FFF4D6",
-    "poly": 14, "poly_alpha": (90, 135), "poly_width": 3,    # traits fins, 25-40 % d'opacité (px pour 1080 de large)
-    "orbs": 18, "link_alpha": 46, "dust": 90, "stars": 3,
+    "poly": 14, "poly_alpha": (120, 170), "poly_width": 4,    # traits fins, 25-40 % d'opacité (px pour 1080 de large)
+    "orbs": 18, "link_alpha": 70, "dust": 90, "stars": 3, "mesh": 1.0, "grid": 1.0,       # maillage de facettes / grille de points en onde (x intensité)
+    "react": 1.0,                                          # réactivité à la voix (0 = fond indépendant de la voix)
+   
     "calm": 0.55,
     "glow": 2.4, "sweep": 0.10,                          # intensité de la lueur des traits / du balayage de lumière                                          # atténuation des traits derrière les sous-titres (0 = aucune)
 }
