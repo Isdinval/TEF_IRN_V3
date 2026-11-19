@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from dataclasses import asdict
@@ -188,8 +189,24 @@ def cmd_build(args) -> int:
                     preset="veryfast" if args.dry else "medium", background=bg,
                     loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
+    if not args.no_preview:
+        _social_previews(out, script.format, bdir)
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
     return 0
+
+
+def _social_previews(video: Path, fmt: str, bdir: Path) -> None:
+    """Aperçus avec l'interface des réseaux (short : YouTube, TikTok, Instagram ; long : YouTube), en taille réduite ;
+    ouvre le premier dans le lecteur par défaut sous Windows."""
+    import ui_preview
+    plats = ui_preview.PLATFORMS if fmt == "short" else ("youtube",)
+    outs = []
+    for p in plats:
+        print(f"[aperçu] interface {p}…")
+        outs.append(ui_preview.render(video, p, False, bdir / f"{video.stem}.ui-{p}.mp4", width=540 if fmt == "short" else 960))
+        print(f"✓ {outs[-1]}")
+    if hasattr(os, "startfile"):
+        os.startfile(outs[0])
 
 
 def cmd_subs(args) -> int:
@@ -320,6 +337,7 @@ def main() -> int:
     p.add_argument("--background", help="vidéo de fond personnalisée (assets/backgrounds/<nom> ou chemin) ; "
                                         "répétée avant/arrière si trop courte. Prioritaire sur `background:` du script")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
+    p.add_argument("--no-preview", action="store_true", help="ne génère pas les aperçus avec l'interface des réseaux")
     p.set_defaults(fn=cmd_build)
 
 

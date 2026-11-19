@@ -397,3 +397,6 @@ Règles d'ancrage :
 `python ui_preview.py build/short-03/out.mp4 --platform all --zones` superpose une maquette (YouTube Shorts, TikTok, Reels ; YouTube pour le 16:9)
 sur une vidéo ou une image et écrit `<nom>.ui-<plateforme>.<ext>` ; `--zones` colore en rouge les zones à éviter. Maquette approximative :
 valider dans YouTube Studio.
+
+`python cli.py build <id>` génère **automatiquement** ces aperçus à la fin (short : YouTube, TikTok, Instagram ; long : YouTube) dans
+`build/<id>/out.ui-<plateforme>.mp4` (taille réduite) et ouvre le premier sous Windows. `--no-preview` les désactive.

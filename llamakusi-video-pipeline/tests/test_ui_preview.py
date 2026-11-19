@@ -22,3 +22,14 @@ def test_image_and_video_paths(tmp_path):
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=black:s=270x480:r=10:d=0.5",
                     "-pix_fmt", "yuv420p", str(clip)], check=True)
     assert ui_preview.render(clip, "youtube", False, tmp_path / "o.mp4").stat().st_size > 0
+
+
+def test_render_video_with_reduced_width(tmp_path):
+    import subprocess
+
+    src = tmp_path / "in.mp4"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=black:s=216x384:d=0.4:r=10",
+                    "-pix_fmt", "yuv420p", str(src)], check=True)
+    out = ui_preview.render(src, "tiktok", False, tmp_path / "o.mp4", width=108)
+    assert ui_preview._video_size(out) == (108, 192)
+

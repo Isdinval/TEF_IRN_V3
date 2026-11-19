@@ -156,7 +156,8 @@ def _video_size(path: Path) -> tuple[int, int]:
     return int(w), int(h)
 
 
-def render(src: Path, platform: str, zones: bool, out: Path) -> Path:
+def render(src: Path, platform: str, zones: bool, out: Path, width: int | None = None) -> Path:
+    """`width` : redimensionne la vidéo de sortie (aperçu plus rapide à encoder) ; None = taille d'origine."""
     if src.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
         base = Image.open(src).convert("RGBA")
         Image.alpha_composite(base, overlay_for(base.size, platform, zones)).convert("RGB").save(out)
@@ -165,7 +166,8 @@ def render(src: Path, platform: str, zones: bool, out: Path) -> Path:
         png = Path(tmp) / "ui.png"
         overlay_for(_video_size(src), platform, zones).save(png)
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-i", str(png), "-filter_complex",
-                        "[0:v][1:v]overlay=0:0:format=auto", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
+                        (f"[0:v]scale={width}:-2[a];[1:v]scale={width}:-2[b];[a][b]overlay=0:0:format=auto" if width
+                         else "[0:v][1:v]overlay=0:0:format=auto"), "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
                         "-c:a", "copy", "-movflags", "+faststart", str(out)], check=True)
     return out
 
