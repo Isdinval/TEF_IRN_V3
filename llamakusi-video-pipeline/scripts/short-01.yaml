@@ -6,6 +6,8 @@ product: tef_irn
 hook_formula: curiosity_gap
 accent: indigo
 title: Ce qui bloque 9 candidats sur 10 en B1
+thumbnail:
+  text: "Ce qui bloque *9 candidats sur 10* en B1"
 cta_overlay: Lien en bio
 blocks:
 - id: hook

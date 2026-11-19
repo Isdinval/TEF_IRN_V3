@@ -26,6 +26,7 @@ from pathlib import Path
 from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
                       supabase_source, timeline, tts, voice as voice_mod)
 from pipeline import chapters as chapters_mod
+from pipeline import thumbnail as thumbnail_mod
 
 STAGES = ["tts", "asr", "align", "timeline", "render"]
 
@@ -190,6 +191,7 @@ def cmd_build(args) -> int:
                     preset="veryfast" if args.dry else "medium", background=bg,
                     loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
+    print(f"✓ {thumbnail_mod.save(script, bdir)} (miniature)")
     if not args.no_preview:
         _social_previews(out, script.format, bdir, tl["duration"])
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
@@ -208,6 +210,18 @@ def _social_previews(video: Path, fmt: str, bdir: Path, duration: float) -> None
     print(f"✓ {out}")
     if hasattr(os, "startfile"):
         os.startfile(out)
+
+
+def cmd_thumbnail(args) -> int:
+    scripts = schema.load_all(config.SCRIPTS_DIR)
+    if not args.all:
+        scripts = [s for s in scripts if s.id in args.ids]
+    if not scripts:
+        print("✗ aucun script : donner des ids ou --all")
+        return 1
+    for sc in scripts:
+        print(f"✓ {thumbnail_mod.save(sc, config.BUILD_DIR / sc.id)}")
+    return 0
 
 
 def cmd_subs(args) -> int:
@@ -341,6 +355,11 @@ def main() -> int:
     p.add_argument("--no-preview", action="store_true", help="ne génère pas l'image d'aperçu avec l'interface des réseaux")
     p.set_defaults(fn=cmd_build)
 
+
+    p = sub.add_parser("thumbnail", help="miniature build/<id>/thumbnail.jpg (sans rendu vidéo ni API)")
+    p.add_argument("ids", nargs="*")
+    p.add_argument("--all", action="store_true")
+    p.set_defaults(fn=cmd_thumbnail)
 
     p = sub.add_parser("subs")
     p.add_argument("id")

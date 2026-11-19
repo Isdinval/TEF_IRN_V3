@@ -289,7 +289,16 @@ sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
   Le dernier chapitre va jusqu'à la fin ; ne pas ouvrir de chapitre sur un bloc final très court (le CTA).
 - **Lint des longs (L3)** : durée estimée 4-8 min (600-1200 mots) ; bloc `rehook*` attendu dès ~2 min 30 ; **un seul** CTA parlé, dans le dernier bloc ;
   titres de chapitres ≤ 48 caractères et uniques ; `overlay` déconseillé. `long-02` (démo de ~100 s) garde donc 1 avertissement de durée : c'est normal.
-- Ce qui reste (hors MVP) : optimisation du temps de rendu, miniature générée, barre de progression, plan « fil rouge » avec étape courante mise en évidence.
+- Ce qui reste (hors MVP) : optimisation du temps de rendu, barre de progression, plan « fil rouge » avec étape courante mise en évidence.
+
+### Miniatures
+- `python cli.py thumbnail <id…|--all>` (aussi appelé en fin de `build`) → `build/<id>/thumbnail.jpg` : même gabarit pour toutes les vidéos
+  (fond sombre constellation, mascotte en contre-jour, logo, pastille produit, titre en Montserrat 900 majuscules, filet or → rose).
+  Long = 1280×720 ; Short = 1080×1920, contenu dans la zone centrale 3:4 (couverture Reels/Facebook).
+  JPEG ≤ 2 Mo (limite YouTube). Aucun appel réseau ni rendu vidéo nécessaire.
+- Bloc YAML facultatif `thumbnail:` — `text` (accroche ≤ 7 mots ; `*mot*` = en or ; défaut = titre, tronqué si trop long), `badge`
+  (défaut = 1er `overlay`), `mascot` / `pose` (défaut = 1er bloc). Le lint prévient si l'accroche dépasse 7 mots.
+- Chapitres : inchangés (`chapters.txt`, à coller dans la description YouTube).
 
 ### Règle de boucle (Shorts) — obligatoire
 

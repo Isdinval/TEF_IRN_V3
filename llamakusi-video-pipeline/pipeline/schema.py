@@ -78,6 +78,15 @@ class Block(BaseModel):
     visual_note: str = ""               # description Phase 0 (référence humaine)
 
 
+class ThumbnailInfo(BaseModel):
+    """Miniature (facultatif : sinon titre complet, badge = 1er overlay, mascotte = celle du 1er bloc)."""
+
+    text: Optional[str] = None          # accroche courte (≤ 6 mots conseillés) ; *mot* = mis en or
+    badge: Optional[str] = None         # pastille dorée (ex. « B1 → B2 »)
+    mascot: Optional[Mascot] = None
+    pose: Optional[int] = None
+
+
 class VideoScript(BaseModel):
     id: str
     format: Literal["short", "long"] = "short"
@@ -92,6 +101,7 @@ class VideoScript(BaseModel):
     cta_arrow: bool = True                       # flèche animée au-dessus du CTA (Short, dernier bloc)
     blocks: list[Block]
     claims: list[Claim] = Field(default_factory=list)
+    thumbnail: ThumbnailInfo = Field(default_factory=ThumbnailInfo)
 
     @model_validator(mode="after")
     def _check(self) -> "VideoScript":

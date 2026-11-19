@@ -6,6 +6,8 @@ product: examen_civique
 hook_formula: in_medias_res
 accent: blue
 title: 'Contravention : combien de jours pour agir ?'
+thumbnail:
+  text: "Contravention : *combien de jours* pour agir ?"
 cta_overlay: Lien en bio
 blocks:
 - id: hook

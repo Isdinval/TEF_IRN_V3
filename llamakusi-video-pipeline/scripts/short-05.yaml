@@ -6,6 +6,8 @@ product: both
 hook_formula: contrarian
 accent: gold
 title: 'TEF ou TCF : la vraie question'
+thumbnail:
+  text: "TEF ou TCF : la *vraie question*"
 cta_overlay: Lien en bio
 blocks:
 - id: hook

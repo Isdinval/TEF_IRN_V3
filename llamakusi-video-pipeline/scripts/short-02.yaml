@@ -6,6 +6,8 @@ product: both
 hook_formula: stakes
 accent: gold
 title: 'Naturalisation : le saut de B1 à B2 depuis 2026'
+thumbnail:
+  text: "Naturalisation : le saut *B1 → B2*"
 cta_overlay: Lien en bio
 blocks:
 - id: hook

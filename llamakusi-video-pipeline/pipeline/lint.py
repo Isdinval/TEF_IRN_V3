@@ -133,6 +133,10 @@ def lint_script(script: VideoScript, publish: bool = False,
         elif "À REMPLACER" in b.voice:
             add("error", f"bloc '{b.id}' : squelette non complété (« À REMPLACER »)")
 
+    thumb = script.thumbnail.text or script.title
+    if count_words(thumb.replace("*", "")) > 7:
+        add("warn", "miniature : accroche > 7 mots (illisible en petit) → renseigner `thumbnail.text` (*mot* = en or)")
+
     if script.format == "short":
         if any(b.chapter for b in script.blocks):
             add("warn", "`chapter:` ignoré en Short (chapitres = vidéos longues)")

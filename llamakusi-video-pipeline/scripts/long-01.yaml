@@ -5,6 +5,8 @@ pillar: C
 product: tef_irn
 accent: indigo
 title: 'Expression écrite TEF IRN : la méthode en 4 blocs pour la section B'
+thumbnail:
+  text: "Section B : la méthode en *4 blocs*"
 cta_overlay: null
 blocks:
 - id: hook

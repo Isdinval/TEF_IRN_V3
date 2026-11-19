@@ -6,6 +6,8 @@ product: fle_bridge
 hook_formula: direct_promise
 accent: gold
 title: 3 mots de la préfecture que personne n'explique
+thumbnail:
+  text: "*3 mots* de la préfecture que personne n'explique"
 cta_overlay: Lien en bio
 blocks:
 - id: hook
