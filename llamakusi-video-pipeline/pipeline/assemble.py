@@ -70,10 +70,11 @@ def _final_fx(filters: list[str], last: str) -> str:
         filters.append(f"{last}split[fa][fb]")
         filters.append(f"[fb]scale=iw/4:ih/4,lutyuv=y='max(val-170,0)*2.5',gblur=sigma=6,"
                        f"scale={config.W}:{config.H}:flags=bilinear[bl]")
-        filters.append(f"[fa][bl]blend=all_mode=screen:all_opacity={config.FINAL_BLOOM}[fxb]")
+        # luma seule : un screen sur la chrominance décalerait les couleurs (dominante violette)
+        filters.append(f"[fa][bl]blend=c0_mode=screen:c0_opacity={config.FINAL_BLOOM}:c1_expr=A:c2_expr=A[fxb]")
         last = "[fxb]"
     if config.FINAL_GRAIN > 0:
-        filters.append(f"{last}noise=alls={config.FINAL_GRAIN}:allf=t[fxg]")
+        filters.append(f"{last}noise=c0s={config.FINAL_GRAIN}:c0f=t[fxg]")
         last = "[fxg]"
     return last
 
