@@ -161,9 +161,9 @@ ARROW_PHASES = 18            # images distinctes par rebond (18 → 20 i/s)
 
 # --- Palette (tokens du design system / globals.css) -------------------------
 # Charte « émeraude / or / rose » (inspirée de l'artefact The New York Tower) : fond sombre, cartes crème.
-STYLE_VERSION = "2026-11-emerald-gold"   # à changer quand la charte évolue (invalide le cache des calques)
+STYLE_VERSION = "2026-11-geo-gold"   # à changer quand la charte évolue (invalide le cache des calques)
 COLORS = {
-    "bg": "#0A100C",         # noir émeraude
+    "bg": "#0A0D0B",         # noir chaud
     "card": "#FFFEF8",       # crème (cartes)
     "ink": "#14201A",
     "ink2": "#55604F",
@@ -208,6 +208,19 @@ BG_PALETTES = {
 DEFAULT_BG_PREFIX = {"short": "short-loop", "long": "long-loop"}
 DEFAULT_BG_FORCED = {"short": env("BG_SHORT", ""), "long": env("BG_LONG", "")}
 BG_USE_LOOPS = env("BG_USE_LOOPS", "0") == "1"     # 1 = reprendre la rotation des boucles de assets/backgrounds/ (ancien fond)
+
+# --- Fond « constellation » (background.py, BG_STYLE=geo, défaut ; BG_STYLE=halo = ancien fond de halos flous) -------
+# Grands polygones en traits fins qui dérivent + orbes lumineux reliés par de fins traits + poussière nette.
+# Tout est périodique (cycles entiers) → raccord invisible ; la disposition dépend de l'id du script (seed).
+BG_STYLE = env("BG_STYLE", "geo")
+BG_GEO_FPS = int(env("BG_GEO_FPS", "15"))            # images/s calculées (dupliquées à FPS) : mouvements lents, coût / 2
+GEO = {
+    "base": "#0A0D0B", "glow_gold": "#C9A24A", "glow_rose": "#E08AA8",
+    "gold": "#D9B65E", "rose": "#E08AA8", "core": "#FFF4D6",
+    "poly": 8, "poly_alpha": (70, 105), "poly_width": 3,    # traits fins, 25-40 % d'opacité (px pour 1080 de large)
+    "orbs": 14, "link_alpha": 46, "dust": 60,
+    "calm": 0.55,                                          # atténuation des traits derrière les sous-titres (0 = aucune)
+}
 
 # --- Poussière dorée (background.py) : bokeh doux qui monte lentement, périodique → raccord invisible ----
 BG_DUST_COUNT = int(env("BG_DUST_COUNT", "38"))

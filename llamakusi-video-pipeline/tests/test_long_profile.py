@@ -67,7 +67,7 @@ def test_background_loop_for_long_videos(tmp_path, monkeypatch):
     assert background.is_loop(400.0) and not background.is_loop(25.0)
     monkeypatch.setattr(config, "BG_LOOP_S", 1.0)
     out = background.generate(tmp_path, "indigo", 100.0)
-    assert "1920x1080" in out.name and out.name.endswith("_30.mp4")            # 1 s de boucle, pas 100 s
+    assert "1920x1080" in out.name and out.name.endswith(f"_{config.BG_GEO_FPS}.mp4")            # 1 s de boucle, pas 100 s
     assert background.frame_at("indigo", 0.0, 1.0).shape == (216, 384, 3)
 
 

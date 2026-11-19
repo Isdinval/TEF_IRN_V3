@@ -206,6 +206,7 @@ llamakusi-video-pipeline/
 ### `pipeline\config.py` (mise en page et look)
 - `PROFILES` : **un profil de mise en page par format** (`short` 1080×1920 centré sur x = 540 ; `long` 1920×1080, cartes à gauche, mascotte à droite). `LAYOUT` (positions du logo, badge, carte, sous-titres, mascotte, CTA) est le profil actif ; on règle les positions dans `PROFILES[...]["layout"]`. Le format du script (`format: short|long`) choisit le profil automatiquement.
 - `BG_PALETTES` : couleurs et intensité des halos du fond animé (une palette par accent : `indigo`, `blue`, `gold`) — charte 2026 « émeraude / or / rose » (noir émeraude, halos or + rose, cartes crème).
+- `BG_STYLE=geo|halo` : fond « constellation » (défaut : polygones fins, orbes lumineux, poussière nette ; disposition propre à chaque script) ou anciens halos. Réglages dans `config.GEO`.
 - `BG_USE_LOOPS=1` : réactive la rotation des boucles de `assets/backgrounds/` (par défaut : fond généré = aurore + poussière dorée `BG_DUST_COUNT`).
 - `PROGRESS_BAR=0` : désactive la barre de progression or → rose (haut de l'image ; `progress_y` dans les profils).
 - `STYLE_VERSION` : à changer quand la charte visuelle évolue (invalide le cache des calques PNG).

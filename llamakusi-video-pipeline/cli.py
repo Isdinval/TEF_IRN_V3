@@ -179,9 +179,9 @@ def cmd_build(args) -> int:
         bg_loop = True
         bg_period = bg_dur if script.format == "short" else None   # Short : raccord exact fin → début
     else:
-        print("  [fond] généré : aurore or/rose + poussière dorée (BG_USE_LOOPS=1 pour la rotation des boucles de assets/backgrounds/)")
-        print("[fond] génération du fond animé (~10-30 s la première fois, puis en cache)…")
-        bg = background.generate(bdir, script.accent, tl["duration"])
+        print("  [fond] généré : constellation géométrique (BG_USE_LOOPS=1 : boucles de assets/backgrounds/ ; BG_STYLE=halo : anciens halos)")
+        print("[fond] génération du fond animé (~1 min la première fois, puis en cache)…")
+        bg = background.generate(bdir, script.accent, tl["duration"], seed=script.id)
         bg_loop = background.is_loop(tl["duration"])
     out = bdir / ("out.dry.mp4" if args.dry else "out.mp4")
     assemble.render(bdir, tl, out, music,

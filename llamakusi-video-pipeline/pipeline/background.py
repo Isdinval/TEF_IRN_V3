@@ -1,4 +1,5 @@
-"""Fond animé : halos de couleur floutés qui dérivent lentement + poussière dorée (bokeh) + vignettage + anti-banding.
+"""Fond animé. Défaut (BG_STYLE=geo) : constellation — polygones en traits fins, orbes lumineux, poussière nette (GeoScene).
+Ancien fond (BG_STYLE=halo) : halos de couleur floutés qui dérivent lentement + poussière dorée (bokeh) + vignettage + anti-banding.
 
 Choix : calcul numpy en BASSE résolution (216×384), envoyé à ffmpeg qui agrandit en bicubique
 (donc flou naturel, pas de détails qui attirent l'œil) puis applique `gradfun` (anti-banding).
@@ -69,10 +70,145 @@ def is_loop(duration: float) -> bool:
     return duration > config.BG_LOOP_S * 1.05
 
 
-def generate(build_dir: Path, accent: str, duration: float, fps: int | None = None) -> Path:
-    """Génère (ou réutilise) build/<id>/background_<accent>_<W>x<H>_<n>.mp4 (taille du profil actif).
+# --- fond « constellation » ----------------------------------------------------------------------------
+def _hex3(h: str) -> tuple[int, int, int]:
+    return int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16)
+
+
+def _sprite(sigma_core: float, sigma_halo: float, core: tuple, halo: tuple) -> tuple[np.ndarray, np.ndarray]:
+    """Orbe lumineux : (alpha 0-1 de taille s×s, couleur uint8 s×s×3) ; cœur clair + halo coloré."""
+    s = int(sigma_halo * 6) | 1
+    ys, xs = np.mgrid[0:s, 0:s].astype(np.float32) - s // 2
+    r2 = xs * xs + ys * ys
+    c, h = np.exp(-r2 / (2 * sigma_core ** 2)), np.exp(-r2 / (2 * sigma_halo ** 2))
+    alpha = np.clip(0.95 * c + 0.50 * h, 0, 1)
+    w = (c / np.maximum(c + 0.5 * h, 1e-6))[..., None]
+    rgb = w * np.array(core, np.float32) + (1 - w) * np.array(halo, np.float32)
+    return alpha, rgb.astype(np.uint8)
+
+
+class GeoScene:
+    """Fond constellation d'UNE vidéo : disposition tirée de `seed` (id du script), image à l'instant t via `render`."""
+
+    def __init__(self, seed: str, W: int, H: int):
+        import zlib
+
+        from PIL import Image
+        g = config.GEO
+        rng = np.random.default_rng(zlib.crc32(seed.encode("utf-8")))
+        self.W, self.H, self.g = W, H, g
+        self.u = min(W, H) / 1080                                   # échelle des traits et des rayons
+        U = rng.uniform
+        gold, rose, core = _hex3(g["gold"]), _hex3(g["rose"]), _hex3(g["core"])
+        self.gold, self.rose = gold, rose
+        self.polys = []
+        for i in range(g["poly"]):
+            n = int(rng.choice([3, 4, 5, 5, 6]))
+            r = U(150, 340) * self.u
+            ang = [2 * np.pi * k / n + U(-0.35, 0.35) for k in range(n)]
+            rad = [r * U(0.7, 1.15) for _ in range(n)]
+            self.polys.append({
+                "c": (U(0.05, 0.95) * W, U(0.04, 0.96) * H), "ang": ang, "rad": rad, "th0": U(0, 2 * np.pi),
+                "amp": np.radians(U(5, 12)), "rc": int(rng.choice([1, 2, 3])), "rp": U(0, 2 * np.pi),
+                "ax": U(0.02, 0.06) * W, "ay": U(0.02, 0.05) * H, "dc": int(rng.choice([1, 2])), "dp": U(0, 2 * np.pi),
+                "col": rose if i % 4 == 3 else gold, "a": int(U(*g["poly_alpha"]))})
+        self.orbs = []
+        for j in range(g["orbs"]):
+            halo = rose if j % 5 == 4 else gold
+            alpha, rgb = _sprite(U(2.2, 4.5) * self.u, U(9, 22) * self.u, core, halo)
+            self.orbs.append({"p": (U(0.06, 0.94) * W, U(0.05, 0.95) * H), "amp": (U(0.03, 0.09) * W, U(0.02, 0.06) * H),
+                                  "cx": int(rng.integers(1, 4)), "cy": int(rng.integers(1, 4)), "ph": U(0, 2 * np.pi, 3),
+                                  "tc": int(rng.integers(3, 9)), "alpha": alpha, "rgb": rgb})
+        self.dust = [{"x": U(0.02, 0.98) * W, "y0": U(0, 1) * H, "k": int(rng.integers(1, 3)), "r": U(0.8, 2.4) * self.u,
+                          "tc": int(rng.integers(4, 11)), "ph": U(0, 2 * np.pi), "a": U(80, 170), "col": rose if i % 6 == 5 else core}
+                     for i in range(g["dust"])]
+        # fond fixe : noir chaud + très léger halo or (haut gauche) et rose (bas droite) + vignettage
+        lw, lh = max(2, W // 8), max(2, H // 8)
+        ys, xs = np.mgrid[0:lh, 0:lw].astype(np.float32)
+        x, y = xs / (lw - 1), ys / (lh - 1)
+        img = np.ones((lh, lw, 3), np.float32) * np.array(_hex3(g["base"]), np.float32)
+        for (cx, cy), col, k in (((0.2, 0.15), _hex3(g["glow_gold"]), 0.07), ((0.85, 0.85), _hex3(g["glow_rose"]), 0.045)):
+            img += (k * np.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * 0.22 ** 2)))[..., None] * np.array(col, np.float32)
+        img *= (1 - 0.35 * (((x - 0.5) ** 2 + (y - 0.5) ** 2) / 0.5))[..., None]
+        self.base = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).resize((W, H), Image.BICUBIC).convert("RGBA")
+        cy = H * config.LAYOUT.get("subs_cy", 0) / max(1, config.H) if config.LAYOUT.get("subs_cy") else H * 0.58
+        self.calm = (1 - g["calm"] * np.exp(-0.5 * ((np.arange(H, dtype=np.float32) - cy) / (0.05 * H)) ** 2))[:, None]
+
+    def render(self, t: float, duration: float):
+        """Image RGB (PIL) à l'instant t ; mouvements en cycles ENTIERS sur `duration` (boucle sans à-coup)."""
+        from PIL import Image, ImageDraw, ImageFilter
+
+        W, H, u, g = self.W, self.H, self.u, self.g
+        pt = 2 * np.pi * t / max(duration, 0.1)
+        lay = Image.new("RGBA", (W, H), self.gold + (0,))
+        d = ImageDraw.Draw(lay)
+        lw = max(1, round(g["poly_width"] * u))
+        for p in self.polys:
+            th = p["th0"] + p["amp"] * np.sin(p["rc"] * pt + p["rp"])
+            cx = p["c"][0] + p["ax"] * np.sin(p["dc"] * pt + p["dp"])
+            cy = p["c"][1] + p["ay"] * np.cos(p["dc"] * pt + p["dp"])
+            pts = [(cx + r * np.cos(a + th), cy + r * np.sin(a + th)) for a, r in zip(p["ang"], p["rad"])]
+            d.line(pts + [pts[0]], fill=p["col"] + (p["a"],), width=lw, joint="curve")
+        pos = [(o["p"][0] + o["amp"][0] * np.sin(o["cx"] * pt + o["ph"][0]),
+                o["p"][1] + o["amp"][1] * np.cos(o["cy"] * pt + o["ph"][1])) for o in self.orbs]
+        link = 0.30 * max(W, H)
+        for i in range(len(pos)):                                   # fins traits entre orbes voisins
+            for j in range(i + 1, len(pos)):
+                dist = np.hypot(pos[i][0] - pos[j][0], pos[i][1] - pos[j][1])
+                if dist < link:
+                    d.line((*pos[i], *pos[j]), fill=self.gold + (int(g["link_alpha"] * (1 - dist / link)),), width=max(1, round(1.5 * u)))
+        for q in self.dust:                                         # poussière : monte, ré-entre par le bas, scintille
+            y = (q["y0"] - q["k"] * H * t / max(duration, 0.1)) % H
+            a = int(q["a"] * (0.65 + 0.35 * np.sin(q["tc"] * pt + q["ph"])))
+            d.ellipse((q["x"] - q["r"], y - q["r"], q["x"] + q["r"], y + q["r"]), fill=q["col"] + (a,))
+        lay = lay.filter(ImageFilter.GaussianBlur(0.6 * u + 0.2))   # anti-crénelage des traits
+        a = np.asarray(lay.getchannel("A"), dtype=np.float32) * self.calm
+        lay.putalpha(Image.fromarray(a.astype(np.uint8)))
+        img = self.base.copy()
+        img.alpha_composite(lay)
+        for o, (x, y) in zip(self.orbs, pos):                       # orbes : par-dessus, avec scintillement
+            tw = 0.65 + 0.35 * np.sin(o["tc"] * pt + o["ph"][2])
+            spr = Image.fromarray(np.dstack([o["rgb"], (o["alpha"] * tw * 255).astype(np.uint8)]), "RGBA")
+            ox, oy = int(x) - spr.width // 2, int(y) - spr.height // 2
+            sx, sy = max(0, -ox), max(0, -oy)
+            ex, ey = min(spr.width, W - ox), min(spr.height, H - oy)
+            if ex > sx and ey > sy:
+                img.alpha_composite(spr.crop((sx, sy, ex, ey)), (ox + sx, oy + sy))
+        return img.convert("RGB")
+
+
+def _generate_geo(build_dir: Path, duration: float, fps: int, seed: str) -> Path:
+    gfps = max(1, min(fps, config.BG_GEO_FPS))
+    n = max(1, round(duration * gfps))
+    slug = "".join(c if c.isalnum() else "-" for c in seed)
+    out = build_dir / f"background_geo_{config.STYLE_VERSION}_{slug}_{config.W}x{config.H}_{n}.mp4"
+    if out.exists() and out.stat().st_size > 0:
+        return out
+    scene = GeoScene(seed, config.W, config.H)
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{config.W}x{config.H}",
+           "-r", str(gfps), "-i", "-", "-vf", f"fps={fps},gradfun=strength={config.BG_DEBAND}:radius=32",
+           "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", str(out)]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        for k in range(n):
+            proc.stdin.write(scene.render(k / gfps, duration).tobytes())
+        proc.stdin.close()
+    except BrokenPipeError:
+        pass
+    err = proc.stderr.read().decode("utf-8", "replace")
+    if proc.wait() != 0:
+        out.unlink(missing_ok=True)
+        raise RuntimeError(f"génération du fond échouée :\n{err[-1200:]}")
+    return out
+
+
+def generate(build_dir: Path, accent: str, duration: float, fps: int | None = None, seed: str | None = None) -> Path:
+    """Génère (ou réutilise) le fond animé du profil actif. BG_STYLE=geo (défaut) : constellation géométrique propre à
+    `seed` (id du script) ; BG_STYLE=halo : ancien fond de halos par accent.
     Au-delà de BG_LOOP_S, ne génère qu'une boucle de BG_LOOP_S s (mouvement périodique → raccord invisible)."""
     fps = fps or config.FPS
+    if config.BG_STYLE == "geo":
+        return _generate_geo(build_dir, config.BG_LOOP_S if is_loop(duration) else duration, fps, seed or accent)
     if is_loop(duration):
         duration = config.BG_LOOP_S
     n = max(1, round(duration * fps))
