@@ -398,5 +398,5 @@ Règles d'ancrage :
 sur une vidéo ou une image et écrit `<nom>.ui-<plateforme>.<ext>` ; `--zones` colore en rouge les zones à éviter. Maquette approximative :
 valider dans YouTube Studio.
 
-`python cli.py build <id>` génère **automatiquement** ces aperçus à la fin (short : YouTube, TikTok, Instagram ; long : YouTube) dans
-`build/<id>/out.ui-<plateforme>.mp4` (taille réduite) et ouvre le premier sous Windows. `--no-preview` les désactive.
+`python cli.py build <id>` génère **automatiquement** à la fin, en plus de `out.mp4` (sans interface), UNE image `build/<id>/preview_reseaux.png`
+(short : YouTube, TikTok, Instagram côte à côte ; long : YouTube) et l'ouvre sous Windows. `--no-preview` la désactive.

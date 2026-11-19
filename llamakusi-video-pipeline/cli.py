@@ -190,23 +190,23 @@ def cmd_build(args) -> int:
                     loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
     if not args.no_preview:
-        _social_previews(out, script.format, bdir)
+        _social_previews(out, script.format, bdir, tl["duration"])
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
     return 0
 
 
-def _social_previews(video: Path, fmt: str, bdir: Path) -> None:
-    """Aperçus avec l'interface des réseaux (short : YouTube, TikTok, Instagram ; long : YouTube), en taille réduite ;
-    ouvre le premier dans le lecteur par défaut sous Windows."""
+def _social_previews(video: Path, fmt: str, bdir: Path, duration: float) -> None:
+    """UNE image d'aperçu (pas de vidéo en plus) : une image de la vidéo à ~40 % avec la maquette de chaque réseau
+    (short : YouTube, TikTok, Instagram ; long : YouTube). L'ouvre sous Windows."""
     import ui_preview
     plats = ui_preview.PLATFORMS if fmt == "short" else ("youtube",)
-    outs = []
-    for p in plats:
-        print(f"[aperçu] interface {p}…")
-        outs.append(ui_preview.render(video, p, False, bdir / f"{video.stem}.ui-{p}.mp4", width=540 if fmt == "short" else 960))
-        print(f"✓ {outs[-1]}")
+    frame, out = bdir / "preview_frame.png", bdir / "preview_reseaux.png"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{duration * 0.4:.2f}", "-i", str(video),
+                    "-frames:v", "1", str(frame)], check=True)
+    ui_preview.contact_sheet(frame, plats, out, height=960 if fmt == "short" else 540)
+    print(f"✓ {out}")
     if hasattr(os, "startfile"):
-        os.startfile(outs[0])
+        os.startfile(out)
 
 
 def cmd_subs(args) -> int:
@@ -337,7 +337,7 @@ def main() -> int:
     p.add_argument("--background", help="vidéo de fond personnalisée (assets/backgrounds/<nom> ou chemin) ; "
                                         "répétée avant/arrière si trop courte. Prioritaire sur `background:` du script")
     p.add_argument("--placeholder-mascots", action="store_true", help="silhouettes de test si assets absents")
-    p.add_argument("--no-preview", action="store_true", help="ne génère pas les aperçus avec l'interface des réseaux")
+    p.add_argument("--no-preview", action="store_true", help="ne génère pas l'image d'aperçu avec l'interface des réseaux")
     p.set_defaults(fn=cmd_build)
 
 

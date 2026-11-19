@@ -172,6 +172,23 @@ def render(src: Path, platform: str, zones: bool, out: Path, width: int | None =
     return out
 
 
+def contact_sheet(frame: Path, platforms: tuple[str, ...], out: Path, height: int = 960) -> Path:
+    """Une image : la même image de la vidéo avec la maquette de chaque plateforme, côte à côte."""
+    base = Image.open(frame).convert("RGBA")
+    tiles = []
+    for p in platforms:
+        im = Image.alpha_composite(base, overlay_for(base.size, p, False)).convert("RGB")
+        tiles.append(im.resize((round(im.width * height / im.height), height), Image.LANCZOS))
+    gap = 24
+    sheet = Image.new("RGB", (sum(t.width for t in tiles) + gap * (len(tiles) + 1), height + 2 * gap), (24, 24, 24))
+    x = gap
+    for t in tiles:
+        sheet.paste(t, (x, gap))
+        x += t.width + gap
+    sheet.save(out)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Aperçu avec l'interface d'un réseau social (maquette approximative)")
     ap.add_argument("input", type=Path, help="vidéo (.mp4) ou image (.png/.jpg) à prévisualiser")

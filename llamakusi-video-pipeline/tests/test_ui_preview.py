@@ -33,3 +33,12 @@ def test_render_video_with_reduced_width(tmp_path):
     out = ui_preview.render(src, "tiktok", False, tmp_path / "o.mp4", width=108)
     assert ui_preview._video_size(out) == (108, 192)
 
+
+
+def test_contact_sheet(tmp_path):
+    from PIL import Image
+
+    f = tmp_path / "f.png"
+    Image.new("RGB", (108, 192), (30, 30, 30)).save(f)
+    out = ui_preview.contact_sheet(f, ui_preview.PLATFORMS, tmp_path / "s.png", height=192)
+    assert Image.open(out).width > 3 * 108
