@@ -217,8 +217,8 @@ BG_GEO_FPS = int(env("BG_GEO_FPS", "15"))            # images/s calculées (dupl
 GEO = {
     "base": "#0A0D0B", "glow_gold": "#C9A24A", "glow_rose": "#E08AA8",
     "gold": "#D9B65E", "rose": "#E08AA8", "core": "#FFF4D6",
-    "poly": 8, "poly_alpha": (90, 135), "poly_width": 3,    # traits fins, 25-40 % d'opacité (px pour 1080 de large)
-    "orbs": 14, "link_alpha": 46, "dust": 60,
+    "poly": 14, "poly_alpha": (90, 135), "poly_width": 3,    # traits fins, 25-40 % d'opacité (px pour 1080 de large)
+    "orbs": 18, "link_alpha": 46, "dust": 90, "stars": 3,
     "calm": 0.55,
     "glow": 2.4, "sweep": 0.10,                          # intensité de la lueur des traits / du balayage de lumière                                          # atténuation des traits derrière les sous-titres (0 = aucune)
 }

@@ -102,18 +102,21 @@ class GeoScene:
         gold, rose, core = _hex3(g["gold"]), _hex3(g["rose"]), _hex3(g["core"])
         self.gold, self.rose, self.core = gold, rose, core
         self.polys = []
-        cells = [(c, r) for r in range(3) for c in range(3)]      # grille 3×3 jitterée : formes réparties
+        gc, gr = (3, 5) if H > W else (5, 3)                        # grille jitterée : formes réparties
+        cells = [(c, r) for r in range(gr) for c in range(gc)]
         rng.shuffle(cells)
         for i in range(g["poly"]):
             n = int(rng.choice([3, 4, 4, 5, 6, 6, 8]))
-            r = U(150, 340) * self.u
+            far = i % 2 == 1                                        # 2 plans : lointain (petit, pâle, flou) / proche
+            r = U(150, 340) * self.u * (0.55 if far else 1.0)
             ang = [2 * np.pi * k / n + U(-0.35, 0.35) for k in range(n)]
             rad = [r * U(0.7, 1.15) for _ in range(n)]
             self.polys.append({
-                "c": ((cells[i][0] + U(0.1, 0.9)) / 3 * W, (cells[i][1] + U(0.1, 0.9)) / 3 * H), "ang": ang, "rad": rad, "th0": U(0, 2 * np.pi),
+                "c": ((cells[i % len(cells)][0] + U(0.1, 0.9)) / gc * W, (cells[i % len(cells)][1] + U(0.1, 0.9)) / gr * H), "far": far,
+                "kind": "ring" if i % 4 == 2 else "cross" if i % 7 == 5 else "arc" if i % 7 == 6 else "poly", "ang": ang, "rad": rad, "th0": U(0, 2 * np.pi),
                 "amp": np.radians(U(5, 12)), "rc": int(rng.choice([1, 2, 3])), "rp": U(0, 2 * np.pi),
                 "ax": U(0.02, 0.06) * W, "ay": U(0.02, 0.05) * H, "dc": int(rng.choice([1, 2])), "dp": U(0, 2 * np.pi),
-                "col": rose if i % 4 == 3 else gold, "tw": int(rng.choice([1, 1, 2, 2, 0])), "ring": i % 4 == 2, "a": int(U(*g["poly_alpha"]))})
+                "col": rose if i % 3 == 2 else gold, "tw": int(rng.choice([1, 1, 2, 2, 0])),  "a": int(U(*g["poly_alpha"]) * (0.5 if far else 1.0))})
         self.orbs = []
         for j in range(g["orbs"]):
             halo = rose if j % 5 == 4 else gold
@@ -121,6 +124,7 @@ class GeoScene:
             self.orbs.append({"p": (U(0.06, 0.94) * W, U(0.05, 0.95) * H), "amp": (U(0.03, 0.09) * W, U(0.02, 0.06) * H),
                                   "cx": int(rng.integers(1, 4)), "cy": int(rng.integers(1, 4)), "ph": U(0, 2 * np.pi, 3),
                                   "tc": int(rng.integers(3, 9)), "alpha": alpha, "rgb": rgb})
+        self.stars = [(U(0, 1), U(0.45, 1.0) * W, U(0.0, 0.5) * H, U(0.35, 0.6) * max(W, H)) for _ in range(g["stars"])]
         self.dust = [{"x": U(0.02, 0.98) * W, "y0": U(0, 1) * H, "k": int(rng.integers(1, 3)), "r": U(0.8, 2.4) * self.u,
                           "tc": int(rng.integers(4, 11)), "ph": U(0, 2 * np.pi), "a": U(80, 170), "col": rose if i % 6 == 5 else core}
                      for i in range(g["dust"])]
@@ -144,20 +148,44 @@ class GeoScene:
         pt = 2 * np.pi * t / max(duration, 0.1)
         lay = Image.new("RGBA", (W, H), self.gold + (0,))
         d = ImageDraw.Draw(lay)
+        far = Image.new("RGBA", (W, H), self.gold + (0,))
+        df = ImageDraw.Draw(far)
         lw = max(1, round(g["poly_width"] * u))
+        # point focal : double hexagone + anneau, lents, derrière la carte (60° de rotation = symétrie → boucle sans à-coup)
+        fx, fy, fr = W / 2, 0.40 * H, 0.40 * min(W, H)
+        for sc, sgn, al in ((1.0, 1, 80), (0.72, -1, 65)):
+            rot = sgn * pt / 6
+            pts = [(fx + sc * fr * np.cos(rot + k * np.pi / 3), fy + sc * fr * np.sin(rot + k * np.pi / 3)) for k in range(6)]
+            d.line(pts + [pts[0]], fill=self.gold + (al,), width=lw, joint="curve")
+            for x, y in pts:
+                d.ellipse((x - 3 * u, y - 3 * u, x + 3 * u, y + 3 * u), fill=self.core + (200,))
+        d.ellipse((fx - fr * 1.12, fy - fr * 1.12, fx + fr * 1.12, fy + fr * 1.12), outline=self.rose + (55,), width=lw)
         for p in self.polys:
             th = p["th0"] + p["amp"] * np.sin(p["rc"] * pt + p["rp"])
             cx = p["c"][0] + p["ax"] * np.sin(p["dc"] * pt + p["dp"])
             cy = p["c"][1] + p["ay"] * np.cos(p["dc"] * pt + p["dp"])
             col, a = p["col"], p["a"]
-            if p["ring"]:                                           # anneaux concentriques
-                r = float(np.mean(p["rad"]))
+            dd = df if p["far"] else d
+            r0 = float(np.mean(p["rad"]))
+            if p["kind"] == "ring":                                 # anneaux concentriques
                 for k, f in ((1.0, 1.0), (0.78, 0.7)):
-                    d.ellipse((cx - r * k, cy - r * k, cx + r * k, cy + r * k), outline=col + (int(a * f),), width=lw)
+                    dd.ellipse((cx - r0 * k, cy - r0 * k, cx + r0 * k, cy + r0 * k), outline=col + (int(a * f),), width=lw)
                 continue
-            def poly(dx, dy, sc, rot, alpha):
+            if p["kind"] == "cross":                                # croix fine + petit cercle
+                for k in (0, 1):
+                    ex, ey = r0 * 0.5 * np.cos(th + k * np.pi / 2), r0 * 0.5 * np.sin(th + k * np.pi / 2)
+                    dd.line((cx - ex, cy - ey, cx + ex, cy + ey), fill=col + (int(a),), width=lw)
+                dd.ellipse((cx - 5 * u, cy - 5 * u, cx + 5 * u, cy + 5 * u), outline=col + (int(a),), width=lw)
+                continue
+            if p["kind"] == "arc":                                  # arcs partiels doubles
+                for k, f, span in ((1.0, 1.0, 200), (0.84, 0.7, 120)):
+                    dd.arc((cx - r0 * k, cy - r0 * k, cx + r0 * k, cy + r0 * k), np.degrees(th) * (1 if k == 1.0 else -1),
+                           np.degrees(th) * (1 if k == 1.0 else -1) + span, fill=col + (int(a * f),), width=lw)
+                continue
+
+            def poly(dx, dy, sc, rot, alpha, p=p, cx=cx, cy=cy, col=col, dd=dd):
                 pts = [(cx + dx + sc * r * np.cos(an + rot), cy + dy + sc * r * np.sin(an + rot)) for an, r in zip(p["ang"], p["rad"])]
-                d.line(pts + [pts[0]], fill=col + (int(alpha),), width=lw, joint="curve")
+                dd.line(pts + [pts[0]], fill=col + (int(alpha),), width=lw, joint="curve")
                 return pts
             pts = poly(0, 0, 1.0, th, a)
             if p["tw"] == 1:                                        # jumeau intérieur, tourne en sens inverse
@@ -165,7 +193,7 @@ class GeoScene:
             elif p["tw"] == 2:                                      # jumeau décalé (effet « double »)
                 poly(16 * u, 11 * u, 1.0, th, a * 0.55)
             for x, y in pts:                                        # sommets : petits points brillants
-                d.ellipse((x - 2.6 * u, y - 2.6 * u, x + 2.6 * u, y + 2.6 * u), fill=self.core + (190,))
+                dd.ellipse((x - 2.6 * u, y - 2.6 * u, x + 2.6 * u, y + 2.6 * u), fill=self.core + (190,))
         pos = [(o["p"][0] + o["amp"][0] * np.sin(o["cx"] * pt + o["ph"][0]),
                 o["p"][1] + o["amp"][1] * np.cos(o["cy"] * pt + o["ph"][1])) for o in self.orbs]
         link = 0.30 * max(W, H)
@@ -174,10 +202,28 @@ class GeoScene:
                 dist = np.hypot(pos[i][0] - pos[j][0], pos[i][1] - pos[j][1])
                 if dist < link:
                     d.line((*pos[i], *pos[j]), fill=self.gold + (int(g["link_alpha"] * (1 - dist / link)),), width=max(1, round(1.5 * u)))
+        for k in (0, 7):                                            # ondes de lumière émises par deux orbes
+            if k < len(pos):
+                fr_ = (3 * t / max(duration, 0.1) + k / 14) % 1
+                rr = (0.03 + 0.20 * fr_) * max(W, H)
+                d.ellipse((pos[k][0] - rr, pos[k][1] - rr, pos[k][0] + rr, pos[k][1] + rr), outline=self.gold + (int(60 * (1 - fr_)),), width=lw)
+        T = max(duration, 0.1)
+        for ph, sx, sy, ln_ in self.stars:                          # étoiles filantes : 1 passage de 0,9 s par boucle
+            tt = (t - ph * T) % T
+            if tt < 0.9:
+                q_ = tt / 0.9
+                hx, hy = sx - 0.8 * ln_ * q_, sy + 0.6 * ln_ * q_
+                for m in range(14):
+                    f0, f1 = m / 14, (m + 1) / 14
+                    d.line((hx + 0.8 * ln_ * 0.35 * f0, hy - 0.6 * ln_ * 0.35 * f0, hx + 0.8 * ln_ * 0.35 * f1, hy - 0.6 * ln_ * 0.35 * f1),
+                           fill=self.core + (int(220 * (1 - f0) * np.sin(np.pi * q_)),), width=max(1, round(2.5 * u)))
         for q in self.dust:                                         # poussière : monte, ré-entre par le bas, scintille
             y = (q["y0"] - q["k"] * H * t / max(duration, 0.1)) % H
             a = int(q["a"] * (0.65 + 0.35 * np.sin(q["tc"] * pt + q["ph"])))
             d.ellipse((q["x"] - q["r"], y - q["r"], q["x"] + q["r"], y + q["r"]), fill=q["col"] + (a,))
+        far = far.filter(ImageFilter.GaussianBlur(1.6 * u + 0.4))
+        fa = np.asarray(far.getchannel("A"), dtype=np.float32) * self.calm
+        far.putalpha(Image.fromarray(fa.astype(np.uint8)))
         small = lay.resize((W // 4, H // 4), Image.BILINEAR).filter(ImageFilter.GaussianBlur(2.4))
         glow = small.resize((W, H), Image.BICUBIC)                  # halo lumineux autour des traits
         ga = np.clip(np.asarray(glow.getchannel("A"), dtype=np.float32) * g["glow"], 0, 255) * self.calm
@@ -190,11 +236,15 @@ class GeoScene:
         lw_, lh_ = W // 6, H // 6
         yy, xx = np.mgrid[0:lh_, 0:lw_].astype(np.float32)
         proj = (xx / lw_ * 0.6 + yy / lh_ * 0.8)
-        band = np.exp(-(((proj - (-0.3 + 1.6 * (t / max(duration, 0.1)))) / 0.07) ** 2)) * g["sweep"]
+        band = np.exp(-(((proj - (-0.4 + 1.95 * (t / max(duration, 0.1)))) / 0.07) ** 2)) * g["sweep"]
         sw = np.zeros((lh_, lw_, 4), np.uint8); sw[..., :3] = self.core; sw[..., 3] = np.clip(band * 255, 0, 255)
+        band2 = np.exp(-(((proj - (-0.4 + 1.95 * ((t / T + 0.5) % 1))) / 0.05) ** 2)) * g["sweep"] * 0.7   # 2e balayage rose, décalé
+        sw2 = np.zeros((lh_, lw_, 4), np.uint8); sw2[..., :3] = self.rose; sw2[..., 3] = np.clip(band2 * 255, 0, 255)
+        img.alpha_composite(far)
         img.alpha_composite(glow)
         img.alpha_composite(lay)
         img.alpha_composite(Image.fromarray(sw, "RGBA").resize((W, H), Image.BICUBIC))
+        img.alpha_composite(Image.fromarray(sw2, "RGBA").resize((W, H), Image.BICUBIC))
         for o, (x, y) in zip(self.orbs, pos):                       # orbes : par-dessus, avec scintillement
             tw = 0.65 + 0.35 * np.sin(o["tc"] * pt + o["ph"][2])
             spr = Image.fromarray(np.dstack([o["rgb"], (o["alpha"] * tw * 255).astype(np.uint8)]), "RGBA")
