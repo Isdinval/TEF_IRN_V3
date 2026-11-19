@@ -149,7 +149,8 @@ def profile_signature() -> str:
     """Empreinte du profil actif (sert à invalider le cache des calques PNG quand la mise en page change)."""
     import json
     return json.dumps({"fmt": ACTIVE_PROFILE, "W": W, "H": H, "cw": CONTENT_W, "x0": CONTENT_X0, "cx": CONTENT_CX,
-                       "subs": SUBS_MAX_W, "layout": LAYOUT, "style": STYLE_VERSION}, sort_keys=True)
+                       "subs": SUBS_MAX_W, "layout": LAYOUT, "style": STYLE_VERSION,
+                       "fx": [MASCOT_FX, FRONT_FX]}, sort_keys=True)
 
 
 use_profile("short")
@@ -161,7 +162,7 @@ ARROW_PHASES = 18            # images distinctes par rebond (18 → 20 i/s)
 
 # --- Palette (tokens du design system / globals.css) -------------------------
 # Charte « émeraude / or / rose » (inspirée de l'artefact The New York Tower) : fond sombre, cartes crème.
-STYLE_VERSION = "2026-11-geo-gold"   # à changer quand la charte évolue (invalide le cache des calques)
+STYLE_VERSION = "2026-11-geo-gold-fx"   # à changer quand la charte évolue (invalide le cache des calques)
 COLORS = {
     "bg": "#0A0D0B",         # noir chaud
     "card": "#FFFEF8",       # crème (cartes)
@@ -213,6 +214,12 @@ BG_USE_LOOPS = env("BG_USE_LOOPS", "0") == "1"     # 1 = reprendre la rotation d
 # Grands polygones en traits fins qui dérivent + orbes lumineux reliés par de fins traits + poussière nette.
 # Tout est périodique (cycles entiers) → raccord invisible ; la disposition dépend de l'id du script (seed).
 BG_STYLE = env("BG_STYLE", "geo")
+# --- intégration de la mascotte au décor -------------------------------------------------------------------------
+MASCOT_FX = env("MASCOT_FX", "1") == "1"     # halo en contre-jour + liseré de lumière + bord adouci + étalonnage chaud (layers.py)
+FRONT_FX = env("FRONT_FX", "1") == "1"       # poussières/bokehs flous qui passent DEVANT la mascotte (assemble.py)
+FINAL_FX = env("FINAL_FX", "1") == "1"       # grain + bloom appliqués à l'image finale : tous les calques partagent la même matière
+FINAL_GRAIN = int(env("FINAL_GRAIN", "4"))   # intensité du grain (0 = aucun)
+FINAL_BLOOM = float(env("FINAL_BLOOM", "0.16"))   # opacité du bloom (lueur des hautes lumières), 0 = aucun
 BG_WORKERS = int(env("BG_WORKERS", str(min(os.cpu_count() or 1, 8))))   # processus pour calculer les images du fond
 BG_GEO_FPS = int(env("BG_GEO_FPS", "15"))            # images/s calculées (dupliquées à FPS) : mouvements lents, coût / 2
 GEO = {

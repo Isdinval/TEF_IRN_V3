@@ -109,7 +109,65 @@ def render_mascot(expression: str, pose: int) -> Image.Image:
     scale = LAYOUT["mascot_h"] / src.height
     src = src.resize((max(1, int(src.width * scale)), LAYOUT["mascot_h"]), Image.LANCZOS)
     img = canvas()
-    img.alpha_composite(src, (LAYOUT["mascot_cx"] - (src.width + 1) // 2, LAYOUT["mascot_bottom"] - src.height))
+    x, y = LAYOUT["mascot_cx"] - (src.width + 1) // 2, LAYOUT["mascot_bottom"] - src.height
+    if config.MASCOT_FX:
+        tile, pad = _mascot_fx(src)
+        img.alpha_composite(tile, (x - pad, y - pad))
+    else:
+        img.alpha_composite(src, (x, y))
+    return img
+
+
+def _mascot_fx(src: Image.Image) -> tuple[Image.Image, int]:
+    """Fond la mascotte dans le décor : bord adouci, étalonnage chaud léger, liseré de lumière (or en haut à gauche, rose en bas
+    à droite) et halo en contre-jour dérivé de son alpha. Retourne (image, marge ajoutée autour)."""
+    from PIL import ImageChops, ImageEnhance
+    u = src.height / 420
+    a = src.getchannel("A").filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.7 * u))   # moins « autocollant »
+    rgb = ImageEnhance.Contrast(ImageEnhance.Color(src.convert("RGB")).enhance(0.94)).enhance(0.97)
+    r, g, b = rgb.split()
+    rgb = Image.merge("RGB", (r.point(lambda v: min(255, int(v * 1.03))), g, b.point(lambda v: int(v * 0.95))))
+    d = max(2, round(4 * u))
+    for shift, col, k in (((d, d), (255, 238, 196), 0.70), ((-d, -d), (224, 138, 168), 0.50)):
+        rim = ImageChops.multiply(ImageChops.subtract(a, ImageChops.offset(a, *shift)).filter(ImageFilter.GaussianBlur(1.0 * u)), a)
+        rgb = Image.composite(Image.new("RGB", rgb.size, col), rgb, rim.point(lambda v, k=k: int(v * k)))
+    pad = round(120 * u)
+    big = Image.new("L", (src.width + 2 * pad, src.height + 2 * pad), 0)
+    big.paste(a, (pad, pad))
+    tile = Image.new("RGBA", big.size, (0, 0, 0, 0))
+    for sigma, col, k in ((60 * u, (224, 138, 168), 0.9), (26 * u, (217, 182, 94), 1.6)):   # large halo rose + halo or serré
+        halo = big.filter(ImageFilter.GaussianBlur(sigma)).point(lambda v, k=k: min(255, int(v * k * 0.38)))
+        tile.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", big.size, col).split(), halo)))
+    fg = rgb.convert("RGBA")
+    fg.putalpha(a)
+    tile.alpha_composite(fg, (pad, pad))
+    return tile, pad
+
+
+def render_front(seed: str, variant: int) -> Image.Image:
+    """Bokehs et poussières flous qui passent DEVANT la mascotte (profondeur). Restent hors de la carte et des sous-titres :
+    autour de la mascotte et sur les bords uniquement."""
+    import zlib
+
+    import numpy as np
+    rng = np.random.default_rng(zlib.crc32(f"{seed}-{variant}".encode()))
+    W, H = config.W, config.H
+    u = min(W, H) / 1080
+    mx, mb, mh = LAYOUT["mascot_cx"], LAYOUT["mascot_bottom"], LAYOUT["mascot_h"]
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for _ in range(9):
+        side = rng.random()
+        if side < 0.55:                                              # autour de la mascotte
+            x, y = mx + rng.uniform(-0.85, 0.85) * mh, mb - rng.uniform(0.0, 1.15) * mh
+        else:                                                        # bords gauche/droit
+            x, y = (rng.uniform(0.0, 0.05) if rng.random() < 0.5 else rng.uniform(0.95, 1.0)) * W, rng.uniform(0.15, 0.98) * H
+        r = rng.uniform(5, 26) * u * (1.0 + variant * 0.5)
+        col = (224, 138, 168) if rng.random() < 0.3 else (255, 232, 170)
+        a = int(rng.uniform(50, 120) * (0.6 if r > 16 * u else 1.0))
+        tile = Image.new("RGBA", (int(r * 6), int(r * 6)), col + (0,))
+        ImageDraw.Draw(tile).ellipse((r * 2, r * 2, r * 4, r * 4), fill=col + (a,))
+        tile = tile.filter(ImageFilter.GaussianBlur(r * 0.45))
+        img.alpha_composite(tile, (max(0, int(x - r * 3)), max(0, int(y - r * 3))))
     return img
 
 

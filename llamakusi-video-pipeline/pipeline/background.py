@@ -146,6 +146,8 @@ class GeoScene:
         gx, gy = np.meshgrid(np.arange(sp / 2, W, sp), np.arange(sp / 2, H, sp))
         self.gxy = np.stack([gx.ravel(), gy.ravel()], 1)
         self.origins = [(U(0.1, 0.9) * W, U(0.1, 0.9) * H) for _ in range(3)]
+        k_ = W / config.W                                            # position de la mascotte (config.LAYOUT) à l'échelle du fond
+        self.mascot = (config.LAYOUT["mascot_cx"] * k_, config.LAYOUT["mascot_bottom"] * k_, config.LAYOUT["mascot_h"] * k_)
         self.scene_starts = [0.0]                                     # début de chaque scène (= bloc) : change le motif dominant
         # fond fixe : noir chaud + très léger halo or (haut gauche) et rose (bas droite) + vignettage
         lw, lh = max(2, W // 8), max(2, H // 8)
@@ -255,6 +257,25 @@ class GeoScene:
             if al > 10:
                 rr = (1.3 + 2.4 * am) * u
                 d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=gcol + (int(min(al, 255)),))
+        # lumière de la mascotte : aura derrière elle, sol lumineux sous ses pieds, ombre de contact, anneaux qui pulsent
+        mx, mb, mh = self.mascot
+        q = 4
+        lite = Image.new("RGBA", (W // q, H // q), self.gold + (0,))
+        dq = ImageDraw.Draw(lite)
+        dq.ellipse(((mx - 0.55 * mh) / q, (mb - 1.12 * mh) / q, (mx + 0.55 * mh) / q, (mb - 0.0 * mh) / q),
+                   fill=self.gold + (int(np.clip(20 + 60 * lv, 0, 255)),))
+        dq.ellipse(((mx - 0.62 * mh) / q, (mb - 0.10 * mh) / q, (mx + 0.62 * mh) / q, (mb + 0.10 * mh) / q),
+                   fill=self.rose + (int(np.clip(34 + 70 * lv, 0, 255)),))
+        lite = lite.filter(ImageFilter.GaussianBlur(max(1.0, 0.06 * mh / q * 2))).resize((W, H), Image.BILINEAR)
+        shade = Image.new("RGBA", (W // q, H // q), (0, 0, 0, 0))
+        ImageDraw.Draw(shade).ellipse(((mx - 0.30 * mh) / q, (mb - 0.035 * mh) / q, (mx + 0.30 * mh) / q, (mb + 0.02 * mh) / q),
+                                      fill=(0, 0, 0, 150))
+        shade = shade.filter(ImageFilter.GaussianBlur(max(0.8, 0.02 * mh / q * 2))).resize((W, H), Image.BILINEAR)
+        for k_r, (rx, al) in enumerate(((0.62, 80), (0.86, 45))):    # anneaux de sol (ellipses aplaties)
+            d.ellipse((mx - rx * mh, mb - 0.12 * rx * mh, mx + rx * mh, mb + 0.12 * rx * mh), outline=self.gold + (al,), width=lw)
+        fr_ = (3 * t / max(duration, 0.1)) % 1                       # onde qui part des pieds, plus forte quand la voix est forte
+        rx = (0.55 + 0.7 * fr_) * mh
+        d.ellipse((mx - rx, mb - 0.12 * rx, mx + rx, mb + 0.12 * rx), outline=self.rose + (int((70 + 80 * lv) * (1 - fr_)),), width=lw)
         pos = [(o["p"][0] + o["amp"][0] * np.sin(o["cx"] * pt + o["ph"][0]),
                 o["p"][1] + o["amp"][1] * np.cos(o["cy"] * pt + o["ph"][1])) for o in self.orbs]
         link = 0.30 * max(W, H)
@@ -303,8 +324,10 @@ class GeoScene:
         sw2 = np.zeros((lh_, lw_, 4), np.uint8); sw2[..., :3] = self.rose; sw2[..., 3] = np.clip(band2 * 255, 0, 255)
         img.alpha_composite(far)
         img.alpha_composite(ms)
+        img.alpha_composite(lite)
         img.alpha_composite(fl)
         img.alpha_composite(glow)
+        img.alpha_composite(shade)
         img.alpha_composite(lay)
         img.alpha_composite(Image.fromarray(sw, "RGBA").resize((W, H), Image.BICUBIC))
         img.alpha_composite(Image.fromarray(sw2, "RGBA").resize((W, H), Image.BICUBIC))
@@ -374,7 +397,7 @@ def _generate_geo(build_dir: Path, duration: float, fps: int, seed: str, voice: 
     scene.scene_starts = sorted(scenes) if scenes else [0.0]
     levels = _envelope(voice, n, gfps) if has_voice else np.zeros(n)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{config.W}x{config.H}",
-           "-r", str(gfps), "-i", "-", "-vf", f"fps={fps},gradfun=strength={config.BG_DEBAND}:radius=32,noise=alls=4:allf=t",
+           "-r", str(gfps), "-i", "-", "-vf", f"fps={fps},gradfun=strength={config.BG_DEBAND}:radius=32",
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     nw = max(1, config.BG_WORKERS)

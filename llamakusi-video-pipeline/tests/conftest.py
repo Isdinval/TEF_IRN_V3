@@ -14,6 +14,13 @@ def _no_card_glow(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_mascot_fx(monkeypatch):
+    """Halo de la mascotte : coupé pour les tests d'emprise (activé explicitement dans test_mascot_fx)."""
+    from pipeline import config
+    monkeypatch.setattr(config, "MASCOT_FX", False)
+
+
+@pytest.fixture(autouse=True)
 def _reset_layout_profile():
     """Le profil de mise en page est un état global : toujours repartir du Short."""
     from pipeline import config

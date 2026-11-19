@@ -61,6 +61,23 @@ def motion_y(name: str, motion: dict, total: float) -> str | None:
     return None
 
 
+def _final_fx(filters: list[str], last: str) -> str:
+    """Grain + bloom sur l'image FINALE (tous les calques) : mascotte, carte et fond partagent la même matière.
+    Le bloom ne garde que les hautes lumières, calculé en basse résolution (rapide), à faible opacité."""
+    if not config.FINAL_FX or (config.FINAL_GRAIN <= 0 and config.FINAL_BLOOM <= 0):
+        return last
+    if config.FINAL_BLOOM > 0:
+        filters.append(f"{last}split[fa][fb]")
+        filters.append(f"[fb]scale=iw/4:ih/4,lutyuv=y='max(val-170,0)*2.5',gblur=sigma=6,"
+                       f"scale={config.W}:{config.H}:flags=bilinear[bl]")
+        filters.append(f"[fa][bl]blend=all_mode=screen:all_opacity={config.FINAL_BLOOM}[fxb]")
+        last = "[fxb]"
+    if config.FINAL_GRAIN > 0:
+        filters.append(f"{last}noise=alls={config.FINAL_GRAIN}:allf=t[fxg]")
+        last = "[fxg]"
+    return last
+
+
 def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None = None,
            preset: str = "medium", background: Path | None = None, loop_background: bool = False,
            bg_period: float | None = None) -> Path:
@@ -99,6 +116,17 @@ def render(build_dir: Path, timeline: dict, out_path: Path, music: Path | None =
         filters.append(f"{last}[t{idx}]overlay={pos}:format=yuv444[v{idx}]")
         last = f"[v{idx}]"
         idx += 1
+        if name == "mascot" and config.FRONT_FX:                    # poussières/bokehs devant la mascotte (2 plans, périodes différentes)
+            for variant, (amp, period) in enumerate(((22, 7.0), (-14, 11.0))):
+                fp = build_dir / f"front_{variant}_{config.W}x{config.H}.png"
+                layers.render_front(build_dir.name, variant).save(fp)
+                inputs += ["-loop", "1", "-framerate", str(config.FPS), "-i", str(fp)]
+                filters.append(f"[{idx}:v]format=rgba[t{idx}]")
+                filters.append(f"{last}[t{idx}]overlay=x='{_periodic(amp, period, total)}':y='{_periodic(amp * 0.7, period * 1.3, total)}'"
+                               f":eval=frame:format=yuv444[v{idx}]")
+                last = f"[v{idx}]"
+                idx += 1
+    last = _final_fx(filters, last)
 
     inputs += ["-i", str(build_dir / timeline["voice"])]
     voice_idx = idx
