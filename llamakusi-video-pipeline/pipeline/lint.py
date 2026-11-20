@@ -226,6 +226,10 @@ def lint_script(script: VideoScript, publish: bool = False,
     return out
 
 
+def has_errors(issues: list[Issue]) -> bool:
+    return any(i.level == "error" for i in issues)
+
+
 def lint_all(scripts: list[VideoScript], publish: bool = False) -> list[Issue]:
     out: list[Issue] = []
     published = None

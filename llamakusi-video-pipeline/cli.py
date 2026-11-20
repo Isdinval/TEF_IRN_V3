@@ -5,6 +5,7 @@
   python cli.py lint [--publish] [ids…]      # GATE 1 : contrôle des scripts
   python cli.py build short-03 --dry         # rendu complet SANS API (voix muette, timings estimés)
   python cli.py build short-03               # TTS → ASR → alignement → rendu
+  python cli.py week                         # TOUTES les vidéos de la semaine (scripts `approved` pas encore générés)
   python cli.py preview short-03             # planche contact des blocs
   python cli.py fetch-question contravention # cherche de vraies questions civiques
   python cli.py subs short-03 [--langs ar,en] # .srt (fr + traductions Gemini) depuis build/<id>/words.json
@@ -215,6 +216,41 @@ def _social_previews(video: Path, fmt: str, bdir: Path, duration: float) -> None
         os.startfile(out)
 
 
+def week_selection(scripts, ids, force=False) -> list:
+    """Ids donnés → ces scripts ; sinon les scripts `approved` sans out.mp4 (tous les `approved` avec --force)."""
+    if ids:
+        return [s for s in scripts if s.id in ids]
+    return [s for s in scripts if s.status == "approved"
+            and (force or not (config.BUILD_DIR / s.id / "out.mp4").exists())]
+
+
+def cmd_week(args) -> int:
+    """UNE commande pour le lot hebdo : lint de tout le lot (avant tout appel payant), puis build de chaque vidéo."""
+    scripts = week_selection(schema.load_all(config.SCRIPTS_DIR), args.ids, args.force)
+    if not scripts:
+        print("✗ aucun script `approved` à générer (donner des ids, ou passer les scripts validés en `status: approved`)")
+        return 1
+    ids = [s.id for s in scripts]
+    print(f"Lot : {' · '.join(ids)}")
+    if lint.has_errors(lint.lint_all(scripts, publish=False)):
+        print("✗ lint en erreur : corriger d'abord (python cli.py lint " + " ".join(ids) + ")")
+        return 1
+    failed = []
+    for n, sid in enumerate(ids, 1):
+        print(f"\n=== [{n}/{len(ids)}] {sid} ===")
+        ns = argparse.Namespace(id=sid, until="render", dry=args.dry, proportional=False, force=args.force,
+                                no_bg=False, background=None, placeholder_mascots=False, no_preview=True)
+        try:
+            rc = cmd_build(ns)
+        except Exception as exc:                 # un échec n'arrête pas le reste du lot
+            print(f"✗ {exc}")
+            rc = 1
+        if rc:
+            failed.append(sid)
+    print(f"\n{len(ids) - len(failed)}/{len(ids)} vidéo(s) générée(s)" + (f" · échec : {', '.join(failed)}" if failed else ""))
+    return 1 if failed else 0
+
+
 def cmd_thumbnail(args) -> int:
     scripts = schema.load_all(config.SCRIPTS_DIR)
     if not args.all:
@@ -398,6 +434,12 @@ def main() -> int:
     p.add_argument("--no-preview", action="store_true", help="ne génère pas l'image d'aperçu avec l'interface des réseaux")
     p.set_defaults(fn=cmd_build)
 
+
+    p = sub.add_parser("week", help="génère TOUTES les vidéos du lot (scripts `approved` sans out.mp4, ou ids donnés)")
+    p.add_argument("ids", nargs="*")
+    p.add_argument("--dry", action="store_true", help="aucun appel API : voix muette, timings estimés")
+    p.add_argument("--force", action="store_true", help="regénère aussi les vidéos déjà faites (TTS/ASR payants)")
+    p.set_defaults(fn=cmd_week)
 
     p = sub.add_parser("thumbnail", help="miniature build/<id>/thumbnail.jpg (sans rendu vidéo ni API)")
     p.add_argument("ids", nargs="*")

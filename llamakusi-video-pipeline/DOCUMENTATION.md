@@ -113,6 +113,13 @@ uniquement `reviewed = true`). La commande affiche les questions trouvées avec 
 
 Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le style changent.
 
+### `week` — toutes les vidéos du lot en une commande
+`python cli.py week` · `python cli.py week short-06 short-07 long-03` · `python cli.py week --dry`
+**Pourquoi :** après la validation manuelle des scripts (`status: approved`, GATE 1), génère tout le lot d'un coup.
+Sans id : tous les scripts `approved` qui n'ont pas encore `build/<id>/out.mp4` (`--force` : tous les `approved`, TTS/ASR payants).
+Le lint du lot passe **avant** tout appel payant ; ensuite `build` de chaque vidéo (miniature comprise, sans ouvrir l'aperçu réseaux),
+un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin de lot. Cache par étape : relancer ne repaie que ce qui a changé.
+
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
 Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approved`, claims sourcées), réglages du `.env` (voir `.env.example`).
