@@ -126,9 +126,9 @@ un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin
 la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
 
 Description YouTube = **ligne 1** la réponse en une phrase (`publish.answer`, contient le mot-clé), **ligne 2** le lien profond (visibles avant « Voir plus »), puis le corps
-(`publish.description`), `CHAPITRES` (longs), `POUR ALLER PLUS LOIN` (guide + accueil, longs), pied de page, **3 hashtags max** (Short : le dernier est `#Shorts`).
+(`publish.description`), `CHAPITRES` (longs), `S'ENTRAÎNER SUR LLAMAKUSI` (accueil, longs), pied de page, **3 hashtags max** (Short : le dernier est `#Shorts`).
 Liens : guide = `publish.guide`, sinon `source_guide` de la 1re claim → `/tef-irn/guides/<slug>` ou `/examen-civique/guides/<slug>` ; sans guide → accueil du produit.
-Tous les liens portent `?utm_source=youtube&utm_medium=video|short&utm_campaign=<id>` (suivi PostHog).
+Liens propres, sans paramètres UTM (l'origine YouTube se lit dans PostHog via le référent ; pas de suivi par vidéo).
 
 Champs facultatifs du bloc `publish:` du script (rédigés avec le script, validés au GATE 1) :
 

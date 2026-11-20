@@ -81,18 +81,13 @@ def _missing(platform: str) -> list[str]:
     return [v for v, ok in ((id_var, config.env(id_var)), ("FACEBOOK_PAGE_TOKEN", _meta_token(platform))) if not ok]
 
 
-def _utm(url: str, script: VideoScript, platform: str) -> str:
-    medium = "short" if script.format == "short" else "video"
-    return f"{url}?utm_source={platform}&utm_medium={medium}&utm_campaign={script.id}"
-
-
-def links(script: VideoScript, platform: str) -> dict[str, str]:
-    """Liens CTA suivis (UTM → PostHog) : `guide` (lien profond : publish.guide, sinon source_guide de la 1re claim) et `home`."""
+def links(script: VideoScript) -> dict[str, str]:
+    """Liens CTA propres (sans paramètres) : `guide` (lien profond : publish.guide, sinon source_guide de la 1re claim) et `home`."""
     home, guides = SITE_PATHS[script.product]
     slug = script.publish.guide or next((c.source_guide for c in script.claims if c.source_guide), None)
-    out = {"home": _utm(SITE + home, script, platform)}
+    out = {"home": SITE + home}
     if slug:
-        out["guide"] = _utm(f"{SITE}{guides}/{slug}", script, platform)
+        out["guide"] = f"{SITE}{guides}/{slug}"
     return out
 
 
@@ -116,15 +111,14 @@ def seo_tags(script: VideoScript) -> list[str]:
 
 def _youtube_text(script: VideoScript, bdir: Path) -> str:
     """Ligne 1 = réponse (mot-clé), ligne 2 = lien profond (visibles avant « Voir plus »), puis corps, chapitres, liens, hashtags."""
-    info, lk = script.publish, links(script, "youtube")
+    info, lk = script.publish, links(script)
     parts = [f"{info.answer or script.title}\n→ {lk.get('guide', lk['home'])}"]
     parts.append(info.description or DEFAULT_PITCH[script.product])
     if script.format == "long":
         chapters = bdir / "chapters.txt"
         if chapters.exists():
             parts.append("CHAPITRES\n" + chapters.read_text(encoding="utf-8").strip())
-        more = ["POUR ALLER PLUS LOIN"] + ([f"• Le guide : {lk['guide']}"] if "guide" in lk else []) + [f"• S'entraîner : {lk['home']}"]
-        parts.append("\n".join(more))
+        parts.append(f"S'ENTRAÎNER SUR LLAMAKUSI\n{lk['home']}")
         parts.append(f"LlamaKusi — {DEFAULT_PITCH[script.product]}")
     parts.append(" ".join("#" + t for t in hashtags(script, "youtube")))
     return "\n\n".join(parts).strip()

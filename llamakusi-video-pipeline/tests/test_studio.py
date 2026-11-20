@@ -13,13 +13,13 @@ def _with(script, **info):
                                      "claims": [schema.Claim(text="x", source_guide="mon-guide")]})
 
 
-def test_youtube_text_answer_first_deep_link_utm_and_3_hashtags(tmp_path):
+def test_youtube_text_answer_first_deep_link_and_3_hashtags(tmp_path):
     sc = _with(schema.find_script(config.SCRIPTS_DIR, "short-03"), answer="Réponse courte.", keyword="examen civique",
                hashtags=["A", "B", "C", "D"])
     t = publish.texts(sc, tmp_path, "youtube")
     lines = t["text"].splitlines()
     assert lines[0] == "Réponse courte."
-    assert lines[1] == f"→ {publish.SITE}/examen-civique/guides/mon-guide?utm_source=youtube&utm_medium=short&utm_campaign=short-03"
+    assert lines[1] == f"→ {publish.SITE}/examen-civique/guides/mon-guide"
     assert t["text"].splitlines()[-1] == "#A #B #Shorts"
     assert t["tags"][0] == "examen civique" and len(t["tags"]) <= 8
 
@@ -28,13 +28,13 @@ def test_long_youtube_text_has_chapters_links_and_footer(tmp_path):
     sc = _with(schema.find_script(config.SCRIPTS_DIR, "long-01"), description="Corps.")
     (tmp_path / "chapters.txt").write_text("0:00 Intro\n0:30 Suite\n", encoding="utf-8")
     text = publish.texts(sc, tmp_path, "youtube")["text"]
-    assert "CHAPITRES\n0:00 Intro" in text and "POUR ALLER PLUS LOIN" in text and "/tef-irn/guides/mon-guide?" in text
-    assert text.count("#") <= 3 + text.count("utm_") * 0 + 3      # hashtags en fin ; pas d'autre « # »
+    assert "CHAPITRES\n0:00 Intro" in text and "S'ENTRAÎNER SUR LLAMAKUSI" in text and "/tef-irn/guides/mon-guide\n" in text
+    assert "utm_" not in text and "?" not in text.split("CHAPITRES")[0].splitlines()[1]       # liens propres
 
 
 def test_without_guide_the_link_is_the_product_home(tmp_path):
     sc = schema.find_script(config.SCRIPTS_DIR, "short-03").model_copy(update={"claims": [], "publish": schema.PublishInfo()})
-    assert "/examen-civique?utm_source=youtube" in publish.texts(sc, tmp_path, "youtube")["text"]
+    assert "→ https://llamakusi.com/examen-civique\n" in publish.texts(sc, tmp_path, "youtube")["text"]
 
 
 def test_lint_flags_long_title_missing_keyword_and_short_long_description():
