@@ -29,7 +29,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('is_published', true);
 
   const civicGuides = (guides || []).filter((g: any) => g.product === 'examen-civique');
-  const tefIrnGuides = (guides || []).filter((g: any) => g.product === 'tef-irn');
+  // Les guides compagnons de parcours sont en noindex : hors sitemap.
+  const tefIrnGuides = (guides || []).filter(
+    (g: any) => g.product === 'tef-irn' && !g.slug.endsWith('-guide-parcours'),
+  );
 
   // === PARCOURS ===
   const { data: parcours } = await supabase
