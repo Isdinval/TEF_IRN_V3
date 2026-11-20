@@ -311,12 +311,12 @@ def cmd_publish(args) -> int:
 
 
 def cmd_pack(args) -> int:
-    """Envoi MANUEL (YouTube Studio) : écrit build/<id>/studio.txt (titre, description + chapitres, hashtags) et liste les fichiers."""
+    """Envoi MANUEL (YouTube Studio) : écrit build/<id>/studio.txt (titre, description + chapitres, tags) et liste les fichiers."""
     script = schema.find_script(config.SCRIPTS_DIR, args.id)
     bdir = config.BUILD_DIR / script.id
     t = publish_mod.texts(script, bdir, "youtube")
     bdir.mkdir(parents=True, exist_ok=True)
-    (bdir / "studio.txt").write_text(f"TITRE\n{t['title']}\n\nDESCRIPTION\n{t['text']}\n", encoding="utf-8")
+    publish_mod.studio_file(script, bdir)                       # même fichier que `build` / `studio` (titre, description, tags)
     thumb = thumbnail_mod.thumbnail_path(bdir)
     if script.format == "long" and not thumb.exists():
         thumb = thumbnail_mod.save(script, bdir)

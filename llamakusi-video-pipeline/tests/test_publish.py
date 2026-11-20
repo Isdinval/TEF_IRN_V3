@@ -165,7 +165,7 @@ def test_default_hashtags_follow_the_product(tmp_path):
     text = publish.texts(sc, tmp_path, "youtube")["text"]
     assert "#ExamenCivique" in text and "#TEFIRN" not in text
     sc.publish.description = "Ma description"
-    assert publish.texts(sc, tmp_path, "youtube")["text"].startswith("Ma description")
+    assert "Ma description" in publish.texts(sc, tmp_path, "youtube")["text"]          # ligne 1 = réponse (SEO), le corps suit
 
 
 def test_pack_writes_studio_text(tmp_path, monkeypatch, capsys):
@@ -175,4 +175,4 @@ def test_pack_writes_studio_text(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["cli.py", "pack", "short-03"])
     assert cli.main() == 0
     txt = (tmp_path / "short-03" / "studio.txt").read_text(encoding="utf-8")
-    assert txt.startswith("TITRE\n") and "#ExamenCivique" in txt
+    assert "\nTITRE (" in txt and "TAGS (" in txt and "#ExamenCivique" in txt
