@@ -120,10 +120,28 @@ Sans id : tous les scripts `approved` qui n'ont pas encore `build/<id>/out.mp4` 
 Le lint du lot passe **avant** tout appel payant ; ensuite `build` de chaque vidéo (miniature comprise, sans ouvrir l'aperçu réseaux),
 un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin de lot. Cache par étape : relancer ne repaie que ce qui a changé.
 
-### `studio` — textes à copier dans YouTube Studio
+### `studio` — textes à copier dans YouTube Studio (SEO / GEO)
 `python cli.py studio long-01` · `python cli.py studio --all`
-Écrit `build/<id>/studio.txt` : fichiers à envoyer, **titre**, **description** (chapitres inclus pour les longs, hashtags en fin), **tags**.
-Créé automatiquement à la fin de `build` (donc de `week`) ; cette commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
+Écrit `build/<id>/studio.txt` : fichiers à envoyer, **titre** (alerte > 60 caractères), **description**, **tags** (8 max). Créé automatiquement à la fin de `build` (donc de `week`) ;
+la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
+
+Description YouTube = **ligne 1** la réponse en une phrase (`publish.answer`, contient le mot-clé), **ligne 2** le lien profond (visibles avant « Voir plus »), puis le corps
+(`publish.description`), `CHAPITRES` (longs), `POUR ALLER PLUS LOIN` (guide + accueil, longs), pied de page, **3 hashtags max** (Short : le dernier est `#Shorts`).
+Liens : guide = `publish.guide`, sinon `source_guide` de la 1re claim → `/tef-irn/guides/<slug>` ou `/examen-civique/guides/<slug>` ; sans guide → accueil du produit.
+Tous les liens portent `?utm_source=youtube&utm_medium=video|short&utm_campaign=<id>` (suivi PostHog).
+
+Champs facultatifs du bloc `publish:` du script (rédigés avec le script, validés au GATE 1) :
+
+| Champ | Rôle |
+|---|---|
+| `keyword` | requête cible : dans les 40 premiers caractères du titre (lint), 1er tag |
+| `answer` | réponse en UNE phrase, citable par les moteurs IA (ligne 1 de la description) |
+| `description` | corps ; longs : 200-300 mots (lint) |
+| `tags` | tags YouTube (variantes d'orthographe), 8 max ; défaut par produit |
+| `hashtags` | sans `#`, 3 max affichés |
+| `guide` | slug du guide à lier (défaut : source_guide de la 1re claim) |
+
+Les liens dans les descriptions de Shorts ne sont probablement pas cliquables sur YouTube (à vérifier) : le CTA reste « Lien en bio ».
 
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
@@ -320,6 +338,7 @@ sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 - Ce qui reste (hors MVP) : optimisation du temps de rendu, barre de progression, plan « fil rouge » avec étape courante mise en évidence.
 
 ### Miniatures
+- **Cadre** fin or → rose en retrait du bord (Short : le long de la zone visible 3:4, y 240-1680). `THUMB_FRAME=0` dans `.env` le coupe (test A/B de YouTube Studio : avec / sans).
 - `python cli.py thumbnail <id…|--all>` (aussi appelé en fin de `build`) → `build/<id>/thumbnail.jpg` : même gabarit pour toutes les vidéos
   (fond sombre constellation, mascotte en contre-jour, logo, pastille produit, titre en Montserrat 900 majuscules, filet or → rose).
   Long = 1280×720 ; Short = 1080×1920, contenu dans la zone centrale 3:4 (couverture Reels/Facebook).

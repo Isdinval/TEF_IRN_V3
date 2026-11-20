@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 
 from . import chapters as chapters_mod
@@ -116,6 +117,11 @@ def _guide_slugs(scripts: list[VideoScript]) -> set[str]:
     return {c.source_guide for s in scripts for c in s.claims if c.source_guide}
 
 
+def _fold(text: str) -> str:
+    """minuscules sans accents, pour comparer mot-clé et titre."""
+    return "".join(c for c in unicodedata.normalize("NFD", text.lower()) if unicodedata.category(c) != "Mn")
+
+
 def lint_script(script: VideoScript, publish: bool = False,
                 published_guides: set[str] | None = None) -> list[Issue]:
     sid, out = script.id, []
@@ -219,6 +225,22 @@ def lint_script(script: VideoScript, publish: bool = False,
         unv = [c for c in script.claims if not c.source_guide]
         if unv:
             add("todo", f"{len(unv)} claim(s) sans `source_guide` (slug d'un guide publié) avant publication")
+
+    info = script.publish                                  # SEO / GEO de la publication
+    if len(script.title) > 60:
+        add("warn", f"titre de {len(script.title)} caractères (> 60 : tronqué sur mobile)")
+    if not info.keyword:
+        add("todo", "publish.keyword (requête cible) manquant")
+    elif _fold(info.keyword) not in _fold(script.title)[:40]:
+        add("warn", f"mot-clé « {info.keyword} » absent des 40 premiers caractères du titre")
+    if not info.answer:
+        add("todo", "publish.answer (réponse en une phrase, ligne 1 de la description) manquant")
+    if len(info.hashtags) > 3:
+        add("warn", "plus de 3 hashtags : seuls 3 sont gardés sur YouTube")
+    if len(info.tags) > 8:
+        add("warn", "plus de 8 tags : seuls 8 sont gardés")
+    if script.format == "long" and len(((info.answer or "") + " " + (info.description or "")).split()) < 200:
+        add("warn", "description de moins de 200 mots (SEO/GEO : viser 200-300 mots pour un long)")
 
     if script.format == "short":
         add("todo", "à vérifier à l'oreille : la dernière phrase se raccorde-t-elle à la première ? "

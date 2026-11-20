@@ -18,6 +18,7 @@ from .schema import VideoScript
 
 KICKERS = {"tef_irn": "TEF IRN", "examen_civique": "EXAMEN CIVIQUE", "both": "TEF IRN · EXAMEN CIVIQUE",
            "fle_bridge": "FRANÇAIS ADMINISTRATIF"}
+FRAME = config.env("THUMB_FRAME", "1") != "0"      # cadre or → rose ; THUMB_FRAME=0 pour le couper (test A/B)
 MAX_BYTES = 2_000_000                       # limite YouTube d'une miniature
 # Mise en page par format. Short : tout dans la zone centrale 3:4 (y 240-1680), seule visible dans la grille Instagram.
 LAYOUTS = {
@@ -215,7 +216,29 @@ def render(script: VideoScript) -> Image.Image:
         t = i / max(1, bar_w - 1)
         a, b = (232, 206, 138), (224, 138, 168)
         top.line((bx + i, ty, bx + i, ty + bar_h), fill=tuple(round(a[j] + (b[j] - a[j]) * t) for j in range(3)) + (255,))
+    if FRAME:
+        _frame(img, script)
     return img
+
+
+def _frame(img: Image.Image, script: VideoScript) -> None:
+    """Cadre fin or → rose en retrait du bord. Short : le long de la zone visible 3:4 (y 240-1680), pas du bord du canvas
+    (Reels/Facebook rogneraient le cadre). Anticrénelage par rendu à ×4."""
+    w, h = img.size
+    short = script.format == "short"
+    x0, y0, x1, y1 = (0, 240, w, 1680) if short else (0, 0, w, h)
+    inset, thick, radius, k = (20, 10, 26, 4) if short else (14, 8, 20, 4)
+    mask = Image.new("L", (w * k, h * k), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(((x0 + inset) * k, (y0 + inset) * k, (x1 - inset) * k - 1, (y1 - inset) * k - 1),
+                                           radius=radius * k, outline=255, width=thick * k)
+    mask = mask.resize((w, h), Image.LANCZOS)
+    grad = Image.new("RGB", (w, h))
+    gd = ImageDraw.Draw(grad)
+    a, b = (232, 206, 138), (224, 138, 168)
+    for x in range(w):
+        t = x / max(1, w - 1)
+        gd.line((x, 0, x, h), fill=tuple(round(a[j] + (b[j] - a[j]) * t) for j in range(3)))
+    img.paste(grad, (0, 0), mask)
 
 
 def save(script: VideoScript, bdir: Path) -> Path:

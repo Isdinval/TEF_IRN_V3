@@ -35,6 +35,17 @@ DEFAULT_PITCH = {
     "both": "Prépare le TEF IRN et l'examen civique avec LlamaKusi.",
     "fle_bridge": "Comprends le français administratif et prépare ta démarche avec LlamaKusi.",
 }
+# Tags YouTube par produit (≠ hashtags) : variantes d'orthographe et requêtes proches. 8 maximum au total.
+DEFAULT_TAGS = {
+    "tef_irn": ["TEF IRN", "TEF-IRN", "TCF IRN", "test de français naturalisation", "préparation TEF IRN"],
+    "examen_civique": ["examen civique", "examen civique 2026", "carte de résident", "carte de séjour pluriannuelle", "naturalisation française"],
+    "both": ["TEF IRN", "examen civique", "naturalisation française", "carte de résident"],
+    "fle_bridge": ["français administratif", "préfecture", "naturalisation française", "FLE"],
+}
+SITE_PATHS = {   # (accueil, dossier des guides) : sitemap.ts → /tef-irn/guides/<slug> et /examen-civique/guides/<slug>
+    "tef_irn": ("/tef-irn", "/tef-irn/guides"), "examen_civique": ("/examen-civique", "/examen-civique/guides"),
+    "both": ("/tef-irn", "/tef-irn/guides"), "fle_bridge": ("/tef-irn", "/tef-irn/guides"),
+}
 GRAPH_VERSION = config.env("GRAPH_VERSION", "v25.0")
 GRAPH = f"https://graph.facebook.com/{GRAPH_VERSION}"
 GRAPH_VIDEO = f"https://graph-video.facebook.com/{GRAPH_VERSION}"
@@ -70,29 +81,74 @@ def _missing(platform: str) -> list[str]:
     return [v for v, ok in ((id_var, config.env(id_var)), ("FACEBOOK_PAGE_TOKEN", _meta_token(platform))) if not ok]
 
 
-def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
-    """Titre + texte de publication d'une plateforme (description, chapitres YouTube des longs, hashtags)."""
-    info = script.publish
-    tags = list(info.hashtags or DEFAULT_HASHTAGS[script.product])
-    body = info.description or f"{script.title}\n\n{DEFAULT_PITCH[script.product]}\n{SITE}"
-    if platform == "youtube":
-        if script.format == "short":
-            tags.append("Shorts")
+def _utm(url: str, script: VideoScript, platform: str) -> str:
+    medium = "short" if script.format == "short" else "video"
+    return f"{url}?utm_source={platform}&utm_medium={medium}&utm_campaign={script.id}"
+
+
+def links(script: VideoScript, platform: str) -> dict[str, str]:
+    """Liens CTA suivis (UTM → PostHog) : `guide` (lien profond : publish.guide, sinon source_guide de la 1re claim) et `home`."""
+    home, guides = SITE_PATHS[script.product]
+    slug = script.publish.guide or next((c.source_guide for c in script.claims if c.source_guide), None)
+    out = {"home": _utm(SITE + home, script, platform)}
+    if slug:
+        out["guide"] = _utm(f"{SITE}{guides}/{slug}", script, platform)
+    return out
+
+
+def hashtags(script: VideoScript, platform: str) -> list[str]:
+    """3 hashtags maximum sur YouTube (les premiers sont affichés au-dessus du titre) ; Short : le dernier est #Shorts."""
+    tags = list(script.publish.hashtags or DEFAULT_HASHTAGS[script.product])
+    if platform != "youtube":
+        return tags
+    return tags[:2] + ["Shorts"] if script.format == "short" else tags[:3]
+
+
+def seo_tags(script: VideoScript) -> list[str]:
+    raw = [script.publish.keyword or "", *(script.publish.tags or DEFAULT_TAGS[script.product])]
+    seen, out = set(), []
+    for t in raw:
+        if t.strip() and t.lower() not in seen:
+            seen.add(t.lower())
+            out.append(t.strip())
+    return out[:8]
+
+
+def _youtube_text(script: VideoScript, bdir: Path) -> str:
+    """Ligne 1 = réponse (mot-clé), ligne 2 = lien profond (visibles avant « Voir plus »), puis corps, chapitres, liens, hashtags."""
+    info, lk = script.publish, links(script, "youtube")
+    parts = [f"{info.answer or script.title}\n→ {lk.get('guide', lk['home'])}"]
+    parts.append(info.description or DEFAULT_PITCH[script.product])
+    if script.format == "long":
         chapters = bdir / "chapters.txt"
-        if script.format == "long" and chapters.exists():
-            body = f"{body}\n\n{chapters.read_text(encoding='utf-8').strip()}".strip()
-    text = f"{body}\n\n{' '.join('#' + t for t in tags)}".strip()
-    return {"title": script.title[:100], "text": text, "tags": tags}
+        if chapters.exists():
+            parts.append("CHAPITRES\n" + chapters.read_text(encoding="utf-8").strip())
+        more = ["POUR ALLER PLUS LOIN"] + ([f"• Le guide : {lk['guide']}"] if "guide" in lk else []) + [f"• S'entraîner : {lk['home']}"]
+        parts.append("\n".join(more))
+        parts.append(f"LlamaKusi — {DEFAULT_PITCH[script.product]}")
+    parts.append(" ".join("#" + t for t in hashtags(script, "youtube")))
+    return "\n\n".join(parts).strip()
+
+
+def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
+    """Titre + texte de publication d'une plateforme. YouTube : description SEO/GEO (voir `_youtube_text`) ; autres : titre + pitch + hashtags."""
+    if platform == "youtube":
+        return {"title": script.title[:100], "text": _youtube_text(script, bdir), "tags": seo_tags(script)}
+    info = script.publish
+    tags = hashtags(script, platform)
+    body = info.description or f"{script.title}\n\n{DEFAULT_PITCH[script.product]}\n{SITE}"
+    return {"title": script.title[:100], "text": f"{body}\n\n{' '.join('#' + t for t in tags)}".strip(), "tags": tags}
 
 
 def studio_file(script: VideoScript, bdir: Path) -> Path:
-    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description avec chapitres, tags)."""
+    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", bdir / "thumbnail.jpg") if f.exists()]
+    short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
     out = bdir / "studio.txt"
-    out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100)\n{t['title']}\n\n"
-                   f"DESCRIPTION\n{t['text']}\n\nTAGS (séparés par des virgules)\n{', '.join(t['tags'])}\n",
-                   encoding="utf-8")
+    out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
+                   f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
+                   f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n", encoding="utf-8")
     return out
 
 

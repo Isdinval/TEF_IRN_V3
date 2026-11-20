@@ -90,8 +90,12 @@ class ThumbnailInfo(BaseModel):
 class PublishInfo(BaseModel):
     """Textes de publication (facultatif : sinon `title` + hashtags par défaut)."""
 
-    description: Optional[str] = None
-    hashtags: list[str] = Field(default_factory=list)   # sans « # »
+    description: Optional[str] = None                   # corps de la description (sans chapitres ni liens : ajoutés seuls)
+    hashtags: list[str] = Field(default_factory=list)   # sans « # » ; 3 maximum affichés
+    keyword: Optional[str] = None                       # requête cible (SEO) : doit figurer dans les 40 premiers caractères du titre
+    answer: Optional[str] = None                        # réponse en UNE phrase (ligne 1 de la description, citable par les IA)
+    tags: list[str] = Field(default_factory=list)       # tags YouTube (variantes d'orthographe, 8 max) ; défaut par produit
+    guide: Optional[str] = None                         # slug du guide à lier (défaut : source_guide de la 1re claim)
 
 
 class VideoScript(BaseModel):
