@@ -85,6 +85,17 @@ def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
     return {"title": script.title[:100], "text": text, "tags": tags}
 
 
+def studio_file(script: VideoScript, bdir: Path) -> Path:
+    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description avec chapitres, tags)."""
+    t = texts(script, bdir, "youtube")
+    files = [f.name for f in (bdir / "out.mp4", bdir / "thumbnail.jpg") if f.exists()]
+    out = bdir / "studio.txt"
+    out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100)\n{t['title']}\n\n"
+                   f"DESCRIPTION\n{t['text']}\n\nTAGS (séparés par des virgules)\n{', '.join(t['tags'])}\n",
+                   encoding="utf-8")
+    return out
+
+
 def check_publishable(script: VideoScript, platforms: list[str], confirm_public: bool) -> None:
     """Garde-fous avant tout envoi (la publication est PUBLIQUE et immédiate). Quitte avec un message si KO."""
     errors = []

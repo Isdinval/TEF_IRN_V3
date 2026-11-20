@@ -120,6 +120,11 @@ Sans id : tous les scripts `approved` qui n'ont pas encore `build/<id>/out.mp4` 
 Le lint du lot passe **avant** tout appel payant ; ensuite `build` de chaque vidéo (miniature comprise, sans ouvrir l'aperçu réseaux),
 un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin de lot. Cache par étape : relancer ne repaie que ce qui a changé.
 
+### `studio` — textes à copier dans YouTube Studio
+`python cli.py studio long-01` · `python cli.py studio --all`
+Écrit `build/<id>/studio.txt` : fichiers à envoyer, **titre**, **description** (chapitres inclus pour les longs, hashtags en fin), **tags**.
+Créé automatiquement à la fin de `build` (donc de `week`) ; cette commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
+
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
 Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approved`, claims sourcées), réglages du `.env` (voir `.env.example`).

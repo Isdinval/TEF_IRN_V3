@@ -5,6 +5,7 @@
   python cli.py lint [--publish] [ids…]      # GATE 1 : contrôle des scripts
   python cli.py build short-03 --dry         # rendu complet SANS API (voix muette, timings estimés)
   python cli.py build short-03               # TTS → ASR → alignement → rendu
+  python cli.py studio --all                 # studio.txt (titre, description, tags) pour YouTube Studio
   python cli.py week                         # TOUTES les vidéos de la semaine (scripts `approved` pas encore générés)
   python cli.py preview short-03             # planche contact des blocs
   python cli.py fetch-question contravention # cherche de vraies questions civiques
@@ -196,6 +197,7 @@ def cmd_build(args) -> int:
                     loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
     print(f"✓ {thumbnail_mod.save(script, bdir)} (miniature)")
+    print(f"✓ {publish_mod.studio_file(script, bdir)} (titre, description, tags pour YouTube Studio)")
     if not args.no_preview:
         _social_previews(out, script.format, bdir, tl["duration"])
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
@@ -249,6 +251,20 @@ def cmd_week(args) -> int:
             failed.append(sid)
     print(f"\n{len(ids) - len(failed)}/{len(ids)} vidéo(s) générée(s)" + (f" · échec : {', '.join(failed)}" if failed else ""))
     return 1 if failed else 0
+
+
+def cmd_studio(args) -> int:
+    scripts = schema.load_all(config.SCRIPTS_DIR)
+    if not args.all:
+        scripts = [s for s in scripts if s.id in args.ids]
+    if not scripts:
+        print("✗ aucun script : donner des ids ou --all")
+        return 1
+    for sc in scripts:
+        bdir = config.BUILD_DIR / sc.id
+        bdir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ {publish_mod.studio_file(sc, bdir)}")
+    return 0
 
 
 def cmd_thumbnail(args) -> int:
@@ -440,6 +456,11 @@ def main() -> int:
     p.add_argument("--dry", action="store_true", help="aucun appel API : voix muette, timings estimés")
     p.add_argument("--force", action="store_true", help="regénère aussi les vidéos déjà faites (TTS/ASR payants)")
     p.set_defaults(fn=cmd_week)
+
+    p = sub.add_parser("studio", help="build/<id>/studio.txt : titre, description, tags à copier dans YouTube Studio")
+    p.add_argument("ids", nargs="*")
+    p.add_argument("--all", action="store_true")
+    p.set_defaults(fn=cmd_studio)
 
     p = sub.add_parser("thumbnail", help="miniature build/<id>/thumbnail.jpg (sans rendu vidéo ni API)")
     p.add_argument("ids", nargs="*")
