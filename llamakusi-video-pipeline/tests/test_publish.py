@@ -18,7 +18,7 @@ class Resp:
 
 @pytest.fixture
 def short():
-    return schema.find_script(config.SCRIPTS_DIR, "short-01")
+    return schema.find_script(config.SCRIPTS_DIR, "short-01").model_copy(update={"publish": schema.PublishInfo()})   # défauts, indépendants du script
 
 
 @pytest.fixture

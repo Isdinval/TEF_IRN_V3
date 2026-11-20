@@ -5,9 +5,25 @@ pillar: F
 product: both
 hook_formula: contrarian
 accent: gold
-title: 'TEF ou TCF : la vraie question'
+title: 'TEF IRN ou TCF IRN : la vraie question à se poser'
 thumbnail:
   text: "TEF ou TCF : la *vraie question*"
+publish:
+  keyword: TEF IRN ou TCF IRN
+  answer: 'TEF IRN et TCF IRN ont la même valeur réglementaire : le bon choix est celui dont le format te correspond.'
+  description: Le format d'épreuve change, la reconnaissance non. Choisis selon ta façon de travailler face à une
+    épreuve.
+  guide: tef-irn-vs-tcf-irn
+  tags:
+  - TEF IRN ou TCF IRN
+  - TEF IRN vs TCF IRN
+  - TCF IRN
+  - TEF-IRN
+  - naturalisation français test
+  hashtags:
+  - TEFIRN
+  - TCFIRN
+  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook

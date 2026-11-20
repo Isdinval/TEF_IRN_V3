@@ -5,9 +5,26 @@ pillar: A
 product: tef_irn
 hook_formula: curiosity_gap
 accent: indigo
-title: Ce qui bloque 9 candidats sur 10 en B1
+title: 'Expression écrite TEF IRN : passer de B1 à B2'
 thumbnail:
   text: "Ce qui bloque *9 candidats sur 10* en B1"
+publish:
+  keyword: expression écrite TEF IRN
+  answer: 'Ce qui fait passer une expression écrite TEF IRN de B1 à B2, c''est la structure : une introduction,
+    deux arguments reliés, une conclusion.'
+  description: 'Le correcteur note deux choses : le contenu, puis la langue. Un vocabulaire riche sans paragraphes
+    clairs ne suffit pas. Exemple illustratif, pas une garantie de score.'
+  guide: reussir-expression-ecrite-section-b
+  tags:
+  - expression écrite TEF IRN
+  - TEF IRN B1 B2
+  - TEF-IRN
+  - structure texte argumenté
+  - préparation TEF IRN
+  hashtags:
+  - TEFIRN
+  - ExpressionEcrite
+  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook

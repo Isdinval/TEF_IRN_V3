@@ -5,9 +5,25 @@ pillar: E
 product: fle_bridge
 hook_formula: direct_promise
 accent: gold
-title: 3 mots de la préfecture que personne n'explique
+title: 'Récépissé préfecture : 3 mots que personne n''explique'
 thumbnail:
   text: "*3 mots* de la préfecture que personne n'explique"
+publish:
+  keyword: récépissé préfecture
+  answer: 'Récépissé, convocation, pièce justificative : trois mots de la préfecture expliqués simplement.'
+  description: 'Le récépissé : un papier provisoire qui prouve que ta demande est en cours. La convocation : le
+    rendez-vous fixé, à l''heure exacte. La pièce justificative : le document qui prouve ce que tu déclares, par
+    exemple un justificatif de domicile.'
+  tags:
+  - récépissé préfecture
+  - convocation préfecture
+  - pièce justificative
+  - vocabulaire préfecture
+  - français administratif
+  hashtags:
+  - Prefecture
+  - FrancaisAdministratif
+  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook

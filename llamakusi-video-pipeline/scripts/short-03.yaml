@@ -5,9 +5,26 @@ pillar: D
 product: examen_civique
 hook_formula: in_medias_res
 accent: blue
-title: 'Contravention : combien de jours pour agir ?'
+title: 'Examen civique : contravention, combien de jours ?'
 thumbnail:
   text: "Contravention : *combien de jours* pour agir ?"
+publish:
+  keyword: examen civique
+  answer: 'À l''examen civique, une question porte sur la contravention : 45 jours pour agir, passé ce délai l''amende
+    forfaitaire est majorée.'
+  description: '12 questions sur 40 portent sur des situations de la vie quotidienne : des règles à savoir appliquer,
+    pas seulement des dates à apprendre par cœur.'
+  guide: nombre-questions-officielles-examen-civique
+  tags:
+  - examen civique
+  - examen civique contravention
+  - examen civique 40 questions
+  - examen civique 2026
+  - naturalisation française
+  hashtags:
+  - ExamenCivique
+  - CarteDeResident
+  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook

@@ -33,12 +33,12 @@ def test_long_youtube_text_has_chapters_links_and_footer(tmp_path):
 
 
 def test_without_guide_the_link_is_the_product_home(tmp_path):
-    sc = schema.find_script(config.SCRIPTS_DIR, "short-03").model_copy(update={"claims": []})
+    sc = schema.find_script(config.SCRIPTS_DIR, "short-03").model_copy(update={"claims": [], "publish": schema.PublishInfo()})
     assert "/examen-civique?utm_source=youtube" in publish.texts(sc, tmp_path, "youtube")["text"]
 
 
 def test_lint_flags_long_title_missing_keyword_and_short_long_description():
-    sc = schema.find_script(config.SCRIPTS_DIR, "long-01")
+    sc = schema.find_script(config.SCRIPTS_DIR, "long-01").model_copy(update={"title": "Une accroche très longue qui ne contient aucun mot-clé ciblé, vraiment aucun"})
     msgs = " ".join(i.message for i in lint.lint_script(_with(sc, keyword="carte de résident", description="court")))
     assert "40 premiers caractères" in msgs and "moins de 200 mots" in msgs and "caractères (> 60" in msgs
 

@@ -5,9 +5,25 @@ pillar: B
 product: both
 hook_formula: stakes
 accent: gold
-title: 'Naturalisation : le saut de B1 à B2 depuis 2026'
+title: 'Naturalisation 2026 : le niveau B2 est obligatoire'
 thumbnail:
   text: "Naturalisation : le saut *B1 → B2*"
+publish:
+  keyword: naturalisation 2026
+  answer: Depuis le 1er janvier 2026, la naturalisation exige le niveau B2 de français, contre B1 auparavant.
+  description: 'B1 : des phrases courtes, une conversation simple. B2 : argumenter, nuancer, tenir une conversation
+    complexe. Règle issue du décret du 15 juillet 2025.'
+  guide: niveaux-francais-naturalisation-2026
+  tags:
+  - naturalisation niveau B2
+  - niveau de français naturalisation 2026
+  - naturalisation 2026
+  - TEF IRN B2
+  - décret 2025 naturalisation
+  hashtags:
+  - Naturalisation
+  - NiveauB2
+  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook

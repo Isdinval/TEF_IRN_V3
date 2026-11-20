@@ -4,9 +4,52 @@ status: draft
 pillar: C
 product: tef_irn
 accent: indigo
-title: 'Expression écrite TEF IRN : la méthode en 4 blocs pour la section B'
+title: 'Expression écrite TEF IRN section B : la méthode en 4 blocs'
 thumbnail:
   text: "Section B : la méthode en *4 blocs*"
+publish:
+  keyword: expression écrite TEF IRN
+  answer: 'Pour réussir la section B de l''expression écrite du TEF IRN, structure ton texte en quatre blocs : une
+    introduction, deux arguments et une conclusion, reliés par des connecteurs.'
+  description: 'Tu as 20 minutes conseillées et 100 mots minimum pour convaincre une association de te choisir.
+    Sans plan, les idées se mélangent et le lecteur se perd. Dans cette vidéo, une méthode en quatre blocs appliquée
+    à un texte complet, étape par étape.
+
+
+    Ce que tu vas apprendre :
+
+    • le format de l''expression écrite du TEF IRN : 30 minutes, deux sections (A : 10 minutes conseillées et 40
+    mots minimum ; B : 20 minutes conseillées et 100 mots minimum) ;
+
+    • la méthode en quatre blocs : introduction, premier argument, deuxième argument, conclusion ;
+
+    • comment trouver des idées avec trois questions simples ;
+
+    • quatre connecteurs qui suffisent : tout d''abord, de plus, en effet, c''est pourquoi ;
+
+    • une répartition possible du temps (3 minutes de plan, 13 de rédaction, 4 de relecture) : un conseil, pas une
+    règle officielle ;
+
+    • combien de mots viser : entre 110 et 130 pour garder une marge ;
+
+    • les trois erreurs à éviter, et un rappel sur la section A.
+
+
+    Depuis le 1er janvier 2026, la naturalisation exige le niveau B2 : sur 100 mots, chaque phrase compte. Pour
+    t''entraîner avec des sujets chronométrés corrigés par l''IA, retrouve les liens ci-dessous.'
+  guide: reussir-expression-ecrite-section-b
+  tags:
+  - expression écrite TEF IRN
+  - TEF IRN section B
+  - méthode expression écrite
+  - TEF-IRN
+  - préparation TEF IRN
+  - naturalisation niveau B2
+  - connecteurs logiques français
+  hashtags:
+  - TEFIRN
+  - ExpressionEcrite
+  - LlamaKusi
 cta_overlay: null
 blocks:
 - id: hook
