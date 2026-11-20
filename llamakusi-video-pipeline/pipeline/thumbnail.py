@@ -72,7 +72,18 @@ def fit_title(text: str, max_w: int, max_lines: int, size_max: int, size_min: in
 
 
 # --- fond ------------------------------------------------------------------------------------------
+def _video_background(w: int, h: int, script: VideoScript) -> Image.Image:
+    """Même fond que la vidéo : une image de la scène « constellation » (seed = id du script → même disposition), un peu assombrie."""
+    from .background import GeoScene
+    scene = GeoScene(script.id, w, h)
+    scene.scene_starts = [0.0]
+    img = scene.render(2.0, 24.0, 0.5).convert("RGB")
+    return Image.blend(img, Image.new("RGB", (w, h), "#050605"), 0.35)
+
+
 def _background(w: int, h: int, script: VideoScript, lay: dict) -> Image.Image:
+    if config.BG_STYLE == "geo":
+        return _video_background(w, h, script)
     """Noir chaud + lueur or en haut à gauche + lueur rose derrière la mascotte (émeraude pour l'Examen Civique)
     + constellation (polygones fins, orbes reliés, poussière) dont la disposition dépend de l'id du script."""
     img = Image.new("RGB", (w, h), GEO["base"])
@@ -222,14 +233,11 @@ def render(script: VideoScript) -> Image.Image:
 
 
 def _frame(img: Image.Image, script: VideoScript) -> None:
-    """Cadre fin or → rose en retrait du bord. Short : le long de la zone visible 3:4 (y 240-1680), pas du bord du canvas
-    (Reels/Facebook rogneraient le cadre). Anticrénelage par rendu à ×4."""
+    """Cadre fin or → rose qui suit la forme de l'image (coins arrondis, en retrait du bord). Anticrénelage par rendu à ×4."""
     w, h = img.size
-    short = script.format == "short"
-    x0, y0, x1, y1 = (0, 240, w, 1680) if short else (0, 0, w, h)
-    inset, thick, radius, k = (20, 10, 26, 4) if short else (14, 8, 20, 4)
+    inset, thick, radius, k = (18, 10, 40, 4) if script.format == "short" else (14, 8, 28, 4)
     mask = Image.new("L", (w * k, h * k), 0)
-    ImageDraw.Draw(mask).rounded_rectangle(((x0 + inset) * k, (y0 + inset) * k, (x1 - inset) * k - 1, (y1 - inset) * k - 1),
+    ImageDraw.Draw(mask).rounded_rectangle((inset * k, inset * k, (w - inset) * k - 1, (h - inset) * k - 1),
                                            radius=radius * k, outline=255, width=thick * k)
     mask = mask.resize((w, h), Image.LANCZOS)
     grad = Image.new("RGB", (w, h))

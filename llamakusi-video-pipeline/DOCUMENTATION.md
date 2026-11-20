@@ -338,7 +338,8 @@ sur **30 s** puis répété (`BG_LOOP_S`) ; la musique boucle déjà.
 - Ce qui reste (hors MVP) : optimisation du temps de rendu, barre de progression, plan « fil rouge » avec étape courante mise en évidence.
 
 ### Miniatures
-- **Cadre** fin or → rose en retrait du bord (Short : le long de la zone visible 3:4, y 240-1680). `THUMB_FRAME=0` dans `.env` le coupe (test A/B de YouTube Studio : avec / sans).
+- **Cadre** fin or → rose qui suit la forme de l'image (coins arrondis, en retrait du bord). `THUMB_FRAME=0` dans `.env` le coupe (test A/B de YouTube Studio : avec / sans).
+- **Fond** = une image de la scène « constellation » de la vidéo (même `seed` = id du script, donc même disposition) ; `BG_STYLE=halo` restaure l'ancien fond de miniature.
 - `python cli.py thumbnail <id…|--all>` (aussi appelé en fin de `build`) → `build/<id>/thumbnail.jpg` : même gabarit pour toutes les vidéos
   (fond sombre constellation, mascotte en contre-jour, logo, pastille produit, titre en Montserrat 900 majuscules, filet or → rose).
   Long = 1280×720 ; Short = 1080×1920, contenu dans la zone centrale 3:4 (couverture Reels/Facebook).

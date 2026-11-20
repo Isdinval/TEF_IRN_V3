@@ -43,12 +43,21 @@ def test_lint_flags_long_title_missing_keyword_and_short_long_description():
     assert "40 premiers caractères" in msgs and "moins de 200 mots" in msgs and "caractères (> 60" in msgs
 
 
-def test_thumbnail_frame_ring_is_inset_and_leaves_the_inside_untouched():
+def test_thumbnail_frame_follows_the_image_edges_and_leaves_the_inside_untouched():
     from PIL import Image
     from pipeline import thumbnail
-    for sid, size, ring_y, inside in (("long-01", (1280, 720), 18, (640, 60)), ("short-01", (1080, 1920), 265, (540, 600))):
+    for sid, size, ring, inside in (("long-01", (1280, 720), 18, (640, 60)), ("short-01", (1080, 1920), 22, (540, 100))):
         img = Image.new("RGB", size, (10, 12, 11))
         thumbnail._frame(img, schema.find_script(config.SCRIPTS_DIR, sid))
-        assert img.getpixel((size[0] // 2, ring_y)) != (10, 12, 11)        # anneau or/rose
-        assert img.getpixel(inside) == (10, 12, 11)                         # intérieur intact
-        assert img.getpixel((size[0] // 2, 2)) == (10, 12, 11)              # rien sur le bord (Short : ni dans les zones rognées)
+        cx, cy = size[0] // 2, size[1] // 2
+        for p in ((cx, ring), (cx, size[1] - 1 - ring), (ring, cy), (size[0] - 1 - ring, cy)):      # 4 côtés
+            assert img.getpixel(p) != (10, 12, 11)
+        assert img.getpixel(inside) == (10, 12, 11) and img.getpixel((cx, 2)) == (10, 12, 11)         # intérieur et bord intacts
+
+
+def test_thumbnail_background_is_the_video_scene_of_the_same_script():
+    from pipeline import thumbnail
+    sc = schema.find_script(config.SCRIPTS_DIR, "short-03")
+    a, b = thumbnail._video_background(270, 480, sc), thumbnail._video_background(270, 480, sc)
+    other = thumbnail._video_background(270, 480, schema.find_script(config.SCRIPTS_DIR, "short-02"))
+    assert a.size == (270, 480) and list(a.getdata()) == list(b.getdata()) and list(a.getdata()) != list(other.getdata())
