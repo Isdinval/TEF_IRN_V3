@@ -15,6 +15,7 @@ publish:
   description: 'Le correcteur note deux choses : le contenu, puis la langue. Un vocabulaire riche sans paragraphes
     clairs ne suffit pas. Exemple illustratif, pas une garantie de score.'
   guide: reussir-expression-ecrite-section-b
+  related: long-01
   tags:
   - expression écrite TEF IRN
   - TEF IRN B1 B2

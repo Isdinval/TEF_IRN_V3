@@ -61,3 +61,28 @@ def test_thumbnail_background_is_the_video_scene_of_the_same_script():
     a, b = thumbnail._video_background(270, 480, sc), thumbnail._video_background(270, 480, sc)
     other = thumbnail._video_background(270, 480, schema.find_script(config.SCRIPTS_DIR, "short-02"))
     assert a.size == (270, 480) and list(a.getdata()) == list(b.getdata()) and list(a.getdata()) != list(other.getdata())
+
+
+def test_studio_file_lists_playlist_related_video_and_pinned_question(tmp_path):
+    short = schema.find_script(config.SCRIPTS_DIR, "short-01")
+    out = publish.studio_file(short, tmp_path).read_text(encoding="utf-8")
+    assert "PLAYLIST" in out and publish.PLAYLISTS["tef"][0] in out
+    assert "VIDÉO ASSOCIÉE" in out and "long-01" in out
+    assert "COMMENTAIRE À ÉPINGLER" in out and publish.PINNED_QUESTION["A"] in out
+    assert publish.COMMENT_LINE in publish.texts(short, tmp_path, "youtube")["text"]
+
+
+def test_long_studio_file_lists_its_linked_shorts_and_no_related_means_none(tmp_path):
+    out = publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path).read_text(encoding="utf-8")
+    assert "SHORTS LIÉS" in out and "short-01" in out
+    other = publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "short-04"), tmp_path).read_text(encoding="utf-8")
+    assert "aucune (pas de vidéo longue liée)" in other and publish.PLAYLISTS["prefecture"][0] in other
+
+
+def test_related_must_be_an_existing_long_and_playlist_key_must_exist(tmp_path):
+    import pytest
+    short = schema.find_script(config.SCRIPTS_DIR, "short-02")
+    with pytest.raises(ValueError):
+        publish.studio_file(short.model_copy(update={"publish": schema.PublishInfo(related="short-03")}), tmp_path)
+    with pytest.raises(ValueError):
+        publish.studio_file(short.model_copy(update={"publish": schema.PublishInfo(playlist="nope")}), tmp_path)

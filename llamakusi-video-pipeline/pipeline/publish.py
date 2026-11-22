@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
 
-from . import config
+from . import config, schema
 from .schema import VideoScript
 
 PLATFORMS = ("youtube", "facebook", "instagram")
@@ -46,6 +46,31 @@ SITE_PATHS = {   # (accueil, dossier des guides) : sitemap.ts → /tef-irn/guide
     "tef_irn": ("/tef-irn", "/tef-irn/guides"), "examen_civique": ("/examen-civique", "/examen-civique/guides"),
     "both": ("/tef-irn", "/tef-irn/guides"), "fle_bridge": ("/tef-irn", "/tef-irn/guides"),
 }
+# Playlists de la chaîne (clé → titre, description) : à créer dans YouTube Studio ; `studio.txt` indique laquelle choisir.
+PLAYLISTS = {
+    "start": ("Commencer ici : naturalisation, TEF IRN, examen civique",
+              "Tu débutes ? Les bases pour comprendre le TEF IRN, le TCF IRN et l'examen civique, et savoir par où commencer.\n→ https://llamakusi.com/tef-irn"),
+    "tef": ("TEF IRN : réussir l'expression écrite et orale",
+            "Méthodes et exemples pour préparer le TEF IRN (niveaux A2, B1, B2) : expression écrite, expression orale, pièges à éviter.\n→ https://llamakusi.com/tef-irn"),
+    "civique": ("Examen civique : questions et pièges",
+                "Questions types, pièges et repères pour préparer l'examen civique (carte de séjour, carte de résident, naturalisation).\n→ https://llamakusi.com/examen-civique"),
+    "regles": ("Naturalisation et titre de séjour : les règles 2026",
+               "Niveau de français, démarches, délais : ce qui change en 2026, expliqué simplement.\n→ https://llamakusi.com/tef-irn"),
+    "prefecture": ("Français de la préfecture : vocabulaire et courriers",
+                   "Les mots et les courriers de l'administration expliqués simplement (récépissé, convocation, justificatifs…).\n→ https://llamakusi.com/tef-irn"),
+}
+_PLAYLIST_BY_PILLAR = {"C": "tef", "D": "civique", "B": "regles", "E": "prefecture", "F": "start"}
+_PLAYLIST_PILLAR_A = {"tef_irn": "tef", "examen_civique": "civique", "both": "start", "fle_bridge": "prefecture"}
+# 1er commentaire à épingler (question ouverte et simple à répondre), par pilier.
+PINNED_QUESTION = {
+    "A": "Quel piège te pose le plus de problèmes en ce moment ?",
+    "B": "Quel examen prépares-tu en ce moment : TEF ou TCF ?",
+    "C": "Où est-ce que tu bloques le plus dans ta préparation ? Dis-le en commentaire, ça nous aide à choisir les prochaines vidéos.",
+    "D": "Quelle question de l'examen civique te fait le plus peur ?",
+    "E": "Quel mot de l'administration ne comprends-tu toujours pas ?",
+    "F": "Quel examen prépares-tu en ce moment : TEF ou TCF ?",
+}
+COMMENT_LINE = "Une question ? Pose-la en commentaire, on te répond."
 GRAPH_VERSION = config.env("GRAPH_VERSION", "v25.0")
 GRAPH = f"https://graph.facebook.com/{GRAPH_VERSION}"
 GRAPH_VIDEO = f"https://graph-video.facebook.com/{GRAPH_VERSION}"
@@ -118,8 +143,11 @@ def _youtube_text(script: VideoScript, bdir: Path) -> str:
         chapters = bdir / "chapters.txt"
         if chapters.exists():
             parts.append("CHAPITRES\n" + chapters.read_text(encoding="utf-8").strip())
+        parts.append(COMMENT_LINE)
         parts.append(f"S'ENTRAÎNER SUR LLAMAKUSI\n{lk['home']}")
         parts.append(f"LlamaKusi — {DEFAULT_PITCH[script.product]}")
+    if script.format == "short":
+        parts.append(COMMENT_LINE)
     parts.append(" ".join("#" + t for t in hashtags(script, "youtube")))
     return "\n\n".join(parts).strip()
 
@@ -134,15 +162,43 @@ def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
     return {"title": script.title[:100], "text": f"{body}\n\n{' '.join('#' + t for t in tags)}".strip(), "tags": tags}
 
 
+def playlist_key(script: VideoScript) -> str:
+    key = script.publish.playlist or (_PLAYLIST_PILLAR_A[script.product] if script.pillar == "A" else _PLAYLIST_BY_PILLAR[script.pillar])
+    if key not in PLAYLISTS:
+        raise ValueError(f"{script.id} : playlist « {key} » inconnue ({', '.join(PLAYLISTS)})")
+    return key
+
+
+def pinned_question(script: VideoScript) -> str:
+    return script.publish.pinned_question or PINNED_QUESTION[script.pillar]
+
+
+def _related_section(script: VideoScript) -> str:
+    """Short → long à lier ; long → Shorts qui pointent vers lui (réglage manuel : Studio > Contenu > Short > Détails)."""
+    if script.format == "short":
+        if not script.publish.related:
+            return "VIDÉO ASSOCIÉE\naucune (pas de vidéo longue liée)"
+        target = schema.find_script(config.SCRIPTS_DIR, script.publish.related)
+        if target.format != "long":
+            raise ValueError(f"{script.id} : related « {target.id} » n'est pas une vidéo longue")
+        return f"VIDÉO ASSOCIÉE (Studio > Contenu > ce Short > Détails)\n{target.id} — « {target.title} »"
+    shorts = [s for s in schema.load_all(config.SCRIPTS_DIR) if s.publish.related == script.id]
+    lines = "\n".join(f"{s.id} — « {s.title} »" for s in shorts) or "aucun"
+    return f"SHORTS LIÉS (leur « Vidéo associée » = cette vidéo)\n{lines}"
+
+
 def studio_file(script: VideoScript, bdir: Path) -> Path:
-    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags)."""
+    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée, commentaire)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", bdir / "thumbnail.jpg") if f.exists()]
     short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
     out = bdir / "studio.txt"
     out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
                    f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
-                   f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n", encoding="utf-8")
+                   f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
+                   f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
+                   f"{_related_section(script)}\n\n"
+                   f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n", encoding="utf-8")
     return out
 
 

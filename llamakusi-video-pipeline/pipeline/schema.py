@@ -96,6 +96,9 @@ class PublishInfo(BaseModel):
     answer: Optional[str] = None                        # réponse en UNE phrase (ligne 1 de la description, citable par les IA)
     tags: list[str] = Field(default_factory=list)       # tags YouTube (variantes d'orthographe, 8 max) ; défaut par produit
     guide: Optional[str] = None                         # slug du guide à lier (défaut : source_guide de la 1re claim)
+    playlist: Optional[str] = None                      # clé de playlist (publish.PLAYLISTS) ; défaut selon pilier/produit
+    related: Optional[str] = None                       # Short : id du long à lier (« Vidéo associée » dans Studio)
+    pinned_question: Optional[str] = None               # 1er commentaire à épingler ; défaut selon pilier
 
 
 class VideoScript(BaseModel):
