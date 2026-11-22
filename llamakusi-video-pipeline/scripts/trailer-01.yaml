@@ -1,0 +1,51 @@
+id: trailer-01
+format: long
+status: draft
+pillar: F
+product: both
+accent: indigo
+title: 'Nouveau ici ? Réussis ta naturalisation étape par étape'
+cta_overlay: null
+thumbnail:
+  text: "Nouveau ici ? *Commence ici*"
+publish:
+  keyword: naturalisation
+  answer: 'LlamaKusi t''explique en français simple le TEF IRN, le TCF IRN, l''examen civique et les démarches en préfecture.'
+  description: 'Tu prépares le TEF IRN, le TCF IRN, l''examen civique ou un rendez-vous en préfecture ? Cette chaîne est faite pour toi :
+    des méthodes claires pour l''écrit et l''oral, des questions types et le vocabulaire de l''administration, en français simple.'
+  playlist: start
+  pinned_question: 'Quel examen prépares-tu en ce moment : TEF ou TCF ?'
+  tags:
+  - naturalisation française
+  - TEF IRN
+  - TCF IRN
+  - examen civique
+  - préfecture
+blocks:
+- id: hook
+  voice: Naturalisation, TEF IRN, examen civique, préfecture… Tu t'y perds ? C'est normal.
+  mascot: perplexe
+- id: pour_qui
+  voice: Cette chaîne est pour toi si tu prépares le TEF ou le TCF IRN, l'examen civique, ou un rendez-vous en préfecture.
+  mascot: reflechit
+  card:
+    kind: plan
+    data:
+      label: Pour qui ?
+      items:
+      - title: TEF IRN et TCF IRN
+        detail: Écrit et oral
+        at: TEF#2
+      - title: Examen civique
+        detail: Questions et pièges
+        at: civique
+      - title: Préfecture
+        detail: Démarches et vocabulaire
+        at: préfecture
+- id: programme
+  voice: Ici, on t'explique l'essentiel en français simple, avec des méthodes concrètes, des questions types, et les mots de l'administration.
+  mascot: victorieux
+  card_from: pour_qui
+- id: suite
+  voice: Abonne-toi, et commence par la playlist Commencer ici. Pour t'entraîner avec la correction par intelligence artificielle, le lien est dans la description.
+  mascot: heureux

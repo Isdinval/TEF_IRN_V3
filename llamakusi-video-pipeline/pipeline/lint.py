@@ -170,7 +170,8 @@ def lint_script(script: VideoScript, publish: bool = False,
         except FileNotFoundError as exc:
             add("error", str(exc))
 
-    if script.format == "long":
+    trailer = script.id.startswith("trailer")           # bande-annonce de chaîne : ni durée 4-8 min, ni chapitres, ni claims
+    if script.format == "long" and not trailer:
         _lint_long(script, add)
         for b in script.blocks:
             if b.tts_text and count_words(b.voice) > config.SEG_MAX_WORDS:
@@ -202,7 +203,7 @@ def lint_script(script: VideoScript, publish: bool = False,
             else:
                 _lint_anchor_range(script, b, anchors, add)
 
-    if script.pillar in {"B", "C", "D", "F"} and not script.claims:
+    if script.pillar in {"B", "C", "D", "F"} and not script.claims and not trailer:
         add("warn", f"pilier {script.pillar} : aucune claim déclarée (chaque fait doit venir d'un guide publié)")
     if publish:
         if published_guides is None and _guide_slugs([script]):
@@ -239,7 +240,7 @@ def lint_script(script: VideoScript, publish: bool = False,
         add("warn", "plus de 3 hashtags : seuls 3 sont gardés sur YouTube")
     if len(info.tags) > 8:
         add("warn", "plus de 8 tags : seuls 8 sont gardés")
-    if script.format == "long" and len(((info.answer or "") + " " + (info.description or "")).split()) < 200:
+    if script.format == "long" and not trailer and len(((info.answer or "") + " " + (info.description or "")).split()) < 200:
         add("warn", "description de moins de 200 mots (SEO/GEO : viser 200-300 mots pour un long)")
 
     if script.format == "short":

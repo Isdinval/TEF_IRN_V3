@@ -80,3 +80,10 @@ def test_compare_cards_are_implemented_for_shorts_2_and_5():
         assert s.blocks[0].card.kind == "compare" and s.blocks[0].card.data["rows"]
         assert not any("compare" in i.message and i.level == "todo" and "placeholder" in i.message
                        for i in lint.lint_script(s))
+
+
+def test_trailer_is_exempt_from_long_format_rules_and_has_no_issue():
+    from pipeline import config, lint, schema
+    sc = schema.find_script(config.SCRIPTS_DIR, "trailer-01")
+    assert sc.format == "long" and sc.publish.playlist == "start"
+    assert [i for i in lint.lint_script(sc) if i.level in ("error", "warn")] == []
