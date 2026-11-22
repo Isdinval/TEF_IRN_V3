@@ -29,7 +29,42 @@ python -m pytest -q                         # tests
 Fond : déposer `assets/backgrounds/short-loop-01.mp4`, `-02.mp4`… et `long-loop-01.mp4`… (boucles en rotation, voir DOCUMENTATION.md). Absents → halos générés.
 Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la stratégie). Absente → voix seule.
 
-## Commandes utiles
+## Aide-mémoire : routine de la semaine
+
+```bash
+python cli.py list                          # état de tous les scripts (draft / approved, vidéo générée ou non)
+python cli.py lint --publish                # GATE 1 : claims sourcées, status approved
+python cli.py week --dry                    # essai SANS API de toutes les vidéos du lot
+python cli.py week                          # génère TOUTES les vidéos `approved` pas encore faites (ids possibles : week short-01 long-01)
+python cli.py studio --all                  # build/<id>/studio.txt : titre, description, tags, playlist, vidéo associée, commentaire à épingler
+python cli.py thumbnail --all               # miniatures de tout le lot (build/<id>/thumbnail.jpg)
+```
+Puis, pour chaque vidéo, dans YouTube Studio : envoyer `out.mp4` + miniature, copier `studio.txt` (titre, description, tags), ajouter à la playlist indiquée,
+régler la « Vidéo associée » (Short → long), publier/programmer, puis poster et épingler le commentaire. Fichiers dans `build/<id>/`.
+
+## Aide-mémoire : toutes les commandes
+
+| Besoin | Commande |
+|---|---|
+| Préparer (une fois) | `python cli.py fetch-assets` · `python cli.py publish-auth youtube` |
+| Nouveau script | `python cli.py new short-06 --pillar D [--product …] [--formula …]` |
+| Contrôler | `python cli.py lint [--publish] [--quiet] [ids…]` |
+| Une vidéo, sans API | `python cli.py build <id> --dry` (voix muette) · `--no-bg` (fond noir, plus rapide) |
+| Une vidéo, pour de vrai | `python cli.py build <id>` (TTS → ASR → alignement → rendu) |
+| Aperçu | `python cli.py preview <id>` (planche contact `preview.jpg`) |
+| Tout le lot | `python cli.py week [--dry] [--force] [ids…]` |
+| Textes Studio | `python cli.py studio <id…>` ou `--all` |
+| Miniatures | `python cli.py thumbnail <id…>` ou `--all` |
+| Sous-titres | `python cli.py subs <id> [--langs ar,en] [--dry] [--force]` |
+| Dossier d'envoi manuel | `python cli.py pack <id>` |
+| Publication directe | `python cli.py publish <id> --dry` puis `--confirm-public` (`--platforms youtube,facebook,instagram`, `--force` = doublon) |
+| Vraies questions civiques | `python cli.py fetch-question <mot> [--limit 10]` |
+| Tests | `python -m pytest -q` |
+
+Champs `publish:` utiles dans un script : `keyword`, `answer`, `description`, `guide`, `tags`, `hashtags`, `playlist` (`start|tef|civique|regles|prefecture`, sinon selon le pilier),
+`related` (Short → id du long à lier), `pinned_question` (sinon une question par pilier).
+
+## Options de `build`
 
 | Commande | Effet |
 |---|---|
