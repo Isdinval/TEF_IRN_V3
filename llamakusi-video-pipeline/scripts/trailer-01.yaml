@@ -25,6 +25,23 @@ blocks:
 - id: hook
   voice: Naturalisation, TEF IRN, examen civique, préfecture… Tu t'y perds ? C'est normal.
   mascot: perplexe
+  card:
+    kind: terms
+    data:
+      label: Tu t'y perds ?
+      items:
+      - term: Naturalisation
+        definition: Quelles étapes ?
+        at: Naturalisation
+      - term: TEF IRN
+        definition: Quelle épreuve, quel niveau ?
+        at: TEF
+      - term: Examen civique
+        definition: Quelles questions ?
+        at: examen
+      - term: Préfecture
+        definition: Quels documents ?
+        at: préfecture
 - id: pour_qui
   voice: Cette chaîne est pour toi si tu prépares le TEF ou le TCF IRN, l'examen civique, ou un rendez-vous en préfecture.
   mascot: reflechit
@@ -49,3 +66,17 @@ blocks:
 - id: suite
   voice: Abonne-toi, et commence par la playlist Commencer ici. Pour t'entraîner avec la correction par intelligence artificielle, le lien est dans la description.
   mascot: heureux
+  card:
+    kind: plan
+    data:
+      label: Pour continuer
+      items:
+      - title: Abonne-toi
+        detail: Pour ne rien rater
+        at: Abonne-toi
+      - title: Playlist Commencer ici
+        detail: Les bases, dans l'ordre
+        at: playlist
+      - title: Correction par IA
+        detail: Lien dans la description
+        at: correction
