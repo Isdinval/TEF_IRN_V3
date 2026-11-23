@@ -36,6 +36,9 @@ Chaque étape écrit son résultat dans `build\<id>\` : relancer une commande **
   1. **Avec Claude dans le chat** : vous donnez le pilier, la formule de hook et le sujet ; Claude écrit le YAML ; vous le
      copiez dans `scripts\` (c'est le « GATE 1 » : vous relisez et vous passez `status: approved`).
   2. **Squelette à remplir vous-même** : `python cli.py new short-06 --pillar D --formula stakes`.
+- Pour passer en `approved` une fois les scripts prêts : `python cli.py approve` (sans id) ne touche qu'aux scripts
+  qui n'ont **plus aucune erreur** `lint --publish` ; `python cli.py approve short-06 --force` force un id précis
+  (à ne faire qu'après relecture manuelle — `--force` ne source pas les claims pour vous, il change juste le statut).
 - **Pas encore construit** : une commande `generate` qui écrirait le script toute seule via une API de LLM. C'est une
   évolution possible, mais volontairement laissée pour plus tard : tant que les vidéos ne sont pas validées à la main,
   automatiser la création multiplierait les erreurs (surtout que chaque affirmation doit être sourcée).
@@ -58,7 +61,7 @@ injoignable, la vidéo est bloquée (jamais de publication non vérifiée).
 | 5 | Voir une planche des 4 blocs | `python cli.py preview short-06` |
 | 6 | Vrai rendu (voix + alignement + musique) | `python cli.py build short-06` |
 | 7 | **Regarder sur téléphone, son activé** | ouvrir `build\short-06\out.mp4` |
-| 8 | Relier chaque claim à un guide publié (`source_guide`), `status: approved` | éditer le YAML puis `python cli.py lint --publish short-06` |
+| 8 | Relier chaque claim à un guide publié (`source_guide`) puis passer `status: approved` | éditer le YAML, `python cli.py lint --publish short-06`, puis `python cli.py approve short-06` |
 
 ---
 
@@ -77,6 +80,16 @@ ordre de la mascotte, texte « À REMPLACER » oublié, cartes pas encore implé
 - `--quiet` : masque les simples rappels (« · »).
 - `--publish` : règles strictes avant mise en ligne → chaque claim reprise d'un guide publié (`source_guide`, vérifié dans Supabase), carte sans données
   provisoires (`draft`), `status: approved`. Tant qu'une erreur reste, la vidéo n'est pas publiable.
+
+### `approve` — passer les scripts en `status: approved` (GATE 1)
+`python cli.py approve` · `python cli.py approve short-06` · `python cli.py approve short-06 --force`
+**Pourquoi :** éviter d'éditer le YAML à la main pour ce seul champ, sans jamais approuver un script qui a encore une
+erreur bloquante.
+- Sans id : approuve tous les scripts `draft` qui n'ont **plus aucune erreur** `lint --publish` (claims sourcées,
+  cartes finalisées…) — ne force jamais le passage d'un script encore invalide.
+- Avec un ou plusieurs ids : idem, limité à ces scripts.
+- `--force` : passe l'id donné en `approved` même s'il reste des erreurs `lint --publish` — à n'utiliser qu'après
+  relecture manuelle ; `--force` **ne source pas les claims pour vous**, il ne fait que changer le statut.
 
 ### `list` — vue d'ensemble
 `python cli.py list`
@@ -115,15 +128,24 @@ Le cache TTS se **réinvalide tout seul** si le texte, le modèle, la voix ou le
 
 ### `week` — toutes les vidéos du lot en une commande
 `python cli.py week` · `python cli.py week short-06 short-07 long-03` · `python cli.py week --dry`
-**Pourquoi :** après la validation manuelle des scripts (`status: approved`, GATE 1), génère tout le lot d'un coup.
+**Pourquoi :** après la validation manuelle des scripts (`status: approved`, GATE 1, voir `approve` ci-dessus), génère tout le lot d'un coup.
 Sans id : tous les scripts `approved` qui n'ont pas encore `build/<id>/out.mp4` (`--force` : tous les `approved`, TTS/ASR payants).
 Le lint du lot passe **avant** tout appel payant ; ensuite `build` de chaque vidéo (miniature comprise, sans ouvrir l'aperçu réseaux),
 un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin de lot. Cache par étape : relancer ne repaie que ce qui a changé.
 
+**Ordre et date de publication du lot :** les Shorts sont traités dans leur ordre existant, puis le(s) Long en dernier — jamais
+l'ordre alphabétique des fichiers (qui mettrait un `long-*` avant les `short-*`). Chaque vidéo reçoit une date de publication
+prévue (aujourd'hui + sa position dans le lot, 1 jour de plus par vidéo) écrite dans `studio.txt` — détail dans `studio` ci-dessous.
+
 ### `studio` — textes à copier dans YouTube Studio (SEO / GEO)
 `python cli.py studio long-01` · `python cli.py studio --all`
-Écrit `build/<id>/studio.txt` : fichiers à envoyer, **titre** (alerte > 60 caractères), **description**, **tags** (8 max). Créé automatiquement à la fin de `build` (donc de `week`) ;
+Écrit `build/<id>/studio.txt` : fichiers à envoyer, **date de publication prévue**, **titre** (alerte > 60 caractères), **description**, **tags** (8 max). Créé automatiquement à la fin de `build` (donc de `week`) ;
 la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
+
+**Date de publication prévue** : calculée uniquement quand `studio` reçoit une liste d'ids explicite (même ordre que `week` :
+Shorts puis Long en dernier) — un jour de plus par position dans ce lot, 12h30 les jours pairs / 19h30 les jours impairs de la
+semaine, créneau fixe 11h00 le week-end. Avec `--all`, ou pour une vidéo passée seule par `build`/`pack` (hors génération de lot),
+aucun lot n'est connu : la ligne affiche `à définir (hors génération de lot via cli.py week)`.
 
 Description YouTube = **ligne 1** la réponse en une phrase (`publish.answer`, contient le mot-clé), **ligne 2** le lien profond (visibles avant « Voir plus »), puis le corps
 (`publish.description`), `CHAPITRES` (longs), `S'ENTRAÎNER SUR LLAMAKUSI` (accueil, longs), pied de page, **3 hashtags max** (Short : le dernier est `#Shorts`).

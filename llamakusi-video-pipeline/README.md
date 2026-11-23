@@ -34,9 +34,10 @@ Musique : déposer `assets/music/bed.wav` (30 s, générée avec le prompt de la
 ```bash
 python cli.py list                          # état de tous les scripts (draft / approved, vidéo générée ou non)
 python cli.py lint --publish                # GATE 1 : claims sourcées, status approved
+python cli.py approve                       # GATE 1 : approuve les drafts déjà propres en lint --publish (`approve <id> --force` pour forcer un cas précis)
 python cli.py week --dry                    # essai SANS API de toutes les vidéos du lot
-python cli.py week                          # génère TOUTES les vidéos `approved` pas encore faites (ids possibles : week short-01 long-01)
-python cli.py studio --all                  # build/<id>/studio.txt : titre, description, tags, playlist, vidéo associée, commentaire à épingler
+python cli.py week                          # génère TOUTES les vidéos `approved` pas encore faites (Shorts puis Long en dernier ; ids possibles : week short-01 long-01)
+python cli.py studio --all                  # build/<id>/studio.txt : titre, date de publication prévue, description, tags, playlist, vidéo associée, commentaire à épingler
 python cli.py thumbnail --all               # miniatures de tout le lot (build/<id>/thumbnail.jpg)
 ```
 Puis, pour chaque vidéo, dans YouTube Studio : envoyer `out.mp4` + miniature, copier `studio.txt` (titre, description, tags), ajouter à la playlist indiquée,
@@ -49,6 +50,7 @@ régler la « Vidéo associée » (Short → long), publier/programmer, puis pos
 | Préparer (une fois) | `python cli.py fetch-assets` · `python cli.py publish-auth youtube` |
 | Nouveau script | `python cli.py new short-06 --pillar D [--product …] [--formula …]` |
 | Contrôler | `python cli.py lint [--publish] [--quiet] [ids…]` |
+| Approuver (GATE 1) | `python cli.py approve [ids…] [--force]` (sans id : approuve les drafts déjà sans erreur `lint --publish`) |
 | Une vidéo, sans API | `python cli.py build <id> --dry` (voix muette) · `--no-bg` (fond noir, plus rapide) |
 | Une vidéo, pour de vrai | `python cli.py build <id>` (TTS → ASR → alignement → rendu) |
 | Aperçu | `python cli.py preview <id>` (planche contact `preview.jpg`) |
@@ -82,14 +84,17 @@ Un Short = 4 blocs `hook / build / payoff / loop`. Par bloc : `voice`, `mascot` 
 `claims[]` = affirmations factuelles, chacune reprise d'un guide publié (`source_guide: <slug>`, vérifié par `lint --publish`). Le CTA n'est **jamais parlé** :
 `cta_overlay` est un petit texte sur le dernier bloc.
 
-## État (au 01/10/2026)
+## État (au 23/11/2026)
 
 - ✅ Livré : Shorts 9:16 (boucle, CTA animé), cartes `question`, `compare`, `terms`, `text_annotated`, `plan`,
   format long 16:9 (L1 mise en page, L2 voix par segments en cache, L3 chapitres + `chapters.txt` + lint des longs),
-  sous-titres `.srt` multilingues (`subs`), fond vidéo personnalisé (`--background`, boucle boomerang).
+  sous-titres `.srt` multilingues (`subs`), fond vidéo personnalisé (`--background`, boucle boomerang),
+  commande `approve` (GATE 1), date de publication auto-calculée dans `studio.txt` (lot : Shorts puis Long en dernier).
 - ✅ Testé hors-ligne : schéma, lint, alignement (bruit ASR simulé), karaoké, timeline, rendu ffmpeg en `--dry`.
-- ⚠ Premier run réel TTS + ASR (spike T1) : à confirmer — contrôler `build/<id>/align_report.json` et écouter `voice.wav`.
-- ⚠ Contenu : 7 scripts en `status: draft`, aucune claim vérifiée → aucune vidéo publiable (`lint --publish`).
+- ✅ Premier run réel TTS + ASR effectué (lot 2026-S48 : 5 Shorts + 1 long rendus pour de vrai sur la machine d'Olivier).
+- ⚠ Contenu : 14 scripts en `status: draft` ; `long-03` et `short-06` à `short-10` ont toutes leurs claims sourcées
+  (`source_guide`) et `trailer-01` n'en a aucune — tous restent à passer `approved` (`python cli.py approve`) ;
+  aucune vidéo encore publiable (`lint --publish`).
 
 ## Hypothèses à confirmer
 
