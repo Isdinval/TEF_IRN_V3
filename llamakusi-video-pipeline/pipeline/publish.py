@@ -187,13 +187,17 @@ def _related_section(script: VideoScript) -> str:
     return f"SHORTS LIÉS (leur « Vidéo associée » = cette vidéo)\n{lines}"
 
 
-def studio_file(script: VideoScript, bdir: Path) -> Path:
-    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée, commentaire)."""
+def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None) -> Path:
+    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée,
+    commentaire, date de publication prévue). `publish_slot` est calculé par l'appelant (position dans le lot) —
+    absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", bdir / "thumbnail.jpg") if f.exists()]
     short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
+    date_line = publish_slot or "à définir (hors génération de lot via `cli.py week`)"
     out = bdir / "studio.txt"
     out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
+                   f"DATE DE PUBLICATION PRÉVUE\n{date_line}\n\n"
                    f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
                    f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
                    f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"

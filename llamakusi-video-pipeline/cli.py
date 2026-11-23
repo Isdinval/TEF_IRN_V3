@@ -28,6 +28,7 @@ import re
 import subprocess
 import sys
 from dataclasses import asdict
+from datetime import date, timedelta
 from pathlib import Path
 
 from pipeline import (align, assemble, assets, audio, background, config, lint, schema, subtitles,
@@ -260,7 +261,8 @@ def cmd_build(args) -> int:
                     loop_background=bg_loop, bg_period=bg_period)
     print(f"✓ {out}")
     print(f"✓ {thumbnail_mod.save(script, bdir)} (miniature)")
-    print(f"✓ {publish_mod.studio_file(script, bdir)} (titre, description, tags pour YouTube Studio)")
+    print(f"✓ {publish_mod.studio_file(script, bdir, publish_slot=getattr(args, 'publish_slot', None))} "
+          f"(titre, description, tags pour YouTube Studio)")
     if not args.no_preview:
         _social_previews(out, script.format, bdir, tl["duration"])
     print("  Garde-fou : regarder la vidéo EN ENTIER sur téléphone avant d'en générer une autre.")
@@ -281,6 +283,26 @@ def _social_previews(video: Path, fmt: str, bdir: Path, duration: float) -> None
         os.startfile(out)
 
 
+_JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+_WEEKEND_HOUR = "11h00"   # créneau unique week-end : best practice 2026, pic plutôt en matinée/début d'après-midi
+                          # le week-end (audience qui se lève plus tard), pas le soir comme en semaine
+
+
+def _lot_order(scripts: list) -> list:
+    """Ordre de publication voulu : les Shorts dans leur ordre existant, puis le(s) Long en dernier — PAS l'ordre
+    alphabétique des fichiers (`long-*` passerait sinon toujours avant `short-*`)."""
+    return [s for s in scripts if s.format != "long"] + [s for s in scripts if s.format == "long"]
+
+
+def _publish_slot(position: int) -> str:
+    """Date + heure de publication prévue pour le n-ième script du lot (1-based) : aujourd'hui + n jours ;
+    12h30/19h30 en semaine selon la parité de n, créneau week-end fixe le samedi/dimanche."""
+    d = date.today() + timedelta(days=position)
+    weekday = d.weekday()   # 0 = lundi … 5 = samedi, 6 = dimanche
+    heure = _WEEKEND_HOUR if weekday >= 5 else ("19h30" if position % 2 else "12h30")
+    return f"{d.strftime('%d/%m/%Y')} ({_JOURS[weekday]}) à {heure}"
+
+
 def week_selection(scripts, ids, force=False) -> list:
     """Ids donnés → ces scripts ; sinon les scripts `approved` sans out.mp4 (tous les `approved` avec --force)."""
     if ids:
@@ -291,20 +313,22 @@ def week_selection(scripts, ids, force=False) -> list:
 
 def cmd_week(args) -> int:
     """UNE commande pour le lot hebdo : lint de tout le lot (avant tout appel payant), puis build de chaque vidéo."""
-    scripts = week_selection(schema.load_all(config.SCRIPTS_DIR), args.ids, args.force)
+    scripts = _lot_order(week_selection(schema.load_all(config.SCRIPTS_DIR), args.ids, args.force))
     if not scripts:
         print("✗ aucun script `approved` à générer (donner des ids, ou passer les scripts validés en `status: approved`)")
         return 1
     ids = [s.id for s in scripts]
-    print(f"Lot : {' · '.join(ids)}")
+    print(f"Lot (Shorts puis Long en dernier) : {' · '.join(ids)}")
     if lint.has_errors(lint.lint_all(scripts, publish=False)):
         print("✗ lint en erreur : corriger d'abord (python cli.py lint " + " ".join(ids) + ")")
         return 1
     failed = []
     for n, sid in enumerate(ids, 1):
-        print(f"\n=== [{n}/{len(ids)}] {sid} ===")
+        slot = _publish_slot(n)
+        print(f"\n=== [{n}/{len(ids)}] {sid} — publication prévue {slot} ===")
         ns = argparse.Namespace(id=sid, until="render", dry=args.dry, proportional=False, force=args.force,
-                                no_bg=False, background=None, placeholder_mascots=False, no_preview=True)
+                                no_bg=False, background=None, placeholder_mascots=False, no_preview=True,
+                                publish_slot=slot)
         try:
             rc = cmd_build(ns)
         except Exception as exc:                 # un échec n'arrête pas le reste du lot
@@ -319,14 +343,15 @@ def cmd_week(args) -> int:
 def cmd_studio(args) -> int:
     scripts = schema.load_all(config.SCRIPTS_DIR)
     if not args.all:
-        scripts = [s for s in scripts if s.id in args.ids]
+        scripts = _lot_order([s for s in scripts if s.id in args.ids])
     if not scripts:
         print("✗ aucun script : donner des ids ou --all")
         return 1
-    for sc in scripts:
+    for n, sc in enumerate(scripts, 1):
         bdir = config.BUILD_DIR / sc.id
         bdir.mkdir(parents=True, exist_ok=True)
-        print(f"✓ {publish_mod.studio_file(sc, bdir)}")
+        slot = _publish_slot(n) if not args.all else None
+        print(f"✓ {publish_mod.studio_file(sc, bdir, publish_slot=slot)}")
     return 0
 
 
