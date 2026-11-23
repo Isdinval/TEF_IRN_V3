@@ -3,6 +3,8 @@
 
   python cli.py fetch-assets                 # polices + mascotte (une fois)
   python cli.py lint [--publish] [ids…]      # GATE 1 : contrôle des scripts
+  python cli.py approve                      # GATE 1 : approuve les drafts déjà propres en lint --publish
+  python cli.py approve short-01 --force     # force un id précis malgré des erreurs restantes (relecture manuelle d'abord)
   python cli.py build short-03 --dry         # rendu complet SANS API (voix muette, timings estimés)
   python cli.py build short-03               # TTS → ASR → alignement → rendu
   python cli.py studio --all                 # studio.txt (titre, description, tags) pour YouTube Studio
@@ -22,6 +24,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import asdict
@@ -59,6 +62,66 @@ def cmd_lint(args) -> int:
     print(f"\n{len(scripts)} script(s) · {errors} erreur(s) · "
           f"{sum(1 for i in issues if i.level == 'warn')} avertissement(s)")
     return 1 if errors else 0
+
+
+def _write_status(script_id: str, status: str) -> bool:
+    """Édite `status:` dans scripts/<id>.yaml en place (seule la valeur change, commentaires/mise en page gardés)."""
+    path = config.SCRIPTS_DIR / f"{script_id}.yaml"
+    text = path.read_text(encoding="utf-8")
+    new_text = re.sub(r"(?m)^status:\s*\S+", f"status: {status}", text, count=1)
+    if new_text == text:
+        return False
+    path.write_text(new_text, encoding="utf-8")
+    return True
+
+
+def cmd_approve(args) -> int:
+    """GATE 1 : passe des scripts `draft` en `status: approved`. Reste une validation humaine, pas une formalité —
+    par défaut (sans ids), seuls les drafts qui ne lèvent plus AUCUNE erreur `lint --publish` (hors le statut
+    lui-même) sont approuvés : ça ne couvre que la relecture déjà automatisable (claims sourcées, cartes non
+    `draft`…), pas le visionnage réel. Des ids explicites + --force forcent l'approbation malgré des erreurs
+    restantes — à ne faire qu'après avoir vraiment relu/regardé le script, jamais pour « gagner du temps »."""
+    scripts = schema.load_all(config.SCRIPTS_DIR)
+    if args.ids:
+        unknown = set(args.ids) - {s.id for s in scripts}
+        if unknown:
+            print(f"✗ id(s) introuvable(s) : {', '.join(sorted(unknown))}")
+            return 1
+        targets = [s for s in scripts if s.id in args.ids]
+    else:
+        targets = [s for s in scripts if s.status == "draft"]
+    already = [s.id for s in targets if s.status == "approved"]
+    targets = [s for s in targets if s.status != "approved"]
+    if not targets:
+        print("✗ aucun script draft à approuver" if not already else "· déjà tous approved")
+        return 1 if not already else 0
+
+    issues_by_id: dict[str, list] = {}
+    for issue in lint.lint_all(targets, publish=True):
+        issues_by_id.setdefault(issue.script_id, []).append(issue)
+
+    approved, skipped = [], []
+    for s in targets:
+        blocking = [i for i in issues_by_id.get(s.id, [])
+                    if i.level == "error" and "status !=" not in i.message]
+        if blocking and not args.force:
+            skipped.append((s.id, blocking))
+            continue
+        if _write_status(s.id, "approved"):
+            approved.append(s.id)
+        else:
+            skipped.append((s.id, [lint.Issue("error", s.id, "champ `status:` introuvable dans le fichier")]))
+
+    for sid in approved:
+        print(f"✓ {sid} → approved")
+    for sid in already:
+        print(f"· {sid} déjà approved")
+    for sid, issues in skipped:
+        detail = " ; ".join(i.message for i in issues[:2]) + ("…" if len(issues) > 2 else "")
+        print(f"✗ {sid} ignoré ({len(issues)} erreur(s) restante(s)) : {detail}")
+    if skipped and not args.force:
+        print("  (python cli.py approve <id> --force pour forcer malgré ces erreurs — après relecture manuelle réelle, pas avant)")
+    return 0 if approved or (already and not skipped) else 1
 
 
 def cmd_fetch_question(args) -> int:
@@ -431,6 +494,14 @@ def main() -> int:
     p.add_argument("--publish", action="store_true", help="règles de publication (claims reprises d'un guide publié, status approved)")
     p.add_argument("--quiet", action="store_true", help="masque les rappels")
     p.set_defaults(fn=cmd_lint)
+
+    p = sub.add_parser("approve", help="GATE 1 : approuve les scripts draft sans erreur lint --publish restante "
+                                       "(ids explicites + --force pour outrepasser)")
+    p.add_argument("ids", nargs="*")
+    p.add_argument("--force", action="store_true",
+                   help="approuve même avec des erreurs restantes (claims non sourcées, etc.) — "
+                        "à réserver à une relecture manuelle réelle")
+    p.set_defaults(fn=cmd_approve)
 
     p = sub.add_parser("fetch-question")
     p.add_argument("search")
