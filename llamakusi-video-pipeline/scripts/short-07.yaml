@@ -1,0 +1,83 @@
+id: short-07
+format: short
+status: draft
+pillar: A
+product: tef_irn
+hook_formula: stakes
+accent: indigo
+title: 'Notation du TEF IRN : ce que regarde vraiment l''examinateur'
+thumbnail:
+  text: "Ce que *regarde* l'examinateur"
+publish:
+  keyword: notation du TEF IRN
+  answer: 'La notation du TEF IRN repose sur deux évaluateurs indépendants et un score calibré selon la difficulté
+    des questions, pas sur l''humeur d''un examinateur.'
+  description: 'Deux évaluateurs indépendants, une grille à cinq critères, un score calibré : la notation du
+    TEF IRN n''a rien d''arbitraire.'
+  guide: comment-examinateur-note-tef-irn
+  tags:
+  - notation TEF IRN
+  - grille examinateur TEF IRN
+  - score calibré TEF IRN
+  - TEF-IRN
+  - expression orale TEF IRN
+  - préparation TEF IRN
+  hashtags:
+  - TEFIRN
+  - ExpressionOrale
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Tu sors de l'oral en te demandant si tout dépendait de l'humeur de l'examinateur.
+  mascot: perplexe
+  overlay: Qui te note ?
+  card:
+    kind: compare
+    data:
+      label: TEF IRN · Qui te note ?
+      contrast: true
+      left:
+        title: Idée reçue
+      right:
+        title: Réalité
+      rows:
+      - label: Qui juge ton oral ?
+        left: Un seul examinateur
+        right: Deux évaluateurs indépendants
+        highlight: true
+      - label: Note finale
+        left: Total de bonnes réponses
+        right: Score calibré par difficulté
+        highlight: true
+  visual_note: Overlay « Qui te note ? ». Mascotte perplexe.
+- id: build
+  voice: 'En réalité, deux évaluateurs notent ton oral, de façon indépendante : l''un en centre, l''autre sur
+    l''enregistrement, sans te voir.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte comparative, colonnes Idée reçue/Réalité.
+- id: payoff
+  voice: 'Et ta note n''est pas un simple total de bonnes réponses : c''est un score calibré selon la difficulté
+    des questions.'
+  mascot: victorieux
+  card_from: hook
+  overlay: Score calibré
+  card_state: revealed
+  visual_note: Overlay « Score calibré ».
+- id: loop
+  voice: Alors la question n'est plus de plaire à un examinateur — c'est de soigner cinq critères précis…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour au cadrage initial.
+claims:
+- text: Deux évaluateurs notent l'oral du TEF IRN de façon indépendante — l'un en centre d'examen, l'autre sur
+    l'enregistrement, sans avoir rencontré le candidat
+  source_guide: comment-examinateur-note-tef-irn
+- text: 'Le score des épreuves de compréhension n''est pas un simple total de bonnes réponses : il est converti
+    en score calibré selon la difficulté des questions'
+  source_guide: comment-examinateur-note-tef-irn
+- text: La grille d'évaluation de l'expression orale repose sur 5 critères combinés — compétence à communiquer,
+    lexique, grammaire, organisation du discours, aisance
+  source_guide: comment-examinateur-note-tef-irn

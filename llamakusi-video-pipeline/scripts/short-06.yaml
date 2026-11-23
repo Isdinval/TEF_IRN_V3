@@ -1,0 +1,71 @@
+id: short-06
+format: short
+status: draft
+pillar: D
+product: examen_civique
+hook_formula: curiosity_gap
+accent: blue
+title: 'Examen civique : la question piège sur la laïcité'
+thumbnail:
+  text: "La question sur la *laïcité*"
+publish:
+  keyword: examen civique
+  answer: 'À l''examen civique, une vraie question porte sur les signes religieux à l''école publique : la réponse
+    officielle est « un signe discret, non ostensible ».'
+  description: Une vraie question du programme officiel de l'examen civique, dans le thème des valeurs de la
+    République.
+  guide: programme-officiel-examen-civique-5-thematiques
+  related: long-03
+  tags:
+  - examen civique
+  - laïcité examen civique
+  - examen civique 2026
+  - valeurs de la République
+  - QCM examen civique
+  - naturalisation 2026
+  hashtags:
+  - ExamenCivique
+  - Laicite
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Quel symbole religieux peut être porté dans une école publique, dans le respect de la laïcité ?
+  mascot: perplexe
+  card:
+    kind: question
+    data:
+      label: Examen civique · Question
+      question_id: 04b6b03f-eedb-48dd-a6b4-baa08c819c42
+      question: Quel symbole religieux peut être porté dans une école publique, dans le respect de la laïcité ?
+      choices:
+      - Un signe discret, non ostensible
+      - Un voile intégral
+      - Tout signe, sans restriction
+      - Aucun signe, même discret
+      correct: A
+  visual_note: Carte de question générée directement à l'écran, 4 choix visibles.
+- id: build
+  voice: 'C''est une vraie question du programme officiel de l''examen civique — dans le thème des valeurs de
+    la République, l''un des cinq qui comptent.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom sur les 4 choix.
+- id: payoff
+  voice: 'La réponse : un signe discret, non ostensible.'
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Choix A surligné en doré.
+- id: loop
+  voice: Et cette question n'est qu'une des 40 qui tombent à l'examen, réparties en cinq thèmes précis…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour à la carte de question initiale.
+claims:
+- text: Le programme de l'examen civique se limite à 5 thématiques officielles, parmi lesquelles « principes
+    et valeurs de la République »
+  source_guide: programme-officiel-examen-civique-5-thematiques
+- text: Le QCM de l'examen civique comporte 40 questions
+  source_guide: programme-officiel-examen-civique-5-thematiques

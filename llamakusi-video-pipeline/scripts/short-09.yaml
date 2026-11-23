@@ -1,0 +1,72 @@
+id: short-09
+format: short
+status: draft
+pillar: E
+product: fle_bridge
+hook_formula: direct_promise
+accent: gold
+title: 'Vocabulaire administratif du TEF IRN : 3 verbes clés'
+thumbnail:
+  text: "3 verbes à ne pas *confondre*"
+publish:
+  keyword: vocabulaire administratif
+  answer: Remplir, déposer et fournir désignent trois actions différentes dans une démarche administrative en
+    France, souvent confondues par erreur.
+  description: Trois verbes administratifs qu'on confond souvent — utiles à la préfecture, à la CAF, et pour
+    le TEF IRN.
+  guide: logement-soins-demarches-voc-a2-guide-parcours
+  tags:
+  - vocabulaire administratif français
+  - TEF IRN vocabulaire
+  - remplir déposer fournir
+  - français langue administrative
+  - démarches administratives France
+  - apprendre le français A2
+  hashtags:
+  - VocabulaireFrancais
+  - TEFIRN
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: À la préfecture, trois verbes reviennent tout le temps — et les confondre peut te faire perdre un temps
+    précieux.
+  mascot: perplexe
+  card:
+    kind: terms
+    data:
+      label: Vocabulaire · Démarches administratives
+      items:
+      - term: Remplir
+        definition: Compléter un formulaire
+        at: remplir
+      - term: Déposer
+        definition: Donner un dossier complet
+        at: déposer
+      - term: Fournir
+        definition: Donner une pièce demandée en plus
+        at: fournir
+  visual_note: Carte vocabulaire, 3 cases masquées.
+- id: build
+  voice: 'Remplir un formulaire, déposer un dossier complet, fournir un justificatif demandé : trois actions
+    différentes, dans un même processus administratif.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Chaque terme apparaît au fil de la voix.
+- id: payoff
+  voice: Remplir, c'est juste écrire. Déposer, c'est remettre le dossier complet. Fournir, c'est ajouter la pièce
+    qu'on te demande en plus.
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Les 3 définitions dévoilées.
+- id: loop
+  voice: Et une fois ces trois mots clairs, c'est tout un pan de l'administration française qui devient lisible…
+  mascot: heureux
+  card_from: hook
+  card_state: initial
+  visual_note: Retour aux cases masquées.
+claims:
+- text: Remplir, déposer et fournir désignent 3 actions différentes dans une même démarche administrative, souvent
+    confondues l'une pour l'autre
+  source_guide: logement-soins-demarches-voc-a2-guide-parcours

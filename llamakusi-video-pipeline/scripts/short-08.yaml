@@ -1,0 +1,83 @@
+id: short-08
+format: short
+status: draft
+pillar: B
+product: both
+hook_formula: contrarian
+accent: gold
+title: 'Naturalisation : niveau B2 obligatoire depuis 2026'
+thumbnail:
+  text: "Ton B1 ne *suffit plus*"
+publish:
+  keyword: niveau B2 obligatoire
+  answer: 'Depuis le 1er janvier 2026, le niveau B2 remplace le B1 exigé pour la naturalisation ; la carte de
+    résident reste, elle, au niveau B1.'
+  description: 'Le niveau exigé a changé pour la naturalisation, pas pour la carte de résident. Et ce B2 doit
+    être validé dans les 4 épreuves à la fois.'
+  guide: niveaux-francais-naturalisation-2026
+  tags:
+  - niveau B2 naturalisation
+  - naturalisation 2026
+  - TEF IRN B2
+  - niveau français naturalisation
+  - carte de résident niveau B1
+  - naturalisation française 2026
+  hashtags:
+  - Naturalisation2026
+  - TEFIRN
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Tu as un B1, tu penses que c'est encore suffisant pour la naturalisation ? Ce n'est plus vrai depuis
+    2026.
+  mascot: perplexe
+  overlay: B1 → B2
+  card:
+    kind: compare
+    data:
+      label: Naturalisation · Niveau exigé
+      contrast: true
+      left:
+        title: Avant 2026
+      right:
+        title: Depuis 2026
+      rows:
+      - label: Naturalisation
+        left: B1 suffisait
+        right: B2 obligatoire
+        highlight: true
+      - label: Carte de résident
+        left: B1
+        right: B1 (inchangé)
+        highlight: false
+  visual_note: Overlay « B1 → B2 ». Mascotte perplexe.
+- id: build
+  voice: Ce relèvement s'applique à la naturalisation par décret et par mariage, à l'oral comme à l'écrit, sans
+    exception. La carte de résident, elle, reste au niveau B1.
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte comparative, colonnes Avant/Depuis 2026.
+- id: payoff
+  voice: 'Et ce B2 est exigé dans les quatre épreuves en même temps : aucune compensation entre elles n''est
+    possible.'
+  mascot: victorieux
+  card_from: hook
+  overlay: 4 épreuves, sans compensation
+  card_state: revealed
+  visual_note: Overlay « 4 épreuves, sans compensation ».
+- id: loop
+  voice: Alors avant de déposer ton dossier, vérifie bien quel niveau ta démarche exige vraiment…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour au cadrage initial.
+claims:
+- text: Depuis le 1er janvier 2026, le niveau B2 remplace le B1 exigé pour la naturalisation (décret n° 2025-648
+    du 15 juillet 2025)
+  source_guide: niveaux-francais-naturalisation-2026
+- text: 'Ce relèvement s''applique à la naturalisation par décret ou par mariage, à l''oral comme à l''écrit
+    ; la carte de résident reste exigée au niveau B1'
+  source_guide: niveaux-francais-naturalisation-2026
+- text: Le niveau B2 est exigé dans les 4 épreuves simultanément, sans compensation possible entre elles
+  source_guide: niveaux-francais-naturalisation-2026

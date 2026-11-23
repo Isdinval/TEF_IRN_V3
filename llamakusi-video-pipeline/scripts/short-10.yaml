@@ -1,0 +1,78 @@
+id: short-10
+format: short
+status: draft
+pillar: F
+product: tef_irn
+hook_formula: in_medias_res
+accent: gold
+title: 'Prix du TEF IRN 2026 : pourquoi il varie autant'
+thumbnail:
+  text: "Pourquoi le prix *varie autant*"
+publish:
+  keyword: prix du TEF IRN 2026
+  answer: 'Le prix du TEF IRN 2026 varie entre 170 € et 240 € selon le centre (de 120 € à 320 € aux extrêmes)
+    : il n''existe aucun tarif national imposé.'
+  description: 'Aucun tarif national imposé : chaque centre fixe son prix, et le CPF a désormais un reste à
+    charge de 150 € depuis avril 2026.'
+  guide: cout-tef-irn-centre-examen
+  tags:
+  - prix TEF IRN 2026
+  - coût TEF IRN
+  - TEF IRN CPF
+  - tarif TEF IRN
+  - TEF-IRN
+  - financer TEF IRN
+  hashtags:
+  - TEFIRN
+  - PrixTEFIRN
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: 'Tu compares trois centres pour la même session : 175, 200, 240 euros.'
+  mascot: perplexe
+  card:
+    kind: compare
+    data:
+      label: TEF IRN · Combien ça coûte ?
+      contrast: false
+      left:
+        title: Idée reçue
+      right:
+        title: Réalité
+      rows:
+      - label: Tarif
+        left: Fixé nationalement
+        right: 170 € à 240 € selon le centre
+        highlight: true
+      - label: Paiement CPF
+        left: Prise en charge totale
+        right: 150 € de reste à charge depuis avril 2026
+        highlight: true
+  visual_note: Carte comparative, 3 tarifs affichés.
+- id: build
+  voice: 'Pas d''erreur de ta part. Le TEF IRN n''a aucun tarif national imposé : chaque centre agréé fixe librement
+    son prix, entre 120 et 320 euros selon le réseau.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte comparative, colonnes Idée reçue/Réalité.
+- id: payoff
+  voice: Et si tu payes par CPF — depuis avril 2026, une participation de 150 euros reste à ta charge, même avec
+    des droits suffisants.
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Ligne CPF surlignée en doré.
+- id: loop
+  voice: Alors avant de réserver ta session, une seule question compte vraiment…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour au cadrage initial.
+claims:
+- text: 'Il n''existe aucun tarif national imposé pour le TEF IRN : chaque centre agréé fixe librement son prix,
+    généralement entre 170 € et 240 € (de 120 € à 320 € aux extrêmes)'
+  source_guide: cout-tef-irn-centre-examen
+- text: Depuis le 1er avril 2026, une participation financière obligatoire de 150 € s'applique à toute formation
+    payée par le CPF, non remboursable
+  source_guide: cout-tef-irn-centre-examen

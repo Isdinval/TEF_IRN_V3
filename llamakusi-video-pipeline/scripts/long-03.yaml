@@ -1,0 +1,221 @@
+id: long-03
+format: long
+status: draft
+pillar: D
+product: examen_civique
+accent: blue
+title: 'Programme de l''examen civique : les 5 thèmes officiels'
+thumbnail:
+  text: "Le programme *officiel* en 5 thèmes"
+publish:
+  keyword: programme de l'examen civique
+  answer: 'Le programme de l''examen civique se limite à 5 thématiques officielles, fixées par arrêté, réparties
+    en 40 questions à passer en 45 minutes maximum.'
+  description: 'Beaucoup de candidats révisent au hasard, question après question, sans savoir ce qui va vraiment
+    tomber. Le programme de l''examen civique n''est pourtant pas flou : il tient en 5 thématiques précises, fixées
+    par arrêté ministériel, et il ne porte jamais sur une notion qui n''a pas été présentée pendant la formation
+    civique.
+
+
+    Ce que tu vas apprendre dans cette vidéo :
+
+    • les 5 thématiques officielles du programme : principes et valeurs de la République, système institutionnel
+    et politique, droits et devoirs, histoire-géographie-culture, et vie dans la société française ;
+
+    • la structure exacte du QCM : 40 questions en 45 minutes maximum, dont 28 questions de connaissance publiques
+    et 12 questions de mise en situation jamais dévoilées à l''avance ;
+
+    • un repère pour prioriser tes révisions si ton temps est limité, sans pour autant négliger les autres thèmes ;
+
+    • un exemple réel traité en détail, sur le thème des valeurs de la République et de la laïcité ;
+
+    • pourquoi réviser thématique par thématique, avec de vraies questions officielles, change tout par rapport
+    à des fiches génériques.
+
+
+    Pour t''entraîner gratuitement sur de vraies questions classées par thème, retrouve le lien vers LlamaKusi
+    ci-dessous.'
+  guide: programme-officiel-examen-civique-5-thematiques
+  tags:
+  - examen civique programme officiel
+  - programme examen civique 2026
+  - 5 thématiques examen civique
+  - QCM examen civique
+  - naturalisation examen civique
+  - carte de résident examen civique
+  hashtags:
+  - ExamenCivique
+  - Naturalisation2026
+  - LlamaKusi
+cta_overlay: null
+blocks:
+- id: hook
+  voice: 'Tu ouvres la liste officielle des questions et tu ne sais pas par où commencer. Beaucoup de candidats
+    révisent au hasard, question après question, dans l''ordre d''un livret quelconque, sans vraie méthode. Pourtant
+    le programme de l''examen civique n''est pas flou : il est fixé précisément, par arrêté, et il ne change pas
+    d''une session à l''autre. Dans cette vidéo, un exemple réel traité en détail, et la méthode pour réviser dans
+    l''ordre qui compte vraiment.'
+  mascot: perplexe
+  chapter: Réviser au hasard, le vrai piège
+  card:
+    kind: plan
+    data:
+      label: Au programme
+      items:
+      - title: Les 5 thématiques officielles
+        detail: Fixées par arrêté
+        at: thématiques
+      - title: 40 questions, 45 minutes
+        detail: Connaissance et mise en situation
+        at: quarante
+      - title: Un exemple traité
+        detail: Laïcité et valeurs de la République
+        at: exemple
+      - title: La méthode à retenir
+        detail: Réviser thème par thème
+        at: méthode
+- id: setup
+  voice: 'Le programme se compose de cinq thématiques précises, fixées par l''arrêté du 10 octobre 2025. D''abord,
+    les principes et valeurs de la République : la devise, les symboles, la laïcité. Ensuite, le système institutionnel
+    et politique : comment fonctionnent nos institutions, en France et en Europe. Puis, les droits et devoirs de
+    chaque résident, au quotidien. Vient ensuite la géographie, l''histoire et la culture : des repères communs
+    à connaître. Et enfin, la vie dans la société française, concrètement. C''est tout : l''examen ne porte jamais
+    sur une notion qui n''a pas été présentée en amont, pendant la formation civique.'
+  mascot: reflechit
+  mascot: reflechit
+  chapter: Le programme en 5 thèmes officiels
+  card:
+    kind: plan
+    data:
+      label: Les 5 thématiques officielles
+      items:
+      - title: Principes et valeurs de la République
+        detail: Devise, symboles, laïcité
+        at: principes
+      - title: Système institutionnel et politique
+        detail: Institutions françaises et européennes
+        at: système
+      - title: Droits et devoirs
+        detail: Droits fondamentaux, obligations
+        at: droits
+      - title: Histoire, géographie et culture
+        detail: Repères communs
+        at: géographie
+      - title: Vie dans la société française
+        detail: Le quotidien, concrètement
+        at: société
+- id: format
+  voice: 'Concrètement, le QCM comporte quarante questions, à passer en quarante-cinq minutes maximum. Vingt-huit
+    d''entre elles sont des questions de connaissance, dont la liste complète est publique, publiée par le ministère
+    : tu peux les consulter et t''entraîner dessus à l''avance. Les douze autres sont des questions de mise en
+    situation, jamais dévoilées à l''avance : elles présentent un scénario concret de la vie quotidienne, et demandent
+    d''identifier le comportement ou la règle appropriée, pour préserver l''équité de l''épreuve entre tous les
+    candidats.'
+  mascot: reflechit
+  chapter: 40 questions, 45 minutes
+  card_from: hook
+  card_state: revealed
+- id: priority
+  voice: 'Alors, par où commencer si ton temps de révision est limité ? Selon plusieurs organismes de préparation
+    indépendants, les thématiques principes et valeurs, et droits et devoirs, représenteraient à elles deux plus
+    de la moitié des quarante questions au total. Ce chiffre n''est pas garanti par le texte réglementaire lui-même,
+    qui fixe les cinq thématiques sans imposer une répartition identique à chaque session de l''examen. C''est
+    malgré tout un repère cohérent pour prioriser ton temps de révision, sans négliger complètement les trois
+    autres thèmes pour autant.'
+  mascot: reflechit
+  chapter: Par où commencer ?
+  card_from: setup
+  card_state: revealed
+- id: offii
+  voice: Autre repère utile. Ces cinq thématiques sont exactement les mêmes que celles enseignées pendant la formation
+    civique OFII, sur quatre jours. Si tu as suivi cette formation avec attention, tu retrouves donc les mêmes
+    grandes catégories en révisant pour l'examen, sans mauvaise surprise thématique le jour J. Et si tu ne l'as
+    pas suivie, ces cinq thématiques restent quand même ton meilleur plan de révision, dans le même ordre.
+  mascot: reflechit
+  card_from: setup
+  card_state: revealed
+- id: common_mistake
+  voice: 'L''erreur la plus fréquente ? Vouloir tout retenir par cœur, thème après thème, sans jamais s''entraîner
+    sur de vraies questions. Le jour J, ce n''est pas une fiche récitée qui compte, mais la capacité à reconnaître
+    la bonne règle face à une situation concrète, parfois inédite. Deux candidats peuvent connaître les mêmes
+    cinq thématiques par cœur : celui qui s''est entraîné sur de vraies questions, dans les conditions de l''examen,
+    reconnaît plus vite la bonne réponse que celui qui a seulement lu ses fiches une dernière fois la veille.'
+  mascot: perplexe
+  chapter: L'erreur la plus fréquente
+  card_from: setup
+  card_state: revealed
+- id: example_intro
+  voice: Prenons un exemple réel, dans le thème des valeurs de la République. Voici une vraie question du programme
+    officiel, sur la laïcité, un principe souvent mal compris.
+  mascot: perplexe
+  chapter: 'Exemple traité : la laïcité'
+  card:
+    kind: question
+    data:
+      label: Examen civique · Exemple
+      question_id: 04b6b03f-eedb-48dd-a6b4-baa08c819c42
+      question: Quel symbole religieux peut être porté dans une école publique, dans le respect de la laïcité ?
+      choices:
+      - Un signe discret, non ostensible
+      - Un voile intégral
+      - Tout signe, sans restriction
+      - Aucun signe, même discret
+      correct: A
+- id: example_payoff
+  voice: 'La réponse officielle est un signe discret, non ostensible. Ce genre de question ne se devine pas au
+    hasard : elle se prépare, thématique par thématique, avec de vraies questions à l''appui, pas avec une intuition
+    générale sur ce qui paraît juste.'
+  mascot: victorieux
+  card_from: example_intro
+  card_state: revealed
+- id: rehook_method
+  voice: Si tu ne retiens qu'une chose de cette vidéo, c'est cette méthode. Arrête de réviser question après question,
+    au hasard, dans l'ordre d'un livret quelconque. Reprends les cinq thématiques une par une. Pour chacune, entraîne-toi
+    sur de vraies questions officielles, plutôt que sur des fiches génériques trouvées en ligne, qui ne respectent
+    pas toujours fidèlement le programme réel.
+  mascot: reflechit
+  chapter: La méthode qui change tout
+  card_from: setup
+  card_state: revealed
+- id: practice_tip
+  voice: 'Entraîne-toi d''abord sur les vingt-huit questions de connaissance publiques, thème par thème : c''est la
+    partie la plus prévisible, et la plus rentable à travailler avec le temps qu''il te reste. Pour les mises en
+    situation, inutile d''apprendre par cœur : une compréhension générale des valeurs suffit à identifier le bon
+    comportement face à un scénario concret, même inédit, le jour de l''épreuve.'
+  mascot: reflechit
+  card_from: format
+  card_state: revealed
+- id: recap
+  voice: Pour résumer. Cinq thématiques fixées par arrêté. Quarante questions en quarante-cinq minutes maximum.
+    Vingt-huit questions de connaissance, publiques, et douze questions de mise en situation, jamais dévoilées
+    à l'avance. Et une priorité possible, sans négliger totalement les autres thèmes. Révise thème par thème, avec
+    de vraies questions, pas question par question au hasard.
+  mascot: victorieux
+  chapter: Ce qu'il faut retenir
+  card_from: hook
+  card_state: revealed
+- id: cta
+  voice: Pour t'entraîner gratuitement sur de vraies questions officielles de l'examen civique, classées par thématique
+    — et savoir précisément où tu en es, thème par thème — retrouve le lien vers LlamaKusi dans la description.
+  mascot: heureux
+  chapter: À toi de réviser
+  card_from: hook
+  card_state: revealed
+claims:
+- text: Le programme de l'examen civique se limite à 5 thématiques officielles, fixées par l'arrêté du 10 octobre
+    2025 (principes et valeurs de la République, système institutionnel et politique, droits et devoirs, histoire-géographie-culture,
+    vie dans la société française)
+  source_guide: programme-officiel-examen-civique-5-thematiques
+- text: Ces 5 thématiques sont les mêmes que celles enseignées pendant la formation civique OFII de 4 jours ; l'examen
+    ne porte jamais sur une notion non présentée en amont
+  source_guide: programme-officiel-examen-civique-5-thematiques
+- text: Le QCM de l'examen civique comporte 40 questions en 45 minutes maximum, dont 28 questions de connaissance
+    publiques et 12 questions de mise en situation jamais dévoilées à l'avance
+  source_guide: programme-officiel-examen-civique-5-thematiques
+- text: Les 12 questions de mise en situation présentent un scénario concret de la vie quotidienne et demandent
+    d'identifier le comportement ou la règle appropriée
+  source_guide: programme-officiel-examen-civique-5-thematiques
+- text: Selon plusieurs organismes de préparation indépendants (non confirmé par le texte réglementaire lui-même),
+    les thématiques « principes et valeurs de la République » et « droits et devoirs » représenteraient plus de
+    la moitié des 40 questions
+  source_guide: programme-officiel-examen-civique-5-thematiques
