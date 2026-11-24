@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import re
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -12,6 +14,23 @@ MASCOT_DIR = ASSETS_DIR / "mascot"
 MUSIC_DIR = ASSETS_DIR / "music"
 BACKGROUNDS_DIR = ASSETS_DIR / "backgrounds"   # vidéos de fond personnalisées (non versionnées)
 BUILD_DIR = ROOT / "build"
+
+
+def build_dir(script) -> Path:
+    """build/<id>_<début-du-titre> (slug ASCII, 40 car. max). Renomme un dossier existant (build/<id> ou ancien titre)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", unicodedata.normalize("NFKD", script.title).encode("ascii", "ignore").decode().lower()).strip("-")
+    if len(slug) > 40:
+        slug = slug[:40].rsplit("-", 1)[0] or slug[:40]
+    want = BUILD_DIR / f"{script.id}_{slug}"
+    if not want.exists() and BUILD_DIR.is_dir():
+        old = next((p for p in sorted(BUILD_DIR.iterdir())
+                    if p.is_dir() and (p.name == script.id or p.name.startswith(script.id + "_"))), None)
+        if old:
+            try:
+                old.rename(want)
+            except OSError:                     # Windows : fichier ouvert → on garde l'ancien dossier
+                return old
+    return want
 
 
 def _load_dotenv() -> None:

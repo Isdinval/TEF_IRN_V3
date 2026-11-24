@@ -234,6 +234,17 @@ def lint_script(script: VideoScript, publish: bool = False,
         add("todo", "publish.keyword (requête cible) manquant")
     elif _fold(info.keyword) not in _fold(script.title)[:40]:
         add("warn", f"mot-clé « {info.keyword} » absent des 40 premiers caractères du titre")
+    if script.format == "long" and not trailer and len(info.title_variants) != 2:
+        add("warn", "publish.title_variants : 2 titres B/C attendus pour le test A/B (sinon : miniature seule)")
+    if info.title_variants and script.format == "short":
+        add("warn", "`title_variants` ignoré en Short (pas de test A/B sur les Shorts)")
+    for v in info.title_variants:
+        if len(v) > 60:
+            add("warn", f"titre variante « {v[:30]}… » de {len(v)} caractères (> 60)")
+        if info.keyword and _fold(info.keyword) not in _fold(v)[:40]:
+            add("warn", f"mot-clé « {info.keyword} » absent des 40 premiers caractères de la variante « {v[:30]}… »")
+    if len({_fold(x) for x in [script.title, *info.title_variants]}) < len(info.title_variants) + 1:
+        add("warn", "title_variants : titres identiques")
     if not info.answer:
         add("todo", "publish.answer (réponse en une phrase, ligne 1 de la description) manquant")
     if len(info.hashtags) > 3:

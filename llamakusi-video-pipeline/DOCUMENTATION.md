@@ -236,7 +236,7 @@ llamakusi-video-pipeline/
 ├─ assets/
 │   ├─ music/          ← bed.mp3 (musique de fond)        ← vous y déposez la musique
 │   ├─ mascot/  fonts/ ← téléchargés par fetch-assets
-├─ build/<id>/         ← tout ce qui est généré (ignoré par git)
+├─ build/<id>_<début-du-titre>/  ← tout ce qui est généré (ignoré par git ; ancien `build/<id>/` renommé automatiquement)
 │   ├─ voice.wav  words_asr.json  words.json  align_report.json
 │   ├─ timeline.json   ← qui apparaît quand
 │   ├─ layers/         ← les PNG (cartes, sous-titres…)
@@ -480,3 +480,11 @@ valider dans YouTube Studio.
 
 `python cli.py build <id>` génère **automatiquement** à la fin, en plus de `out.mp4` (sans interface), UNE image `build/<id>/preview_reseaux.png`
 (short : YouTube, TikTok, Instagram côte à côte ; long : YouTube) et l'ouvre sous Windows. `--no-preview` la désactive.
+
+
+## Test A/B titre + miniature (longs uniquement)
+
+YouTube Studio > Détails > A/B Testing (bureau, hors Shorts, jusqu'à 3 variantes, gagnant au watch time).
+- Script long : `publish.title_variants` (2 titres B et C ; A = `title`, mot-clé dans les 40 premiers caractères, ≤ 60 car.) et, facultatif, `thumbnail.variant_texts` (accroches des miniatures B et C).
+- `build` / `thumbnail` / `studio` génèrent `thumbnail.jpg` (A, classique), `thumbnail_B.jpg` (gros plan expressif), `thumbnail_C.jpg` (mascotte à gauche, texte à droite) ; la mascotte de B et C **tourne à chaque vidéo** (n° de l'id, jamais celle de A ni de l'autre style) ; `studio.txt` contient la section **TEST A/B** (combinaisons A/B/C). Sans `title_variants` : « Miniature seule » (titre A).
+- Ne rien modifier pendant le test (il s'arrête). Noter le gagnant (part du watch time) pour décider du style par défaut après 4 à 6 longs.

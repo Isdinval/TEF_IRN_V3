@@ -18,6 +18,7 @@ import requests
 
 from . import config, schema
 from .schema import VideoScript
+from .thumbnail import STYLE_NAMES, thumbnail_path, variant_count
 
 PLATFORMS = ("youtube", "facebook", "instagram")
 SITE = "https://llamakusi.com"
@@ -187,18 +188,31 @@ def _related_section(script: VideoScript) -> str:
     return f"SHORTS LIÉS (leur « Vidéo associée » = cette vidéo)\n{lines}"
 
 
+def _ab_section(script: VideoScript, bdir: Path) -> str:
+    """Long : test A/B (Studio > Détails > A/B Testing). 3 combinaisons titre + miniature si `title_variants`, sinon miniature seule."""
+    if script.format != "long":
+        return ""
+    titles = [script.title, *script.publish.title_variants] if len(script.publish.title_variants) == 2 else [script.title] * 3
+    mode = "Titre et miniature" if titles[1] != titles[0] else "Miniature seule (titre A)"
+    lines = [f"{'ABC'[v]} · {titles[v] if mode.startswith('Titre') else '(titre A)'} · {thumbnail_path(bdir, v).name} "
+             f"(style {STYLE_NAMES[v]})" for v in range(3)]
+    return (f"TEST A/B — choisir « {mode} » (YouTube Studio > Détails > A/B Testing ; ne plus rien changer pendant le test)\n"
+            + "\n".join(lines) + "\n\n")
+
+
 def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None) -> Path:
     """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée,
     commentaire, date de publication prévue). `publish_slot` est calculé par l'appelant (position dans le lot) —
     absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
-    files = [f.name for f in (bdir / "out.mp4", bdir / "thumbnail.jpg") if f.exists()]
+    files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script)))) if f.exists()]
     short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
     date_line = publish_slot or "à définir (hors génération de lot via `cli.py week`)"
     out = bdir / "studio.txt"
     out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
                    f"DATE DE PUBLICATION PRÉVUE\n{date_line}\n\n"
                    f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
+                   f"{_ab_section(script, bdir)}"
                    f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
                    f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
                    f"{_related_section(script)}\n\n"
@@ -212,7 +226,7 @@ def check_publishable(script: VideoScript, platforms: list[str], confirm_public:
     if not confirm_public:
         errors.append("publication publique immédiate : relancer avec --confirm-public")
     errors += [f"plateforme inconnue « {p} » (youtube, facebook, instagram)" for p in platforms if p not in PLATFORMS]
-    if not (config.BUILD_DIR / script.id / "out.mp4").exists():
+    if not (config.build_dir(script) / "out.mp4").exists():
         errors.append(f"build/{script.id}/out.mp4 absent : python cli.py build {script.id}")
     if "instagram" in platforms and script.format != "short":
         errors.append("instagram : Reels verticaux seulement (formats short)")

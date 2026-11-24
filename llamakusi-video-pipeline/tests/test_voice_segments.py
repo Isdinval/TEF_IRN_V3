@@ -126,7 +126,7 @@ def test_cli_build_long_end_to_end_with_fake_tts_asr(tmp_path, monkeypatch, caps
     monkeypatch.setattr(config, "BUILD_DIR", tmp_path)
     monkeypatch.setattr("sys.argv", ["cli.py", "build", "long-02", "--placeholder-mascots", "--until", "timeline"])
     assert cli.main() == 0
-    bdir = tmp_path / "long-02"
+    bdir = config.build_dir(schema.find_script(config.SCRIPTS_DIR, "long-02"))
     tl = json.loads((bdir / "timeline.json").read_text())
     assert tl["size"] == [1920, 1080] and tl["duration"] > 60
     segs = json.loads((bdir / "voice_segments.json").read_text())

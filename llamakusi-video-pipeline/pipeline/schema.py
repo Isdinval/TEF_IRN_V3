@@ -85,6 +85,7 @@ class ThumbnailInfo(BaseModel):
     badge: Optional[str] = None         # pastille dorée (ex. « B1 → B2 »)
     mascot: Optional[Mascot] = None
     pose: Optional[int] = None
+    variant_texts: list[str] = Field(default_factory=list)   # long : accroches des miniatures B et C (défaut : `text`)
 
 
 class PublishInfo(BaseModel):
@@ -98,6 +99,7 @@ class PublishInfo(BaseModel):
     guide: Optional[str] = None                         # slug du guide à lier (défaut : source_guide de la 1re claim)
     playlist: Optional[str] = None                      # clé de playlist (publish.PLAYLISTS) ; défaut selon pilier/produit
     related: Optional[str] = None                       # Short : id du long à lier (« Vidéo associée » dans Studio)
+    title_variants: list[str] = Field(default_factory=list)   # long : titres B et C du test A/B (A = `title`) ; 0 ou 2
     pinned_question: Optional[str] = None               # 1er commentaire à épingler ; défaut selon pilier
 
 

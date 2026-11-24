@@ -7,7 +7,13 @@ accent: indigo
 title: 'Expression écrite TEF IRN section B : la méthode en 4 blocs'
 thumbnail:
   text: "Section B : la méthode en *4 blocs*"
+  variant_texts:
+  - "Section B : réussis en *4 blocs*"
+  - "Comment *structurer* la section B ?"
 publish:
+  title_variants:
+  - 'Expression écrite TEF IRN section B : réussis en 4 blocs'
+  - 'Expression écrite TEF IRN : comment structurer la section B'
   keyword: expression écrite TEF IRN
   answer: 'Pour réussir la section B de l''expression écrite du TEF IRN, structure ton texte en quatre blocs : une
     introduction, deux arguments et une conclusion, reliés par des connecteurs.'

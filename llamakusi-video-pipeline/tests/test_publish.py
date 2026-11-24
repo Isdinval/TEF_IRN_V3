@@ -38,7 +38,7 @@ def env(monkeypatch, tmp_path):
 
 
 def built(script, tmp_path):
-    bdir = tmp_path / "build" / script.id
+    bdir = config.build_dir(script)
     bdir.mkdir(parents=True)
     (bdir / "out.mp4").write_bytes(b"video")
     return bdir
@@ -171,8 +171,9 @@ def test_default_hashtags_follow_the_product(tmp_path):
 def test_pack_writes_studio_text(tmp_path, monkeypatch, capsys):
     import cli
     monkeypatch.setattr(config, "BUILD_DIR", tmp_path)
-    (tmp_path / "short-03").mkdir()
+    bd = config.build_dir(schema.find_script(config.SCRIPTS_DIR, "short-03"))
+    bd.mkdir()
     monkeypatch.setattr("sys.argv", ["cli.py", "pack", "short-03"])
     assert cli.main() == 0
-    txt = (tmp_path / "short-03" / "studio.txt").read_text(encoding="utf-8")
+    txt = (bd / "studio.txt").read_text(encoding="utf-8")
     assert "\nTITRE (" in txt and "TAGS (" in txt and "#ExamenCivique" in txt

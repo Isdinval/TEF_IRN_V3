@@ -109,7 +109,7 @@ def test_cli_render_applies_the_pingpong_background(tmp_path, monkeypatch):
     monkeypatch.setattr("sys.argv", ["cli.py", "build", "short-03", "--dry", "--placeholder-mascots",
                                      "--background", str(clip)])
     assert cli.main() == 0
-    out = tmp_path / "short-03" / "out.dry.mp4"
+    out = config.build_dir(schema.find_script(config.SCRIPTS_DIR, "short-03")) / "out.dry.mp4"
     assert background.probe_video(out)["duration"] > 20                # ≫ 1 s : le fond couvre toute la vidéo
     ref = _lumas(clip, 1080, 1920)
     expected = lambda t: ref[(lambda p: p if p < 30 else 58 - p)(int(round(t * 30)) % 58)]

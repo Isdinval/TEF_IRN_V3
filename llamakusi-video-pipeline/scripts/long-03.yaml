@@ -7,7 +7,13 @@ accent: blue
 title: 'Programme de l''examen civique : les 5 thèmes officiels'
 thumbnail:
   text: "Le programme *officiel* en 5 thèmes"
+  variant_texts:
+  - "Révise ces *5 thèmes*"
+  - "Que faut-il *réviser* ?"
 publish:
+  title_variants:
+  - "Programme de l'examen civique : révise ces 5 thèmes"
+  - "Programme de l'examen civique : que faut-il réviser ?"
   keyword: programme de l'examen civique
   answer: 'Le programme de l''examen civique se limite à 5 thématiques officielles, fixées par arrêté, réparties
     en 40 questions à passer en 45 minutes maximum.'

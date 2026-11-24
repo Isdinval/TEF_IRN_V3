@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 import random
+import re
 import zlib
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from .schema import VideoScript
 KICKERS = {"tef_irn": "TEF IRN", "examen_civique": "EXAMEN CIVIQUE", "both": "TEF IRN · EXAMEN CIVIQUE",
            "fle_bridge": "FRANÇAIS ADMINISTRATIF"}
 FRAME = config.env("THUMB_FRAME", "1") != "0"      # cadre or → rose ; THUMB_FRAME=0 pour le couper (test A/B)
+SAFE = 34                                   # marge mini (px) entre la mascotte et le bord de la miniature (cadre : ~22 px)
 MAX_BYTES = 2_000_000                       # limite YouTube d'une miniature
 # Mise en page par format. Short : tout dans la zone centrale 3:4 (y 240-1680), seule visible dans la grille Instagram.
 LAYOUTS = {
@@ -29,8 +31,44 @@ LAYOUTS = {
 }
 
 
-def thumbnail_path(bdir: Path) -> Path:
-    return bdir / "thumbnail.jpg"
+# Test A/B (long) : 3 styles de miniature. 0 = A (contrôle, rendu historique) ; 1 = B ; 2 = C.
+STYLE_NAMES = ["classique", "gros plan expressif", "mascotte à gauche"]
+STYLE_LAYOUTS = [
+    {},
+    {"mascot_cx": 985, "mascot_h": 640, "mascot_bottom": 690, "text_w": 640, "title": (128, 72)},
+    {"x": 560, "text_w": 660, "mascot_cx": 290, "mascot_h": 640, "mascot_bottom": 690},
+]
+
+
+def _pool() -> list[tuple[str, int]]:
+    """Toutes les mascottes (humeur, pose), entrelacées par humeur : deux voisines n'ont jamais la même humeur."""
+    return [(m, p) for p in range(1, max(config.MASCOT_COUNTS.values()) + 1) for m in config.MASCOT_COUNTS
+            if p <= config.MASCOT_COUNTS[m]]
+
+
+def rotation_mascot(script: VideoScript, variant: int) -> tuple[str, int]:
+    """Mascotte des styles B (1) et C (2) : change à chaque vidéo (n° de l'id : long-03 → 3 ; sinon empreinte de l'id),
+    jamais celle de A ni celle de l'autre style. Stable d'un rendu à l'autre."""
+    pool = _pool()
+    m = re.search(r"(\d+)$", script.id)
+    n = int(m.group(1)) if m else zlib.crc32(script.id.encode("utf-8"))
+    b0 = script.blocks[0]
+    taken, i = {(config.MASCOT_MOOD[script.thumbnail.mascot or b0.mascot], script.thumbnail.pose or b0.pose)}, 2 * n
+    for _ in range(variant):
+        while pool[i % len(pool)] in taken:
+            i += 1
+        pick = pool[i % len(pool)]
+        taken.add(pick)
+        i += 1
+    return pick
+
+
+def thumbnail_path(bdir: Path, variant: int = 0) -> Path:
+    return bdir / ("thumbnail.jpg" if variant == 0 else f"thumbnail_{'BC'[variant - 1]}.jpg")
+
+
+def variant_count(script: VideoScript) -> int:
+    return len(STYLE_NAMES) if script.format == "long" else 1
 
 
 # --- texte -------------------------------------------------------------------------------------
@@ -130,16 +168,32 @@ def _background(w: int, h: int, script: VideoScript, lay: dict) -> Image.Image:
 # --- éléments ------------------------------------------------------------------------------------------
 def _mascot(img: Image.Image, script: VideoScript, lay: dict) -> None:
     t, b0 = script.thumbnail, script.blocks[0]
-    mood = config.MASCOT_MOOD[t.mascot or b0.mascot]
-    path = config.MASCOT_DIR / f"{mood}_{t.pose or b0.pose}_transparent.webp"
+    if lay.get("mood"):                       # styles B/C : mascotte qui tourne d'une vidéo à l'autre
+        mood, pose = lay["mood"], lay["pose"]
+    else:
+        mood, pose = config.MASCOT_MOOD[t.mascot or b0.mascot], t.pose or b0.pose
+    path = config.MASCOT_DIR / f"{mood}_{pose}_transparent.webp"
     if not path.exists():
         raise FileNotFoundError(f"mascotte absente : {path} → `python cli.py fetch-assets`")
     src = Image.open(path).convert("RGBA")
-    if bbox := src.getchannel("A").getbbox():
+    if bbox := src.getchannel("A").point(lambda v: 255 if v > 24 else 0).getbbox():   # ignore marges transparentes et halo quasi invisible
         src = src.crop(bbox)
-    src = src.resize((max(1, round(src.width * lay["mascot_h"] / src.height)), lay["mascot_h"]), Image.LANCZOS)
+    w, h, bottom = mascot_box(src.size, lay, img.size)
+    src = src.resize((w, h), Image.LANCZOS)
     tile, pad = _mascot_fx(src)
-    img.paste(tile, (lay["mascot_cx"] - src.width // 2 - pad, lay["mascot_bottom"] - src.height - pad), tile)
+    img.paste(tile, (lay["mascot_cx"] - w // 2 - pad, bottom - h - pad), tile)
+
+
+def mascot_box(size: tuple[int, int], lay: dict, canvas: tuple[int, int]) -> tuple[int, int, int]:
+    """(largeur, hauteur, bas) de la mascotte recadrée. Styles B/C (mascotte qui tourne) : jamais coupée — elle reste à
+    SAFE px du bord (cadre compris), largeur plafonnée à 36 % de l'image pour les poses larges (coffre, drapeau…)."""
+    sw, sh = size
+    w_img, h_img = canvas
+    h, bottom = lay["mascot_h"], lay["mascot_bottom"]
+    if lay.get("mood"):
+        bottom = min(bottom, h_img - SAFE)
+        h = min(h, bottom - SAFE, round(sh * 0.36 * w_img / sw))
+    return max(1, round(sw * h / sh)), h, bottom
 
 
 def _pill_w(text: str, fnt, tracking: float, pad: float) -> float:
@@ -169,8 +223,10 @@ def _brand(d: ImageDraw.ImageDraw, lay: dict, script: VideoScript, size: int) ->
     _tracked(d, (x + dot + gap, y), text, fnt, rgb(COLORS["white"], 235), tr)
 
 
-def render(script: VideoScript) -> Image.Image:
-    lay = LAYOUTS[script.format]
+def render(script: VideoScript, variant: int = 0) -> Image.Image:
+    lay = {**LAYOUTS[script.format], **(STYLE_LAYOUTS[variant] if script.format == "long" else {})}
+    if variant:
+        lay["mood"], lay["pose"] = rotation_mascot(script, variant)
     w, h = lay["size"]
     img = _background(w, h, script, lay)
     _mascot(img, script, lay)
@@ -178,7 +234,8 @@ def render(script: VideoScript) -> Image.Image:
     top = ImageDraw.Draw(img, "RGBA")
     _brand(top, lay, script, round(40 * u))
 
-    text = script.thumbnail.text or script.title
+    vt = script.thumbnail.variant_texts
+    text = vt[variant - 1] if variant and len(vt) >= variant else script.thumbnail.text or script.title
     size, lines = fit_title(text, lay["text_w"], lay["lines"], *lay["title"])
     fnt = font("montserrat", size, 900)
     lh = round(size * 1.08)
@@ -250,11 +307,13 @@ def _frame(img: Image.Image, script: VideoScript) -> None:
 
 
 def save(script: VideoScript, bdir: Path) -> Path:
-    """build/<id>/thumbnail.jpg (JPEG : un PNG avec dégradés dépasse vite les 2 Mo de YouTube)."""
+    """thumbnail.jpg (A) ; long : + thumbnail_B.jpg, thumbnail_C.jpg pour le test A/B. JPEG : un PNG avec dégradés
+    dépasse vite les 2 Mo de YouTube. Retourne le chemin de A."""
     bdir.mkdir(parents=True, exist_ok=True)
-    img, out = render(script), thumbnail_path(bdir)
-    for q in (92, 85, 75):
-        img.save(out, "JPEG", quality=q, optimize=True, subsampling=0)
-        if out.stat().st_size <= MAX_BYTES:
-            break
-    return out
+    for v in range(variant_count(script)):
+        img, out = render(script, v), thumbnail_path(bdir, v)
+        for q in (92, 85, 75):
+            img.save(out, "JPEG", quality=q, optimize=True, subsampling=0)
+            if out.stat().st_size <= MAX_BYTES:
+                break
+    return thumbnail_path(bdir)

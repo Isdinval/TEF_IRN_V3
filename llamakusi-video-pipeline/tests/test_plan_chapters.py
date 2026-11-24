@@ -127,7 +127,7 @@ def test_cli_dry_long_writes_chapters_txt(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(config, "BUILD_DIR", tmp_path)
     monkeypatch.setattr("sys.argv", ["cli.py", "build", "long-02", "--dry", "--placeholder-mascots", "--until", "timeline"])
     assert cli.main() == 0
-    txt = (tmp_path / "long-02" / "chapters.txt").read_text(encoding="utf-8").splitlines()
+    txt = (config.build_dir(schema.find_script(config.SCRIPTS_DIR, "long-02")) / "chapters.txt").read_text(encoding="utf-8").splitlines()
     assert txt[0] == "0:00 Introduction" and len(txt) == 5
     assert "[chapitres] 5" in capsys.readouterr().out
 

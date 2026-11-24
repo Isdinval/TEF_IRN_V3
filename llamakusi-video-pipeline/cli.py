@@ -146,7 +146,7 @@ def cmd_build(args) -> int:
         if i.level == "error":
             print(f"✗ lint : {i.message}")
             return 1
-    bdir = config.BUILD_DIR / script.id
+    bdir = config.build_dir(script)
     bdir.mkdir(parents=True, exist_ok=True)
     until = STAGES.index(args.until)
 
@@ -308,7 +308,7 @@ def week_selection(scripts, ids, force=False) -> list:
     if ids:
         return [s for s in scripts if s.id in ids]
     return [s for s in scripts if s.status == "approved"
-            and (force or not (config.BUILD_DIR / s.id / "out.mp4").exists())]
+            and (force or not (config.build_dir(s) / "out.mp4").exists())]
 
 
 def cmd_week(args) -> int:
@@ -348,7 +348,7 @@ def cmd_studio(args) -> int:
         print("✗ aucun script : donner des ids ou --all")
         return 1
     for n, sc in enumerate(scripts, 1):
-        bdir = config.BUILD_DIR / sc.id
+        bdir = config.build_dir(sc)
         bdir.mkdir(parents=True, exist_ok=True)
         slot = _publish_slot(n) if not args.all else None
         print(f"✓ {publish_mod.studio_file(sc, bdir, publish_slot=slot)}")
@@ -363,7 +363,7 @@ def cmd_thumbnail(args) -> int:
         print("✗ aucun script : donner des ids ou --all")
         return 1
     for sc in scripts:
-        print(f"✓ {thumbnail_mod.save(sc, config.BUILD_DIR / sc.id)}")
+        print(f"✓ {thumbnail_mod.save(sc, config.build_dir(sc))}")
     return 0
 
 
@@ -373,7 +373,7 @@ def cmd_subs(args) -> int:
         langs = [x.strip() for x in args.langs.split(",") if x.strip()]
     else:
         langs = config.SUB_LANGS_LONG if script.format == "long" else config.SUB_LANGS_SHORT
-    bdir = config.BUILD_DIR / script.id
+    bdir = config.build_dir(script)
     if not langs:
         print(f"· {script.format} : aucune traduction par défaut (français seul). Forcer avec --langs ar,en,es,zh-Hans")
     paths = subtitles.generate(bdir, langs, dry=args.dry, force=args.force)
@@ -386,7 +386,7 @@ def cmd_subs(args) -> int:
 def cmd_publish(args) -> int:
     script = schema.find_script(config.SCRIPTS_DIR, args.id)
     platforms = [x.strip() for x in args.platforms.split(",") if x.strip()]
-    bdir = config.BUILD_DIR / script.id
+    bdir = config.build_dir(script)
     if not args.dry:
         publish_mod.check_publishable(script, platforms, args.confirm_public)
         if lint.has_errors(lint.lint_all([script], publish=True)):
@@ -401,7 +401,7 @@ def cmd_publish(args) -> int:
 def cmd_pack(args) -> int:
     """Envoi MANUEL (YouTube Studio) : écrit build/<id>/studio.txt (titre, description + chapitres, tags) et liste les fichiers."""
     script = schema.find_script(config.SCRIPTS_DIR, args.id)
-    bdir = config.BUILD_DIR / script.id
+    bdir = config.build_dir(script)
     t = publish_mod.texts(script, bdir, "youtube")
     bdir.mkdir(parents=True, exist_ok=True)
     publish_mod.studio_file(script, bdir)                       # même fichier que `build` / `studio` (titre, description, tags)
@@ -429,10 +429,11 @@ def cmd_list(args) -> int:
     for sc in scripts:
         secs = lint.estimate_seconds(sc)
         ok = sum(1 for c in sc.claims if c.source_guide)
-        out = config.BUILD_DIR / sc.id / "out.mp4"
-        built = "out.mp4 ✓" if out.exists() else ("dry seulement" if (config.BUILD_DIR / sc.id / "out.dry.mp4").exists() else "-")
+        bd = config.build_dir(sc)
+        out = bd / "out.mp4"
+        built = "out.mp4 ✓" if out.exists() else ("dry seulement" if (bd / "out.dry.mp4").exists() else "-")
         print(f"{sc.id:<10} {sc.status:<9} {sc.pillar:<6} {(sc.hook_formula or '-'):<14} "
-              f"{secs:>6.0f}s  {ok}/{len(sc.claims):<7} {built}")
+              f"{secs:>6.0f}s  {ok}/{len(sc.claims):<7} {built:<14} {sc.title[:40]}")
     return 0
 
 
@@ -487,7 +488,7 @@ def cmd_new(args) -> int:
 
 def cmd_preview(args) -> int:
     from PIL import Image
-    bdir = config.BUILD_DIR / args.id
+    bdir = config.build_dir(schema.find_script(config.SCRIPTS_DIR, args.id))
     tl = json.loads((bdir / "timeline.json").read_text())
     video = bdir / ("out.dry.mp4" if (bdir / "out.dry.mp4").exists() and not (bdir / "out.mp4").exists() else "out.mp4")
     frames = []
