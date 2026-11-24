@@ -40,20 +40,35 @@ STYLE_LAYOUTS = [
 ]
 
 
+# Shorts : 4 mises en page haut/bas (mascotte toujours centrée, taille mascotte/texte variable) qui tournent d'une vidéo à l'autre
+# (rang de l'id modulo 4), la 1re = mise en page historique.
+SHORT_PRESETS = [
+    {},                                                                                   # texte en haut, mascotte centrée en bas
+    {"mascot_cx": 540, "mascot_h": 640, "mascot_bottom": 1080, "stack_cy": 1400},         # mascotte en haut, texte en bas
+    {"mascot_cx": 540, "mascot_h": 860, "mascot_bottom": 1760, "stack_cy": 590, "title": (88, 60)},   # grande mascotte en bas, texte plus petit en haut
+    {"mascot_cx": 540, "mascot_h": 600, "mascot_bottom": 1080, "stack_cy": 1470, "title": (124, 76)}, # mascotte en haut, gros texte en bas
+]
+
+
 def _pool() -> list[tuple[str, int]]:
     """Toutes les mascottes (humeur, pose), entrelacées par humeur : deux voisines n'ont jamais la même humeur."""
     return [(m, p) for p in range(1, max(config.MASCOT_COUNTS.values()) + 1) for m in config.MASCOT_COUNTS
             if p <= config.MASCOT_COUNTS[m]]
 
 
+def _rank(script: VideoScript) -> int:
+    """Rang de la vidéo : n° de l'id (short-03 → 3), sinon empreinte de l'id. Stable d'un rendu à l'autre."""
+    m = re.search(r"(\d+)$", script.id)
+    return int(m.group(1)) if m else zlib.crc32(script.id.encode("utf-8"))
+
+
 def rotation_mascot(script: VideoScript, variant: int) -> tuple[str, int]:
-    """Mascotte des styles B (1) et C (2) : change à chaque vidéo (n° de l'id : long-03 → 3 ; sinon empreinte de l'id),
+    """Mascotte des styles B (1) et C (2) du long, et du Short (variante 1) : change à chaque vidéo (n° de l'id : long-03 → 3 ; sinon empreinte de l'id),
     jamais celle de A ni celle de l'autre style. Stable d'un rendu à l'autre."""
     pool = _pool()
-    m = re.search(r"(\d+)$", script.id)
-    n = int(m.group(1)) if m else zlib.crc32(script.id.encode("utf-8"))
+    n = _rank(script)
     b0 = script.blocks[0]
-    taken, i = {(config.MASCOT_MOOD[script.thumbnail.mascot or b0.mascot], script.thumbnail.pose or b0.pose)}, 2 * n
+    taken, i = {(config.MASCOT_MOOD[script.thumbnail.mascot or b0.mascot], script.thumbnail.pose or b0.pose)}, (n if script.format == "short" else 2 * n)
     for _ in range(variant):
         while pool[i % len(pool)] in taken:
             i += 1
@@ -186,13 +201,14 @@ def _mascot(img: Image.Image, script: VideoScript, lay: dict) -> None:
 
 def mascot_box(size: tuple[int, int], lay: dict, canvas: tuple[int, int]) -> tuple[int, int, int]:
     """(largeur, hauteur, bas) de la mascotte recadrée. Styles B/C (mascotte qui tourne) : jamais coupée — elle reste à
-    SAFE px du bord (cadre compris), largeur plafonnée à 36 % de l'image pour les poses larges (coffre, drapeau…)."""
+    SAFE px du bord (cadre compris), largeur plafonnée à 36 % de l'image (60 % en portrait) pour les poses larges (coffre, drapeau…)."""
     sw, sh = size
     w_img, h_img = canvas
     h, bottom = lay["mascot_h"], lay["mascot_bottom"]
     if lay.get("mood"):
         bottom = min(bottom, h_img - SAFE)
-        h = min(h, bottom - SAFE, round(sh * 0.36 * w_img / sw))
+        half = min(lay["mascot_cx"] - SAFE, w_img - SAFE - lay["mascot_cx"])                 # demi-largeur dispo autour de cx
+        h = min(h, bottom - SAFE, round(sh * (0.36 if w_img > h_img else 0.6) * w_img / sw), round(sh * 2 * half / sw))
     return max(1, round(sw * h / sh)), h, bottom
 
 
@@ -224,9 +240,9 @@ def _brand(d: ImageDraw.ImageDraw, lay: dict, script: VideoScript, size: int) ->
 
 
 def render(script: VideoScript, variant: int = 0) -> Image.Image:
-    lay = {**LAYOUTS[script.format], **(STYLE_LAYOUTS[variant] if script.format == "long" else {})}
-    if variant:
-        lay["mood"], lay["pose"] = rotation_mascot(script, variant)
+    lay = {**LAYOUTS[script.format], **(STYLE_LAYOUTS[variant] if script.format == "long" else SHORT_PRESETS[_rank(script) % len(SHORT_PRESETS)])}
+    if variant or script.format == "short":   # long B/C et Shorts : la mascotte tourne d'une vidéo à l'autre
+        lay["mood"], lay["pose"] = rotation_mascot(script, variant or 1)
     w, h = lay["size"]
     img = _background(w, h, script, lay)
     _mascot(img, script, lay)

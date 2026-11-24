@@ -65,9 +65,25 @@ def test_rotating_mascots_never_cropped():
         for pose in range(1, count + 1):
             src = Image.open(config.MASCOT_DIR / f"{mood}_{pose}_transparent.webp").convert("RGBA")
             src = src.crop(src.getchannel("A").point(lambda v: 255 if v > 24 else 0).getbbox())
-            for v in (1, 2):
-                lay = {**thumbnail.LAYOUTS["long"], **thumbnail.STYLE_LAYOUTS[v], "mood": mood}
+            for v in (1, 2, *range(10, 10 + len(thumbnail.SHORT_PRESETS))):                    # 1, 2 : styles B/C du long ; 10+ : Shorts
+                fmt = "short" if v >= 10 else "long"
+                canvas = thumbnail.LAYOUTS[fmt]["size"]
+                lay = {**thumbnail.LAYOUTS[fmt], **(thumbnail.STYLE_LAYOUTS[v] if fmt == "long" else thumbnail.SHORT_PRESETS[v - 10]), "mood": mood}
                 w, h, bottom = thumbnail.mascot_box(src.size, lay, canvas)
                 cx = lay["mascot_cx"]
                 assert bottom <= canvas[1] - thumbnail.SAFE and bottom - h >= thumbnail.SAFE, (mood, pose, v)
                 assert cx - w / 2 >= thumbnail.SAFE and cx + w / 2 <= canvas[0] - thumbnail.SAFE, (mood, pose, v)
+
+
+def test_short_mascot_rotates_per_video():
+    base = schema.find_script(config.SCRIPTS_DIR, "short-01")
+    picks = [thumbnail.rotation_mascot(base.model_copy(update={"id": f"short-0{i}"}), 1) for i in range(1, 6)]
+    assert len(set(picks)) == 5 and len({m for m, _ in picks}) == 4      # les 4 humeurs défilent
+
+
+def test_short_layout_rotates_per_video(tmp_path):
+    base = schema.find_script(config.SCRIPTS_DIR, "short-01")
+    rank = lambda i: thumbnail._rank(base.model_copy(update={"id": f"short-0{i}"})) % len(thumbnail.SHORT_PRESETS)
+    assert len({rank(i) for i in range(1, 5)}) == 4 and rank(1) != rank(2)         # 4 mises en page différentes, voisines distinctes
+    sizes = {thumbnail.render(base.model_copy(update={"id": f"short-0{i}"})).tobytes() for i in range(1, 5)}
+    assert len(sizes) == 4
