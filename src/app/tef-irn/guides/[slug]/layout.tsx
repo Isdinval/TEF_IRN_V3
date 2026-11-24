@@ -7,7 +7,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   const supabase = await createClient();
   const { data: guide } = await supabase
     .from('guides')
-    .select('title, description, image_url, created_at, updated_at, product')
+    .select('title, description, created_at, updated_at, product')
     .eq('slug', params.slug)
     .single();
 
@@ -18,7 +18,6 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   }
 
   const url = `${siteUrl}/tef-irn/guides/${params.slug}`;
-  const defaultImage = `${siteUrl}/og-image.png`;
 
   return {
     title: guide.title,
@@ -33,20 +32,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       type: 'article',
       publishedTime: guide.created_at,
       modifiedTime: guide.updated_at || guide.created_at,
-      images: [
-        {
-          url: guide.image_url || defaultImage,
-          width: 1200,
-          height: 630,
-          alt: guide.title,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: guide.title,
       description: guide.description || '',
-      images: [guide.image_url || defaultImage],
     },
     robots: {
       // Guides compagnons de parcours : aide in-app, pas du contenu SEO.

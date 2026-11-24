@@ -7,7 +7,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   const supabase = await createClient();
   const { data: guide } = await supabase
     .from('guides')
-    .select('title, description, image_url, created_at, updated_at, product')
+    .select('title, description, created_at, updated_at, product')
     .eq('slug', params.slug)
     .eq('is_published', true)
     .single();
@@ -20,21 +20,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
   const url = `${siteUrl}/examen-civique/guides/${params.slug}`;
 
-  // Pas de fallback vers un fichier statique ici : si le guide n'a pas sa
-  // propre image, on omet complètement `images` pour laisser Next.js
-  // appliquer automatiquement src/app/opengraph-image.tsx (convention de
-  // fichier). Un `images` explicite pointant vers un fichier inexistant
-  // écraserait ce fallback silencieusement.
-  const ogImages = guide.image_url
-    ? [
-        {
-          url: guide.image_url,
-          width: 1200,
-          height: 630,
-          alt: guide.title,
-        },
-      ]
-    : undefined;
+  // Image de partage : générée par ./opengraph-image.tsx (carte de marque). L'illustration aquarelle du guide (image_url) reste dans la page, pas dans l'OG.
 
   return {
     title: `${guide.title} | Examen civique LlamaKusi`,
@@ -49,13 +35,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       type: 'article',
       publishedTime: guide.created_at,
       modifiedTime: guide.updated_at || guide.created_at,
-      ...(ogImages ? { images: ogImages } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title: guide.title,
       description: guide.description || '',
-      ...(guide.image_url ? { images: [guide.image_url] } : {}),
     },
     robots: {
       index: true,

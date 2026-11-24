@@ -19,20 +19,11 @@ export const metadata: Metadata = {
     siteName: 'LlamaKusi',
     locale: 'fr_FR',
     type: 'website',
-    images: [
-      {
-        url: `${siteUrl}/og-parcours.png`,
-        width: 1200,
-        height: 630,
-        alt: 'Parcours LlamaKusi TEF IRN',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: "Parcours d'Apprentissage TEF IRN - LlamaKusi",
     description: "Préparez votre TEF IRN avec des parcours structurés et l'aide de notre IA.",
-    images: [`${siteUrl}/og-parcours.png`],
   },
 };
 

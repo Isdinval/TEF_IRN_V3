@@ -38,20 +38,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       siteName: 'LlamaKusi',
       locale: 'fr_FR',
       type: 'article',
-      images: [
-        {
-          url: `${siteUrl}/og-parcours.png`,
-          width: 1200,
-          height: 630,
-          alt: `Parcours ${parcours.category} ${parcours.level}`,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [`${siteUrl}/og-parcours.png`],
     },
   };
 }

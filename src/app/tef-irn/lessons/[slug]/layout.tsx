@@ -43,20 +43,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       type: 'article',
       url: `${siteUrl}/tef-irn/lessons/${lesson.slug}`,
       siteName: 'LlamaKusi',
-      images: [
-        {
-          url: '/logo.png',
-          width: 1200,
-          height: 630,
-          alt: `Leçon LlamaKusi: ${lesson.title}`,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${title} - Leçon TEF IRN | LlamaKusi`,
       description,
-      images: ['/logo.png'],
     },
   };
 }
