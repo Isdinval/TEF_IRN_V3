@@ -94,7 +94,7 @@ export default async function RootLayout({
       "width": 200,
       "height": 200
     },
-    "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer l'examen du TEF IRN.",
+    "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer le TEF IRN et l'examen civique (naturalisation, carte de résident, carte de séjour pluriannuelle).",
     "sameAs": socialLinks.map((link) => link.href),
     "contactPoint": {
       "@type": "ContactPoint",
