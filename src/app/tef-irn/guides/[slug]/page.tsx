@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 import GuideDetail from './GuideDetail';
 import JsonLd from '@/components/shared/JsonLd';
-import { siteUrl } from '@/lib/site';
+import { buildGuideSchemas } from '@/lib/guide-schema';
 
 export default async function GuideDetailPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params;
@@ -21,40 +21,12 @@ export default async function GuideDetailPage(props: { params: Promise<{ slug: s
     notFound();
   }
 
-  // Schema Article / BlogPosting (standard 2026)
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting", // Ou "Article" si evergreen
-    "headline": guide.title,
-    "description": guide.description,
-    "image": guide.image_url ? `${siteUrl}${guide.image_url}` : `${siteUrl}/og-image.png`,
-    "datePublished": guide.created_at,
-    "dateModified": guide.updated_at || guide.created_at,
-    "author": {
-      "@type": "Organization",
-      "name": "LlamaKusi",
-      "url": siteUrl
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "LlamaKusi",
-      "url": siteUrl,
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${siteUrl}/logo.png`
-      }
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `${siteUrl}/tef-irn/guides/${slug}`
-    },
-    "keywords": ["TEF IRN", guide.category, guide.type, "préparation examen français"].filter(Boolean),
-    "articleSection": guide.type || "Guide TEF IRN"
-  };
+  const { article, breadcrumb } = buildGuideSchemas('tef-irn', slug, guide);
 
   return (
     <>
-      <JsonLd data={articleSchema} id={`article-${slug}`} />
+      <JsonLd data={article} id={`article-${slug}`} />
+      <JsonLd data={breadcrumb} id={`guide-breadcrumb-${slug}`} />
       <GuideDetail guide={guide} />
     </>
   );
