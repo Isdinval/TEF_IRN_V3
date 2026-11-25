@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Search, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 
 interface Overview {
@@ -160,6 +160,55 @@ function csvCell(v: string | number): string {
   return `"${String(v).replace(/"/g, '""')}"`;
 }
 
+interface PublishedSlugs {
+  tefIrn: string[];
+  civic: string[];
+}
+
+/** Contrôle permanent : tout guide publié doit figurer dans le sitemap. */
+function SitemapGuidesCheck({ publishedSlugs }: { publishedSlugs: PublishedSlugs }) {
+  const [sitemapPaths, setSitemapPaths] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    loadSiteContext()
+      .then((ctx) => setSitemapPaths(ctx.sitemapPaths))
+      .catch(() => setSitemapPaths([]));
+  }, []);
+
+  if (!sitemapPaths) return <p className="text-xs text-zinc-400">Contrôle des guides dans le sitemap…</p>;
+
+  const rows = [
+    { label: "Guides TEF IRN", prefix: "/tef-irn/guides/", slugs: publishedSlugs.tefIrn },
+    { label: "Guides examen civique", prefix: "/examen-civique/guides/", slugs: publishedSlugs.civic },
+  ].map((r) => {
+    const inSitemap = new Set(sitemapPaths.filter((p) => p.startsWith(r.prefix)).map((p) => p.slice(r.prefix.length)));
+    return { ...r, missing: r.slugs.filter((slug) => !inSitemap.has(slug)) };
+  });
+
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-100 p-4 space-y-2">
+      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Guides publiés présents dans le sitemap</p>
+      {rows.map((r) => (
+        <div key={r.label}>
+          <div className="flex items-center gap-2 text-sm">
+            {r.missing.length === 0 ? (
+              <CheckCircle2 className="text-emerald-500" size={16} />
+            ) : (
+              <XCircle className="text-rose-500" size={16} />
+            )}
+            <span className="font-bold text-zinc-800">
+              {r.label} : {r.slugs.length - r.missing.length} / {r.slugs.length}
+            </span>
+          </div>
+          {r.missing.length > 0 && (
+            <p className="text-[11px] text-rose-500 font-bold ml-6 break-all">Manquants : {r.missing.join(", ")}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function StatCard({ label, total, published }: { label: string; total: number; published?: number }) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-100 p-4">
@@ -295,7 +344,15 @@ function SitemapAudit() {
   );
 }
 
-export function SitemapDebugClient({ overview, queryErrors }: { overview: Overview; queryErrors: string[] }) {
+export function SitemapDebugClient({
+  overview,
+  queryErrors,
+  publishedSlugs,
+}: {
+  overview: Overview;
+  queryErrors: string[];
+  publishedSlugs: PublishedSlugs;
+}) {
   const [path, setPath] = useState("/examen-civique/parcourir");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<InspectionResult | null>(null);
@@ -346,6 +403,7 @@ export function SitemapDebugClient({ overview, queryErrors }: { overview: Overvi
             <StatCard label="Questions examen civique" total={overview.civicQuestions.total} published={overview.civicQuestions.published} />
             <StatCard label="Parcours" total={overview.parcours.total} />
           </div>
+          <SitemapGuidesCheck publishedSlugs={publishedSlugs} />
         </section>
 
         <SitemapAudit />

@@ -34,7 +34,7 @@ export default async function SitemapDebug() {
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }),
     supabase.from('civic_questions').select('*', { count: 'exact', head: true }).eq('reviewed', true),
     supabase.from('parcours').select('*', { count: 'exact', head: true }),
-    supabase.from('guides').select('product, is_published'),
+    supabase.from('guides').select('product, slug, is_published'),
   ]);
 
   // On distingue explicitement "0 ligne correspond" d'une erreur de requête (mauvaise colonne,
@@ -60,5 +60,11 @@ export default async function SitemapDebug() {
     parcours: { total: parcoursTotalRes.count || 0 },
   };
 
-  return <SitemapDebugClient overview={overview} queryErrors={queryErrors} />;
+  // Slugs des guides publiés : comparés au sitemap par SitemapGuidesCheck.
+  const publishedSlugs = {
+    tefIrn: tefIrnGuides.filter((g: any) => g.is_published).map((g: any) => g.slug as string),
+    civic: civicGuides.filter((g: any) => g.is_published).map((g: any) => g.slug as string),
+  };
+
+  return <SitemapDebugClient overview={overview} queryErrors={queryErrors} publishedSlugs={publishedSlugs} />;
 }
