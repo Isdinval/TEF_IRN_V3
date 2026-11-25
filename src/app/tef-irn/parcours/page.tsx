@@ -7,7 +7,7 @@ import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Parcours d'Apprentissage TEF IRN - LlamaKusi",
-  description: "Découvrez nos parcours structurés pour réussir le TEF IRN. Préparation complète aux niveaux A1, A2 et B1 avec un coach IA personnalisé. Progressez pas à pas vers votre certification.",
+  description: "Parcours structurés pour réussir le TEF IRN, du niveau A1 au B2 : grammaire, vocabulaire, compréhension et expression, avec un coach IA personnalisé.",
   keywords: ["TEF IRN", "préparation TEF", "examen français", "B1 français", "parcours apprentissage", "LlamaKusi"],
   alternates: {
     canonical: `${siteUrl}/tef-irn/parcours`,

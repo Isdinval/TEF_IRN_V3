@@ -6,7 +6,7 @@ import { CivicEligibility } from "./CivicEligibility";
 export const metadata: Metadata = {
   title: "Suis-je concerné par l'examen civique ? Test d'éligibilité | LlamaKusi",
   description:
-    "Vérifiez en 3 questions si vous devez passer l'examen civique pour votre carte de séjour pluriannuelle, votre carte de résident ou votre naturalisation, et si vous pouvez en être dispensé.",
+    "Vérifiez en 3 questions si vous devez passer l'examen civique (carte de séjour pluriannuelle, carte de résident, naturalisation) ou si vous en êtes dispensé.",
   alternates: {
     canonical: `${siteUrl}/examen-civique/eligibilite`,
   },

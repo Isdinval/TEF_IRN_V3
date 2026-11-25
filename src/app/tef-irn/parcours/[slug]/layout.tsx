@@ -22,7 +22,13 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   }
 
   const title = `${parcours.nom_parcours || parcours.category + ' ' + parcours.level} - LlamaKusi TEF IRN`;
-  const description = parcours.objective || `Parcours d'apprentissage structuré pour maîtriser le ${parcours.category} au niveau ${parcours.level} pour l'examen TEF IRN.`;
+  // Un objectif de moins de 70 caractères est trop court pour une description : on le complète.
+  const objective = parcours.objective?.trim();
+  const description = !objective
+    ? `Parcours d'apprentissage structuré pour maîtriser le ${parcours.category} au niveau ${parcours.level} pour l'examen TEF IRN.`
+    : objective.length < 70
+      ? `${objective} Parcours ${parcours.level} : leçons, exercices et coach IA LlamaKusi pour préparer le TEF IRN.`
+      : objective;
 
   return {
     title,

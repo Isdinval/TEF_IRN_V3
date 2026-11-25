@@ -17,8 +17,7 @@ export const revalidate = 2592000; // 30 jours
 export const metadata: Metadata = {
   title: "Centres d'examen civique agréés en France | LlamaKusi",
   description:
-    "Trouvez le centre d'examen civique agréé CCI le plus proche de chez vous : adresse, " +
-    "contact et localisation pour votre naturalisation, carte de résident ou carte de séjour pluriannuelle.",
+    "Trouvez le centre d'examen civique agréé CCI le plus proche : adresse, contact et localisation pour votre naturalisation ou votre titre de séjour.",
   alternates: {
     canonical: `${siteUrl}/examen-civique/centres`,
   },

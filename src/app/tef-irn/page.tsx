@@ -15,7 +15,7 @@ import { Footer } from "@/components/landing/Footer";
 export const metadata: Metadata = {
   title: "LlamaKusi - Coach IA pour l'Examen Civique et le TEF IRN",
   description:
-    "Préparez votre naturalisation ou votre carte de résident avec LlamaKusi : entraînement gratuit à l'Examen Civique et coach IA pour les 4 épreuves du TEF IRN (écrit, oral, compréhension).",
+    "Préparez votre naturalisation ou votre carte de résident : Examen Civique gratuit et coach IA pour les 4 épreuves du TEF IRN (écrit, oral, compréhension).",
   alternates: {
     canonical: "/tef-irn",
   },
