@@ -86,15 +86,24 @@ function checkRobots(robotsTxt: string, path: string): { allowed: boolean; match
   return { allowed: best.type === "allow", matchedRule: `${best.type === "allow" ? "Allow" : "Disallow"}: ${best.value}` };
 }
 
-async function inspectPath(path: string): Promise<InspectionResult> {
+interface SiteContext {
+  sitemapPaths: string[];
+  robotsTxt: string;
+}
+
+/** Charge sitemap.xml et robots.txt une seule fois (réutilisé par l'audit global). */
+async function loadSiteContext(): Promise<SiteContext> {
+  const [sitemapRes, robotsRes] = await Promise.all([fetch("/sitemap.xml"), fetch("/robots.txt")]);
+  const sitemapDoc = new DOMParser().parseFromString(await sitemapRes.text(), "application/xml");
+  const sitemapPaths = Array.from(sitemapDoc.querySelectorAll("loc")).map((el) => toPathname(el.textContent || ""));
+  return { sitemapPaths, robotsTxt: await robotsRes.text() };
+}
+
+async function inspectPath(path: string, ctx?: SiteContext): Promise<InspectionResult> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const { sitemapPaths, robotsTxt } = ctx ?? (await loadSiteContext());
 
-  const [pageRes, sitemapRes, robotsRes] = await Promise.all([
-    fetch(normalizedPath),
-    fetch("/sitemap.xml"),
-    fetch("/robots.txt"),
-  ]);
-
+  const pageRes = await fetch(normalizedPath);
   const html = await pageRes.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
 
@@ -107,12 +116,7 @@ async function inspectPath(path: string): Promise<InspectionResult> {
     }
   });
 
-  const sitemapXml = await sitemapRes.text();
-  const sitemapDoc = new DOMParser().parseFromString(sitemapXml, "application/xml");
-  const sitemapPaths = Array.from(sitemapDoc.querySelectorAll("loc")).map((el) => toPathname(el.textContent || ""));
   const inSitemap = sitemapPaths.includes(toPathname(normalizedPath));
-
-  const robotsTxt = await robotsRes.text();
   const robots = checkRobots(robotsTxt, normalizedPath.replace(/\/$/, "") || "/");
 
   return {
@@ -130,6 +134,29 @@ async function inspectPath(path: string): Promise<InspectionResult> {
     inSitemap,
     robots,
   };
+}
+
+/** Anomalies de présence d'une page du sitemap (la qualité des valeurs est auditée à part). */
+function getIssues(r: InspectionResult): string[] {
+  const issues: string[] = [];
+  if (r.error) return [`erreur : ${r.error}`];
+  if (r.httpStatus !== 200) issues.push(`HTTP ${r.httpStatus}`);
+  if (!r.title) issues.push("title");
+  if (!r.metaDescription) issues.push("meta description");
+  if (!r.canonical) issues.push("canonical");
+  if (!r.ogTitle) issues.push("og:title");
+  if (!r.ogDescription) issues.push("og:description");
+  if (!r.ogImage) issues.push("og:image");
+  if (r.jsonLd.length === 0) issues.push("JSON-LD");
+  if (r.jsonLd.some((j) => j.type.startsWith("invalide"))) issues.push("JSON-LD invalide");
+  if (r.visibleTextLength < 200) issues.push("contenu SSR < 200 car.");
+  if (!r.robots.allowed) issues.push("bloquée par robots.txt");
+  if (r.metaRobots && /noindex/i.test(r.metaRobots)) issues.push("noindex (mais dans le sitemap)");
+  return issues;
+}
+
+function csvCell(v: string | number): string {
+  return `"${String(v).replace(/"/g, '""')}"`;
 }
 
 function StatCard({ label, total, published }: { label: string; total: number; published?: number }) {
@@ -151,6 +178,119 @@ function Field({ label, value }: { label: string; value: string | null }) {
       <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{label}</p>
       <p className={`text-sm mt-0.5 ${value ? "text-zinc-800" : "text-rose-500 font-bold"}`}>{value || "— absent"}</p>
     </div>
+  );
+}
+
+function SitemapAudit() {
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [rows, setRows] = useState<{ result: InspectionResult; issues: string[] }[]>([]);
+  const [onlyIssues, setOnlyIssues] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const runAudit = async () => {
+    setRunning(true);
+    setError(null);
+    setRows([]);
+    try {
+      const ctx = await loadSiteContext();
+      const paths = Array.from(new Set(ctx.sitemapPaths));
+      setProgress({ done: 0, total: paths.length });
+      const out: { result: InspectionResult; issues: string[] }[] = [];
+      let next = 0;
+      const worker = async () => {
+        while (next < paths.length) {
+          const path = paths[next++];
+          let result: InspectionResult;
+          try {
+            result = await inspectPath(path, ctx);
+          } catch (err: any) {
+            result = {
+              path, httpStatus: 0, title: null, metaDescription: null, canonical: null, metaRobots: null,
+              ogTitle: null, ogDescription: null, ogImage: null, jsonLd: [], visibleTextLength: 0,
+              inSitemap: true, robots: { allowed: true, matchedRule: null }, error: err?.message || "fetch échoué",
+            };
+          }
+          out.push({ result, issues: getIssues(result) });
+          setProgress((p) => ({ ...p, done: p.done + 1 }));
+        }
+      };
+      await Promise.all(Array.from({ length: 4 }, worker));
+      out.sort((a, b) => b.issues.length - a.issues.length || a.result.path.localeCompare(b.result.path));
+      setRows(out);
+    } catch (err: any) {
+      setError(err?.message || "Erreur pendant l'audit.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const exportCsv = () => {
+    const header = ["path", "http", "title", "meta_description", "canonical", "og_title", "og_description", "og_image", "json_ld", "ssr_chars", "anomalies"];
+    const lines = rows.map(({ result: r, issues }) =>
+      [r.path, r.httpStatus, r.title ?? "", r.metaDescription ?? "", r.canonical ?? "", r.ogTitle ?? "", r.ogDescription ?? "", r.ogImage ?? "", r.jsonLd.map((j) => j.type).join("|"), r.visibleTextLength, issues.join("; ")]
+        .map(csvCell)
+        .join(","),
+    );
+    const blob = new Blob(["\uFEFF" + [header.map(csvCell).join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "audit-sitemap.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const withIssues = rows.filter((r) => r.issues.length > 0).length;
+  const shown = onlyIssues ? rows.filter((r) => r.issues.length > 0) : rows;
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xs font-black uppercase tracking-widest text-zinc-400">Audit global du sitemap</h2>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={runAudit}
+          disabled={running}
+          className="h-11 px-5 rounded-xl bg-indigo-600 text-white font-black text-sm flex items-center gap-2 disabled:opacity-50"
+        >
+          {running ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
+          {running ? `Audit… ${progress.done} / ${progress.total}` : "Auditer toutes les pages du sitemap"}
+        </button>
+        {rows.length > 0 && (
+          <>
+            <button onClick={exportCsv} className="h-11 px-5 rounded-xl border border-zinc-200 bg-white text-zinc-700 font-black text-sm">
+              Exporter en CSV
+            </button>
+            <label className="flex items-center gap-2 text-xs font-bold text-zinc-500">
+              <input type="checkbox" checked={onlyIssues} onChange={(e) => setOnlyIssues(e.target.checked)} />
+              Anomalies uniquement
+            </label>
+          </>
+        )}
+      </div>
+      {error && <div className="p-4 rounded-xl bg-rose-50 text-rose-700 text-sm font-bold">{error}</div>}
+      {rows.length > 0 && (
+        <div className="bg-white rounded-2xl border border-zinc-100 p-4 space-y-2">
+          <p className="text-sm font-bold text-zinc-800">
+            {rows.length - withIssues} page(s) complètes sur {rows.length} — {withIssues} avec anomalie(s).
+          </p>
+          <ul className="divide-y divide-zinc-50">
+            {shown.map(({ result, issues }) => (
+              <li key={result.path} className="py-2">
+                <div className="flex items-center gap-2">
+                  {issues.length === 0 ? (
+                    <CheckCircle2 className="text-emerald-500 shrink-0" size={14} />
+                  ) : (
+                    <XCircle className="text-rose-500 shrink-0" size={14} />
+                  )}
+                  <span className="font-mono text-xs text-zinc-800 break-all">{result.path}</span>
+                </div>
+                {issues.length > 0 && <p className="text-[11px] text-rose-500 font-bold ml-6">Manque : {issues.join(", ")}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -206,6 +346,8 @@ export function SitemapDebugClient({ overview, queryErrors }: { overview: Overvi
             <StatCard label="Parcours" total={overview.parcours.total} />
           </div>
         </section>
+
+        <SitemapAudit />
 
         {/* Inspecteur de page */}
         <section className="space-y-3">
