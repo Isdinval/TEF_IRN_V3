@@ -10,7 +10,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { createClient } from "@/lib/supabase-server";
 import { Analytics } from "@vercel/analytics/next";
-import { siteUrl } from "@/lib/site";
+import { siteUrl, socialLinks, contactEmail } from "@/lib/site";
 import JsonLd from "@/components/shared/JsonLd";
 
 const inter = Inter({
@@ -95,16 +95,12 @@ export default async function RootLayout({
       "height": 200
     },
     "description": "LlamaKusi est une plateforme d'apprentissage alimentée par l'intelligence artificielle pour préparer l'examen du TEF IRN.",
-    "sameAs": [
-      "https://www.facebook.com/llamakusi",
-      "https://www.instagram.com/llamakusi",
-      "https://www.linkedin.com/company/llamakusi"
-    ],
+    "sameAs": socialLinks.map((link) => link.href),
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "contact@llamakusi.com",
-      "url": `${siteUrl}/contact`
+      "email": contactEmail,
+      "url": `${siteUrl}/tef-irn/mentions-legales`
     }
   };
 
