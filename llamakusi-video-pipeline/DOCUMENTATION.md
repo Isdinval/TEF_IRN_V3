@@ -167,6 +167,8 @@ Les liens dans les descriptions de Shorts ne sont probablement pas cliquables su
 
 **Légende TikTok (Shorts)** : `studio.txt` se termine par une section `TIKTOK` à coller à la publication : réponse en une phrase (`publish.answer`, sinon le titre), « Guide complet : lien dans la bio (llamakusi.com) » (un lien en légende n'est pas cliquable ; le lien cliquable est celui du profil professionnel), puis **5 hashtags max** (`publish.hashtags`, sinon le jeu par `product`). Rappel des réglages : couverture `tiktok_cover.jpg`, option « Contenu généré par IA » (voix et mascotte de synthèse). Aucun nouveau champ YAML ; pas de section pour les longs.
 
+**Légende Instagram (Shorts)** : `studio.txt` se termine aussi par une section `INSTAGRAM` à coller dans le Reel, avec le **même texte que TikTok** (réponse, « lien dans la bio », 5 hashtags max). La **couverture est `tiktok_cover.jpg`** (format TikTok 1080×1920, contenu dans la bande 3:4 centrale, testée à la main sur Instagram) : à importer depuis la galerie (Reel → Modifier la couverture). Pas de section pour les longs.
+
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
 Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approved`, claims sourcées), réglages du `.env` (voir `.env.example`).

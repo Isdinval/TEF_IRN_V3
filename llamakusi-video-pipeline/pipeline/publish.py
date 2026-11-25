@@ -180,6 +180,16 @@ def _tiktok_section(script: VideoScript, bdir: Path) -> str:
             f"Réglages : couverture = {tiktok_cover_path(bdir).name} · activer « Contenu généré par IA »\n")
 
 
+def _instagram_section(script: VideoScript, bdir: Path) -> str:
+    """Shorts uniquement : légende Reel (même texte que TikTok : même renvoi vers la bio) + rappel des réglages à la publication."""
+    if script.format != "short":
+        return ""
+    cap = tiktok_caption(script)
+    return (f"\nINSTAGRAM — légende à coller ({len(cap)} caractères)\n{cap}\n"
+            f"Réglages : couverture = {tiktok_cover_path(bdir).name} (format TikTok, recadrée au centre) · Reel partagé aussi sur le fil · "
+            f"indiquer le contenu généré par IA si l'option est proposée\n")
+
+
 def playlist_key(script: VideoScript) -> str:
     key = script.publish.playlist or (_PLAYLIST_PILLAR_A[script.product] if script.pillar == "A" else _PLAYLIST_BY_PILLAR[script.pillar])
     if key not in PLAYLISTS:
@@ -219,7 +229,7 @@ def _ab_section(script: VideoScript, bdir: Path) -> str:
 
 def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None) -> Path:
     """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée,
-    commentaire, date de publication prévue ; Shorts : + légende TikTok). `publish_slot` est calculé par l'appelant (position dans le lot) —
+    commentaire, date de publication prévue ; Shorts : + légendes TikTok et Instagram). `publish_slot` est calculé par l'appelant (position dans le lot) —
     absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script))), tiktok_cover_path(bdir)) if f.exists()]
@@ -234,7 +244,7 @@ def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None
                    f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
                    f"{_related_section(script)}\n\n"
                    f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n"
-                   f"{_tiktok_section(script, bdir)}", encoding="utf-8")
+                   f"{_tiktok_section(script, bdir)}{_instagram_section(script, bdir)}", encoding="utf-8")
     return out
 
 

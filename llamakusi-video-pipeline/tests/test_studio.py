@@ -98,6 +98,15 @@ def test_studio_file_short_has_tiktok_caption_and_long_has_none(tmp_path):
     assert "TIKTOK" not in publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path).read_text(encoding="utf-8")
 
 
+def test_studio_file_short_has_instagram_section_and_long_has_none(tmp_path):
+    sc = _with(schema.find_script(config.SCRIPTS_DIR, "short-03"), answer="Réponse courte.", hashtags=["A", "B"])
+    out = publish.studio_file(sc, tmp_path).read_text(encoding="utf-8")
+    cap = publish.tiktok_caption(sc)
+    assert f"INSTAGRAM — légende à coller ({len(cap)} caractères)\n{cap}" in out
+    assert out.index("TIKTOK —") < out.index("INSTAGRAM —") and "tiktok_cover.jpg" in out.split("INSTAGRAM —")[1]
+    assert "INSTAGRAM" not in publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path).read_text(encoding="utf-8")
+
+
 def test_tiktok_caption_defaults_to_title_and_product_hashtags():
     sc = schema.find_script(config.SCRIPTS_DIR, "short-03").model_copy(update={"publish": schema.PublishInfo()})
     cap = publish.tiktok_caption(sc)
