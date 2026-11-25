@@ -87,3 +87,36 @@ def test_short_layout_rotates_per_video(tmp_path):
     assert len({rank(i) for i in range(1, 5)}) == 4 and rank(1) != rank(2)         # 4 mises en page différentes, voisines distinctes
     sizes = {thumbnail.render(base.model_copy(update={"id": f"short-0{i}"})).tobytes() for i in range(1, 5)}
     assert len(sizes) == 4
+
+
+def test_tiktok_cover_short_only(tmp_path):
+    """Short : tiktok_cover.jpg 1080×1920 < 2 Mo ; long : aucune couverture TikTok."""
+    from PIL import Image
+    thumbnail.save(schema.find_script(config.SCRIPTS_DIR, "short-01"), tmp_path / "s")
+    cover = thumbnail.tiktok_cover_path(tmp_path / "s")
+    assert Image.open(cover).size == (1080, 1920) and cover.stat().st_size <= thumbnail.MAX_BYTES
+    thumbnail.save(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path / "l")
+    assert not thumbnail.tiktok_cover_path(tmp_path / "l").exists()
+
+
+def test_tiktok_cover_mascot_inside_grid_band():
+    """Toutes les mascottes × 4 mises en page TikTok : entièrement dans la bande 3:4 (y 240-1680) que découpe la grille du profil."""
+    from PIL import Image
+    base = thumbnail.LAYOUTS["tiktok"]
+    y0, y1 = base["y0"], base["y1"]
+    assert (y1 - y0) * 3 == 1080 * 4                                                      # bande = 3:4 exactement
+    for mood, count in config.MASCOT_COUNTS.items():
+        for pose in range(1, count + 1):
+            src = Image.open(config.MASCOT_DIR / f"{mood}_{pose}_transparent.webp").convert("RGBA")
+            src = src.crop(src.getchannel("A").point(lambda v: 255 if v > 24 else 0).getbbox())
+            for preset in thumbnail.TIKTOK_PRESETS:
+                lay = {**base, **preset, "mood": mood}
+                _, h, bottom = thumbnail.mascot_box(src.size, lay, base["size"])
+                assert bottom <= y1 - thumbnail.SAFE and bottom - h >= y0 + thumbnail.SAFE, (mood, pose, preset)
+
+
+def test_tiktok_cover_follows_short_layout_rank():
+    """Même rang que la miniature Short → même mise en page (mascotte en haut/bas) ; la couverture diffère de la miniature."""
+    assert len(thumbnail.TIKTOK_PRESETS) == len(thumbnail.SHORT_PRESETS)
+    base = schema.find_script(config.SCRIPTS_DIR, "short-01")
+    assert thumbnail.render(base, tiktok=True).tobytes() != thumbnail.render(base).tobytes()

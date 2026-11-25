@@ -1,5 +1,6 @@
 """Miniatures : un seul gabarit (fond sombre « constellation », mascotte en contre-jour, titre en gros) décliné
 en 16:9 (long, 1280×720, celle que `publish` envoie à YouTube) et en 9:16 (short, 1080×1920 : couverture Reels/Facebook).
+Short : + `tiktok_cover.jpg` (1080×1920, tout dans la zone centrale 3:4 visible dans la grille du profil TikTok).
 Aucun appel réseau, aucun rendu vidéo requis : `python cli.py thumbnail <id>`.
 """
 from __future__ import annotations
@@ -28,6 +29,9 @@ LAYOUTS = {
              "brand_y": 92, "mascot_cx": 1015, "mascot_h": 600, "mascot_bottom": 700, "stack_cy": 415},
     "short": {"size": (1080, 1920), "k": 1.0, "align": "center", "x": 540, "text_w": 900, "title": (112, 72), "lines": 4,
               "brand_y": 300, "mascot_cx": 540, "mascot_h": 560, "mascot_bottom": 1650, "stack_cy": 740},
+    # Couverture TikTok : même image 9:16, mais cadre et contenu dans la bande 3:4 (y0-y1) que la grille du profil découpe.
+    "tiktok": {"size": (1080, 1920), "k": 1.0, "align": "center", "x": 540, "text_w": 900, "title": (124, 76), "lines": 4,
+               "brand_y": 352, "mascot_cx": 540, "mascot_h": 640, "mascot_bottom": 1620, "stack_cy": 690, "y0": 240, "y1": 1680},
 }
 
 
@@ -47,6 +51,15 @@ SHORT_PRESETS = [
     {"mascot_cx": 540, "mascot_h": 640, "mascot_bottom": 1080, "stack_cy": 1400},         # mascotte en haut, texte en bas
     {"mascot_cx": 540, "mascot_h": 860, "mascot_bottom": 1760, "stack_cy": 590, "title": (88, 60)},   # grande mascotte en bas, texte plus petit en haut
     {"mascot_cx": 540, "mascot_h": 600, "mascot_bottom": 1080, "stack_cy": 1470, "title": (124, 76)}, # mascotte en haut, gros texte en bas
+]
+
+# Couverture TikTok : mêmes 4 mises en page que SHORT_PRESETS (même rang → même disposition que la miniature YouTube Short),
+# recalées dans la bande y 240-1680 (marque ≥ 352, contenu entre ~400 et ~1620).
+TIKTOK_PRESETS = [
+    {},                                                                                   # texte en haut, mascotte en bas
+    {"mascot_h": 540, "mascot_bottom": 940, "stack_cy": 1270, "title": (108, 72)},         # mascotte en haut, texte en bas
+    {"mascot_h": 740, "mascot_bottom": 1620, "stack_cy": 610, "title": (92, 60)},          # grande mascotte en bas, texte plus petit
+    {"mascot_h": 520, "mascot_bottom": 960, "stack_cy": 1330, "title": (128, 80)},         # mascotte en haut, gros texte en bas
 ]
 
 
@@ -80,6 +93,10 @@ def rotation_mascot(script: VideoScript, variant: int) -> tuple[str, int]:
 
 def thumbnail_path(bdir: Path, variant: int = 0) -> Path:
     return bdir / ("thumbnail.jpg" if variant == 0 else f"thumbnail_{'BC'[variant - 1]}.jpg")
+
+
+def tiktok_cover_path(bdir: Path) -> Path:
+    return bdir / "tiktok_cover.jpg"
 
 
 def variant_count(script: VideoScript) -> int:
@@ -205,10 +222,11 @@ def mascot_box(size: tuple[int, int], lay: dict, canvas: tuple[int, int]) -> tup
     sw, sh = size
     w_img, h_img = canvas
     h, bottom = lay["mascot_h"], lay["mascot_bottom"]
+    y0, y1 = lay.get("y0", 0), lay.get("y1", h_img)                                          # bande utile (TikTok : 3:4 centrée)
     if lay.get("mood"):
-        bottom = min(bottom, h_img - SAFE)
+        bottom = min(bottom, y1 - SAFE)
         half = min(lay["mascot_cx"] - SAFE, w_img - SAFE - lay["mascot_cx"])                 # demi-largeur dispo autour de cx
-        h = min(h, bottom - SAFE, round(sh * (0.36 if w_img > h_img else 0.6) * w_img / sw), round(sh * 2 * half / sw))
+        h = min(h, bottom - y0 - SAFE, round(sh * (0.36 if w_img > h_img else 0.6) * w_img / sw), round(sh * 2 * half / sw))
     return max(1, round(sw * h / sh)), h, bottom
 
 
@@ -239,8 +257,12 @@ def _brand(d: ImageDraw.ImageDraw, lay: dict, script: VideoScript, size: int) ->
     _tracked(d, (x + dot + gap, y), text, fnt, rgb(COLORS["white"], 235), tr)
 
 
-def render(script: VideoScript, variant: int = 0) -> Image.Image:
-    lay = {**LAYOUTS[script.format], **(STYLE_LAYOUTS[variant] if script.format == "long" else SHORT_PRESETS[_rank(script) % len(SHORT_PRESETS)])}
+def render(script: VideoScript, variant: int = 0, tiktok: bool = False) -> Image.Image:
+    """`tiktok` (Shorts) : couverture 1080×1920 recalée dans la bande 3:4 ; même mascotte et même rang de mise en page que la miniature YouTube."""
+    if tiktok:
+        lay = {**LAYOUTS["tiktok"], **TIKTOK_PRESETS[_rank(script) % len(TIKTOK_PRESETS)]}
+    else:
+        lay = {**LAYOUTS[script.format], **(STYLE_LAYOUTS[variant] if script.format == "long" else SHORT_PRESETS[_rank(script) % len(SHORT_PRESETS)])}
     if variant or script.format == "short":   # long B/C et Shorts : la mascotte tourne d'une vidéo à l'autre
         lay["mood"], lay["pose"] = rotation_mascot(script, variant or 1)
     w, h = lay["size"]
@@ -301,16 +323,18 @@ def render(script: VideoScript, variant: int = 0) -> Image.Image:
         a, b = (232, 206, 138), (224, 138, 168)
         top.line((bx + i, ty, bx + i, ty + bar_h), fill=tuple(round(a[j] + (b[j] - a[j]) * t) for j in range(3)) + (255,))
     if FRAME:
-        _frame(img, script)
+        _frame(img, script, lay)
     return img
 
 
-def _frame(img: Image.Image, script: VideoScript) -> None:
-    """Cadre fin or → rose qui suit la forme de l'image (coins arrondis, en retrait du bord). Anticrénelage par rendu à ×4."""
+def _frame(img: Image.Image, script: VideoScript, lay: dict | None = None) -> None:
+    """Cadre fin or → rose qui suit la forme de l'image (coins arrondis, en retrait du bord) ou de sa bande utile y0-y1
+    (couverture TikTok : le cadre reste entier dans la grille 3:4). Anticrénelage par rendu à ×4."""
     w, h = img.size
+    y0, y1 = (lay or {}).get("y0", 0), (lay or {}).get("y1", h)
     inset, thick, radius, k = (18, 10, 40, 4) if script.format == "short" else (14, 8, 28, 4)
     mask = Image.new("L", (w * k, h * k), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((inset * k, inset * k, (w - inset) * k - 1, (h - inset) * k - 1),
+    ImageDraw.Draw(mask).rounded_rectangle((inset * k, (y0 + inset) * k, (w - inset) * k - 1, (y1 - inset) * k - 1),
                                            radius=radius * k, outline=255, width=thick * k)
     mask = mask.resize((w, h), Image.LANCZOS)
     grad = Image.new("RGB", (w, h))
@@ -322,14 +346,19 @@ def _frame(img: Image.Image, script: VideoScript) -> None:
     img.paste(grad, (0, 0), mask)
 
 
+def _save_jpeg(img: Image.Image, out: Path) -> None:
+    for q in (92, 85, 75):
+        img.save(out, "JPEG", quality=q, optimize=True, subsampling=0)
+        if out.stat().st_size <= MAX_BYTES:
+            break
+
+
 def save(script: VideoScript, bdir: Path) -> Path:
-    """thumbnail.jpg (A) ; long : + thumbnail_B.jpg, thumbnail_C.jpg pour le test A/B. JPEG : un PNG avec dégradés
+    """thumbnail.jpg (A) ; long : + thumbnail_B.jpg, thumbnail_C.jpg pour le test A/B ; short : + tiktok_cover.jpg. JPEG : un PNG avec dégradés
     dépasse vite les 2 Mo de YouTube. Retourne le chemin de A."""
     bdir.mkdir(parents=True, exist_ok=True)
     for v in range(variant_count(script)):
-        img, out = render(script, v), thumbnail_path(bdir, v)
-        for q in (92, 85, 75):
-            img.save(out, "JPEG", quality=q, optimize=True, subsampling=0)
-            if out.stat().st_size <= MAX_BYTES:
-                break
+        _save_jpeg(render(script, v), thumbnail_path(bdir, v))
+    if script.format == "short":
+        _save_jpeg(render(script, tiktok=True), tiktok_cover_path(bdir))
     return thumbnail_path(bdir)

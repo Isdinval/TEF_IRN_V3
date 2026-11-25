@@ -18,7 +18,7 @@ import requests
 
 from . import config, schema
 from .schema import VideoScript
-from .thumbnail import STYLE_NAMES, thumbnail_path, variant_count
+from .thumbnail import STYLE_NAMES, thumbnail_path, tiktok_cover_path, variant_count
 
 PLATFORMS = ("youtube", "facebook", "instagram")
 SITE = "https://llamakusi.com"
@@ -205,7 +205,7 @@ def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None
     commentaire, date de publication prévue). `publish_slot` est calculé par l'appelant (position dans le lot) —
     absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
-    files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script)))) if f.exists()]
+    files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script))), tiktok_cover_path(bdir)) if f.exists()]
     short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
     date_line = publish_slot or "à définir (hors génération de lot via `cli.py week`)"
     out = bdir / "studio.txt"
