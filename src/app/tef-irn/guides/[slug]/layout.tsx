@@ -39,8 +39,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
       description: guide.description || '',
     },
     robots: {
-      // Guides compagnons de parcours : aide in-app, pas du contenu SEO.
-      index: !params.slug.endsWith('-guide-parcours'),
+      index: true,
       follow: true,
       'max-image-preview': 'large',
       'max-snippet': -1,

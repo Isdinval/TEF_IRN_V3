@@ -29,10 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('is_published', true);
 
   const civicGuides = (guides || []).filter((g: any) => g.product === 'examen-civique');
-  // Les guides compagnons de parcours sont en noindex : hors sitemap.
-  const tefIrnGuides = (guides || []).filter(
-    (g: any) => g.product === 'tef-irn' && !g.slug.endsWith('-guide-parcours'),
-  );
+  // Tous les guides publiés TEF IRN y figurent, guides compagnons de parcours compris.
+  const tefIrnGuides = (guides || []).filter((g: any) => g.product === 'tef-irn');
 
   // === PARCOURS ===
   const { data: parcours } = await supabase
@@ -51,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(guide.updated_at || guide.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
-    ...(guide.image_url ? { images: [guide.image_url] } : {}),
+    ...(guide.image_url ? { images: [guide.image_url.trim()] } : {}),
   }));
 
   const civicGuideUrls: MetadataRoute.Sitemap = (civicGuides || []).map((guide: any) => ({
@@ -59,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(guide.updated_at || guide.created_at || new Date()),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
-    ...(guide.image_url ? { images: [guide.image_url] } : {}),
+    ...(guide.image_url ? { images: [guide.image_url.trim()] } : {}),
   }));
 
   const parcoursUrls: MetadataRoute.Sitemap = (parcours || []).map((p: any) => ({
