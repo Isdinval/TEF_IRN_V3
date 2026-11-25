@@ -165,6 +165,8 @@ Champs facultatifs du bloc `publish:` du script (rédigés avec le script, valid
 
 Les liens dans les descriptions de Shorts ne sont probablement pas cliquables sur YouTube (à vérifier) : le CTA reste « Lien en bio ».
 
+**Légende TikTok (Shorts)** : `studio.txt` se termine par une section `TIKTOK` à coller à la publication : réponse en une phrase (`publish.answer`, sinon le titre), « Guide complet : lien dans la bio (llamakusi.com) » (un lien en légende n'est pas cliquable ; le lien cliquable est celui du profil professionnel), puis **5 hashtags max** (`publish.hashtags`, sinon le jeu par `product`). Rappel des réglages : couverture `tiktok_cover.jpg`, option « Contenu généré par IA » (voix et mascotte de synthèse). Aucun nouveau champ YAML ; pas de section pour les longs.
+
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.
 Prérequis : `build/<id>/out.mp4`, `lint --publish` sans erreur (script `approved`, claims sourcées), réglages du `.env` (voir `.env.example`).

@@ -72,6 +72,7 @@ PINNED_QUESTION = {
     "F": "Quel examen prépares-tu en ce moment : TEF ou TCF ?",
 }
 COMMENT_LINE = "Une question ? Pose-la en commentaire, on te répond."
+TIKTOK_CTA = "Guide complet : lien dans la bio (llamakusi.com)"      # un lien en légende TikTok n'est pas cliquable
 GRAPH_VERSION = config.env("GRAPH_VERSION", "v25.0")
 GRAPH = f"https://graph.facebook.com/{GRAPH_VERSION}"
 GRAPH_VIDEO = f"https://graph-video.facebook.com/{GRAPH_VERSION}"
@@ -163,6 +164,22 @@ def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
     return {"title": script.title[:100], "text": f"{body}\n\n{' '.join('#' + t for t in tags)}".strip(), "tags": tags}
 
 
+def tiktok_caption(script: VideoScript) -> str:
+    """Légende TikTok d'un Short : réponse en une phrase en tête (la recherche TikTok indexe le texte), renvoi vers la bio, 5 hashtags max."""
+    info = script.publish
+    tags = (info.hashtags or DEFAULT_HASHTAGS[script.product])[:5]
+    return f"{info.answer or script.title}\n\n{TIKTOK_CTA}\n{' '.join('#' + t for t in tags)}"
+
+
+def _tiktok_section(script: VideoScript, bdir: Path) -> str:
+    """Shorts uniquement : légende TikTok à coller + rappel des réglages à la publication."""
+    if script.format != "short":
+        return ""
+    cap = tiktok_caption(script)
+    return (f"\nTIKTOK — légende à coller ({len(cap)} caractères)\n{cap}\n"
+            f"Réglages : couverture = {tiktok_cover_path(bdir).name} · activer « Contenu généré par IA »\n")
+
+
 def playlist_key(script: VideoScript) -> str:
     key = script.publish.playlist or (_PLAYLIST_PILLAR_A[script.product] if script.pillar == "A" else _PLAYLIST_BY_PILLAR[script.pillar])
     if key not in PLAYLISTS:
@@ -202,7 +219,7 @@ def _ab_section(script: VideoScript, bdir: Path) -> str:
 
 def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None) -> Path:
     """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée,
-    commentaire, date de publication prévue). `publish_slot` est calculé par l'appelant (position dans le lot) —
+    commentaire, date de publication prévue ; Shorts : + légende TikTok). `publish_slot` est calculé par l'appelant (position dans le lot) —
     absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script))), tiktok_cover_path(bdir)) if f.exists()]
@@ -216,7 +233,8 @@ def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None
                    f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
                    f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
                    f"{_related_section(script)}\n\n"
-                   f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n", encoding="utf-8")
+                   f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n"
+                   f"{_tiktok_section(script, bdir)}", encoding="utf-8")
     return out
 
 
