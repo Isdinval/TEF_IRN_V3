@@ -137,7 +137,11 @@ async function inspectPath(path: string, ctx?: SiteContext): Promise<InspectionR
   };
 }
 
-/** Anomalies de présence d'une page du sitemap (la qualité des valeurs est auditée à part). */
+const DESCRIPTION_MIN = 70;
+const DESCRIPTION_MAX = 160;
+const TITLE_MIN = 20;
+
+/** Anomalies d'une page du sitemap : champs manquants, puis qualité des valeurs. */
 function getIssues(r: InspectionResult): string[] {
   const issues: string[] = [];
   if (r.error) return [`erreur : ${r.error}`];
@@ -153,6 +157,17 @@ function getIssues(r: InspectionResult): string[] {
   if (r.visibleTextLength < 200) issues.push("contenu SSR < 200 car.");
   if (!r.robots.allowed) issues.push("bloquée par robots.txt");
   if (r.metaRobots && /noindex/i.test(r.metaRobots)) issues.push("noindex (mais dans le sitemap)");
+
+  // Qualité des valeurs présentes
+  if (r.title && r.title.length < TITLE_MIN) issues.push(`title trop court (${r.title.length} car.)`);
+  if (r.metaDescription && r.metaDescription.length < DESCRIPTION_MIN) {
+    issues.push(`description trop courte (${r.metaDescription.length} car., min ${DESCRIPTION_MIN})`);
+  }
+  if (r.metaDescription && r.metaDescription.length > DESCRIPTION_MAX) {
+    issues.push(`description trop longue (${r.metaDescription.length} car., max ${DESCRIPTION_MAX})`);
+  }
+  if (r.canonical && toPathname(r.canonical) !== toPathname(r.path)) issues.push("canonical ≠ URL de la page");
+  if (r.ogImage && !/^https?:\/\//i.test(r.ogImage)) issues.push("og:image non absolue");
   return issues;
 }
 
@@ -266,6 +281,23 @@ function SitemapAudit() {
         }
       };
       await Promise.all(Array.from({ length: 4 }, worker));
+      // Doublons : un même title ou une même description sur plusieurs pages.
+      const countBy = (pick: (r: InspectionResult) => string | null) => {
+        const counts = new Map<string, number>();
+        out.forEach(({ result }) => {
+          const v = pick(result);
+          if (v) counts.set(v, (counts.get(v) || 0) + 1);
+        });
+        return counts;
+      };
+      const titles = countBy((r) => r.title);
+      const descriptions = countBy((r) => r.metaDescription);
+      out.forEach((row) => {
+        if (row.result.title && (titles.get(row.result.title) || 0) > 1) row.issues.push("title en doublon");
+        if (row.result.metaDescription && (descriptions.get(row.result.metaDescription) || 0) > 1) {
+          row.issues.push("description en doublon");
+        }
+      });
       out.sort((a, b) => b.issues.length - a.issues.length || a.result.path.localeCompare(b.result.path));
       setRows(out);
     } catch (err: any) {
@@ -317,6 +349,11 @@ function SitemapAudit() {
           </>
         )}
       </div>
+      <p className="text-[11px] text-zinc-400">
+        Contrôles : champs présents, puis description de {DESCRIPTION_MIN} à {DESCRIPTION_MAX} caractères, canonical égale à
+        l'URL, og:image absolue, pas de doublon de title ni de description. La longueur des titles n'est pas contrôlée
+        (Google les tronque selon leur largeur en pixels).
+      </p>
       {error && <div className="p-4 rounded-xl bg-rose-50 text-rose-700 text-sm font-bold">{error}</div>}
       {rows.length > 0 && (
         <div className="bg-white rounded-2xl border border-zinc-100 p-4 space-y-2">
