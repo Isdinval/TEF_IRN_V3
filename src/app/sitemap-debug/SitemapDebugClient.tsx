@@ -95,7 +95,7 @@ interface SiteContext {
 async function loadSiteContext(): Promise<SiteContext> {
   const [sitemapRes, robotsRes] = await Promise.all([fetch("/sitemap.xml"), fetch("/robots.txt")]);
   const sitemapDoc = new DOMParser().parseFromString(await sitemapRes.text(), "application/xml");
-  const sitemapPaths = Array.from(sitemapDoc.querySelectorAll("loc")).map((el) => toPathname(el.textContent || ""));
+  const sitemapPaths = Array.from(sitemapDoc.querySelectorAll("url > loc")).map((el) => toPathname(el.textContent || ""));
   return { sitemapPaths, robotsTxt: await robotsRes.text() };
 }
 
@@ -103,7 +103,8 @@ async function inspectPath(path: string, ctx?: SiteContext): Promise<InspectionR
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const { sitemapPaths, robotsTxt } = ctx ?? (await loadSiteContext());
 
-  const pageRes = await fetch(normalizedPath);
+  // credentials: "omit" = vue d'un crawler anonyme (sans session admin ni redirections de leçons verrouillées)
+  const pageRes = await fetch(normalizedPath, { credentials: "omit" });
   const html = await pageRes.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
 
@@ -370,8 +371,8 @@ export function SitemapDebugClient({ overview, queryErrors }: { overview: Overvi
             </button>
           </div>
           <p className="text-[11px] text-zinc-400">
-            Le fetch se fait depuis votre navigateur (avec votre session actuelle) — pour un test
-            100 % équivalent à un crawler anonyme, testez aussi en navigation privée ou via le{" "}
+            Le fetch se fait en anonyme (sans cookie), comme un crawler. Pour valider un rendu
+            enrichi, utilisez aussi le{" "}
             <a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener noreferrer" className="underline">
               Rich Results Test
             </a>
