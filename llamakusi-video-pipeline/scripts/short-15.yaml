@@ -5,26 +5,27 @@ pillar: F
 product: examen_civique
 hook_formula: curiosity_gap
 accent: blue
-title: 'CPF TEF IRN : oui. CPF examen civique : non'
+title: 'Financer le TEF IRN avec le CPF : oui. L''examen civique ?'
 thumbnail:
   text: "CPF : *TEF oui*, civique *non*"
 publish:
-  keyword: CPF TEF IRN
+  keyword: financer le TEF IRN
   answer: Le CPF peut financer le TEF IRN ou le TCF via un organisme certifié Qualiopi, avec un plafond de 1 500
     euros depuis février 2026, mais pas l'examen civique, qui n'est pas une formation certifiante.
   description: 'Le CPF ne finance que des formations inscrites au RNCP ou au Répertoire spécifique : le TEF et
     le TCF en font partie, pas l''examen civique.'
   tags:
+  - financer le TEF IRN
   - CPF TEF IRN
-  - financer TEF IRN
   - CPF examen civique
   - TCF IRN CPF
   - Mon Compte Formation
+  - tef irn
   - TEF IRN 2026
   hashtags:
-  - CPF
   - TEFIRN
-  - LlamaKusi
+  - CPF
+  - ExamenCivique
 cta_overlay: Lien en bio
 blocks:
 - id: hook
@@ -39,8 +40,8 @@ blocks:
         title: TEF / TCF
         subtitle: certification de français
       right:
-        title: Examen civique
-        subtitle: évaluation administrative
+        title: Civique
+        subtitle: examen administratif
       rows:
       - label: Financement CPF
         left: Possible, sous conditions

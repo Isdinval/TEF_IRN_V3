@@ -5,17 +5,19 @@ pillar: A
 product: tef_irn
 hook_formula: contrarian
 accent: indigo
-title: 'Expression orale TEF IRN : il refuse tout, c''est voulu'
+title: 'À l''examen TEF IRN, l''examinateur refuse tout : exprès'
 thumbnail:
   text: "L'examinateur *refuse* tout"
 publish:
-  keyword: expression orale TEF IRN
-  answer: À la section B de l'expression orale du TEF IRN, l'examinateur joue volontairement un ami sceptique et
+  keyword: examen tef irn
+  answer: À la section B de l'examen TEF IRN (expression orale), l'examinateur joue volontairement un ami sceptique et
     évalue ta capacité à rebondir face à ses objections, pas ton pouvoir de persuasion.
   description: À la section B, l'examinateur refuse tes arguments exprès. Voici le bon réflexe, accueillir l'objection,
     la reformuler, puis ajouter un argument complémentaire.
   related: long-04
   tags:
+  - examen tef irn
+  - tef irn
   - expression orale TEF IRN
   - TEF IRN section B
   - oral TEF IRN
@@ -25,7 +27,7 @@ publish:
   hashtags:
   - TEFIRN
   - ExpressionOrale
-  - LlamaKusi
+  - SectionB
 cta_overlay: Lien en bio
 blocks:
 - id: hook
@@ -37,11 +39,11 @@ blocks:
       label: Oral TEF IRN · Section B
       contrast: true
       left:
-        title: Réflexe courant
-        subtitle: face au refus
+        title: Courant
+        subtitle: réflexe face au refus
       right:
-        title: Réflexe attendu
-        subtitle: face au refus
+        title: Attendu
+        subtitle: réflexe face au refus
       rows:
       - label: Réponse à l'objection
         left: Répéter le même argument

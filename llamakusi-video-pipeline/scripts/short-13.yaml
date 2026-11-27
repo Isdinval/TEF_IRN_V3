@@ -5,26 +5,27 @@ pillar: B
 product: examen_civique
 hook_formula: stakes
 accent: blue
-title: 'CSP 2026 : examen civique et niveau A2, les deux'
+title: 'CSP : l''examen civique carte de séjour ne suffit plus'
 thumbnail:
   text: "CSP 2026 : *2 pièces*, pas 1"
 publish:
-  keyword: CSP 2026
+  keyword: examen civique carte de séjour
   answer: Depuis le 1er janvier 2026, la carte de séjour pluriannuelle (CSP) exige deux pièces distinctes, la réussite
     à l'examen civique et une attestation de niveau A2 en français.
   description: Pour la CSP en 2026, l'examen civique et le niveau A2 se cumulent. Un seul des deux manque et le
     dossier est incomplet.
   tags:
+  - examen civique carte de séjour
+  - examen civique CSP
   - CSP 2026
   - carte de séjour pluriannuelle
-  - examen civique CSP
   - niveau A2 CSP
   - TEF IRN A2
   - titre de séjour 2026
   hashtags:
-  - CSP
   - ExamenCivique
-  - LlamaKusi
+  - CSP
+  - TEFIRN
 cta_overlay: Lien en bio
 blocks:
 - id: hook
@@ -36,8 +37,8 @@ blocks:
       label: CSP 2026 · Deux obligations
       contrast: false
       left:
-        title: Examen civique
-        subtitle: la République
+        title: Civique
+        subtitle: examen · la République
       right:
         title: Niveau A2
         subtitle: le français

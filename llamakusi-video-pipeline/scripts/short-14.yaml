@@ -5,7 +5,7 @@ pillar: E
 product: examen_civique
 hook_formula: direct_promise
 accent: blue
-title: 'Décret de naturalisation : 3 mots à connaître'
+title: 3 mots du décret de naturalisation que tu dois connaître
 thumbnail:
   text: "*3 mots* pour devenir français"
 publish:
@@ -21,10 +21,11 @@ publish:
   - cérémonie de naturalisation
   - vocabulaire naturalisation
   - français administratif
+  - naturalisation française
   hashtags:
   - Naturalisation
   - FrancaisAdministratif
-  - LlamaKusi
+  - ExamenCivique
 cta_overlay: Lien en bio
 blocks:
 - id: hook

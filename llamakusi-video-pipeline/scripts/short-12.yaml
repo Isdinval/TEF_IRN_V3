@@ -5,26 +5,28 @@ pillar: D
 product: examen_civique
 hook_formula: in_medias_res
 accent: blue
-title: 'Examen civique : peut-on tout dire en ligne ?'
+title: 'Examen civique naturalisation : peut-on tout dire ?'
 thumbnail:
   text: "Peut-on *tout dire* en ligne ?"
 publish:
-  keyword: examen civique
+  keyword: examen civique naturalisation
   answer: À l'examen civique, la liberté d'expression sur les réseaux sociaux est garantie mais encadrée par la
     loi, elle ne protège ni l'injure ni l'incitation à la haine.
   description: Une vraie question du programme officiel de l'examen civique, dans le thème des principes et valeurs
     de la République.
   tags:
+  - examen civique naturalisation
   - examen civique
+  - 40 questions examen civique
   - liberté d'expression examen civique
-  - examen civique 2026
   - valeurs de la République
   - QCM examen civique
+  - examen civique 2026
   - naturalisation 2026
   hashtags:
   - ExamenCivique
+  - Naturalisation
   - ValeursDeLaRepublique
-  - LlamaKusi
 cta_overlay: Lien en bio
 blocks:
 - id: hook
