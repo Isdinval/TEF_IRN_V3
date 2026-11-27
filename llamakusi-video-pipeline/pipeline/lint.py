@@ -20,6 +20,9 @@ _PROGRESSION = ["perplexe", "reflechit", "victorieux", "heureux"]
 IMPLEMENTED_CARDS = {"question", "compare", "terms", "text_annotated", "plan"}
 _CARD_REQUIRED = {"compare": "rows", "terms": "items", "text_annotated": "parts", "plan": "items"}   # sans elles : placeholder
 _MAX_STEPS = {"terms": 4, "text_annotated": 5, "plan": 6}      # au-delà, illisible sur 640 px de haut
+# Titre de colonne d'une carte `compare` : Montserrat Black 54 px, police fixe, ≈ 31 px/caractère, dans une colonne de
+# 400 px (Short) ou 510 px (Long). Au-delà de ces longueurs, le texte déborde du bloc (constaté sur short-11/13/15).
+_COMPARE_TITLE_MAX = {"short": 11, "long": 15}
 
 
 @dataclass
@@ -174,6 +177,9 @@ def lint_script(script: VideoScript, publish: bool = False,
     if script.format == "long" and not trailer:
         _lint_long(script, add)
         for b in script.blocks:
+            if not b.card and not b.card_from:
+                add("error", f"bloc '{b.id}' : aucune carte (`card` ou `card_from`) → écran vide pendant que la voix parle")
+        for b in script.blocks:
             if b.tts_text and count_words(b.voice) > config.SEG_MAX_WORDS:
                 add("warn", f"bloc '{b.id}' : {count_words(b.voice)} mots avec `tts_text` → envoyé en UN appel TTS "
                             f"(pas de découpe possible) ; couper le bloc en deux (> {config.SEG_MAX_WORDS} mots)")
@@ -185,6 +191,12 @@ def lint_script(script: VideoScript, publish: bool = False,
     for b in script.blocks:
         if not b.card:
             continue
+        if b.card.kind == "compare":
+            for side in ("left", "right"):
+                title = str(b.card.data.get(side, {}).get("title", ""))
+                if len(title) > _COMPARE_TITLE_MAX[script.format]:
+                    add("error", f"carte 'compare' (bloc '{b.id}') : titre de colonne « {title} » "
+                                 f"> {_COMPARE_TITLE_MAX[script.format]} caractères, il déborde du bloc")
         kind, need = b.card.kind, _CARD_REQUIRED.get(b.card.kind)
         if need and not b.card.data.get(need):
             add("todo", f"carte '{kind}' (bloc '{b.id}') sans `{need}` : placeholder rendu")

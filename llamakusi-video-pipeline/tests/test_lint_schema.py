@@ -87,3 +87,15 @@ def test_trailer_is_exempt_from_long_format_rules_and_has_no_issue():
     sc = schema.find_script(config.SCRIPTS_DIR, "trailer-01")
     assert sc.format == "long" and sc.publish.playlist == "start"
     assert [i for i in lint.lint_script(sc) if i.level in ("error", "warn")] == []
+
+
+def test_compare_title_too_wide_is_an_error():
+    s = schema.find_script(config.SCRIPTS_DIR, "short-11")
+    s.blocks[0].card.data["left"]["title"] = "Réflexe courant"
+    assert any(i.level == "error" and "déborde" in i.message for i in lint.lint_script(s))
+
+
+def test_long_block_without_card_is_an_error():
+    s = schema.find_script(config.SCRIPTS_DIR, "long-04")
+    s.blocks[3].card_from = None
+    assert any(i.level == "error" and "aucune carte" in i.message for i in lint.lint_script(s))

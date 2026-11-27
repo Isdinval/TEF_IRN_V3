@@ -37,11 +37,11 @@ blocks:
       label: Oral TEF IRN · Section B
       contrast: true
       left:
-        title: Réflexe courant
-        subtitle: face au refus
+        title: Courant
+        subtitle: réflexe face au refus
       right:
-        title: Réflexe attendu
-        subtitle: face au refus
+        title: Attendu
+        subtitle: réflexe face au refus
       rows:
       - label: Réponse à l'objection
         left: Répéter le même argument

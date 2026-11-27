@@ -39,8 +39,8 @@ blocks:
         title: TEF / TCF
         subtitle: certification de français
       right:
-        title: Examen civique
-        subtitle: évaluation administrative
+        title: Civique
+        subtitle: examen administratif
       rows:
       - label: Financement CPF
         left: Possible, sous conditions

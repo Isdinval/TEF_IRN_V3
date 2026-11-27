@@ -36,8 +36,8 @@ blocks:
       label: CSP 2026 · Deux obligations
       contrast: false
       left:
-        title: Examen civique
-        subtitle: la République
+        title: Civique
+        subtitle: examen · la République
       right:
         title: Niveau A2
         subtitle: le français

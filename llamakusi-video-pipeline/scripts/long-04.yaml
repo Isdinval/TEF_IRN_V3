@@ -120,6 +120,8 @@ blocks:
     a alors l'impression d'un discours décousu. Avec une structure fixe, tu n'improvises plus le cadre. Tu remplis
     un cadre déjà connu. Quel que soit le sujet du jour, seuls les arguments changent.
   mascot: perplexe
+  card_from: setup
+  card_state: revealed
 - id: prac_intro
   voice: 'La méthode s''appelle PRAC, quatre étapes. Première étape : Présenter. Tu résumes le document en une
     phrase simple, sans détail superflu. Deuxième étape : Rassurer. Tu anticipes une objection probable de ton
@@ -165,12 +167,6 @@ blocks:
     répond que ça ne l'intéresse pas. Que faire ?
   mascot: perplexe
   chapter: Quand l'examinateur dit non
-- id: objection_method
-  voice: Première règle, ce n'est pas personnel. L'examinateur joue volontairement un ami sceptique, et il n'est
-    jamais spontanément d'accord. Il ne mesure pas ton pouvoir de persuasion, mais ta capacité à rebondir. Deuxième
-    règle, n'abandonne pas à la première objection. Accueille l'objection. Reformule pour montrer que tu l'as
-    comprise. Puis apporte un argument complémentaire, plutôt que de répéter le même.
-  mascot: reflechit
   card:
     kind: plan
     data:
@@ -185,6 +181,13 @@ blocks:
       - title: Compléter
         detail: Un nouvel argument
         at: complémentaire
+- id: objection_method
+  voice: Première règle, ce n'est pas personnel. L'examinateur joue volontairement un ami sceptique, et il n'est
+    jamais spontanément d'accord. Il ne mesure pas ton pouvoir de persuasion, mais ta capacité à rebondir. Deuxième
+    règle, n'abandonne pas à la première objection. Accueille l'objection. Reformule pour montrer que tu l'as
+    comprise. Puis apporte un argument complémentaire, plutôt que de répéter le même.
+  mascot: reflechit
+  card_from: rehook_objection
 - id: objection_example
   voice: 'Un exemple. L''examinateur dit : le prix m''inquiète. Tu réponds : je comprends que ça t''inquiète pour
     le prix, mais justement, la première séance est offerte, donc tu ne risques rien à essayer. Tu as accueilli
@@ -204,17 +207,39 @@ blocks:
     Ce changement se joue en quelques secondes, et il fait partie de ce qui est évalué.
   mascot: perplexe
   chapter: Du vous au tu
+  card:
+    kind: compare
+    data:
+      label: Section A · Section B
+      contrast: true
+      left:
+        title: Section A
+        subtitle: vouvoiement
+      right:
+        title: Section B
+        subtitle: tutoiement
+      rows:
+      - label: Registre
+        left: Formel, avec « vous »
+        right: Amical, avec « tu »
+      - label: Exemple
+        left: Pourriez-vous me préciser
+        right: Tu sais, je pense vraiment que
+        highlight: true
 - id: register
   voice: 'Les deux sections s''enchaînent rapidement le jour de l''examen. Si tu n''as pas anticipé ce changement,
     tu perds un temps de flottement au démarrage de la section B. Un ton trop soutenu pour parler à un ami peut
     aussi être perçu comme un manque d''adaptation à la situation. Passer de « Pourriez-vous me préciser » à «
     Tu sais, je pense vraiment que » doit devenir un réflexe.'
   mascot: reflechit
+  card_from: rehook_register
 - id: register_practice
   voice: 'Pour l''automatiser, entraîne-toi en enchaînant directement une simulation de section A, puis une simulation
     de section B. Le changement de ton deviendra naturel. Si tu te trompes de registre en route, ne t''arrête pas
     : corrige-toi et continue.'
   mascot: heureux
+  card_from: rehook_register
+  card_state: revealed
 - id: recap
   voice: 'Récapitulons. Un, présente le document en une phrase simple. Deux, rassure ton ami avant que l''objection
     n''arrive. Trois, donne deux ou trois arguments concrets. Quatre, conclus par une décision claire. Et si l''examinateur
