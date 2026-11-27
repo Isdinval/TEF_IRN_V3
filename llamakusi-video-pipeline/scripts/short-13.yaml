@@ -1,0 +1,79 @@
+id: short-13
+format: short
+status: draft
+pillar: B
+product: examen_civique
+hook_formula: stakes
+accent: blue
+title: 'CSP 2026 : examen civique et niveau A2, les deux'
+thumbnail:
+  text: "CSP 2026 : *2 pièces*, pas 1"
+publish:
+  keyword: CSP 2026
+  answer: Depuis le 1er janvier 2026, la carte de séjour pluriannuelle (CSP) exige deux pièces distinctes, la réussite
+    à l'examen civique et une attestation de niveau A2 en français.
+  description: Pour la CSP en 2026, l'examen civique et le niveau A2 se cumulent. Un seul des deux manque et le
+    dossier est incomplet.
+  tags:
+  - CSP 2026
+  - carte de séjour pluriannuelle
+  - examen civique CSP
+  - niveau A2 CSP
+  - TEF IRN A2
+  - titre de séjour 2026
+  hashtags:
+  - CSP
+  - ExamenCivique
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Pour la CSP en 2026, un seul document ne suffit plus.
+  mascot: perplexe
+  card:
+    kind: compare
+    data:
+      label: CSP 2026 · Deux obligations
+      contrast: false
+      left:
+        title: Examen civique
+        subtitle: la République
+      right:
+        title: Niveau A2
+        subtitle: le français
+      rows:
+      - label: Format
+        left: QCM de 40 questions
+        right: Test de langue, TEF IRN ou TCF IRN
+        highlight: true
+      - label: Seuil
+        left: 32 bonnes réponses sur 40
+        right: Attestation de niveau A2
+        highlight: false
+  visual_note: Carte à deux colonnes, deux pièces côte à côte.
+- id: build
+  voice: 'Depuis le 1er janvier 2026, il en faut deux, distincts : la réussite à l''examen civique, un QCM de
+    40 questions, et une attestation de niveau A2 en français. Aucun ne remplace l''autre.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom, les deux colonnes se remplissent.
+- id: payoff
+  voice: Il en manque un, et le dossier est incomplet.
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Les deux colonnes surlignées en doré.
+- id: loop
+  voice: 'Alors la vraie question, c''est : par lequel commencer…'
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour à la carte initiale.
+claims:
+- text: Depuis le 1er janvier 2026, la CSP exige à la fois la réussite à l'examen civique et une attestation de
+    niveau A2, deux pièces distinctes du même dossier
+  source_guide: examen-civique-csp-niveau-a2-cumulatif
+- text: L'examen civique CSP est un QCM de 40 questions avec un seuil de réussite de 32 bonnes réponses sur 40
+  source_guide: examen-civique-csp-niveau-a2-cumulatif
+- text: Le test de niveau A2 est un examen de langue distinct, TEF IRN ou TCF IRN
+  source_guide: examen-civique-csp-niveau-a2-cumulatif

@@ -1,0 +1,79 @@
+id: short-11
+format: short
+status: draft
+pillar: A
+product: tef_irn
+hook_formula: contrarian
+accent: indigo
+title: 'Expression orale TEF IRN : il refuse tout, c''est voulu'
+thumbnail:
+  text: "L'examinateur *refuse* tout"
+publish:
+  keyword: expression orale TEF IRN
+  answer: À la section B de l'expression orale du TEF IRN, l'examinateur joue volontairement un ami sceptique et
+    évalue ta capacité à rebondir face à ses objections, pas ton pouvoir de persuasion.
+  description: À la section B, l'examinateur refuse tes arguments exprès. Voici le bon réflexe, accueillir l'objection,
+    la reformuler, puis ajouter un argument complémentaire.
+  related: long-04
+  tags:
+  - expression orale TEF IRN
+  - TEF IRN section B
+  - oral TEF IRN
+  - TEF-IRN
+  - préparation TEF IRN
+  - objection examinateur
+  hashtags:
+  - TEFIRN
+  - ExpressionOrale
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: 'À l''oral du TEF IRN, l''examinateur refuse tout : c''est voulu.'
+  mascot: perplexe
+  card:
+    kind: compare
+    data:
+      label: Oral TEF IRN · Section B
+      contrast: true
+      left:
+        title: Réflexe courant
+        subtitle: face au refus
+      right:
+        title: Réflexe attendu
+        subtitle: face au refus
+      rows:
+      - label: Réponse à l'objection
+        left: Répéter le même argument
+        right: Reformuler, puis un argument complémentaire
+        highlight: true
+      - label: Ce que tu montres
+        left: Un monologue appris
+        right: Un vrai dialogue
+        highlight: true
+  visual_note: Carte comparative, deux réflexes face au refus.
+- id: build
+  voice: 'Il joue un ami sceptique, exprès. Il ne mesure pas ton pouvoir de persuasion, mais ta capacité à rebondir.
+    Alors accueille l''objection, reformule-la pour montrer que tu l''as comprise, puis ajoute un argument complémentaire.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom sur la colonne de droite.
+- id: payoff
+  voice: 'Ne répète pas ton argument : rebondis.'
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Colonne de droite surlignée en doré.
+- id: loop
+  voice: 'Donc à la section B, quand tu entends non, souviens-toi :'
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour à la carte initiale.
+claims:
+- text: À la section B de l'expression orale, l'examinateur joue volontairement un ami sceptique et ne sera jamais
+    spontanément d'accord ; il évalue la capacité à rebondir sur des objections
+  source_guide: reussir-expression-orale-section-b
+- text: Face à une objection, il faut l'accueillir, la reformuler pour montrer qu'on l'a comprise, puis apporter
+    un argument complémentaire plutôt que de répéter le même
+  source_guide: reussir-expression-orale-section-b

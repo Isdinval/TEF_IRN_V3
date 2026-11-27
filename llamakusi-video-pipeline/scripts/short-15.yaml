@@ -1,0 +1,81 @@
+id: short-15
+format: short
+status: draft
+pillar: F
+product: examen_civique
+hook_formula: curiosity_gap
+accent: blue
+title: 'CPF TEF IRN : oui. CPF examen civique : non'
+thumbnail:
+  text: "CPF : *TEF oui*, civique *non*"
+publish:
+  keyword: CPF TEF IRN
+  answer: Le CPF peut financer le TEF IRN ou le TCF via un organisme certifié Qualiopi, avec un plafond de 1 500
+    euros depuis février 2026, mais pas l'examen civique, qui n'est pas une formation certifiante.
+  description: 'Le CPF ne finance que des formations inscrites au RNCP ou au Répertoire spécifique : le TEF et
+    le TCF en font partie, pas l''examen civique.'
+  tags:
+  - CPF TEF IRN
+  - financer TEF IRN
+  - CPF examen civique
+  - TCF IRN CPF
+  - Mon Compte Formation
+  - TEF IRN 2026
+  hashtags:
+  - CPF
+  - TEFIRN
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: 'Ton CPF peut payer le TEF IRN. Pas l''examen civique : pourquoi ?'
+  mascot: perplexe
+  card:
+    kind: compare
+    data:
+      label: CPF · Financement
+      contrast: true
+      left:
+        title: TEF / TCF
+        subtitle: certification de français
+      right:
+        title: Examen civique
+        subtitle: évaluation administrative
+      rows:
+      - label: Financement CPF
+        left: Possible, sous conditions
+        right: Non éligible
+        highlight: true
+      - label: Condition
+        left: Organisme certifié Qualiopi
+        right: Hors RNCP et Répertoire spécifique
+        highlight: false
+  visual_note: Carte comparative, TEF/TCF à gauche, examen civique à droite.
+- id: build
+  voice: 'Le CPF ne finance que des formations inscrites au RNCP ou au Répertoire spécifique. Le TEF et le TCF
+    en font partie, via un organisme certifié Qualiopi, jusqu''à 1 500 euros depuis février 2026. L''examen civique,
+    non : c''est une évaluation administrative.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom sur les deux colonnes.
+- id: payoff
+  voice: Le TEF, oui. L'examen civique, à ta charge.
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Colonne de gauche surlignée en doré.
+- id: loop
+  voice: Et si ton employeur complétait ton financement…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour à la carte initiale.
+claims:
+- text: Le CPF ne finance que des formations certifiantes inscrites au RNCP ou au Répertoire spécifique ; l'examen
+    civique, évaluation administrative du ministère de l'Intérieur, n'en fait pas partie
+  source_guide: salarie-employeur-examen-civique
+- text: Le TEF et le TCF sont finançables par le CPF via un organisme certifié Qualiopi, avec un plafond de 1 500
+    € depuis février 2026
+  source_guide: salarie-employeur-examen-civique
+- text: Un abondement de l'employeur peut compléter les droits CPF, à la discrétion de chaque entreprise
+  source_guide: salarie-employeur-examen-civique

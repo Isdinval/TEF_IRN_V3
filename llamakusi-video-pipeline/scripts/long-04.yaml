@@ -1,0 +1,254 @@
+id: long-04
+format: long
+status: draft
+pillar: C
+product: tef_irn
+accent: indigo
+title: 'Expression orale TEF IRN section B : la méthode PRAC'
+thumbnail:
+  text: "Oral section B : la méthode *PRAC*"
+  variant_texts:
+  - "Section B : convaincre avec *PRAC*"
+  - "L'examinateur *refuse* tout ?"
+publish:
+  title_variants:
+  - 'Expression orale TEF IRN section B : convaincre avec PRAC'
+  - 'Expression orale TEF IRN : l''examinateur refuse ?'
+  keyword: expression orale TEF IRN
+  answer: Pour réussir la section B de l'expression orale du TEF IRN, applique la méthode PRAC (Présenter, Rassurer,
+    Argumenter, Conclure) et rebondis sur chaque objection de l'examinateur, qui joue un ami sceptique.
+  description: 'La section B de l''expression orale du TEF IRN dure 5 minutes : tu dois aider un ami, joué par
+    l''examinateur, à prendre une décision. Sans méthode, le stress pousse à répéter les mêmes arguments et à perdre
+    le fil. Dans cette vidéo, une structure simple en quatre étapes, la méthode PRAC, appliquée à un exemple complet.
+
+
+    Ce que tu vas apprendre :
+
+    • ce que demande la section B : un cadre informel et amical, un document à présenter, un ami à convaincre ;
+
+    • pourquoi une structure fixe t''aide sous le stress : seuls les arguments changent, jamais le cadre ;
+
+    • la méthode PRAC : Présenter, Rassurer, Argumenter, Conclure, avec un exemple pas à pas ;
+
+    • comment rythmer les quatre étapes : moins de deux minutes pour garder du temps pour la relance de l''examinateur
+    ;
+
+    • que faire quand l''examinateur refuse tous tes arguments : accueillir l''objection, la reformuler, puis ajouter
+    un argument complémentaire ;
+
+    • comment préparer à l''avance deux objections classiques, le prix, le temps ou la motivation ;
+
+    • comment passer du vouvoiement de la section A au tutoiement de la section B, un changement de registre
+    qui fait partie de l''évaluation.
+
+
+    Cette vidéo s''adresse aux candidats qui préparent le TEF IRN, notamment pour la naturalisation, et qui veulent
+    arriver à l''oral avec un cadre clair plutôt que d''improviser. Pour t''entraîner face à un ami réticent, retrouve
+    les liens ci-dessous.'
+  tags:
+  - expression orale TEF IRN
+  - TEF IRN section B
+  - méthode PRAC
+  - oral TEF IRN
+  - TEF-IRN
+  - préparation TEF IRN
+  - convaincre à l'oral
+  hashtags:
+  - TEFIRN
+  - ExpressionOrale
+  - LlamaKusi
+cta_overlay: null
+blocks:
+- id: hook
+  voice: Convaincre un ami sceptique, pendant cinq minutes, face à un examinateur. À l'oral du TEF IRN, c'est exactement
+    la section B. Sans méthode, on répète les mêmes arguments et on perd le fil. Dans cette vidéo, je te donne
+    une méthode en quatre étapes, avec un exemple complet.
+  mascot: perplexe
+  chapter: Le piège de la section B
+  card:
+    kind: compare
+    data:
+      label: TEF IRN · Expression orale
+      contrast: true
+      left:
+        title: Section A
+        subtitle: Vouvoiement
+      right:
+        title: Section B
+        subtitle: Tutoiement
+      rows:
+      - label: Registre
+        left: Formel
+        right: Amical et naturel
+        highlight: true
+      - label: Durée
+        left: Voir la section A
+        right: 5 minutes
+        highlight: false
+- id: setup
+  voice: Au programme. D'abord, ce que demande la section B. Ensuite, la méthode PRAC, avec un exemple. Puis, que
+    faire quand l'examinateur refuse tes arguments. Et pour finir, comment passer du vouvoiement au tutoiement.
+  mascot: reflechit
+  card:
+    kind: plan
+    data:
+      label: Au programme
+      items:
+      - title: Ce que demande la section B
+        detail: Cinq minutes, un ami à convaincre
+        at: demande
+      - title: La méthode PRAC
+        detail: Quatre étapes, un exemple
+        at: PRAC
+      - title: Face au refus
+        detail: Rebondir sur l'objection
+        at: refuse
+      - title: Du vous au tu
+        detail: Changer de registre
+        at: tutoiement
+- id: format
+  voice: Commençons par l'épreuve. La section B de l'expression orale dure cinq minutes. Tu dois aider un ami à
+    prendre une décision, dans un cadre informel et amical. L'examinateur te remet un document, une annonce, une
+    offre ou une activité. Il joue le rôle de cet ami. Tu présentes le document avec tes propres mots, puis tu
+    argumentes pour l'aider à se décider en ta faveur.
+  mascot: reflechit
+  chapter: Ce que demande la section B
+  card_from: hook
+  card_state: revealed
+- id: why_structure
+  voice: Pourquoi une méthode ? Parce que le stress pousse à répéter les mêmes arguments, ou à perdre le fil. L'examinateur
+    a alors l'impression d'un discours décousu. Avec une structure fixe, tu n'improvises plus le cadre. Tu remplis
+    un cadre déjà connu. Quel que soit le sujet du jour, seuls les arguments changent.
+  mascot: perplexe
+- id: prac_intro
+  voice: 'La méthode s''appelle PRAC, quatre étapes. Première étape : Présenter. Tu résumes le document en une
+    phrase simple, sans détail superflu. Deuxième étape : Rassurer. Tu anticipes une objection probable de ton
+    ami, avant qu''il ne la formule. Troisième étape : Argumenter. Tu donnes deux à trois arguments concrets, comme
+    le prix, le gain de temps ou ton expérience. Quatrième étape : Conclure. Tu proposes une décision claire, par
+    exemple réserver ou essayer.'
+  mascot: reflechit
+  chapter: La méthode PRAC
+  card:
+    kind: terms
+    data:
+      label: Méthode PRAC · Section B
+      items:
+      - term: Présenter
+        definition: Résume le document en une phrase
+        at: Présenter
+      - term: Rassurer
+        definition: Anticipe une objection
+        at: Rassurer
+      - term: Argumenter
+        definition: Deux à trois arguments concrets
+        at: Argumenter
+      - term: Conclure
+        definition: Propose une décision claire
+        at: Conclure
+- id: prac_example
+  voice: 'Prenons une annonce pour un cours de cuisine, ce week-end. Tu présentes : regarde, j''ai vu cette annonce
+    pour un cours de cuisine, ça pourrait vraiment te plaire. Tu rassures : je sais que tu n''as pas trop de budget
+    en ce moment, mais c''est abordable. Tu argumentes : en plus, tu pourras cuisiner ce que tu adores. Et tu conclus
+    : on s''inscrit ensemble ? Quatre phrases, quatre étapes.'
+  mascot: heureux
+  card_from: prac_intro
+  card_state: revealed
+- id: prac_tips
+  voice: 'Un conseil de rythme. Entraîne-toi à enchaîner les quatre étapes en moins de deux minutes. Tu gardes ainsi
+    du temps pour la relance de l''examinateur. Et retiens que PRAC est un réflexe, pas une liste à réciter : c''est
+    la structure qui te rassure, pas les mots exacts.'
+  mascot: reflechit
+  card_from: prac_intro
+  card_state: revealed
+- id: rehook_objection
+  voice: Mais il y a un moment que beaucoup de candidats redoutent. Tu as présenté, rassuré, argumenté, et l'examinateur
+    répond que ça ne l'intéresse pas. Que faire ?
+  mascot: perplexe
+  chapter: Quand l'examinateur dit non
+- id: objection_method
+  voice: Première règle, ce n'est pas personnel. L'examinateur joue volontairement un ami sceptique, et il n'est
+    jamais spontanément d'accord. Il ne mesure pas ton pouvoir de persuasion, mais ta capacité à rebondir. Deuxième
+    règle, n'abandonne pas à la première objection. Accueille l'objection. Reformule pour montrer que tu l'as
+    comprise. Puis apporte un argument complémentaire, plutôt que de répéter le même.
+  mascot: reflechit
+  card:
+    kind: plan
+    data:
+      label: Face à une objection
+      items:
+      - title: Accueillir
+        detail: Ne pas le prendre personnellement
+        at: Accueille
+      - title: Reformuler
+        detail: Montrer que tu as compris
+        at: Reformule
+      - title: Compléter
+        detail: Un nouvel argument
+        at: complémentaire
+- id: objection_example
+  voice: 'Un exemple. L''examinateur dit : le prix m''inquiète. Tu réponds : je comprends que ça t''inquiète pour
+    le prix, mais justement, la première séance est offerte, donc tu ne risques rien à essayer. Tu as accueilli
+    l''objection, tu l''as reformulée, et tu as ajouté un argument nouveau. C''est cette capacité de rebond qui
+    distingue un vrai dialogue d''un monologue appris.'
+  mascot: heureux
+  card_from: objection_method
+  card_state: revealed
+- id: objection_prepare
+  voice: Prépare à l'avance une ou deux objections classiques, le prix, le temps, la motivation. Et pour chacune,
+    une réponse toute prête. Ainsi, quand l'examinateur refusera, tu ne seras plus surpris, tu auras déjà ton rebond.
+  mascot: reflechit
+  card_from: objection_method
+  card_state: revealed
+- id: rehook_register
+  voice: Dernier piège, plus subtil qu'il n'en a l'air. À la section A, tu vouvoies. À la section B, tu dois tutoyer.
+    Ce changement se joue en quelques secondes, et il fait partie de ce qui est évalué.
+  mascot: perplexe
+  chapter: Du vous au tu
+- id: register
+  voice: 'Les deux sections s''enchaînent rapidement le jour de l''examen. Si tu n''as pas anticipé ce changement,
+    tu perds un temps de flottement au démarrage de la section B. Un ton trop soutenu pour parler à un ami peut
+    aussi être perçu comme un manque d''adaptation à la situation. Passer de « Pourriez-vous me préciser » à «
+    Tu sais, je pense vraiment que » doit devenir un réflexe.'
+  mascot: reflechit
+- id: register_practice
+  voice: 'Pour l''automatiser, entraîne-toi en enchaînant directement une simulation de section A, puis une simulation
+    de section B. Le changement de ton deviendra naturel. Si tu te trompes de registre en route, ne t''arrête pas
+    : corrige-toi et continue.'
+  mascot: heureux
+- id: recap
+  voice: 'Récapitulons. Un, présente le document en une phrase simple. Deux, rassure ton ami avant que l''objection
+    n''arrive. Trois, donne deux ou trois arguments concrets. Quatre, conclus par une décision claire. Et si l''examinateur
+    refuse, accueille l''objection, reformule-la, puis complète avec un nouvel argument. Seuls les arguments changent,
+    jamais le cadre.'
+  mascot: reflechit
+  card_from: prac_intro
+  card_state: revealed
+- id: cta
+  voice: 'Tu as maintenant la méthode : PRAC pour structurer, un rebond face aux objections, et le tutoiement dès
+    la première phrase. Pour t''entraîner face à un ami réticent qui t''oppose des objections, retrouve le Coach
+    oral de LlamaKusi : le lien est dans la description.'
+  mascot: heureux
+  chapter: À toi de jouer
+  card_from: prac_intro
+  card_state: revealed
+claims:
+- text: La section B de l'expression orale du TEF IRN dure 5 minutes ; il faut aider un ami à prendre une décision
+    dans un cadre informel et amical
+  source_guide: reussir-expression-orale-section-b
+- text: L'examinateur remet un document (annonce, offre, activité) et joue le rôle de l'ami à convaincre ; le candidat
+    présente le document avec ses propres mots puis argumente
+  source_guide: reussir-expression-orale-section-b
+- text: 'La méthode PRAC : Présenter (résumer le document en une phrase), Rassurer (anticiper une objection), Argumenter
+    (2 à 3 arguments concrets), Conclure (proposition claire)'
+  source_guide: reussir-expression-orale-section-b
+- text: S'entraîner à enchaîner les 4 étapes en moins de 2 minutes pour garder du temps pour la relance de l'examinateur
+  source_guide: reussir-expression-orale-section-b
+- text: L'examinateur joue volontairement un ami sceptique ; accueillir l'objection, la reformuler, puis apporter
+    un argument complémentaire plutôt que de répéter ; préparer 1 ou 2 objections classiques (prix, temps, motivation)
+  source_guide: reussir-expression-orale-section-b
+- text: Section A au vouvoiement formel, section B au tutoiement amical ; un ton trop soutenu peut être perçu comme
+    un manque d'adaptation, un critère réellement évalué ; s'entraîner en enchaînant une simulation de section
+    A puis B
+  source_guide: reussir-expression-orale-section-b
+- text: Le Coach IA Oral de LlamaKusi simule un(e) ami(e) réticent(e), objection après objection
+  source_guide: reussir-expression-orale-section-b
