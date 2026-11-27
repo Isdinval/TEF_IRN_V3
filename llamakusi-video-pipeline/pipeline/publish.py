@@ -236,7 +236,7 @@ def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None
     tags_yt = hashtags(script, "youtube")
     out = bdir / "studio.txt"
     out.write_text(f"FICHIERS\n{' · '.join(files)}\n\n=== YOUTUBE ===\n\n"
-                   f"TITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
+                   f"TITRE ({len(t['title'])}/100{short_title} ; c'est lui qui porte le mot-clé : dans les 40 premiers caractères)\n{t['title']}\n\n"
                    f"HASHTAGS ({len(tags_yt)}/3 — déjà en dernière ligne de la description ; Studio n'a pas de champ à part, "
                    f"les 3 premiers s'affichent au-dessus du titre)\n{' '.join('#' + h for h in tags_yt)}\n\n"
                    f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
@@ -244,7 +244,7 @@ def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None
                    f"DATE DE PROGRAMMATION\n{date_line}\n\n"
                    f"{_related_section(script)}\n\n"
                    f"{_ab_section(script, bdir)}"
-                   f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
+                   f"TAGS ({len(t['tags'])}/8, séparés par des virgules ; variantes d'orthographe seulement, impact minime sur la visibilité)\n{', '.join(t['tags'])}\n\n"
                    f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n"
                    + _social_section(script, bdir, "TIKTOK", date_line,
                                      f"couverture = {tiktok_cover_path(bdir).name} · activer « Contenu généré par IA »")
