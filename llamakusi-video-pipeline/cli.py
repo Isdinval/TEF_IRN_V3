@@ -294,10 +294,30 @@ def _lot_order(scripts: list) -> list:
     return [s for s in scripts if s.format != "long"] + [s for s in scripts if s.format == "long"]
 
 
-def _publish_slot(position: int) -> str:
-    """Date + heure de publication prévue pour le n-ième script du lot (1-based) : aujourd'hui + n jours ;
-    12h30/19h30 en semaine selon la parité de n, créneau week-end fixe le samedi/dimanche."""
-    d = date.today() + timedelta(days=position)
+def _parse_start(text: str) -> date:
+    """`--start` : JJ/MM, JJ/MM/AAAA ou AAAA-MM-JJ. Sans année, l'année en cours (suivante si la date est passée)."""
+    t = text.strip()
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", t):
+        return date.fromisoformat(t)
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})(?:/(\d{4}))?", t)
+    if not m:
+        raise argparse.ArgumentTypeError(f"date « {text} » invalide : attendu JJ/MM, JJ/MM/AAAA ou AAAA-MM-JJ")
+    day, month, year = int(m[1]), int(m[2]), m[3]
+    today = date.today()
+    try:
+        d = date(int(year) if year else today.year, month, day)
+        if not year and d < today:
+            d = date(today.year + 1, month, day)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"date « {text} » invalide")
+    return d
+
+
+def _publish_slot(position: int, start: date | None = None) -> str:
+    """Date + heure de publication prévue pour le n-ième script du lot (1-based) : `start` + (n-1) jours si
+    `--start` est donné, sinon aujourd'hui + n jours ; 12h30/19h30 en semaine selon la parité de n, créneau
+    week-end fixe le samedi/dimanche."""
+    d = start + timedelta(days=position - 1) if start else date.today() + timedelta(days=position)
     weekday = d.weekday()   # 0 = lundi … 5 = samedi, 6 = dimanche
     heure = _WEEKEND_HOUR if weekday >= 5 else ("19h30" if position % 2 else "12h30")
     return f"{d.strftime('%d/%m/%Y')} ({_JOURS[weekday]}) à {heure}"
@@ -324,7 +344,7 @@ def cmd_week(args) -> int:
         return 1
     failed = []
     for n, sid in enumerate(ids, 1):
-        slot = _publish_slot(n)
+        slot = _publish_slot(n, args.start)
         print(f"\n=== [{n}/{len(ids)}] {sid} — publication prévue {slot} ===")
         ns = argparse.Namespace(id=sid, until="render", dry=args.dry, proportional=False, force=args.force,
                                 no_bg=False, background=None, placeholder_mascots=False, no_preview=True,
@@ -350,7 +370,7 @@ def cmd_studio(args) -> int:
     for n, sc in enumerate(scripts, 1):
         bdir = config.build_dir(sc)
         bdir.mkdir(parents=True, exist_ok=True)
-        slot = _publish_slot(n) if not args.all else None
+        slot = _publish_slot(n, args.start) if (args.start or not args.all) else None
         print(f"✓ {publish_mod.studio_file(sc, bdir, publish_slot=slot)}")
     return 0
 
@@ -552,11 +572,13 @@ def main() -> int:
     p.add_argument("ids", nargs="*")
     p.add_argument("--dry", action="store_true", help="aucun appel API : voix muette, timings estimés")
     p.add_argument("--force", action="store_true", help="regénère aussi les vidéos déjà faites (TTS/ASR payants)")
+    p.add_argument("--start", type=_parse_start, help="date de la 1re publication (JJ/MM, JJ/MM/AAAA ou AAAA-MM-JJ) : les vidéos suivantes = un jour de plus chacune. Défaut : demain")
     p.set_defaults(fn=cmd_week)
 
     p = sub.add_parser("studio", help="build/<id>/studio.txt : titre, description, tags à copier dans YouTube Studio")
     p.add_argument("ids", nargs="*")
     p.add_argument("--all", action="store_true")
+    p.add_argument("--start", type=_parse_start, help="date de la 1re publication (JJ/MM, JJ/MM/AAAA ou AAAA-MM-JJ) : les vidéos suivantes = un jour de plus chacune. Défaut : demain avec des ids ; avec --all seul, aucune date")
     p.set_defaults(fn=cmd_studio)
 
     p = sub.add_parser("thumbnail", help="miniature build/<id>/thumbnail.jpg (sans rendu vidéo ni API)")

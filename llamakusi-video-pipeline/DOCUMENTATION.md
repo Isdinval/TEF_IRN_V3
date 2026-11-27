@@ -135,10 +135,10 @@ un échec n'arrête pas les suivantes, récapitulatif et code de sortie 1 en fin
 
 **Ordre et date de publication du lot :** les Shorts sont traités dans leur ordre existant, puis le(s) Long en dernier — jamais
 l'ordre alphabétique des fichiers (qui mettrait un `long-*` avant les `short-*`). Chaque vidéo reçoit une date de publication
-prévue (aujourd'hui + sa position dans le lot, 1 jour de plus par vidéo) écrite dans `studio.txt` — détail dans `studio` ci-dessous.
+prévue (aujourd'hui + sa position dans le lot, 1 jour de plus par vidéo ; ou à partir de `--start`) écrite dans `studio.txt` — détail dans `studio` ci-dessous.
 
 ### `studio` — textes à copier dans YouTube Studio (SEO / GEO)
-`python cli.py studio long-01` · `python cli.py studio --all`
+`python cli.py studio long-01` · `python cli.py studio --all` · `python cli.py studio --all --start 29/11`
 Écrit `build/<id>/studio.txt` : fichiers à envoyer, **date de publication prévue**, **titre** (alerte > 60 caractères), **description**, **tags** (8 max). Créé automatiquement à la fin de `build` (donc de `week`) ;
 la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
 
@@ -146,6 +146,7 @@ la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau
 Shorts puis Long en dernier) — un jour de plus par position dans ce lot, 12h30 les jours pairs / 19h30 les jours impairs de la
 semaine, créneau fixe 11h00 le week-end. Avec `--all`, ou pour une vidéo passée seule par `build`/`pack` (hors génération de lot),
 aucun lot n'est connu : la ligne affiche `à définir (hors génération de lot via cli.py week)`.
+**`--start JJ/MM`** (aussi `JJ/MM/AAAA` ou `AAAA-MM-JJ` ; accepté par `studio` et `week`) fixe la date de la **première** vidéo du lot : les suivantes = un jour de plus chacune, mêmes créneaux horaires. Utile quand le lot est généré avant que le planning précédent soit épuisé. Sans année, l'année en cours (la suivante si la date est passée). `--all --start` date tous les scripts de `scripts/` : préférer des ids explicites (`studio short-11 … long-04 --start 29/11`) si le dossier contient d'anciennes vidéos.
 
 Description YouTube = **ligne 1** la réponse en une phrase (`publish.answer`, contient le mot-clé), **ligne 2** le lien profond (visibles avant « Voir plus »), puis le corps
 (`publish.description`), `CHAPITRES` (longs), `S'ENTRAÎNER SUR LLAMAKUSI` (accueil, longs), pied de page, **3 hashtags max** (Short : le dernier est `#Shorts`).

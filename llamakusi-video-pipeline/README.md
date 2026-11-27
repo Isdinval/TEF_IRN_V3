@@ -38,6 +38,7 @@ python cli.py approve                       # GATE 1 : approuve les drafts déj�
 python cli.py week --dry                    # essai SANS API de toutes les vidéos du lot
 python cli.py week                          # génère TOUTES les vidéos `approved` pas encore faites (Shorts puis Long en dernier ; ids possibles : week short-01 long-01)
 python cli.py studio --all                  # build/<id>/studio.txt : titre, date de publication prévue, description, tags, playlist, vidéo associée, commentaire à épingler
+python cli.py studio --all --start 29/11    # idem, la 1re vidéo est publiée le 29/11, les suivantes un jour de plus chacune (aussi : week --start 29/11)
 python cli.py thumbnail --all               # miniatures de tout le lot (build/<id>/thumbnail.jpg ; Shorts : + tiktok_cover.jpg)
 ```
 Puis, pour chaque vidéo, dans YouTube Studio : envoyer `out.mp4` + miniature, copier `studio.txt` (titre, description, tags), ajouter à la playlist indiquée,
