@@ -1,0 +1,69 @@
+id: short-12
+format: short
+status: approved
+pillar: D
+product: examen_civique
+hook_formula: in_medias_res
+accent: blue
+title: 'Examen civique : peut-on tout dire en ligne ?'
+thumbnail:
+  text: "Peut-on *tout dire* en ligne ?"
+publish:
+  keyword: examen civique
+  answer: À l'examen civique, la liberté d'expression sur les réseaux sociaux est garantie mais encadrée par la
+    loi, elle ne protège ni l'injure ni l'incitation à la haine.
+  description: Une vraie question du programme officiel de l'examen civique, dans le thème des principes et valeurs
+    de la République.
+  tags:
+  - examen civique
+  - liberté d'expression examen civique
+  - examen civique 2026
+  - valeurs de la République
+  - QCM examen civique
+  - naturalisation 2026
+  hashtags:
+  - ExamenCivique
+  - ValeursDeLaRepublique
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: Peut-on tout dire sur les réseaux sociaux ? Vraie question d'examen.
+  mascot: perplexe
+  card:
+    kind: question
+    data:
+      label: Examen civique · Question
+      question_id: e0ea0954-d207-4d77-92d9-12aab8c3f893
+      question: 'La liberté d''expression sur les réseaux sociaux en France est :'
+      choices:
+      - Garantie mais encadrée par la loi
+      - Totalement sans limite
+      - Interdite
+      - Réservée aux journalistes
+      correct: A
+  visual_note: Carte de question générée directement à l'écran, 4 choix visibles.
+- id: build
+  voice: 'Non : la liberté d''expression ne protège ni l''injure, ni l''incitation à la haine. Et chaque liberté
+    testée à l''examen vient avec une limite précise, aussi importante à connaître que la liberté elle-même.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte zoom sur les 4 choix.
+- id: payoff
+  voice: 'La réponse : garantie, mais encadrée par la loi.'
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Choix A surligné en doré.
+- id: loop
+  voice: Et ce thème, les valeurs de la République, n'est qu'un des cinq thèmes du programme officiel…
+  mascot: heureux
+  card_from: hook
+  card_state: plain
+  visual_note: Retour à la carte de question initiale.
+claims:
+- text: La liberté d'expression ne protège pas l'incitation à la haine ou l'injure envers autrui ; chaque liberté
+    testée à l'examen est assortie d'une limite précise
+  source_guide: valeurs-republique-laicite-egalite-examen-civique
+- text: Principes et valeurs de la République est l'une des 5 grandes thématiques du programme de l'examen civique
+  source_guide: valeurs-republique-laicite-egalite-examen-civique

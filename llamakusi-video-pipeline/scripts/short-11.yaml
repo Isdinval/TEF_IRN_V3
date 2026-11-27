@@ -1,6 +1,6 @@
 id: short-11
 format: short
-status: draft
+status: approved
 pillar: A
 product: tef_irn
 hook_formula: contrarian
@@ -37,11 +37,11 @@ blocks:
       label: Oral TEF IRN · Section B
       contrast: true
       left:
-        title: Courant
-        subtitle: réflexe face au refus
+        title: Réflexe courant
+        subtitle: face au refus
       right:
-        title: Attendu
-        subtitle: réflexe face au refus
+        title: Réflexe attendu
+        subtitle: face au refus
       rows:
       - label: Réponse à l'objection
         left: Répéter le même argument

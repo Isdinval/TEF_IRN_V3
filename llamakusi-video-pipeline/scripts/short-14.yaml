@@ -1,0 +1,73 @@
+id: short-14
+format: short
+status: approved
+pillar: E
+product: examen_civique
+hook_formula: direct_promise
+accent: blue
+title: 'Décret de naturalisation : 3 mots à connaître'
+thumbnail:
+  text: "*3 mots* pour devenir français"
+publish:
+  keyword: décret de naturalisation
+  answer: Le décret de naturalisation te rend français à sa publication au Journal officiel, c'est cette date qui
+    compte, pas celle de la cérémonie.
+  description: 'Décret, Journal officiel, ampliation : trois mots à connaître le jour où ta nationalité française
+    devient officielle.'
+  tags:
+  - décret de naturalisation
+  - Journal officiel naturalisation
+  - ampliation décret
+  - cérémonie de naturalisation
+  - vocabulaire naturalisation
+  - français administratif
+  hashtags:
+  - Naturalisation
+  - FrancaisAdministratif
+  - LlamaKusi
+cta_overlay: Lien en bio
+blocks:
+- id: hook
+  voice: 3 mots à connaître le jour où tu deviens français.
+  mascot: perplexe
+  overlay: 3 mots
+  card:
+    kind: terms
+    data:
+      label: Vocabulaire · Naturalisation
+      items:
+      - term: Décret
+        definition: Le texte qui te rend français, une fois publié
+        at: décret
+      - term: Journal officiel
+        definition: Là où il est publié, cette date compte
+        at: Journal
+      - term: Ampliation
+        definition: La preuve individuelle de ton décret
+        at: ampliation
+  visual_note: Overlay « 3 MOTS ». Mascotte perplexe.
+- id: build
+  voice: 'Le décret : le texte qui te rend français. Le Journal officiel : là où il est publié, et c''est cette
+    date qui compte, pas celle de la cérémonie. Troisième mot, ampliation : la preuve individuelle de ton décret,
+    qui peut arriver après plusieurs semaines.'
+  mascot: reflechit
+  card_from: hook
+  visual_note: Carte générée, un mot à la fois.
+- id: payoff
+  voice: Trois mots, et une seule date qui compte.
+  mascot: victorieux
+  card_from: hook
+  card_state: revealed
+  visual_note: Les 3 mots réaffichés ensemble, doré.
+- id: loop
+  voice: Et la cérémonie, alors ? Elle n'est qu'un moment symbolique…
+  mascot: heureux
+  card_from: hook
+  card_state: initial
+  visual_note: Retour au cadrage initial.
+claims:
+- text: On devient français à la date de publication du décret au Journal officiel, pas à la date de la cérémonie,
+    qui n'est qu'un moment symbolique
+  source_guide: ceremonie-naturalisation-decret-journal-officiel
+- text: L'ampliation individuelle du décret peut prendre plusieurs semaines à arriver après la publication
+  source_guide: ceremonie-naturalisation-decret-journal-officiel

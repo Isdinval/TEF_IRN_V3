@@ -1,6 +1,6 @@
 id: short-13
 format: short
-status: draft
+status: approved
 pillar: B
 product: examen_civique
 hook_formula: stakes
@@ -36,8 +36,8 @@ blocks:
       label: CSP 2026 · Deux obligations
       contrast: false
       left:
-        title: Civique
-        subtitle: examen · la République
+        title: Examen civique
+        subtitle: la République
       right:
         title: Niveau A2
         subtitle: le français

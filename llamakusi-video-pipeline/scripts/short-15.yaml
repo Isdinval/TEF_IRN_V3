@@ -1,6 +1,6 @@
 id: short-15
 format: short
-status: draft
+status: approved
 pillar: F
 product: examen_civique
 hook_formula: curiosity_gap
@@ -39,8 +39,8 @@ blocks:
         title: TEF / TCF
         subtitle: certification de français
       right:
-        title: Civique
-        subtitle: examen administratif
+        title: Examen civique
+        subtitle: évaluation administrative
       rows:
       - label: Financement CPF
         left: Possible, sous conditions
