@@ -139,7 +139,7 @@ prévue (aujourd'hui + sa position dans le lot, 1 jour de plus par vidéo ; ou �
 
 ### `studio` — textes à copier dans YouTube Studio (SEO / GEO)
 `python cli.py studio long-01` · `python cli.py studio --all` · `python cli.py studio --all --start 29/11`
-Écrit `build/<id>/studio.txt` : fichiers à envoyer, **date de publication prévue**, **titre** (alerte > 60 caractères), **description**, **tags** (8 max). Créé automatiquement à la fin de `build` (donc de `week`) ;
+Écrit `build/<id>/studio.txt` en 3 sections, dans l'ordre de saisie. **YOUTUBE** : **titre** (alerte > 60 caractères), **hashtags** (3 max ; ils sont déjà la dernière ligne de la description, Studio n'a pas de champ à part), **description**, **playlist**, **date de programmation**, **vidéo associée** (+ test A/B des longs), **tags** (8 max), **commentaire à épingler**. **TIKTOK** puis **INSTAGRAM** (Shorts) : **description**, **hashtags** (5 max), **date de programmation**. Créé automatiquement à la fin de `build` (donc de `week`) ;
 la commande sert pour les vidéos déjà générées (aucun rendu, aucun réseau).
 
 **Date de publication prévue** : calculée uniquement quand `studio` reçoit une liste d'ids explicite (même ordre que `week` :
@@ -166,9 +166,9 @@ Champs facultatifs du bloc `publish:` du script (rédigés avec le script, valid
 
 Les liens dans les descriptions de Shorts ne sont probablement pas cliquables sur YouTube (à vérifier) : le CTA reste « Lien en bio ».
 
-**Légende TikTok (Shorts)** : `studio.txt` se termine par une section `TIKTOK` à coller à la publication : réponse en une phrase (`publish.answer`, sinon le titre), « Guide complet : lien dans la bio (llamakusi.com) » (un lien en légende n'est pas cliquable ; le lien cliquable est celui du profil professionnel), puis **5 hashtags max** (`publish.hashtags`, sinon le jeu par `product`). Rappel des réglages : couverture `tiktok_cover.jpg`, option « Contenu généré par IA » (voix et mascotte de synthèse). Aucun nouveau champ YAML ; pas de section pour les longs.
+**Légende TikTok (Shorts)** : `studio.txt` contient une section `TIKTOK` (description, hashtags, date) à coller à la publication : réponse en une phrase (`publish.answer`, sinon le titre), « Guide complet : lien dans la bio (llamakusi.com) » (un lien en légende n'est pas cliquable ; le lien cliquable est celui du profil professionnel), puis **5 hashtags max** (`publish.hashtags`, sinon le jeu par `product`). Rappel des réglages : couverture `tiktok_cover.jpg`, option « Contenu généré par IA » (voix et mascotte de synthèse). Aucun nouveau champ YAML ; pas de section pour les longs.
 
-**Légende Instagram (Shorts)** : `studio.txt` se termine aussi par une section `INSTAGRAM` à coller dans le Reel, avec le **même texte que TikTok** (réponse, « lien dans la bio », 5 hashtags max). La **couverture est `tiktok_cover.jpg`** (format TikTok 1080×1920, contenu dans la bande 3:4 centrale, testée à la main sur Instagram) : à importer depuis la galerie (Reel → Modifier la couverture). Pas de section pour les longs.
+**Légende Instagram (Shorts)** : `studio.txt` contient aussi une section `INSTAGRAM` à coller dans le Reel, avec le **même texte que TikTok** (réponse, « lien dans la bio », 5 hashtags max). La **couverture est `tiktok_cover.jpg`** (format TikTok 1080×1920, contenu dans la bande 3:4 centrale, testée à la main sur Instagram) : à importer depuis la galerie (Reel → Modifier la couverture). Pas de section pour les longs.
 
 ### `publish` — publier (PUBLIC, immédiat, sans brouillon)
 `python cli.py publish short-03 --dry` affiche les textes par plateforme (aucun réseau) ; `--confirm-public` envoie pour de bon.

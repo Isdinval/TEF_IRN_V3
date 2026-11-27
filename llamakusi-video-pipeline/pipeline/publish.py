@@ -164,30 +164,27 @@ def texts(script: VideoScript, bdir: Path, platform: str) -> dict[str, str]:
     return {"title": script.title[:100], "text": f"{body}\n\n{' '.join('#' + t for t in tags)}".strip(), "tags": tags}
 
 
-def tiktok_caption(script: VideoScript) -> str:
-    """Légende TikTok d'un Short : réponse en une phrase en tête (la recherche TikTok indexe le texte), renvoi vers la bio, 5 hashtags max."""
+def _social_parts(script: VideoScript) -> tuple[str, list[str]]:
+    """Légende TikTok/Instagram d'un Short en deux champs : description (réponse en une phrase en tête, la recherche
+    TikTok indexe le texte, + renvoi vers la bio) et hashtags (5 max)."""
     info = script.publish
-    tags = (info.hashtags or DEFAULT_HASHTAGS[script.product])[:5]
-    return f"{info.answer or script.title}\n\n{TIKTOK_CTA}\n{' '.join('#' + t for t in tags)}"
+    return f"{info.answer or script.title}\n\n{TIKTOK_CTA}", (info.hashtags or DEFAULT_HASHTAGS[script.product])[:5]
 
 
-def _tiktok_section(script: VideoScript, bdir: Path) -> str:
-    """Shorts uniquement : légende TikTok à coller + rappel des réglages à la publication."""
+def tiktok_caption(script: VideoScript) -> str:
+    """Légende complète (description + hashtags) à coller en un bloc."""
+    desc, tags = _social_parts(script)
+    return f"{desc}\n{' '.join('#' + t for t in tags)}"
+
+
+def _social_section(script: VideoScript, bdir: Path, name: str, date_line: str, settings: str) -> str:
+    """Shorts uniquement : section TikTok ou Instagram (même texte, même renvoi vers la bio) = description, hashtags, date."""
     if script.format != "short":
         return ""
-    cap = tiktok_caption(script)
-    return (f"\nTIKTOK — légende à coller ({len(cap)} caractères)\n{cap}\n"
-            f"Réglages : couverture = {tiktok_cover_path(bdir).name} · activer « Contenu généré par IA »\n")
-
-
-def _instagram_section(script: VideoScript, bdir: Path) -> str:
-    """Shorts uniquement : légende Reel (même texte que TikTok : même renvoi vers la bio) + rappel des réglages à la publication."""
-    if script.format != "short":
-        return ""
-    cap = tiktok_caption(script)
-    return (f"\nINSTAGRAM — légende à coller ({len(cap)} caractères)\n{cap}\n"
-            f"Réglages : couverture = {tiktok_cover_path(bdir).name} (format TikTok, recadrée au centre) · Reel partagé aussi sur le fil · "
-            f"indiquer le contenu généré par IA si l'option est proposée\n")
+    desc, tags = _social_parts(script)
+    return (f"\n=== {name} ===\n\nDESCRIPTION ({len(tiktok_caption(script))} caractères avec les hashtags)\n{desc}\n\n"
+            f"HASHTAGS ({len(tags)}/5)\n{' '.join('#' + t for t in tags)}\n\n"
+            f"DATE DE PROGRAMMATION\n{date_line}\n\nRéglages : {settings}\n")
 
 
 def playlist_key(script: VideoScript) -> str:
@@ -228,23 +225,32 @@ def _ab_section(script: VideoScript, bdir: Path) -> str:
 
 
 def studio_file(script: VideoScript, bdir: Path, publish_slot: str | None = None) -> Path:
-    """build/<id>/studio.txt : champs à copier dans YouTube Studio (titre, description, tags, playlist, vidéo associée,
-    commentaire, date de publication prévue ; Shorts : + légendes TikTok et Instagram). `publish_slot` est calculé par l'appelant (position dans le lot) —
+    """build/<id>/studio.txt, en 3 sections dans l'ordre de saisie des plateformes. YOUTUBE : titre, hashtags, description,
+    playlist, date, vidéo associée, (test A/B des longs), tags, commentaire à épingler. TIKTOK puis INSTAGRAM (Shorts) :
+    description, hashtags, date. `publish_slot` est calculé par l'appelant (position dans le lot ; `--start` fixe le 1er jour) —
     absent (None) hors génération de lot (`build` seul, `pack`, `studio --all`)."""
     t = texts(script, bdir, "youtube")
     files = [f.name for f in (bdir / "out.mp4", *(thumbnail_path(bdir, v) for v in range(variant_count(script))), tiktok_cover_path(bdir)) if f.exists()]
     short_title = "" if len(t["title"]) <= 60 else " — > 60 : tronqué sur mobile"
     date_line = publish_slot or "à définir (hors génération de lot via `cli.py week`)"
+    tags_yt = hashtags(script, "youtube")
     out = bdir / "studio.txt"
-    out.write_text(f"FICHIERS\n{' · '.join(files)}\n\nTITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
-                   f"DATE DE PUBLICATION PRÉVUE\n{date_line}\n\n"
+    out.write_text(f"FICHIERS\n{' · '.join(files)}\n\n=== YOUTUBE ===\n\n"
+                   f"TITRE ({len(t['title'])}/100{short_title})\n{t['title']}\n\n"
+                   f"HASHTAGS ({len(tags_yt)}/3 — déjà en dernière ligne de la description ; Studio n'a pas de champ à part, "
+                   f"les 3 premiers s'affichent au-dessus du titre)\n{' '.join('#' + h for h in tags_yt)}\n\n"
                    f"DESCRIPTION ({len(t['text'].split())} mots)\n{t['text']}\n\n"
+                   f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
+                   f"DATE DE PROGRAMMATION\n{date_line}\n\n"
+                   f"{_related_section(script)}\n\n"
                    f"{_ab_section(script, bdir)}"
                    f"TAGS ({len(t['tags'])}/8, séparés par des virgules)\n{', '.join(t['tags'])}\n\n"
-                   f"PLAYLIST (Studio > Contenu > Playlists)\n{PLAYLISTS[playlist_key(script)][0]}\n\n"
-                   f"{_related_section(script)}\n\n"
                    f"COMMENTAIRE À ÉPINGLER (poster depuis la chaîne, puis ⋮ > Épingler)\n{pinned_question(script)}\n"
-                   f"{_tiktok_section(script, bdir)}{_instagram_section(script, bdir)}", encoding="utf-8")
+                   + _social_section(script, bdir, "TIKTOK", date_line,
+                                     f"couverture = {tiktok_cover_path(bdir).name} · activer « Contenu généré par IA »")
+                   + _social_section(script, bdir, "INSTAGRAM", date_line,
+                                     f"couverture = {tiktok_cover_path(bdir).name} (format TikTok, recadrée au centre) · Reel partagé aussi sur le fil · "
+                                     "indiquer le contenu généré par IA si l'option est proposée"), encoding="utf-8")
     return out
 
 

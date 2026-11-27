@@ -37,7 +37,7 @@ python cli.py lint --publish                # GATE 1 : claims sourcées, status 
 python cli.py approve                       # GATE 1 : approuve les drafts déjà propres en lint --publish (`approve <id> --force` pour forcer un cas précis)
 python cli.py week --dry                    # essai SANS API de toutes les vidéos du lot
 python cli.py week                          # génère TOUTES les vidéos `approved` pas encore faites (Shorts puis Long en dernier ; ids possibles : week short-01 long-01)
-python cli.py studio --all                  # build/<id>/studio.txt : titre, date de publication prévue, description, tags, playlist, vidéo associée, commentaire à épingler
+python cli.py studio --all                  # build/<id>/studio.txt : 3 sections YOUTUBE (titre, hashtags, description, playlist, date, vidéo associée, tags, commentaire à épingler), TIKTOK et INSTAGRAM (description, hashtags, date)
 python cli.py studio --all --start 29/11    # idem, la 1re vidéo est publiée le 29/11, les suivantes un jour de plus chacune (aussi : week --start 29/11)
 python cli.py thumbnail --all               # miniatures de tout le lot (build/<id>/thumbnail.jpg ; Shorts : + tiktok_cover.jpg)
 ```

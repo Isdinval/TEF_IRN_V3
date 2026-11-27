@@ -93,7 +93,9 @@ def test_studio_file_short_has_tiktok_caption_and_long_has_none(tmp_path):
     out = publish.studio_file(sc, tmp_path).read_text(encoding="utf-8")
     cap = publish.tiktok_caption(sc)
     assert cap.splitlines() == ["Réponse courte.", "", publish.TIKTOK_CTA, "#A #B #C #D #E"]       # 5 hashtags max, réponse en tête
-    assert f"TIKTOK — légende à coller ({len(cap)} caractères)\n{cap}" in out and "tiktok_cover.jpg" in out and "IA" in out
+    tt = out.split("=== TIKTOK ===")[1].split("=== INSTAGRAM ===")[0]
+    assert tt.index("DESCRIPTION") < tt.index("HASHTAGS (5/5)\n#A #B #C #D #E") < tt.index("DATE DE PROGRAMMATION")
+    assert "Réponse courte.\n\n" + publish.TIKTOK_CTA in tt and "tiktok_cover.jpg" in tt and "IA" in tt
     assert "http" not in cap and "utm_" not in cap                                                  # lien non cliquable : renvoi vers la bio
     assert "TIKTOK" not in publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path).read_text(encoding="utf-8")
 
@@ -102,8 +104,9 @@ def test_studio_file_short_has_instagram_section_and_long_has_none(tmp_path):
     sc = _with(schema.find_script(config.SCRIPTS_DIR, "short-03"), answer="Réponse courte.", hashtags=["A", "B"])
     out = publish.studio_file(sc, tmp_path).read_text(encoding="utf-8")
     cap = publish.tiktok_caption(sc)
-    assert f"INSTAGRAM — légende à coller ({len(cap)} caractères)\n{cap}" in out
-    assert out.index("TIKTOK —") < out.index("INSTAGRAM —") and "tiktok_cover.jpg" in out.split("INSTAGRAM —")[1]
+    ig = out.split("=== INSTAGRAM ===")[1]
+    assert "Réponse courte." in ig and "HASHTAGS (2/5)\n#A #B" in ig and "tiktok_cover.jpg" in ig
+    assert out.index("=== TIKTOK ===") < out.index("=== INSTAGRAM ===")
     assert "INSTAGRAM" not in publish.studio_file(schema.find_script(config.SCRIPTS_DIR, "long-01"), tmp_path).read_text(encoding="utf-8")
 
 
@@ -111,3 +114,12 @@ def test_tiktok_caption_defaults_to_title_and_product_hashtags():
     sc = schema.find_script(config.SCRIPTS_DIR, "short-03").model_copy(update={"publish": schema.PublishInfo()})
     cap = publish.tiktok_caption(sc)
     assert cap.startswith(sc.title) and cap.splitlines()[-1] == " ".join("#" + t for t in publish.DEFAULT_HASHTAGS[sc.product][:5])
+
+
+def test_studio_file_youtube_section_order(tmp_path):
+    sc = _with(schema.find_script(config.SCRIPTS_DIR, "short-03"), answer="Réponse courte.", hashtags=["A", "B", "C"])
+    out = publish.studio_file(sc, tmp_path, publish_slot="29/11/2026 (dimanche) à 11h00").read_text(encoding="utf-8")
+    order = ["=== YOUTUBE ===", "\nTITRE (", "\nHASHTAGS (3/3", "\nDESCRIPTION (", "\nPLAYLIST (", "\nDATE DE PROGRAMMATION\n29/11/2026",
+             "\nVIDÉO ASSOCIÉE", "\nTAGS (", "\nCOMMENTAIRE À ÉPINGLER", "=== TIKTOK ===", "=== INSTAGRAM ==="]
+    pos = [out.index(k) for k in order]
+    assert pos == sorted(pos)
